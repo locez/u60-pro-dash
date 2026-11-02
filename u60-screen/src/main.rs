@@ -3,6 +3,7 @@ mod app;
 mod config;
 #[cfg(feature = "device")]
 mod device;
+mod features;
 mod platform;
 mod security;
 
@@ -18,6 +19,7 @@ struct Options {
     demo: bool,
     local_agent: bool,
     probe: bool,
+    probe_features: bool,
     set_probe_target: Option<String>,
     check_target: Option<std::net::SocketAddr>,
     device: bool,
@@ -44,6 +46,7 @@ fn options() -> Result<Options> {
             "--demo" => opts.demo = true,
             "--local-agent" => opts.local_agent = true,
             "--probe-agent" => opts.probe = true,
+            "--probe-features" => opts.probe_features = true,
             "--set-probe-target" => opts.set_probe_target = Some(value()?),
             "--check-target" => opts.check_target = Some(agent::connectivity::target(&value()?)?),
             "--device" => opts.device = true,
@@ -82,6 +85,7 @@ fn options() -> Result<Options> {
                     --demo                Use demonstration data, also on device\n\
                     --local-agent         Authenticate with the on-device agent process\n\
                     --probe-agent         Check login and live topics without taking the display\n\n\
+                    --probe-features      Read implemented feature contracts; print counts only\n\n\
                     --set-probe-target IP:PORT  Save a target with --prefs; empty disables probing\n\
                     --check-target IP:PORT      Check this host's tunnel route and TCP port; no display\n\n\
                     Desktop: arrows navigate; Escape goes back; Space sleeps/wakes.\n\
@@ -95,7 +99,8 @@ fn options() -> Result<Options> {
     if opts.device && opts.screenshot.is_some() {
         bail!("--device and --screenshot are mutually exclusive");
     }
-    if opts.demo && (opts.agent.is_some() || opts.local_agent || opts.probe) {
+    if opts.demo && (opts.agent.is_some() || opts.local_agent || opts.probe || opts.probe_features)
+    {
         bail!("--demo cannot be combined with agent options");
     }
     let maintenance = opts.set_probe_target.is_some() || opts.check_target.is_some();
@@ -103,6 +108,7 @@ fn options() -> Result<Options> {
         && (opts.device
             || opts.screenshot.is_some()
             || opts.probe
+            || opts.probe_features
             || opts.agent.is_some()
             || opts.local_agent
             || opts.demo
@@ -127,7 +133,11 @@ fn main() -> Result<()> {
         return Ok(());
     }
     let agent = (!opts.demo
-        && (opts.device || opts.agent.is_some() || opts.local_agent || opts.probe))
+        && (opts.device
+            || opts.agent.is_some()
+            || opts.local_agent
+            || opts.probe
+            || opts.probe_features))
         .then(|| agent::Config {
             address: opts
                 .agent
@@ -140,6 +150,9 @@ fn main() -> Result<()> {
         });
     if opts.probe {
         return agent::probe(agent.expect("probe configuration"));
+    }
+    if opts.probe_features {
+        return features::probe(agent.expect("feature probe configuration"));
     }
     let mut prefs = match &opts.prefs {
         Some(path) if path.exists() => Preferences::load(path)
@@ -294,6 +307,24 @@ mod tests {
         assert_ne!(light[0].0, initial[0].0);
         app.ui.invoke_accent("#d97706".into());
         assert_eq!(app.state.borrow().prefs.accent, "#d97706");
+        app.feature_fixture("charge",serde_json::json!({"charge_limit_enabled":true,"charge_limit":80,"hysteresis":5,"charging_stopped":false}));
+        assert_eq!(app.ui.get_feature_fields().row_count(), 4);
+        app.ui.invoke_feature_edit(0);
+        assert!(app.ui.get_choice_visible());
+        platform::capture(&window, false);
+        tap(140., 90.);
+        assert!(!app.ui.get_choice_visible());
+        assert_eq!(
+            app.ui.get_feature_fields().row_data(0).unwrap().subtitle,
+            "关闭"
+        );
+        app.ui.invoke_feature_action(0);
+        assert!(app.ui.get_confirm_visible());
+        assert!(app.ui.get_confirm_body().contains("关闭"));
+        app.ui.invoke_confirm_cancel();
+        assert!(!app.ui.get_confirm_visible());
+        assert!(!app.ui.get_feature_busy());
+        app.open("overview")?;
         app.ui.invoke_edit("probe-target".into());
         platform::capture(&window, false);
         // Touch-key events must reach TextInput without triggering navigation.

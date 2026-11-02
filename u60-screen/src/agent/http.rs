@@ -164,9 +164,11 @@ async fn data(mut response: Response) -> Result<Value, Error> {
         body.extend_from_slice(&chunk);
     }
     let mut envelope: Value = serde_json::from_slice(&body).map_err(|_| Error::InvalidResponse)?;
-    if envelope["ok"] != true || envelope.get("data").is_none() {
+    if envelope["ok"] != true {
         return Err(Error::InvalidResponse);
     }
+    // Several command endpoints acknowledge with {ok:true} and no data.
+    // Readers still validate their required fields before offering edits.
     Ok(envelope["data"].take())
 }
 
@@ -184,6 +186,7 @@ mod tests {
                 (200, r#"{"ok":true,"data":{"capacity":73}}"#),
                 (401, "private response"),
                 (302, "private response"),
+                (200, r#"{"ok":true}"#),
             ] {
                 let (mut socket, _) = listener.accept().unwrap();
                 socket
@@ -225,6 +228,12 @@ mod tests {
                     api.call("test-token", Method::GET, "/api/battery", None)
                         .await,
                     Err(Error::Rejected(302))
+                );
+                assert_eq!(
+                    api.call("test-token", Method::POST, "/api/dns/cache/clear", None)
+                        .await
+                        .unwrap(),
+                    Value::Null
                 );
             });
         server.join().unwrap();

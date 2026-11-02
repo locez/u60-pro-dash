@@ -1,5 +1,5 @@
 use crate::{
-    MenuEntry, Palette, Reading, Screen,
+    FeatureAction, MenuEntry, Palette, Reading, Screen,
     config::{Preferences, parse_color, readable_accent},
 };
 use anyhow::{Result, bail};
@@ -61,6 +61,8 @@ enum Editor {
     AgentLogin,
     ProbeTarget,
     Accent,
+    Feature(usize),
+    Confirmation,
 }
 
 pub struct State {
@@ -69,6 +71,9 @@ pub struct State {
     network: crate::agent::network::Network,
     network_rows: Vec<(String, String)>,
     editor: Option<Editor>,
+    features: crate::features::controller::Controller,
+    feature_revision: u64,
+    choice_field: Option<usize>,
     pub security: crate::security::ScreenLock,
     pub prefs: Preferences,
     prefs_path: Option<PathBuf>,
@@ -114,6 +119,11 @@ fn text<'a>(v: &'a Value, key: &str) -> &'a str {
 
 impl State {
     fn show(&mut self, ui: &Screen, id: &str, push: bool) -> Result<()> {
+        if id != self.page {
+            self.features.cancel();
+            ui.set_choice_visible(false);
+            ui.set_confirm_visible(false);
+        }
         let title;
         let mut view = 1;
         let mut entries = Vec::new();
@@ -308,7 +318,13 @@ impl State {
                         readings.clear();
                         entries.clear();
                         actions.clear();
-                        note = "正在接入此功能，当前尚不能操作。".into();
+                        if self.features.open(id) {
+                            view = 7;
+                            self.feature_revision = u64::MAX;
+                            note.clear();
+                        } else {
+                            note = "正在接入此功能，当前尚不能操作。".into();
+                        }
                     }
                 } else {
                     bail!("unknown screen page: {id}");
@@ -365,6 +381,9 @@ impl State {
             || ui.get_asleep()
         {
             self.close_editor(ui);
+            ui.set_choice_visible(false);
+            ui.set_confirm_visible(false);
+            ui.set_confirm_word("".into());
         }
         use crate::security::Mode;
         let s = &self.security;
@@ -491,6 +510,9 @@ impl State {
         }
         let on_network = self.page == "tailscale-network";
         for reply in agent.replies() {
+            if self.features.receive(reply.id, reply.result.clone()) {
+                continue;
+            }
             if reply.id == 1 {
                 // Replies from a previous login or a sleeping screen do not
                 // establish fresh service status for the active session.
@@ -526,6 +548,9 @@ impl State {
                 self.network.accept_status(Err(error));
             }
         }
+        self.features
+            .tick(agent, active && ui.get_view() == 7, snapshot.authenticated);
+        self.render_features(ui);
         ui.set_tailnet_status(self.network.label().into());
         ui.set_tailnet_online(self.network.online());
         let rows = self.network.rows(&self.prefs.probe_target);
@@ -538,13 +563,125 @@ impl State {
         ui.set_probe_note("仅在此页亮屏解锁时检测，每 30 秒更新，结果有效期 60 秒。TCP 检测从 U60 发起；热点客户端仍需实际访问验证。".into());
     }
 
+    fn render_features(&mut self, ui: &Screen) {
+        if ui.get_view() != 7 {
+            return;
+        }
+        ui.set_feature_busy(self.features.busy());
+        ui.set_feature_notice(self.features.notice.clone().into());
+        if self.feature_revision == self.features.revision {
+            return;
+        }
+        self.feature_revision = self.features.revision;
+        let page = &self.features.page;
+        ui.set_readings(model(
+            page.rows.iter().map(|(k, v)| reading(k, v)).collect(),
+        ));
+        ui.set_feature_fields(model(
+            page.fields
+                .iter()
+                .enumerate()
+                .map(|(i, f)| {
+                    entry(
+                        &i.to_string(),
+                        &f.label,
+                        &f.display(),
+                        if f.dirty() { "已改" } else { "" },
+                    )
+                })
+                .collect(),
+        ));
+        ui.set_feature_actions(model(
+            page.actions
+                .iter()
+                .map(|a| FeatureAction {
+                    label: a.label.clone().into(),
+                    enabled: a.enabled,
+                })
+                .collect(),
+        ));
+        ui.set_entries(model(
+            page.items
+                .iter()
+                .enumerate()
+                .map(|(i, item)| {
+                    entry(
+                        &format!("feature-item:{i}"),
+                        &item.title,
+                        &item.subtitle,
+                        "",
+                    )
+                })
+                .collect(),
+        ));
+        ui.set_note(page.note.clone().into());
+    }
+    fn edit_feature(&mut self, ui: &Screen, index: usize) {
+        if self.features.busy() {
+            return;
+        }
+        let Some(field) = self.features.page.fields.get(index) else {
+            return;
+        };
+        if !field.available {
+            ui.set_message("此设置当前不可用，请先刷新。".into());
+            return;
+        }
+        if !field.choices.is_empty() {
+            self.choice_field = Some(index);
+            ui.set_choice_title(field.label.clone().into());
+            ui.set_choices(model(
+                field
+                    .choices
+                    .iter()
+                    .enumerate()
+                    .map(|(i, c)| {
+                        entry(
+                            &i.to_string(),
+                            &c.label,
+                            "",
+                            if c.value == field.value { "●" } else { "" },
+                        )
+                    })
+                    .collect(),
+            ));
+            ui.set_choice_visible(true);
+        } else {
+            self.editor = Some(Editor::Feature(index));
+            ui.set_editor_title(field.label.clone().into());
+            ui.set_editor_hint(
+                if field.secret {
+                    "输入新值；留空保持不变。"
+                } else {
+                    "修改后点完成，再在页面中保存。"
+                }
+                .into(),
+            );
+            ui.set_editor_value(field.value.clone().into());
+            ui.set_editor_secret(field.secret);
+            ui.set_editor_layout(if field.range.is_some() { 1 } else { 0 });
+            ui.set_editor_error("".into());
+            ui.set_editor_visible(true);
+        }
+    }
     fn close_editor(&self, ui: &Screen) {
         ui.set_editor_visible(false);
         ui.set_editor_value("".into());
         ui.set_editor_error("".into());
     }
     fn edit(&mut self, ui: &Screen, kind: &str) {
+        if ui.get_confirm_visible() && kind != "confirmation" {
+            return;
+        }
         let (purpose, title, hint, value, secret, layout) = match kind {
+            "confirmation" => (
+                Editor::Confirmation,
+                "确认操作",
+                "输入页面提示的确认文字。",
+                String::new(),
+                false,
+                0,
+            ),
             "agent-login" => (
                 Editor::AgentLogin,
                 "后台密码",
@@ -616,6 +753,20 @@ impl State {
                 self.prefs.accent = value.trim().into();
                 self.persist(ui);
             }
+            Some(Editor::Feature(index)) => {
+                if let Err(error) = self.features.edit(index, value.to_string()) {
+                    ui.set_editor_error(error.to_string().into());
+                    return;
+                }
+                self.render_features(ui);
+            }
+            Some(Editor::Confirmation) => {
+                if value.as_str() != ui.get_confirm_phrase().as_str() {
+                    ui.set_editor_error("确认文字不匹配。".into());
+                    return;
+                }
+                ui.set_confirm_word(value.to_string().into());
+            }
             None => return,
         }
         self.editor = None;
@@ -632,6 +783,9 @@ impl App {
             network: crate::agent::network::Network::default(),
             network_rows: Vec::new(),
             editor: None,
+            features: crate::features::controller::Controller::default(),
+            feature_revision: u64::MAX,
+            choice_field: None,
             security: crate::security::ScreenLock::load(prefs_path.as_ref().map(|p| {
                 p.with_file_name(".screen-private")
                     .join("screen-lock.private.json")
@@ -662,6 +816,8 @@ impl App {
                             return;
                         }
                         if $u.get_editor_visible() && !matches!(stringify!($method), "on_power" | "on_activity" | "on_editor_submit" | "on_editor_cancel") { return; }
+                        if $u.get_choice_visible() && !matches!(stringify!($method), "on_power" | "on_activity" | "on_choose" | "on_choice_cancel") { return; }
+                        if $u.get_confirm_visible() && !matches!(stringify!($method), "on_power" | "on_activity" | "on_confirm_accept" | "on_confirm_cancel" | "on_edit" | "on_editor_submit" | "on_editor_cancel") { return; }
                         $s.last_input = Instant::now();
                         $body
                         $s.sync_security(&$u);
@@ -719,6 +875,65 @@ impl App {
                 let _ = agent.retry();
             }
             s.network.refresh();
+        });
+        bind!(on_feature_edit, |s, u, index| {
+            if let Ok(index) = usize::try_from(index) {
+                s.edit_feature(&u, index);
+            }
+        });
+        bind!(on_choose, |s, u, index| {
+            if let Some(field) = s.choice_field
+                && let Ok(index) = usize::try_from(index)
+                && let Some(choice) = s
+                    .features
+                    .page
+                    .fields
+                    .get(field)
+                    .and_then(|f| f.choices.get(index))
+            {
+                let value = choice.value.clone();
+                if let Err(error) = s.features.edit(field, value) {
+                    u.set_message(error.to_string().into());
+                }
+            }
+            s.choice_field = None;
+            u.set_choice_visible(false);
+            s.render_features(&u);
+        });
+        bind!(on_choice_cancel, |s, u| {
+            s.choice_field = None;
+            u.set_choice_visible(false);
+        });
+        bind!(on_feature_action, |s, u, index| {
+            if let Ok(index) = usize::try_from(index) {
+                match s.features.prepare(index) {
+                    Ok(()) => {
+                        if let Some(plan) = &s.features.confirmation {
+                            u.set_confirm_body(plan.summary.clone().into());
+                            u.set_confirm_phrase(plan.phrase.clone().unwrap_or_default().into());
+                            u.set_confirm_word("".into());
+                            u.set_confirm_visible(true);
+                        }
+                    }
+                    Err(error) => u.set_message(error.to_string().into()),
+                }
+            }
+        });
+        bind!(on_feature_refresh, |s, u| {
+            s.features.refresh_preserving_draft();
+            s.render_features(&u);
+        });
+        bind!(on_confirm_accept, |s, u| {
+            if let Err(error) = s.features.confirm(&u.get_confirm_word()) {
+                u.set_message(error.to_string().into());
+            }
+            u.set_confirm_visible(false);
+            u.set_confirm_word("".into());
+        });
+        bind!(on_confirm_cancel, |s, u| {
+            s.features.confirmation = None;
+            u.set_confirm_visible(false);
+            u.set_confirm_word("".into());
         });
         bind!(on_edit, |s, u, kind| {
             s.edit(&u, &kind);
@@ -788,6 +1003,7 @@ impl App {
         bind!(on_power, |s, u| {
             if !u.get_asleep() {
                 s.security.lock();
+                s.features.suspend();
             }
             u.set_asleep(!u.get_asleep());
         });
@@ -827,6 +1043,7 @@ impl App {
         });
         bind!(on_lock_now, |s, _u| {
             s.security.lock();
+            s.features.suspend();
         });
         bind!(on_activity, |_s, _u| {});
         bind!(on_scenario, |s, u| {
@@ -881,6 +1098,14 @@ impl App {
         self.ui.set_tailnet_readings(model(vec![]));
         state.update_agent(&self.ui);
         Ok(())
+    }
+    #[cfg(test)]
+    pub fn feature_fixture(&self, id: &str, value: Value) {
+        let mut state = self.state.borrow_mut();
+        state.features.seed(id, value);
+        state.feature_revision = u64::MAX;
+        self.ui.set_view(7);
+        state.render_features(&self.ui);
     }
     #[cfg(feature = "device")]
     pub fn activity(&self) {

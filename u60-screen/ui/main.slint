@@ -5,6 +5,7 @@ import "../assets/U60Sans.ttf";
 export { Palette }
 export struct MenuEntry { id: string, title: string, subtitle: string, tag: string }
 export struct Reading { label: string, value: string }
+export struct FeatureAction { label: string, enabled: bool }
 
 export component Screen inherits Window {
     width: 320px; height: 480px;
@@ -21,6 +22,24 @@ export component Screen inherits Window {
     in-out property <[MenuEntry]> entries;
     in-out property <[Reading]> readings;
     in-out property <[string]> actions;
+    in-out property <[MenuEntry]> feature-fields;
+    in-out property <[FeatureAction]> feature-actions;
+    in-out property <bool> feature-busy;
+    in-out property <string> feature-notice;
+    in-out property <bool> choice-visible;
+    in-out property <string> choice-title;
+    in-out property <[MenuEntry]> choices;
+    in-out property <bool> confirm-visible;
+    in-out property <string> confirm-body;
+    in-out property <string> confirm-phrase;
+    in-out property <string> confirm-word;
+    callback feature-edit(int);
+    callback feature-action(int);
+    callback feature-refresh;
+    callback choose(int);
+    callback choice-cancel;
+    callback confirm-accept;
+    callback confirm-cancel;
     in-out property <string> description;
     in-out property <string> note;
     in-out property <bool> asleep: false;
@@ -107,6 +126,11 @@ export component Screen inherits Window {
             if root.editor-visible {
                 if event.text == Key.Escape { root.editor-cancel(); return accept; }
                 return reject;
+            }
+            if root.choice-visible || root.confirm-visible {
+                if event.text == Key.Escape { root.choice-cancel(); root.confirm-cancel(); return accept; }
+                if event.text == " " { root.power(); return accept; }
+                return accept;
             }
             if event.text == " " { root.power(); return accept; }
             if root.locked { return accept; }
@@ -259,6 +283,29 @@ export component Screen inherits Window {
                     Label { text: "启动与熄屏后自动锁定。开启密码后，更改或关闭密码需要先验证当前密码。"; font-size: 14px; color: Palette.muted; wrap: word-wrap; }
                     if root.pin-message != "": Label { text: root.pin-message; color: Palette.good; wrap: word-wrap; }
                 }
+                if root.view == 7: VerticalLayout {
+                    spacing: 8px;
+                    if root.feature-notice != "": Label { text: root.feature-notice; color: Palette.warning; wrap: word-wrap; overflow: clip; font-size: 14px; }
+                    for row in root.readings: Rectangle {
+                        min-height: 62px; background: Palette.surface; border-radius: 8px;
+                        VerticalLayout {
+                            padding: 12px; spacing: 4px;
+                            Label { text: row.label; color: Palette.muted; font-size: 13px; }
+                            Label { text: row.value; wrap: word-wrap; overflow: clip; }
+                        }
+                    }
+                    for field[index] in root.feature-fields: MenuRow {
+                        title: field.title; subtitle: field.subtitle; tag: field.tag;
+                        clicked => { root.feature-edit(index); }
+                    }
+                    for entry in root.entries: MenuRow { title: entry.title; subtitle: entry.subtitle; tag: entry.tag; clicked => { root.open(entry.id); } }
+                    for action[index] in root.feature-actions: TapButton {
+                        text: action.label; interactive: action.enabled && !root.feature-busy;
+                        clicked => { root.feature-action(index); }
+                    }
+                    TapButton { text: root.feature-busy ? "正在处理…" : "刷新状态"; interactive: !root.feature-busy; clicked => { root.feature-refresh(); } }
+                    if root.note != "": Label { text: root.note; font-size: 13px; color: Palette.muted; wrap: word-wrap; overflow: clip; }
+                }
             }
         }
         Rectangle {
@@ -275,6 +322,39 @@ export component Screen inherits Window {
                     if root.tab == index: Rectangle { x: (parent.width - 18px) / 2; y: 0px; height: 2px; width: 18px; background: Palette.accent; }
                     TouchArea { clicked => { root.navigate(index); } }
                 }
+            }
+        }
+        if root.choice-visible: Rectangle {
+            width: parent.width; height: parent.height; background: Palette.bg;
+            TouchArea { }
+            Label { x: 12px; y: 12px; width: 296px; height: 36px; text: root.choice-title; font-size: 22px; font-weight: 650; }
+            Flickable {
+                x: 12px; y: 58px; width: 296px; height: 352px; content-width: self.width; content-height: options.height;
+                options := VerticalLayout {
+                    width: 296px; height: self.preferred-height; spacing: 8px;
+                    for choice[index] in root.choices: MenuRow { title: choice.title; subtitle: choice.subtitle; tag: choice.tag; clicked => { root.choose(index); } }
+                }
+            }
+            TapButton { x: 12px; y: 424px; width: 296px; height: 44px; text: "取消"; clicked => { root.choice-cancel(); } }
+        }
+        if root.confirm-visible: Rectangle {
+            width: parent.width; height: parent.height; background: Palette.bg;
+            TouchArea { }
+            Label { x: 12px; y: 12px; width: 296px; height: 36px; text: "确认操作"; font-size: 22px; font-weight: 650; }
+            Flickable {
+                x: 12px; y: 58px; width: 296px; height: root.confirm-phrase == "" ? 348px : 280px;
+                content-width: self.width; content-height: confirmation-text.height;
+                confirmation-text := Label { width: 296px; text: root.confirm-body; wrap: word-wrap; overflow: clip; font-size: 16px; }
+            }
+            if root.confirm-phrase != "": MenuRow {
+                x: 12px; y: 342px; width: 296px;
+                title: "输入 " + root.confirm-phrase + " 确认"; subtitle: root.confirm-word;
+                clicked => { root.edit("confirmation"); }
+            }
+            HorizontalLayout {
+                x: 12px; y: 424px; width: 296px; height: 44px; spacing: 8px;
+                TapButton { text: "取消"; clicked => { root.confirm-cancel(); } }
+                TapButton { text: "确认执行"; selected: true; interactive: root.confirm-word == root.confirm-phrase; clicked => { root.confirm-accept(); } }
             }
         }
         if root.message != "": Rectangle {

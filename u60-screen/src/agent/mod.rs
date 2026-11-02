@@ -97,6 +97,7 @@ fn status(shared: &Shared, status: Status) {
     update(shared, |s| s.status = status);
 }
 
+#[derive(Clone, Debug)]
 pub struct Request {
     pub method: Method,
     pub path: String,
@@ -108,6 +109,13 @@ impl Request {
             method: Method::GET,
             path: path.into(),
             body: None,
+        }
+    }
+    pub fn json(method: Method, path: &str, body: Value) -> Self {
+        Self {
+            method,
+            path: path.into(),
+            body: Some(body),
         }
     }
 }
