@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>U60 · 自定义小屏预览</title>
+  <link rel="stylesheet" href="workbench.css">
+  <link rel="stylesheet" href="screen.css">
+  <script src="appearance.js" defer></script>
+  <script src="catalog.js" defer></script>
+  <script src="catalog-apps.js" defer></script>
+  <script src="feature-ui.js" defer></script>
+  <script src="preview.js" defer></script>
+</head>
+<body>
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-network" viewBox="0 0 24 24"><path d="M4 20v-4m5 4v-8m5 8V8m5 12V4"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7M5 9v11h5v-6h4v6h5V9"/></symbol>
+    <symbol id="i-device" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 18h4M10 6h4"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M3 8a14 14 0 0 1 18 0M6 12a9 9 0 0 1 12 0m-9 4a4 4 0 0 1 6 0"/><circle cx="12" cy="20" r=".7"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="m14 5-7 7 7 7"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v16m-6-6 6 6 6-6"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 20V4m-6 6 6-6 6 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></symbol>
+    <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 2v10m-5-7a9 9 0 1 0 10 0"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5M5 7a8 8 0 0 1 13-2l2 3M4 16l2 3a8 8 0 0 0 13-2"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1 1m12 12 1 1M5 19l1-1M18 6l1-1"/></symbol>
+    <symbol id="i-apps" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-message" viewBox="0 0 24 24"><path d="M4 4h16v13H8l-4 4ZM8 8h8M8 12h5"/></symbol>
+    <symbol id="i-sim" viewBox="0 0 24 24"><path d="M8 3h10v18H6V5Z"/><rect x="9" y="10" width="6" height="7" rx="1"/><path d="M12 10v7M9 13h6"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="m5 3 4 1 1 5-3 1c1 3 4 6 7 7l1-3 5 1 1 4c-1 5-7 2-11-2S0 4 5 3Z"/></symbol>
+    <symbol id="i-tools" viewBox="0 0 24 24"><path d="M15 3a6 6 0 0 0-6 8L3 17l4 4 6-6a6 6 0 0 0 8-6l-4 3-4-4 3-5Z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></symbol>
+  </svg>
+
+  <div class="workbench">
+    <header class="masthead">
+      <a class="brand" href="index.html" aria-label="U60 小屏预览首页"><span class="brand-mark">U<span>60</span></span><span>OPEN U60 <span class="brand-slash">/</span> DISPLAY</span></a>
+      <span class="edition">本地交互原型 <span class="mono">01</span></span>
+    </header>
+
+    <main class="workspace">
+      <aside class="controls" aria-label="预览控制">
+        <p class="eyebrow">你的设备，你的界面</p>
+        <h1>随身网络，<br>一眼掌握。</h1>
+        <p class="intro">将现有管理功能带到机身屏幕。<br>从日常连接，到每一项进阶设置。</p>
+
+        <section class="control-section">
+          <h2><span class="section-number">01</span> 浏览页面</h2>
+          <div class="page-picker" role="group" aria-label="选择预览页面">
+            <button type="button" data-page="network" aria-pressed="true"><svg class="icon"><use href="#i-home"/></svg><span>概览<span>连接与回家状态</span></span><svg class="icon chevron"><use href="#i-arrow"/></svg></button>
+            <button type="button" data-page="network-menu" aria-pressed="false"><svg class="icon"><use href="#i-network"/></svg><span>网络<span>无线、蜂窝与路由</span></span><svg class="icon chevron"><use href="#i-arrow"/></svg></button>
+            <button type="button" data-page="apps" aria-pressed="false"><svg class="icon"><use href="#i-apps"/></svg><span>应用<span>短信、SIM、工具与自动化</span></span><svg class="icon chevron"><use href="#i-arrow"/></svg></button>
+            <button type="button" data-page="device" aria-pressed="false"><svg class="icon"><use href="#i-device"/></svg><span>设备<span>电源、屏幕与系统</span></span><svg class="icon chevron"><use href="#i-arrow"/></svg></button>
+          </div>
+        </section>
+
+        <section class="control-section feature-browser">
+          <h2><span class="section-number">02</span> 功能直达 <span id="feature-count" class="feature-count"></span></h2>
+          <input id="feature-search" type="search" placeholder="搜索功能：锁频、短信、充电…" aria-label="搜索全部功能">
+          <div id="feature-results" class="feature-results" aria-label="功能搜索结果"></div>
+        </section>
+        <section class="control-section scenario-section">
+          <h2><span class="section-number">03</span> 切换演示场景</h2>
+          <div class="scenario-picker" role="group" aria-label="演示场景">
+            <button type="button" data-scenario="normal" aria-pressed="true"><i class="status-dot good"></i>网络正常</button>
+            <button type="button" data-scenario="home-offline" aria-pressed="false"><i class="status-dot warning"></i>家庭离线</button>
+            <button type="button" data-scenario="no-internet" aria-pressed="false"><i class="status-dot bad"></i>蜂窝断开</button>
+            <button type="button" data-scenario="low-battery" aria-pressed="false"><i class="status-dot warning"></i>低电量</button>
+          </div>
+          <p id="scenario-description" class="control-note">蜂窝网络正常，热点设备可以访问家庭内网。</p>
+        </section>
+
+        <section class="control-section presentation-controls">
+          <h2><span class="section-number">04</span> 调整预览</h2>
+          <div class="control-line"><span>屏幕主题</span><div class="segmented" role="group" aria-label="屏幕主题"><button type="button" data-theme="dark" aria-pressed="true">深色</button><button type="button" data-theme="light" aria-pressed="false">浅色</button></div></div>
+          <fieldset class="accent-controls">
+            <legend>强调色 <span>明暗与配色分别调整</span></legend>
+            <div id="accent-presets" class="accent-presets" role="group" aria-label="预设强调色"></div>
+            <div class="custom-accent">
+              <label for="accent-picker">自选颜色</label>
+              <input id="accent-picker" type="color" value="#2563eb" aria-label="自选强调色">
+              <input id="accent-hex" class="mono" type="text" value="#2563EB" spellcheck="false" autocomplete="off" maxlength="7" aria-label="强调色 HEX 色值" aria-describedby="accent-help">
+            </div>
+            <p id="accent-help" class="palette-note" aria-live="polite">即时生效 · 自动记住配色</p>
+            <button id="reset-accent" class="text-button" type="button">恢复默认蓝色</button>
+          </fieldset>
+          <div class="control-line"><span>动态速率</span><button id="motion-toggle" class="switch" type="button" role="switch" aria-label="动态速率演示" aria-checked="true"><span></span></button></div>
+          <button type="button" id="reset-preview" class="text-button"><svg class="icon"><use href="#i-refresh"/></svg>还原演示</button>
+        </section>
+      </aside>
+
+      <section class="preview-stage" aria-label="U60 Pro 屏幕原型">
+        <div class="stage-topline"><span><i class="status-dot good"></i> 可交互预览</span><span class="mono">320 × 480 PX</span></div>
+        <div class="device-platform">
+          <div class="device-shell">
+            <div class="device-top"><span class="device-led"></span><span class="mono">U60 PRO</span></div>
+            <button type="button" id="physical-power" class="physical-power" aria-label="模拟电源键：关闭屏幕" title="模拟电源键"></button>
+            <div id="device-screen" class="device-screen" data-theme="dark" aria-label="320×480 设备屏幕">
+              <div id="awake-ui" class="awake-ui">
+                <header class="statusbar"><span id="screen-clock" class="mono">09:41</span><div class="statusbar-right"><span id="status-network">5G</span><svg class="icon wifi-icon"><use href="#i-wifi"/></svg><span id="battery-percent" class="mono">82%</span><span class="battery-icon"><span id="battery-fill"></span></span></div></header>
+
+                <section class="screen-page network-page" id="page-network" aria-labelledby="network-heading">
+                  <div class="screen-heading"><div><p class="screen-overline">随身连接</p><h2 id="network-heading">移动网络</h2></div><span id="network-badge" class="badge good">已连接</span></div>
+                  <div class="network-caption"><span id="operator-name">示例运营商</span><span id="radio-label" class="mono">5G SA · n78</span></div>
+                  <div class="download-block"><div class="metric-label"><svg class="icon"><use href="#i-down"/></svg>下载速率</div><div class="speed-reading"><strong id="download-rate" class="mono">128.6</strong><span>Mbps</span></div></div>
+                  <div class="traffic-line"><span><svg class="icon"><use href="#i-up"/></svg>上传 <b id="upload-rate" class="mono">16.4</b><small> Mbps</small></span><span class="chart-label">最近 30 秒</span></div>
+                  <div class="chart-wrap" aria-label="模拟下载速率曲线"><svg id="traffic-chart" viewBox="0 0 288 48" preserveAspectRatio="none" role="img" aria-label="最近 30 秒的演示下载速率"><path class="chart-grid" d="M0 12H288M0 36H288"/><path id="chart-area" class="chart-area"/><path id="chart-line" class="chart-line"/></svg><span id="chart-empty" hidden>暂无网络数据</span></div>
+                  <button type="button" class="signal-row" data-open="signal" aria-label="查看信号详情"><span>信号 <b id="signal-quality">良好</b></span><span class="mono"><b id="signal-rsrp">−86</b><small> dBm</small></span><svg class="icon"><use href="#i-arrow"/></svg></button>
+                  <div class="network-foot"><span><svg class="icon"><use href="#i-wifi"/></svg>热点已开启</span><span><b class="mono">3</b> 台在线</span></div>
+                  <button type="button" class="home-shortcut" data-page="home"><span class="shortcut-icon"><svg class="icon"><use href="#i-home"/></svg></span><span><b id="home-shortcut-title">家庭内网可达</b><small id="home-shortcut-sub">192.168.1.0/24</small></span><svg class="icon"><use href="#i-arrow"/></svg></button>
+                </section>
+
+                <section class="screen-page home-page" id="page-home" aria-labelledby="home-heading" hidden>
+                  <div class="screen-heading"><div><p class="screen-overline">随时回到家</p><h2 id="home-heading">回家通道</h2></div><span id="home-badge" class="badge good">可访问</span></div>
+                  <div class="route-map" aria-label="U60 经 Tailscale 连接家庭节点"><div><span class="map-node"><svg class="icon"><use href="#i-device"/></svg></span><span>这台 U60</span></div><span id="route-link-a" class="route-link"><i></i></span><div><span class="map-node tailscale-mark"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span>Tailscale</span></div><span id="route-link-b" class="route-link"><i></i></span><div><span id="home-map-node" class="map-node"><svg class="icon"><use href="#i-home"/></svg></span><span>家中节点</span></div></div>
+                  <p id="home-message" class="home-message">连上热点，就能回家。</p>
+                  <p id="home-explanation" class="home-explanation">热点里的设备可直接访问家庭内网。</p>
+                  <dl class="home-details"><div><dt>Tailscale</dt><dd id="tailscale-state" class="tone-good">已连接</dd></div><div><dt>家庭节点</dt><dd id="home-peer-state">在线</dd></div><div class="route-detail"><dt>家庭网段</dt><dd class="mono">192.168.1.0/24</dd></div></dl>
+                  <button type="button" id="probe-home" class="primary-button"><svg class="icon"><use href="#i-refresh"/></svg><span id="probe-label">检测家庭连通性</span></button>
+                  <p id="probe-result" class="probe-result" aria-live="polite">尚未检测</p>
+                  <button type="button" class="inline-feature-link" data-group="tailscale">Tailscale 服务与设置 <svg class="icon"><use href="#i-arrow"/></svg></button>
+                </section>
+
+                <section class="screen-page device-page" id="page-device" aria-labelledby="device-heading" hidden>
+                  <div class="screen-heading"><div><p class="screen-overline">保持好状态</p><h2 id="device-heading">设备</h2></div><span class="badge neutral">U60 PRO</span></div>
+                  <div class="battery-panel"><div><p>剩余电量</p><div class="battery-reading"><strong id="device-battery" class="mono">82</strong><span>%</span></div></div><div class="battery-meta"><span id="battery-state">电池供电</span><span><b id="battery-temp" class="mono">32.7</b> ℃</span></div></div>
+                  <div class="battery-track"><span id="device-battery-fill"></span></div>
+                  <p id="battery-message" class="battery-message">电量充足，继续出发。</p>
+                  <div class="setting-row"><label for="brightness"><svg class="icon"><use href="#i-sun"/></svg>屏幕亮度</label><output id="brightness-value" for="brightness" class="mono">80%</output></div>
+                  <input id="brightness" class="brightness-slider" type="range" min="20" max="100" value="80" aria-label="模拟屏幕亮度">
+                  <div class="setting-row"><span>界面主题</span><button type="button" id="screen-theme-toggle" class="screen-value-button">深色 <svg class="icon"><use href="#i-arrow"/></svg></button></div>
+                  <button type="button" id="screen-sleep" class="secondary-button"><svg class="icon"><use href="#i-power"/></svg>关闭屏幕</button>
+                  <p class="device-version mono">B31 <span>·</span> Tailscale 1.104.4</p>
+                  <button type="button" class="inline-feature-link" data-root="device-settings">全部设备设置 <svg class="icon"><use href="#i-arrow"/></svg></button>
+                </section>
+
+                <section class="screen-page signal-page" id="page-signal" aria-labelledby="signal-heading" hidden>
+                  <button type="button" class="back-button" data-page="network"><svg class="icon"><use href="#i-back"/></svg>移动网络</button>
+                  <h2 id="signal-heading">信号详情</h2><p id="signal-caption" class="signal-caption">5G SA · n78</p>
+                  <dl class="signal-details"><div><dt>信号强度 <small>RSRP</small></dt><dd><strong id="detail-rsrp" class="mono">−86</strong><small> dBm</small></dd></div><div><dt>信噪比 <small>SINR</small></dt><dd><strong id="detail-sinr" class="mono">21.4</strong><small> dB</small></dd></div><div><dt>信号质量 <small>RSRQ</small></dt><dd><strong id="detail-rsrq" class="mono">−9</strong><small> dB</small></dd></div></dl>
+                  <div class="signal-explainer"><i class="status-dot good" id="signal-indicator"></i><div><strong id="signal-summary">当前信号良好</strong><p id="signal-help">调整设备位置，可观察信号变化。实际速率还受网络负载影响。</p></div></div>
+                </section>
+
+                <section class="screen-page catalog-page" id="page-catalog" aria-label="功能详情" hidden><div id="catalog-content"></div></section>
+                <nav class="screen-nav" aria-label="设备页面"><button type="button" data-page="network" aria-current="page"><svg class="icon"><use href="#i-home"/></svg><span>概览</span></button><button type="button" data-page="network-menu"><svg class="icon"><use href="#i-network"/></svg><span>网络</span></button><button type="button" data-page="apps"><svg class="icon"><use href="#i-apps"/></svg><span>应用</span></button><button type="button" data-page="device"><svg class="icon"><use href="#i-device"/></svg><span>设备</span></button></nav>
+                <div id="screen-dialog" class="screen-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title" hidden><div class="dialog-card"><p class="screen-overline">确认操作</p><h2 id="dialog-title"></h2><p id="dialog-body"></p><div class="dialog-actions"><button type="button" id="dialog-cancel" class="secondary-button">取消</button><button type="button" id="dialog-confirm" class="primary-button">确认</button></div></div></div>
+                <div id="screen-toast" class="screen-toast" role="status" hidden></div>
+              </div>
+              <div id="screen-dimmer" class="screen-dimmer" aria-hidden="true"></div>
+            </div>
+            <div class="device-bottom"><span>OPEN U60</span><span class="device-grille"></span></div>
+          </div>
+        </div>
+        <div class="stage-bottomline"><span id="interaction-hint">点击底部切页，也可在屏幕上左右滑动</span><button id="stage-power" type="button"><svg class="icon"><use href="#i-power"/></svg><span>熄屏</span></button></div>
+        <div class="demo-note"><span class="demo-badge">演示数据</span><p>全部读数与操作均为本地模拟，不连接设备。</p></div>
+      </section>
+    </main>
+    <footer class="workbench-footer"><span>OPEN-U60-PRO <span class="footer-dot">·</span> 自定义机身屏幕</span><span>方向键切页 <span class="footer-dot">/</span> 空格亮灭屏</span></footer>
+  </div>
+  <noscript>此交互原型需要在浏览器中启用 JavaScript。</noscript>
+</body>
+</html>
