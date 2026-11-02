@@ -67,6 +67,44 @@ class SetupHelperTests(unittest.TestCase):
             with self.subTest(payload=payload):
                 self.assertNotEqual(self.call_ubus(payload).returncode, 0)
 
+    def test_ota_startup_migration_preserves_gateway_and_password(self):
+        step = SOURCE.split("# ── Step 5:", 1)[1].split("# ── Step 6:", 1)[0]
+        step = step.split("\n", 1)[1]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            startup = root / "startup.sh"
+            startup.write_text("#!/bin/sh\nexport ZTE_AGENT_TAILSCALE_GATEWAY=1\n"
+                               "export ZTE_AGENT_PASSWORD='old example'\n"
+                               "nohup /data/zte-agent &\n")
+            password = "example with 'quotes' and $literal"
+            harness = '''
+set -e
+info() { :; }; ok() { :; }; fail() { printf '%s' "$1" >&2; exit 1; }
+rcmd() { bash -c "$1"; return 0; }
+rpush() { test "$(stat -c %a "$1")" = 600; cp "$1" "$2"; }
+STARTUP_SCRIPT=$1; AGENT_PASSWORD=$2
+OTA_ROOT=/data/open-u60/update
+SUPERVISOR=/data/local/tmp/zte-agent-supervisor.sh
+REMOTE_BIN=/data/zte-agent
+'''
+            result = self.run_shell(harness + step, [str(startup), password],
+                                    dict(os.environ, TMPDIR=directory))
+            self.assertEqual(result.returncode, 0, result.stderr)
+            content = startup.read_text()
+            self.assertIn('export ZTE_AGENT_TAILSCALE_GATEWAY=1', content)
+            self.assertIn('nohup /data/local/tmp/zte-agent-supervisor.sh', content)
+            self.assertEqual(startup.stat().st_mode & 0o777, 0o700)
+            self.assertEqual(sorted(p.name for p in root.iterdir()), ['startup.sh'])
+            # Read only the export line, never execute the generated startup command.
+            export = next(line for line in content.splitlines() if line.startswith('export ZTE_AGENT_PASSWORD='))
+            decoded = subprocess.run([BASH, '-c', export + '; printf %s "$ZTE_AGENT_PASSWORD"'],
+                                     text=True, capture_output=True, check=True)
+            self.assertEqual(decoded.stdout, password)
+            startup.write_text(content + '# custom local tuning\n')
+            result = self.run_shell(harness + step, [str(startup), password])
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(startup.read_text(), content + '# custom local tuning\n')
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -258,6 +258,10 @@ fn asset(path: &str) -> Option<(&'static str, &'static str)> {
             "text/javascript; charset=utf-8",
             include_str!("../ui/https.js"),
         )),
+        "/console/a/update.js" => Some((
+            "text/javascript; charset=utf-8",
+            include_str!("../ui/update.js"),
+        )),
         "/console" | "/console/" => {
             Some(("text/html; charset=utf-8", include_str!("../ui/index.html")))
         }
@@ -304,6 +308,14 @@ fn asset(path: &str) -> Option<(&'static str, &'static str)> {
         "/console/a/dns-cache.js" => Some((
             "text/javascript; charset=utf-8",
             include_str!("../ui/dns-cache.js"),
+        )),
+        "/console/a/wireguard-model.js" => Some((
+            "text/javascript; charset=utf-8",
+            include_str!("../ui/wireguard-model.js"),
+        )),
+        "/console/a/wireguard.js" => Some((
+            "text/javascript; charset=utf-8",
+            include_str!("../ui/wireguard.js"),
         )),
         "/console/a/data-usage.js" => Some((
             "text/javascript; charset=utf-8",
@@ -391,6 +403,9 @@ mod tests {
             ("/console/a/motion.js", 200),
             ("/console/a/dns.js", 200),
             ("/console/a/dns-cache.js", 200),
+            ("/console/a/wireguard-model.js", 200),
+            ("/console/a/wireguard.js", 200),
+            ("/console/a/update.js", 200),
             ("/console/a/data-usage.js", 200),
             ("/ui/login", 303),
             ("/api/dashboard/events", 401),

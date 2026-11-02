@@ -220,4 +220,3 @@ except (RuntimeError, ValueError, OSError, subprocess.SubprocessError) as error:
 except KeyboardInterrupt:
     say("已中断。")
     sys.exit(130)
-

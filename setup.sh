@@ -25,15 +25,23 @@ else
     exit 1
 fi
 
+if [[ "$AGENT_PASSWORD" == *$'\n'* || "$AGENT_PASSWORD" == *$'\r'* ]]; then
+    fail "Agent password cannot contain a line break."
+fi
+
 GATEWAY=192.168.0.1
 AGENT_PORT=9090
 SSH_PORT=2222
 TARGET=aarch64-unknown-linux-musl
 BINARY=target/$TARGET/release/zte-agent
+OTA_ROOT=/data/open-u60/update
+REMOTE_SLOT=$OTA_ROOT/slot-a/zte-agent
 REMOTE_BIN=/data/zte-agent
+SUPERVISOR=/data/local/tmp/zte-agent-supervisor.sh
+SUPERVISOR_LOCAL=scripts/router/zte-agent-supervisor.sh
 STARTUP_SCRIPT=/data/local/tmp/start_zte_agent.sh
 BINARY_CHANGED=false
-DOWNLOAD_URL="https://github.com/jesther-ai/open-u60-pro/releases/latest/download/zte-agent"
+DOWNLOAD_URL="${ZTE_AGENT_DOWNLOAD_URL:-https://github.com/jesther-ai/open-u60-pro/releases/latest/download/zte-agent}"
 
 # ── Binary source menu ──────────────────────────────────────────────
 echo ""
@@ -446,7 +454,9 @@ if [ -z "$LOCAL_SHA" ]; then
     fail "Cannot hash $BINARY locally. Install sha256sum (coreutils) or shasum (perl) and retry."
 fi
 
-REMOTE_SHA=$(rcmd "sha256sum $REMOTE_BIN 2>/dev/null" 2>/dev/null | tr -d '\r' | awk '{print $1}')
+remote_ok "mkdir -p $OTA_ROOT/slot-a $OTA_ROOT/slot-b $OTA_ROOT/last-stable && chmod 700 $OTA_ROOT $OTA_ROOT/slot-a $OTA_ROOT/slot-b $OTA_ROOT/last-stable" \
+    || fail "Could not prepare OTA slot directories."
+REMOTE_SHA=$(rcmd "sha256sum $REMOTE_SLOT 2>/dev/null" 2>/dev/null | tr -d '\r' | awk '{print $1}')
 case "$REMOTE_SHA" in
     *[!0-9a-f]*) REMOTE_SHA="" ;;
 esac
@@ -459,32 +469,50 @@ else
     info "Stopping running agent before push..."
     rcmd "killall zte-agent 2>/dev/null; sleep 1"
     info "Pushing zte-agent to device..."
-    rpush "$BINARY" "$REMOTE_BIN"
+    rpush "$BINARY" "$REMOTE_SLOT"
     BINARY_CHANGED=true
-    ok "Binary deployed to $REMOTE_BIN."
+    ok "Binary deployed to OTA slot A."
 fi
+
+info "Installing the A/B update supervisor..."
+rpush "$SUPERVISOR_LOCAL" "$SUPERVISOR"
+remote_ok "chmod 755 $SUPERVISOR && printf 'a\n' > $OTA_ROOT/active && chmod 600 $OTA_ROOT/active && rm -f $OTA_ROOT/pending $OTA_ROOT/state.json && ln -sfn $REMOTE_SLOT $REMOTE_BIN.next && mv -f $REMOTE_BIN.next $REMOTE_BIN" \
+    || fail "Could not install the OTA bootstrap and supervisor."
+BINARY_CHANGED=true
+ok "OTA bootstrap and rollback supervisor installed."
 
 # ── Step 5: Create startup script ───────────────────────────────────
 # Escape single quotes for safe embedding in sh single-quoted string
 SAFE_PASSWORD=$(printf '%s' "$AGENT_PASSWORD" | sed "s/'/'\\\\''/g")
 BOOT_LINE="export ZTE_AGENT_PASSWORD='${SAFE_PASSWORD}'"
 BOOT_LINE_Q=$(shell_quote "$BOOT_LINE")
+GATEWAY_BOOT_LINE=""
+if remote_ok "grep -qxF 'export ZTE_AGENT_TAILSCALE_GATEWAY=1' $STARTUP_SCRIPT"; then
+    GATEWAY_BOOT_LINE='export ZTE_AGENT_TAILSCALE_GATEWAY=1'
+fi
 
-# Match the exported line, not the whole file: local edits elsewhere in the
-# script (e.g. nice/tunables) are kept.
-if remote_ok "grep -qxF -- $BOOT_LINE_Q $STARTUP_SCRIPT"; then
+# Keep local tunables when the password and OTA supervisor already match.
+if remote_ok "grep -qxF -- $BOOT_LINE_Q $STARTUP_SCRIPT && grep -qF -- '$SUPERVISOR' $STARTUP_SCRIPT"; then
     ok "Startup script already up to date."
 else
     info "Creating startup script..."
     rcmd "mkdir -p $(dirname "$STARTUP_SCRIPT")"
-    cat > /tmp/start_zte_agent.sh <<BOOT
+    STARTUP_TMP=$(mktemp)
+    chmod 600 "$STARTUP_TMP"
+    trap 'rm -f "$STARTUP_TMP"' EXIT
+    cat > "$STARTUP_TMP" <<BOOT
 #!/bin/sh
 ${BOOT_LINE}
-nohup /data/zte-agent >/tmp/zte-agent.log 2>&1 &
+${GATEWAY_BOOT_LINE}
+export ZTE_OTA_ROOT='$OTA_ROOT'
+export ZTE_OTA_SUPERVISOR='$SUPERVISOR'
+export ZTE_OTA_LEGACY_LINK='$REMOTE_BIN'
+nohup $SUPERVISOR >/tmp/zte-agent.log 2>&1 &
 BOOT
-    rpush /tmp/start_zte_agent.sh "$STARTUP_SCRIPT"
-    rm -f /tmp/start_zte_agent.sh
-    remote_ok "test -s $STARTUP_SCRIPT" \
+    rpush "$STARTUP_TMP" "$STARTUP_SCRIPT"
+    rm -f "$STARTUP_TMP"
+    trap - EXIT
+    remote_ok "test -s $STARTUP_SCRIPT && chmod 700 $STARTUP_SCRIPT" \
         || fail "The startup script was written to $STARTUP_SCRIPT but the device cannot see it."
     ok "Startup script created at $STARTUP_SCRIPT."
 fi

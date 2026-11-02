@@ -55,4 +55,3 @@ rule filter FORWARD -i "$LAN_IF" -o "$TS_IF" -s "$LAN_NET" -d "$REMOTE_NET" \
 # If the tunnel loses its route, do not send the home subnet through cellular WAN.
 rule filter FORWARD -i "$LAN_IF" ! -o "$TS_IF" -s "$LAN_NET" -d "$REMOTE_NET" \
     -m comment --comment "$TAG" -j REJECT
-
