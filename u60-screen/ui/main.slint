@@ -23,6 +23,7 @@ export component Screen inherits Window {
     in-out property <[Reading]> readings;
     in-out property <[string]> actions;
     in-out property <[MenuEntry]> feature-fields;
+    in-out property <string> feature-content;
     in-out property <[FeatureAction]> feature-actions;
     in-out property <bool> feature-busy;
     in-out property <string> feature-notice;
@@ -294,6 +295,10 @@ export component Screen inherits Window {
                             Label { text: row.label; color: Palette.muted; font-size: 13px; }
                             Label { text: row.value; wrap: word-wrap; overflow: clip; }
                         }
+                    }
+                    if root.feature-content != "": Rectangle {
+                        background: Palette.surface; border-radius: 8px;
+                        VerticalLayout { padding: 12px; Label { text: root.feature-content; font-size: 16px; wrap: word-wrap; overflow: clip; } }
                     }
                     for field[index] in root.feature-fields: MenuRow {
                         title: field.title; subtitle: field.subtitle; tag: field.tag;

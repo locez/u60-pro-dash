@@ -586,8 +586,16 @@ impl State {
         }
         self.feature_revision = self.features.revision;
         let page = &self.features.page;
+        ui.set_feature_content(page.content.clone().into());
         if let Some(title) = &page.title {
             ui.set_heading(title.clone().into());
+        } else if let Some(f) = self
+            .catalog
+            .features
+            .iter()
+            .find(|f| f.id == self.features.id)
+        {
+            ui.set_heading(f.title.clone().into());
         }
         ui.set_readings(model(
             page.rows.iter().map(|(k, v)| reading(k, v)).collect(),

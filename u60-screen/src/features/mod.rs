@@ -1,7 +1,9 @@
 //! Native feature contracts. Browser fixtures are never request bodies.
 pub mod controller;
 mod lists;
+mod messages;
 mod network;
+mod radio;
 mod settings;
 mod status;
 
@@ -257,6 +259,7 @@ impl Action {
 #[derive(Default)]
 pub struct Page {
     pub title: Option<String>,
+    pub content: String,
     pub rows: Vec<(String, String)>,
     pub fields: Vec<Field>,
     pub items: Vec<Item>,
@@ -361,10 +364,36 @@ pub fn reads(id: &str) -> Option<Vec<Read>> {
         .or_else(|| status::reads(id))
         .or_else(|| network::reads(id))
         .or_else(|| lists::reads(id))
+        .or_else(|| messages::reads(id))
+        .or_else(|| radio::reads(id))
 }
 pub fn page(id: &str, readings: &Data) -> Page {
+    let mut result = feature_page(id, readings);
+    if let Some(reads) = reads(id)
+        && !reads.is_empty()
+        && !reads.iter().any(|read| {
+            readings
+                .get(&read.key)
+                .is_some_and(|v| v.as_ref().is_ok_and(|v| !v.is_null()))
+        })
+    {
+        for action in &mut result.actions {
+            action.enabled = false;
+        }
+        for field in &mut result.fields {
+            field.available = false;
+        }
+        result.items.clear();
+    }
+    result
+}
+fn feature_page(id: &str, readings: &Data) -> Page {
     if settings::reads(id).is_some() {
         settings::page(id, readings)
+    } else if messages::reads(id).is_some() {
+        messages::page(id, readings)
+    } else if radio::reads(id).is_some() {
+        radio::page(id, readings)
     } else if lists::reads(id).is_some() {
         lists::page(id, readings)
     } else if network::reads(id).is_some() {
@@ -376,6 +405,10 @@ pub fn page(id: &str, readings: &Data) -> Page {
 pub fn plan(id: &str, action: &str, page: &Page, readings: &Data) -> Result<Plan> {
     if settings::reads(id).is_some() {
         settings::plan(id, action, page, readings)
+    } else if messages::reads(id).is_some() {
+        messages::plan(id, action, page, readings)
+    } else if radio::reads(id).is_some() {
+        radio::plan(id, action, page, readings)
     } else if lists::reads(id).is_some() {
         lists::plan(id, action, page, readings)
     } else if network::reads(id).is_some() {
@@ -396,13 +429,15 @@ pub fn topics(id: &str) -> &'static [&'static str] {
         "sim-info" => &["sim"],
         "wan" => &["wan"],
         "processes" => &["processes"],
+        "speedtest" => &["speedtest"],
         _ => &[],
     }
 }
 pub fn poll_seconds(id: &str) -> Option<u64> {
     match id {
         "clients" => Some(10),
-        "dns-cache" | "operators" => Some(5),
+        "dns-cache" | "operators" | "neighbors" => Some(5),
+        "signal-test" | "speedtest" => Some(2),
         "resources" | "wan" | "device-info" => Some(30),
         _ => None,
     }

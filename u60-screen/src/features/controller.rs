@@ -241,6 +241,10 @@ impl Controller {
                 self.finish_reads();
             }
         } else {
+            let result = result.and_then(|value| {
+                super::messages::checked(&pending.request.path, &value)?;
+                Ok(value)
+            });
             match result {
                 Ok(value) => {
                     self.completed += 1;
@@ -314,20 +318,26 @@ impl Controller {
             .get(index)
             .ok_or_else(|| anyhow::anyhow!("操作已变化，请刷新。"))?;
         ensure!(action.enabled, "此操作当前不可用。");
+        if action.id == "clear-local" && self.id == "at-terminal" {
+            self.data.remove("last_result");
+            self.finish_reads();
+            return Ok(());
+        }
         let mut plan = super::plan(&self.id, &action.id, &self.page, &self.data)?;
         ensure!(!plan.requests.is_empty(), "没有需要保存的更改。");
         let changes = self
             .page
             .fields
             .iter()
-            .filter(|f| f.dirty())
+            .filter(|f| f.available && (!f.secret || f.dirty()))
             .map(|f| format!("{}：{}", f.label, f.display()))
             .collect::<Vec<_>>()
             .join("\n");
         plan.summary = format!(
-            "{}\n{}\n\n{}\n\n{}",
+            "{}\n{}\n{}\n\n{}\n\n{}",
             action.label,
             self.page.title.as_deref().unwrap_or(""),
+            plan.summary,
             changes,
             action.warning
         );
@@ -435,6 +445,7 @@ impl Controller {
                 "/api/network/wan" => ("wan", Some("wan")),
                 "/api/network/wan6" => ("wan", Some("wan6")),
                 "/api/system/top" => ("processes", None),
+                "/api/speedtest/progress" => ("speedtest", None),
                 _ => continue,
             };
             // An unsupported/newly requested topic must not erase a fresh HTTP

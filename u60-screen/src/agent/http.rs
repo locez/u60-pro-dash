@@ -99,6 +99,11 @@ impl Api {
         body: Option<Value>,
     ) -> Result<Value, Error> {
         let request = self.authorized(&self.requests, method, path, token)?;
+        let request = request.timeout(Duration::from_secs(if path == "/api/at/send" {
+            35
+        } else {
+            30
+        }));
         let request = if let Some(body) = body {
             request.json(&body)
         } else {
