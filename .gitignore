@@ -44,3 +44,19 @@ zte-agent/docs/apns-deployment-*.md
 *.dtb
 __pycache__/
 
+# Fork-local credentials and device state (examples stay versioned).
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.private.json
+*.private.env
+*.private.pem
+**/tailscaled.state
+**/tailscaled.state.*
+**/start_zte_agent.sh
+/device-backups/
+/ota-private.pem
+/ota-public.pem
+/ota-key-info.txt
+
