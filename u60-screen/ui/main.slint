@@ -12,7 +12,7 @@ export component Screen inherits Window {
     default-font-size: 14px;
     background: Palette.bg;
     in-out property <int> tab: 0;
-    // 0 overview, 1 menu, 2 detail, 3 appearance, 4 home connection.
+    // 0 overview, 1 menu, 2 detail, 3 appearance, 4 Tailscale network.
     in-out property <int> view: 0;
     in-out property <string> heading: "随身网络";
     in-out property <string> kicker: "01 / OVERVIEW";
@@ -33,14 +33,14 @@ export component Screen inherits Window {
     in-out property <string> signal-strength: "−86";
     in-out property <string> client-count: "3";
     in-out property <string> traffic-total: "2.38 GB";
-    in-out property <string> home-status: "家庭内网可达";
-    in-out property <[Reading]> home-readings;
+    in-out property <string> tailnet-status: "已连接";
+    in-out property <[Reading]> tailnet-readings;
     callback refresh;
     callback agent-login(string);
     callback agent-forget;
     in-out property <string> battery: "82%";
     in-out property <bool> network-online: true;
-    in-out property <bool> home-online: true;
+    in-out property <bool> tailnet-online: true;
     in-out property <string> download: "128.6";
     in-out property <string> upload: "16.4";
     in-out property <string> message;
@@ -145,13 +145,13 @@ export component Screen inherits Window {
                     HorizontalLayout {
                         padding: 14px; spacing: 8px;
                         VerticalLayout {
-                            Label { text: "TAILSCALE / 回家"; height: 16px; font-size: 12px; color: Palette.muted; }
-                            Label { text: root.home-status; height: 24px; font-size: 17px; font-weight: 600; color: root.home-online ? Palette.good : Palette.warning; }
-                            Label { text: root.demo ? "192.168.1.0/24" : "查看连接与验证结果"; height: 18px; font-size: 13px; color: Palette.muted; }
+                            Label { text: "TAILSCALE"; height: 16px; font-size: 12px; color: Palette.muted; }
+                            Label { text: root.tailnet-status; height: 24px; font-size: 17px; font-weight: 600; color: root.tailnet-online ? Palette.good : Palette.warning; }
+                            Label { text: "子网路由与连通性检测"; height: 18px; font-size: 13px; color: Palette.muted; }
                         }
                         Label { text: "↗"; font-size: 24px; vertical-alignment: center; color: Palette.accent-ink; width: 24px; }
                     }
-                    TouchArea { clicked => { root.open("tailscale-home"); } }
+                    TouchArea { clicked => { root.open("tailscale-network"); } }
                 }
                 if root.view == 1: VerticalLayout {
                     spacing: 8px;
@@ -219,12 +219,12 @@ export component Screen inherits Window {
                         height: 108px; background: Palette.surface; border-radius: 12px;
                         VerticalLayout {
                             padding: 16px; spacing: 8px;
-                            Label { text: "U60   →   Tailscale   →   家"; font-size: 13px; color: Palette.accent-ink; }
-                            Label { text: root.home-status; font-size: 20px; font-weight: 600; }
-                            Label { text: root.demo ? "192.168.1.0/24" : "查看连接与验证结果"; font-size: 12px; color: Palette.muted; }
+                            Label { text: "U60   →   Tailscale   →   目标"; font-size: 13px; color: Palette.accent-ink; }
+                            Label { text: root.tailnet-status; font-size: 20px; font-weight: 600; }
+                            Label { text: "子网路由与连通性检测"; font-size: 12px; color: Palette.muted; }
                         }
                     }
-                    for row in root.home-readings: Rectangle {
+                    for row in root.tailnet-readings: Rectangle {
                         height: 48px; background: Palette.surface; border-radius: 8px;
                         HorizontalLayout {
                             padding: 12px;
@@ -234,7 +234,7 @@ export component Screen inherits Window {
                     }
                     if root.demo: TapButton { text: "切换演示场景"; clicked => { root.scenario(); } }
                     if !root.demo: TapButton { text: "刷新连接状态"; clicked => { root.refresh(); } }
-                    Label { text: root.demo ? "当前读数为演示数据。" : "家庭连接需要同时通过路由与服务连通性检查。"; color: Palette.muted; font-size: 12px; wrap: word-wrap; }
+                    Label { text: root.demo ? "当前读数为演示数据。" : "网络连接需要同时通过路由与服务连通性检查。"; color: Palette.muted; font-size: 12px; wrap: word-wrap; }
                 }
                 if root.view == 6: VerticalLayout {
                     spacing: 12px;

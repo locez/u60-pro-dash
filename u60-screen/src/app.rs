@@ -152,7 +152,7 @@ impl State {
                         entries.push(entry(
                             "demo-scenario",
                             "演示场景",
-                            "正常、回家离线、无网络、低电量",
+                            "正常、目标离线、无网络、低电量",
                             "",
                         ));
                     }
@@ -179,17 +179,17 @@ impl State {
                 view = 3;
                 tab = 3;
             }
-            "tailscale-home" => {
-                title = "家庭内网".into();
+            "tailscale-network" => {
+                title = "Tailscale 网络".into();
                 view = 4;
                 tab = 2;
             }
             "demo-scenario" => {
                 title = "演示场景".into();
                 for (index, (name, subtitle)) in [
-                    ("正常连接", "蜂窝与家庭子网均可用"),
-                    ("家庭节点离线", "Tailscale 在线，家庭内网不可达"),
-                    ("蜂窝断开", "回家通道等待网络"),
+                    ("正常连接", "蜂窝与远端子网均可用"),
+                    ("子网路由节点离线", "Tailscale 在线，远端网络不可达"),
+                    ("蜂窝断开", "Tailscale 连接等待网络"),
                     ("低电量", "电量 14%，网络正常"),
                 ]
                 .iter()
@@ -395,7 +395,7 @@ impl State {
             return;
         }
         ui.set_network_online(self.scenario != 2);
-        ui.set_home_online(self.scenario == 0 || self.scenario == 3);
+        ui.set_tailnet_online(self.scenario != 2);
         ui.set_battery(if self.scenario == 3 { "14%" } else { "82%" }.into());
         ui.set_download(if self.scenario == 2 { "—" } else { "128.6" }.into());
         ui.set_upload(if self.scenario == 2 { "—" } else { "16.4" }.into());
@@ -409,15 +409,15 @@ impl State {
             }
             .into(),
         );
-        ui.set_home_status(
-            if self.scenario == 0 || self.scenario == 3 {
-                "家庭内网可达"
+        ui.set_tailnet_status(
+            if self.scenario == 2 {
+                "等待网络"
             } else {
-                "家庭内网未连通"
+                "已连接"
             }
             .into(),
         );
-        ui.set_home_readings(model(vec![
+        ui.set_tailnet_readings(model(vec![
             reading(
                 "Tailscale",
                 if self.scenario == 2 {
@@ -427,7 +427,7 @@ impl State {
                 },
             ),
             reading(
-                "家庭子网",
+                "远端子网",
                 if self.scenario == 0 || self.scenario == 3 {
                     "演示：已验证可达"
                 } else {
@@ -468,7 +468,7 @@ impl State {
         if snapshot.authenticated
             && !ui.get_asleep()
             && !self.security.locked
-            && matches!(self.page.as_str(), "overview" | "tailscale-home")
+            && matches!(self.page.as_str(), "overview" | "tailscale-network")
             && self.last_tailscale.elapsed() >= Duration::from_secs(30)
         {
             self.last_tailscale = Instant::now();
@@ -479,16 +479,16 @@ impl State {
                 match reply.result {
                     Ok(data) => {
                         let text = match data["state"].as_str() {
-                            Some("healthy") => "Tailscale 在线 · 内网待验证",
+                            Some("healthy") => "已连接",
                             Some("not_installed") => "尚未安装 Tailscale",
                             Some("disabled" | "paused") => "Tailscale 已停止",
                             Some("needs_login" | "awaiting_setup") => "Tailscale 需要登录",
                             Some("pending_approval") => "等待设备批准",
                             _ => "Tailscale 正在连接",
                         };
-                        ui.set_home_status(text.into());
-                        ui.set_home_online(false);
-                        ui.set_home_readings(model(vec![
+                        ui.set_tailnet_status(text.into());
+                        ui.set_tailnet_online(data["state"] == "healthy");
+                        ui.set_tailnet_readings(model(vec![
                             reading("Tailscale", text),
                             reading(
                                 "热点网关",
@@ -498,12 +498,12 @@ impl State {
                                     "未开启"
                                 },
                             ),
-                            reading("家庭服务", "尚未验证"),
+                            reading("检测目标", "尚未验证"),
                         ]));
                     }
                     Err(error) => {
-                        ui.set_home_status(error.message().into());
-                        ui.set_home_online(false);
+                        ui.set_tailnet_status(error.message().into());
+                        ui.set_tailnet_online(false);
                     }
                 }
             }
@@ -730,15 +730,20 @@ impl App {
         Ok(Self { ui, state, timer })
     }
     pub fn open(&self, page: &str) -> Result<()> {
+        let page = if page == "tailscale-home" {
+            "tailscale-network"
+        } else {
+            page
+        }; // Previous preview link.
         self.state.borrow_mut().show(&self.ui, page, true)
     }
     pub fn connect(&self, config: crate::agent::Config) -> Result<()> {
         let mut state = self.state.borrow_mut();
         state.agent = Some(crate::agent::Agent::start(config)?);
         self.ui.set_demo(false);
-        self.ui.set_home_online(false);
-        self.ui.set_home_status("等待查询连接状态".into());
-        self.ui.set_home_readings(model(vec![]));
+        self.ui.set_tailnet_online(false);
+        self.ui.set_tailnet_status("等待查询连接状态".into());
+        self.ui.set_tailnet_readings(model(vec![]));
         state.update_agent(&self.ui);
         Ok(())
     }

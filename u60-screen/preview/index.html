@@ -16,6 +16,7 @@
 <body>
   <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <symbol id="i-network" viewBox="0 0 24 24"><path d="M4 20v-4m5 4v-8m5 8V8m5 12V4"/></symbol>
+    <symbol id="i-tailnet" viewBox="0 0 24 24"><circle cx="5" cy="12" r="3"/><circle cx="19" cy="5" r="3"/><circle cx="19" cy="19" r="3"/><path d="m8 11 8-5M8 13l8 5"/></symbol>
     <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7M5 9v11h5v-6h4v6h5V9"/></symbol>
     <symbol id="i-device" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 18h4M10 6h4"/></symbol>
     <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M3 8a14 14 0 0 1 18 0M6 12a9 9 0 0 1 12 0m-9 4a4 4 0 0 1 6 0"/><circle cx="12" cy="20" r=".7"/></symbol>
@@ -50,7 +51,7 @@
         <section class="control-section">
           <h2><span class="section-number">01</span> 浏览页面</h2>
           <div class="page-picker" role="group" aria-label="选择预览页面">
-            <button type="button" data-page="network" aria-pressed="true"><svg class="icon"><use href="#i-home"/></svg><span>概览<span>连接与回家状态</span></span><svg class="icon chevron"><use href="#i-arrow"/></svg></button>
+            <button type="button" data-page="network" aria-pressed="true"><svg class="icon"><use href="#i-home"/></svg><span>概览<span>网络与 Tailscale 状态</span></span><svg class="icon chevron"><use href="#i-arrow"/></svg></button>
             <button type="button" data-page="network-menu" aria-pressed="false"><svg class="icon"><use href="#i-network"/></svg><span>网络<span>无线、蜂窝与路由</span></span><svg class="icon chevron"><use href="#i-arrow"/></svg></button>
             <button type="button" data-page="apps" aria-pressed="false"><svg class="icon"><use href="#i-apps"/></svg><span>应用<span>短信、SIM、工具与自动化</span></span><svg class="icon chevron"><use href="#i-arrow"/></svg></button>
             <button type="button" data-page="device" aria-pressed="false"><svg class="icon"><use href="#i-device"/></svg><span>设备<span>电源、屏幕与系统</span></span><svg class="icon chevron"><use href="#i-arrow"/></svg></button>
@@ -66,11 +67,11 @@
           <h2><span class="section-number">03</span> 切换演示场景</h2>
           <div class="scenario-picker" role="group" aria-label="演示场景">
             <button type="button" data-scenario="normal" aria-pressed="true"><i class="status-dot good"></i>网络正常</button>
-            <button type="button" data-scenario="home-offline" aria-pressed="false"><i class="status-dot warning"></i>家庭离线</button>
+            <button type="button" data-scenario="peer-offline" aria-pressed="false"><i class="status-dot warning"></i>目标离线</button>
             <button type="button" data-scenario="no-internet" aria-pressed="false"><i class="status-dot bad"></i>蜂窝断开</button>
             <button type="button" data-scenario="low-battery" aria-pressed="false"><i class="status-dot warning"></i>低电量</button>
           </div>
-          <p id="scenario-description" class="control-note">蜂窝网络正常，热点设备可以访问家庭内网。</p>
+          <p id="scenario-description" class="control-note">蜂窝网络正常，热点设备可以访问远端网络。</p>
         </section>
 
         <section class="control-section presentation-controls">
@@ -110,16 +111,16 @@
                   <div class="chart-wrap" aria-label="模拟下载速率曲线"><svg id="traffic-chart" viewBox="0 0 288 48" preserveAspectRatio="none" role="img" aria-label="最近 30 秒的演示下载速率"><path class="chart-grid" d="M0 12H288M0 36H288"/><path id="chart-area" class="chart-area"/><path id="chart-line" class="chart-line"/></svg><span id="chart-empty" hidden>暂无网络数据</span></div>
                   <button type="button" class="signal-row" data-open="signal" aria-label="查看信号详情"><span>信号 <b id="signal-quality">良好</b></span><span class="mono"><b id="signal-rsrp">−86</b><small> dBm</small></span><svg class="icon"><use href="#i-arrow"/></svg></button>
                   <div class="network-foot"><span><svg class="icon"><use href="#i-wifi"/></svg>热点已开启</span><span><b class="mono">3</b> 台在线</span></div>
-                  <button type="button" class="home-shortcut" data-page="home"><span class="shortcut-icon"><svg class="icon"><use href="#i-home"/></svg></span><span><b id="home-shortcut-title">家庭内网可达</b><small id="home-shortcut-sub">192.168.1.0/24</small></span><svg class="icon"><use href="#i-arrow"/></svg></button>
+                  <button type="button" class="tailnet-shortcut" data-page="tailnet"><span class="shortcut-icon"><svg class="icon"><use href="#i-tailnet"/></svg></span><span><b id="tailnet-shortcut-title">目标服务可达</b><small id="tailnet-shortcut-sub">192.168.1.0/24</small></span><svg class="icon"><use href="#i-arrow"/></svg></button>
                 </section>
 
-                <section class="screen-page home-page" id="page-home" aria-labelledby="home-heading" hidden>
-                  <div class="screen-heading"><div><p class="screen-overline">随时回到家</p><h2 id="home-heading">回家通道</h2></div><span id="home-badge" class="badge good">可访问</span></div>
-                  <div class="route-map" aria-label="U60 经 Tailscale 连接家庭节点"><div><span class="map-node"><svg class="icon"><use href="#i-device"/></svg></span><span>这台 U60</span></div><span id="route-link-a" class="route-link"><i></i></span><div><span class="map-node tailscale-mark"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span>Tailscale</span></div><span id="route-link-b" class="route-link"><i></i></span><div><span id="home-map-node" class="map-node"><svg class="icon"><use href="#i-home"/></svg></span><span>家中节点</span></div></div>
-                  <p id="home-message" class="home-message">连上热点，就能回家。</p>
-                  <p id="home-explanation" class="home-explanation">热点里的设备可直接访问家庭内网。</p>
-                  <dl class="home-details"><div><dt>Tailscale</dt><dd id="tailscale-state" class="tone-good">已连接</dd></div><div><dt>家庭节点</dt><dd id="home-peer-state">在线</dd></div><div class="route-detail"><dt>家庭网段</dt><dd class="mono">192.168.1.0/24</dd></div></dl>
-                  <button type="button" id="probe-home" class="primary-button"><svg class="icon"><use href="#i-refresh"/></svg><span id="probe-label">检测家庭连通性</span></button>
+                <section class="screen-page tailnet-page" id="page-tailnet" aria-labelledby="tailnet-heading" hidden>
+                  <div class="screen-heading"><div><p class="screen-overline">TAILNET / 虚拟组网</p><h2 id="tailnet-heading">Tailscale 网络</h2></div><span id="tailnet-badge" class="badge good">可访问</span></div>
+                  <div class="route-map" aria-label="U60 经 Tailscale 连接子网路由节点"><div><span class="map-node"><svg class="icon"><use href="#i-device"/></svg></span><span>这台 U60</span></div><span id="route-link-a" class="route-link"><i></i></span><div><span class="map-node tailscale-mark"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span>Tailscale</span></div><span id="route-link-b" class="route-link"><i></i></span><div><span id="tailnet-map-node" class="map-node"><svg class="icon"><use href="#i-network"/></svg></span><span>子网路由节点</span></div></div>
+                  <p id="tailnet-message" class="tailnet-message">通过 Tailscale 访问目标网络。</p>
+                  <p id="tailnet-explanation" class="tailnet-explanation">热点里的设备可直接访问远端网络。</p>
+                  <dl class="tailnet-details"><div><dt>Tailscale</dt><dd id="tailscale-state" class="tone-good">已连接</dd></div><div><dt>子网路由节点</dt><dd id="tailnet-peer-state">在线</dd></div><div class="route-detail"><dt>目标子网</dt><dd class="mono">192.168.1.0/24</dd></div></dl>
+                  <button type="button" id="probe-target" class="primary-button"><svg class="icon"><use href="#i-refresh"/></svg><span id="probe-label">检测目标连通性</span></button>
                   <p id="probe-result" class="probe-result" aria-live="polite">尚未检测</p>
                   <button type="button" class="inline-feature-link" data-group="tailscale">Tailscale 服务与设置 <svg class="icon"><use href="#i-arrow"/></svg></button>
                 </section>

@@ -3,10 +3,10 @@
   const $=id=>document.getElementById(id);
   const q=selector=>[...document.querySelectorAll(selector)];
   const scenarios={
-    normal:{description:'蜂窝网络正常，热点设备可以访问家庭内网。',online:true,home:true,battery:82},
-    'home-offline':{description:'U60 仍在线，但家中子网节点离线。',online:true,home:false,battery:82},
-    'no-internet':{description:'蜂窝连接断开，局域网热点仍保持开启。',online:false,home:false,battery:82},
-    'low-battery':{description:'网络连接正常，设备电量降至 12%。',online:true,home:true,battery:12},
+    normal:{description:'蜂窝网络正常，热点设备可以访问远端网络。',online:true,reachable:true,battery:82},
+    'peer-offline':{description:'U60 仍在线，但子网路由节点离线。',online:true,reachable:false,battery:82},
+    'no-internet':{description:'蜂窝连接断开，局域网热点仍保持开启。',online:false,reachable:false,battery:82},
+    'low-battery':{description:'网络连接正常，设备电量降至 12%。',online:true,reachable:true,battery:12},
   };
   const baseline=[36,47,39,65,62,88,72,90,107,84,91,98,74,112,106,128];
   const rates=[128.6,134.2,121.8,148.3,137.4,126.2,119.6,132.8];
@@ -18,7 +18,7 @@
   function toast(value){clearTimeout(toastTimer);text('screen-toast',value);$('screen-toast').hidden=false;toastTimer=setTimeout(()=>{$('screen-toast').hidden=true;},2600);}
   function hideToast(){clearTimeout(toastTimer);$('screen-toast').hidden=true;}
   function nav(root){
-    const selected=root==='device-settings'?'device':root==='home'?'apps':root==='signal'?'network':root;
+    const selected=root==='device-settings'?'device':root==='tailnet'?'apps':root==='signal'?'network':root;
     q('.page-picker [data-page]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.page===selected)));
     q('.screen-nav [data-page]').forEach(b=>{if(b.dataset.page===selected)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   }
@@ -35,7 +35,7 @@
     reset:reset,
   });
   function openPage(id){features.cancelDialog();if(id==='network-menu'||id==='apps'||id==='device-settings')features.root(id);else showStatic(id);state.lastInput=Date.now();}
-  function setScenario(id){if(!scenarios[id])return;state.scenario=id;state.ts=true;state.session=true;state.tick=0;state.history=[...baseline];clearTimeout(state.probeTimer);state.probeTimer=null;$('probe-home').disabled=false;text('probe-label','检测家庭连通性');text('probe-result','尚未检测');$('probe-result').className='probe-result';q('[data-scenario]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.scenario===id)));text('scenario-description',spec().description);updateReadings();}
+  function setScenario(id){if(!scenarios[id])return;state.scenario=id;state.ts=true;state.session=true;state.tick=0;state.history=[...baseline];clearTimeout(state.probeTimer);state.probeTimer=null;$('probe-target').disabled=false;text('probe-label','检测目标连通性');text('probe-result','尚未检测');$('probe-result').className='probe-result';q('[data-scenario]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.scenario===id)));text('scenario-description',spec().description);updateReadings();}
   function setAppearance(patch,persist=true){
     const changed={};
     if(['light','dark'].includes(patch.theme)){state.theme=patch.theme;changed.theme=state.theme==='light'?'浅色':'深色';}
@@ -59,7 +59,7 @@
   function paintChart(){const online=spec().online&&state.session;$('chart-empty').hidden=online;const values=state.history;const max=Math.max(180,...values);const points=values.map((v,i)=>[i*288/(values.length-1),45-v/max*40]);const line=points.map(([x,y],i)=>(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)).join(' ');$('chart-line').setAttribute('d',line);$('chart-area').setAttribute('d',line+' L288 48 L0 48 Z');}
   function badge(id,label,kind){text(id,label);$(id).className='badge '+kind;}
   function updateReadings(){
-    const s=spec(),online=s.online&&state.session,tsOnline=online&&state.ts,home=tsOnline&&s.home,low=s.battery<20;
+    const s=spec(),online=s.online&&state.session,tsOnline=online&&state.ts,reachable=tsOnline&&s.reachable,low=s.battery<20;
     text('battery-percent',s.battery+'%');text('device-battery',s.battery);$('battery-fill').style.width=s.battery+'%';$('device-battery-fill').style.width=s.battery+'%';
     $('battery-fill').style.background=low?'var(--screen-warn)':'';$('device-battery-fill').style.background=low?'var(--screen-warn)':'';$('device-battery').style.color=low?'var(--screen-warn)':'';
     text('battery-message',low?'电量较低，建议连接充电器。':'电量充足，继续出发。');
@@ -67,11 +67,11 @@
     text('radio-label',online?'5G SA · n78':'等待网络');text('download-rate',online?rates[state.tick%rates.length].toFixed(1):'—');text('upload-rate',online?(16.4+(state.tick%4)*.8).toFixed(1):'—');
     text('signal-rsrp',online?'−86':'—');text('signal-quality',online?'良好':'暂无');text('detail-rsrp',online?'−86':'—');text('detail-sinr',online?'21.4':'—');text('detail-rsrq',online?'−9':'—');
     text('signal-caption',online?'5G SA · n78':'未连接蜂窝网络');text('signal-summary',online?'当前信号良好':'暂时没有信号读数');text('signal-help',online?'调整设备位置，可观察信号变化。实际速率还受网络负载影响。':'等待蜂窝网络恢复后，再查看信号质量。');$('signal-indicator').className='status-dot '+(online?'good':'warning');
-    text('home-shortcut-title',home?'家庭内网可达':tsOnline?'家庭节点离线':'回家通道未连接');text('home-shortcut-sub',home?'192.168.1.0/24':tsOnline?'Tailscale 在线 · 等待家中节点':'恢复连接后可访问家里');
-    badge('home-badge',home?'可访问':'未连通',home?'good':'warning');
-    text('home-message',home?'连上热点，就能回家。':tsOnline?'家中节点暂时离线。':'回家通道暂时中断。');text('home-explanation',home?'热点里的设备可直接访问家庭内网。':tsOnline?'请检查家中发布子网的设备是否在线。':online?'启用 Tailscale 后再检查家庭连接。':'等待 U60 恢复网络连接。');
-    text('tailscale-state',tsOnline?'已连接':state.ts?'等待网络':'已停止');$('tailscale-state').className=tsOnline?'tone-good':'tone-warning';text('home-peer-state',home?'在线':tsOnline?'离线':'未知');
-    $('route-link-a').classList.toggle('disconnected',!tsOnline);$('route-link-b').classList.toggle('disconnected',!home);$('home-map-node').style.color=home?'':'var(--screen-warn)';paintChart();
+    text('tailnet-shortcut-title',tsOnline?'Tailscale 已连接':state.ts?'Tailscale 等待网络':'Tailscale 已停止');text('tailnet-shortcut-sub','子网路由与连通性检测');
+    badge('tailnet-badge',reachable?'可访问':'未连通',reachable?'good':'warning');
+    text('tailnet-message',reachable?'通过 Tailscale 访问目标网络。':tsOnline?'子网路由节点暂时离线。':'Tailscale 连接暂时中断。');text('tailnet-explanation',reachable?'热点里的设备可直接访问远端网络。':tsOnline?'请检查发布子网路由的设备是否在线。':online?'启用 Tailscale 后再检查网络连接。':'等待 U60 恢复网络连接。');
+    text('tailscale-state',tsOnline?'已连接':state.ts?'等待网络':'已停止');$('tailscale-state').className=tsOnline?'tone-good':'tone-warning';text('tailnet-peer-state',reachable?'在线':tsOnline?'离线':'未知');
+    $('route-link-a').classList.toggle('disconnected',!tsOnline);$('route-link-b').classList.toggle('disconnected',!reachable);$('tailnet-map-node').style.color=reachable?'':'var(--screen-warn)';paintChart();
   }
   function reset(){features.reset();state.motion=!matchMedia('(prefers-reduced-motion: reduce)').matches;state.autoSleep=0;state.lastInput=Date.now();setScenario('normal');setBrightness(80);$('motion-toggle').setAttribute('aria-checked',String(state.motion));power(false);showStatic('network');$('feature-search').value='';renderFeatureSearch();}
   function renderFeatureSearch(){const query=$('feature-search').value.trim().toLowerCase();const matches=features.features.filter(f=>(f.title+' '+f.description+' '+window.U60Catalog.groups.find(g=>g.id===f.group).title+' '+f.id).toLowerCase().includes(query));const target=$('feature-results');target.replaceChildren();for(const f of matches){const b=document.createElement('button');b.type='button';const title=document.createElement('span');title.textContent=f.title;const group=document.createElement('small');group.textContent=window.U60Catalog.groups.find(g=>g.id===f.group).title;b.append(title,group);b.addEventListener('click',()=>features.feature(f.id));target.append(b);}if(!matches.length){const p=document.createElement('p');p.textContent='没有匹配的功能';target.append(p);}text('feature-count',matches.length+' / '+features.features.length);}
@@ -108,7 +108,7 @@
   $('brightness').addEventListener('input',e=>setBrightness(e.target.value));
   $('screen-theme-toggle').addEventListener('click',()=>setTheme(state.theme==='dark'?'light':'dark'));
   $('physical-power').addEventListener('click',()=>power());$('stage-power').addEventListener('click',()=>power());$('screen-sleep').addEventListener('click',()=>power(true));
-  $('probe-home').addEventListener('click',()=>{clearTimeout(state.probeTimer);$('probe-home').disabled=true;text('probe-label','正在检测…');text('probe-result','检测 192.168.1.1');state.probeTimer=setTimeout(()=>{const reachable=spec().online&&spec().home&&state.ts&&state.session;const label=reachable?'192.168.1.1 · 46 ms · 可访问':'192.168.1.1 · 暂不可达';text('probe-result',label);$('probe-result').className='probe-result '+(reachable?'tone-good':'tone-warning');$('probe-home').disabled=false;text('probe-label','重新检测');state.probeTimer=null;},700);});
+  $('probe-target').addEventListener('click',()=>{clearTimeout(state.probeTimer);$('probe-target').disabled=true;text('probe-label','正在检测…');text('probe-result','检测 192.168.1.1');state.probeTimer=setTimeout(()=>{const reachable=spec().online&&spec().reachable&&state.ts&&state.session;const label=reachable?'192.168.1.1 · 46 ms · 可访问':'192.168.1.1 · 暂不可达';text('probe-result',label);$('probe-result').className='probe-result '+(reachable?'tone-good':'tone-warning');$('probe-target').disabled=false;text('probe-label','重新检测');state.probeTimer=null;},700);});
   const primaryPages=['network','network-menu','apps','device'];
   function shiftPage(delta){const current=document.querySelector('.screen-nav [aria-current="page"]')?.dataset.page||'network';openPage(primaryPages[(primaryPages.indexOf(current)+delta+primaryPages.length)%primaryPages.length]);}
   let pointer=null;
@@ -118,7 +118,7 @@
   document.addEventListener('keydown',e=>{state.lastInput=Date.now();if(e.target.closest('input,textarea,select,button')||!$('screen-dialog').hidden)return;if(e.key===' '){e.preventDefault();power();}else if(e.key==='ArrowRight'){e.preventDefault();shiftPage(1);}else if(e.key==='ArrowLeft'){e.preventDefault();shiftPage(-1);}else if(e.key==='Escape'&&state.page==='catalog'){features.back();}});
   setInterval(()=>{if(document.hidden||state.asleep)return;if(state.autoSleep&&Date.now()-state.lastInput>state.autoSleep*1000){power(true);return;}if(!state.motion||!state.session)return;state.tick++;if(spec().online){state.history.shift();state.history.push(rates[state.tick%rates.length]);}updateReadings();},2000);
   $('motion-toggle').setAttribute('aria-checked',String(state.motion));renderFeatureSearch();setAppearance({theme:state.theme,accent:state.accent},false);setScenario('normal');setBrightness(80);
-  function openFragment(){const requested=location.hash.slice(1);if(features.features.some(f=>f.id===requested))features.feature(requested);}
+  function openFragment(){const fragment=location.hash.slice(1);const requested=fragment==='tailscale-home'?'tailscale-network':fragment;if(features.features.some(f=>f.id===requested))features.feature(requested);}
   window.addEventListener('hashchange',openFragment);openFragment();
   // Inspection hook for local browser validation; all state remains synthetic.
   window.U60Preview={features,openPage,setScenario,setTheme,setAccent,reset,state};

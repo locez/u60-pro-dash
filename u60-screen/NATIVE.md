@@ -37,7 +37,7 @@ bash u60-screen/native.sh preview
 bash u60-screen/native.sh preview --page screen-prefs --light
 
 # 不需要图形桌面的截图；使用与设备一致的 RGB565 软件渲染
-bash u60-screen/native.sh snapshot /tmp/u60.png --light --page tailscale-home
+bash u60-screen/native.sh snapshot /tmp/u60.png --light --page tailscale-network
 ```
 
 `--page` 支持 `overview`、`network-menu`、`apps`、`device-settings`、分类 ID 及功能 ID；完整列表在 `assets/catalog.json`。例如 `wifi2`、`nr-bands`、`wireguard`、`agent-update`、`screen-lock`。`--screenshot /tmp/lock.png --page lock` 输出锁屏。离屏演示截图可以展示未设密码的页面；提供了密码配置时仍保留锁屏。设备运行无法使用截图模式绕过锁定。
@@ -118,6 +118,18 @@ adb shell /etc/init.d/zte_topsw_devui start
 
 ## 代码分工
 
+产品命名按网络能力区分，不绑定使用地点：
+
+| 名称 | 含义 |
+| --- | --- |
+| Tailscale 网络 | 当前设备加入的虚拟网络与连接状态 |
+| 子网路由 | 由其他节点发布、批准后可接收的 IP 网段 |
+| 子网路由器 | 发布子网路由的 Tailscale 节点 |
+| 热点转发 | 将热点客户端流量转发到指定 Tailscale 子网 |
+| 连通性检测 | 验证到用户指定目标的实际路径和服务端口 |
+
+对应页面 ID 为 `tailscale-network`，代码使用 `tailnet_*`、`subnet_*`、`probe_*` 等能力名称。旧页面 ID 仅作为兼容入口保留。Tailscale 在线、路由已接收与目标服务可达分别呈现。
+
 | 位置 | 用途 |
 | --- | --- |
 | `ui/main.slint` | 主页面、详情、外观和导航 |
@@ -151,6 +163,6 @@ cargo clippy --manifest-path u60-screen/Cargo.toml --all-targets --all-features 
 
 MU5250/B31 实机已确认 ARM 静态程序运行、内嵌中文字形、DRM 首帧刷新、显示方向、触摸导航、只读状态锁屏和长按解锁，以及限时结束后恢复原厂界面。用户确认小字清晰度改善。物理按键、不同休眠/充电模式和长时间功耗需继续验证；仅凭桌面测试不能把这些标为完成。测试范围与产物大小见 [2026-11-03 验证记录](docs/validation-2026-11-03.md)。
 
-下一阶段接入 agent：本机仍通过认证后的 HTTP/SSE 读写；需有凭证交接、过期重登、断线/陈旧状态和页面级订阅。亮屏锁定时仍订阅网速、信号和电量，熄屏时关闭流。Tailscale 在线不能等同家庭子网可达，家庭网关需要独立路由/连通性读数。随后逐项迁移表单、确认操作、软键盘和业务错误反馈；所有写接口需按实际请求体核对，不能直接提交原型中的展示字段。自启要等这些行为和整机唤醒经过验证后再设计。
+下一阶段接入 agent：本机仍通过认证后的 HTTP/SSE 读写；需有凭证交接、过期重登、断线/陈旧状态和页面级订阅。亮屏锁定时仍订阅网速、信号和电量，熄屏时关闭流。Tailscale 在线不能等同远端子网可达，子网路由节点需要独立路由/连通性读数。随后逐项迁移表单、确认操作、软键盘和业务错误反馈；所有写接口需按实际请求体核对，不能直接提交原型中的展示字段。自启要等这些行为和整机唤醒经过验证后再设计。
 
 许可见 [THIRD_PARTY.md](THIRD_PARTY.md)。

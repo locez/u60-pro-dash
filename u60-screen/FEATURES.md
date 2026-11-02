@@ -69,7 +69,7 @@
 
 | 页面 | 交互 | 接口映射 |
 | --- | --- | --- |
-| [家庭内网](preview/index.html#tailscale-home) | 连接状态、拓扑、家庭连通性检测 | `GET /api/tailscale/status` |
+| [远端网络](preview/index.html#tailscale-network) | 连接状态、拓扑、目标连通性检测 | `GET /api/tailscale/status` |
 | [连接与服务](preview/index.html#tailscale-service) | 显示登录指引、启用 Tailscale、停止 Tailscale、退出登录 | `GET /api/tailscale/status`<br>`POST /api/tailscale/setup`<br>`POST /api/tailscale/login-url`<br>`POST /api/tailscale/enable`<br>`POST /api/tailscale/disable`<br>`POST /api/tailscale/logout` |
 | [Tailscale 设置](preview/index.html#tailscale-config) | 保存 Tailscale 设置 | `PUT /api/tailscale/config` |
 | [Tailscale 版本](preview/index.html#tailscale-version) | 安装指定版本 | `POST /api/tailscale/update` |
@@ -149,7 +149,7 @@
 
 ## 接入边界
 
-- `Tailscale 在线`、`家庭节点在线`、`子网路由已接受`、`家庭地址探测成功`应分别建模；当前首页可达状态为场景模拟。
+- `Tailscale 在线`、`子网路由节点在线`、`子网路由已接受`、`目标地址探测成功`应分别建模；当前首页可达状态为场景模拟。
 - PIN/PUK、锁网、恢复出厂、eSIM 删除等动作目前只有交互预演。真实版本需使用后端读取的最新状态并处理剩余尝试次数、超时及中途断连。
 - 手机端扫码/输入激活码、Tailscale 授权、证书安装和局域网测速等跨设备流程，保持与配套端协作。
 - 备份/恢复只有指引；没有添加一个实际上不存在的 agent API。

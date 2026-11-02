@@ -180,7 +180,7 @@ window.createFeatureUI = function createFeatureUI(ctx) {
     if(effect==='at'){m.output='> '+m.values.command+'\n'+(m.values.command.toUpperCase()==='AT+CSQ'?'+CSQ: 24,99\n\nOK':'OK\n（模拟响应，未发送给调制解调器）');message(f,'收到模拟响应。');return;}
     if(effect==='clear-output'){m.output='';m.message='';render(false);return;}
     if(effect==='airplane'||effect==='online'){ctx.scenario(effect==='airplane'?'no-internet':'normal');setRow(m,'数据连接',effect==='airplane'?'飞行模式':'已连接');message(f,'已切换模拟网络状态。');return;}
-    if(effect==='ts-enable'||effect==='ts-disable'||effect==='ts-logout'){const on=effect==='ts-enable';ctx.tailscale(on);setRow(m,'当前状态',on?'已连接':effect==='ts-logout'?'未登录':'已停止');message(f,on?'Tailscale 已连接（演示）。':'家庭内网连接已停止（演示）。');return;}
+    if(effect==='ts-enable'||effect==='ts-disable'||effect==='ts-logout'){const on=effect==='ts-enable';ctx.tailscale(on);setRow(m,'当前状态',on?'已连接':effect==='ts-logout'?'未登录':'已停止');message(f,on?'Tailscale 已连接（演示）。':'Tailscale 子网连接已停止（演示）。');return;}
     if(effect==='ts-login'){if(await confirm('登录 Tailscale','实际设备会显示 agent 返回的登录链接，供手机完成授权。现在模拟授权完成？')){ctx.tailscale(true);setRow(m,'当前状态','已连接');message(f,'模拟授权完成。');}return;}
     if(effect==='screen-prefs'){const saved=ctx.appearance({theme:m.values.theme==='浅色'?'light':'dark',accent:m.values.accent});ctx.brightness(Number(m.values.brightness));ctx.autoSleep({'15 秒':15,'30 秒':30,'60 秒':60,'从不':0}[m.values.sleep]);message(f,saved?'已应用到预览，并记住明暗与强调色。':'已应用到预览；浏览器未允许保存配色。');return;}
     if(effect==='dial'||effect==='answer'||effect==='hangup'||effect==='mute'||effect==='dtmf'){

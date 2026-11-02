@@ -88,12 +88,12 @@
 .network-foot > span { display: flex; align-items: center; gap: 6px; }
 .network-foot .icon { width: 15px; height: 15px; }
 .network-foot b { font-weight: 500; color: var(--screen-text); }
-.home-shortcut { display: flex; align-items: center; width: 100%; gap: 10px; border: 1px solid var(--screen-line); border-radius: 7px; background: var(--screen-panel); height: 51px; padding: 8px 10px; text-align: left; }
+.tailnet-shortcut { display: flex; align-items: center; width: 100%; gap: 10px; border: 1px solid var(--screen-line); border-radius: 7px; background: var(--screen-panel); height: 51px; padding: 8px 10px; text-align: left; }
 .shortcut-icon { color: var(--screen-accent); }
 .shortcut-icon .icon { width: 20px; height: 20px; }
-.home-shortcut b { display: block; font-size: 11px; font-weight: 500; }
-.home-shortcut small { display: block; font-family: "Fira Code", monospace; color: var(--screen-muted); font-size: 8px; margin-top: 3px; }
-.home-shortcut > .icon { margin-left: auto; width: 13px; height: 13px; color: var(--screen-muted); }
+.tailnet-shortcut b { display: block; font-size: 11px; font-weight: 500; }
+.tailnet-shortcut small { display: block; font-family: "Fira Code", monospace; color: var(--screen-muted); font-size: 8px; margin-top: 3px; }
+.tailnet-shortcut > .icon { margin-left: auto; width: 13px; height: 13px; color: var(--screen-muted); }
 .screen-nav { height: 56px; flex: 0 0 56px; display: flex; border-top: 1px solid var(--screen-line); padding: 0 8px; background: var(--screen-bg); }
 .screen-nav button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; flex: 1; background: none; border: 0; position: relative; color: var(--screen-muted); padding: 4px 0; font-size: 10px; }
 .screen-nav button .icon { width: 19px; height: 19px; }
@@ -110,22 +110,22 @@
 .tailscale-mark { display: grid; grid-template-columns: repeat(3,4px); grid-template-rows: repeat(3,4px); gap: 3px; align-content: center; justify-content: center; }
 .tailscale-mark i { display: block; width: 4px; height: 4px; background: currentColor; border-radius: 50%; }
 .tailscale-mark i:nth-child(3n) { opacity: .3; }
-.home-message { margin: 0 0 5px; font-size: 17px; font-weight: 600; letter-spacing: -.5px; }
-.home-explanation { color: var(--screen-muted); font-size: 10px; margin: 0 0 14px; line-height: 1.7; min-height: 17px; }
-.home-details { margin: 0 0 15px; }
-.home-details > div { display: flex; justify-content: space-between; align-items: center; min-height: 31px; border-top: 1px solid var(--screen-line); }
-.home-details dt { color: var(--screen-muted); font-size: 10px; }
-.home-details dd { margin: 0; font-size: 11px; }
-.home-details .route-detail { display: block; padding-top: 8px; }
-.home-details .route-detail dd { font-size: 18px; margin-top: 4px; letter-spacing: -.7px; }
+.tailnet-message { margin: 0 0 5px; font-size: 17px; font-weight: 600; letter-spacing: -.5px; }
+.tailnet-explanation { color: var(--screen-muted); font-size: 10px; margin: 0 0 14px; line-height: 1.7; min-height: 17px; }
+.tailnet-details { margin: 0 0 15px; }
+.tailnet-details > div { display: flex; justify-content: space-between; align-items: center; min-height: 31px; border-top: 1px solid var(--screen-line); }
+.tailnet-details dt { color: var(--screen-muted); font-size: 10px; }
+.tailnet-details dd { margin: 0; font-size: 11px; }
+.tailnet-details .route-detail { display: block; padding-top: 8px; }
+.tailnet-details .route-detail dd { font-size: 18px; margin-top: 4px; letter-spacing: -.7px; }
 .primary-button, .secondary-button { width: 100%; min-height: 42px; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 8px; border: 1px solid var(--screen-accent); border-radius: 5px; background: var(--screen-accent-fill); color: var(--screen-button-text) !important; font-size: 11px; font-weight: 600; }
 .primary-button .icon, .secondary-button .icon { width: 15px; height: 15px; }
 .primary-button:disabled { opacity: .7; }
 .probe-result { margin: 7px 0 0; text-align: center; font-size: 9px; min-height: 14px; color: var(--screen-muted); }
-.home-page .route-map { margin-top: 12px; margin-bottom: 11px; }
-.home-page .home-details { margin-bottom: 10px; }
-.home-page .home-details > div { min-height: 28px; }
-.home-page .home-explanation { margin-bottom: 10px; }
+.tailnet-page .route-map { margin-top: 12px; margin-bottom: 11px; }
+.tailnet-page .tailnet-details { margin-bottom: 10px; }
+.tailnet-page .tailnet-details > div { min-height: 28px; }
+.tailnet-page .tailnet-explanation { margin-bottom: 10px; }
 .inline-feature-link { background: transparent; border: 0; color: var(--screen-accent) !important; display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; min-height: 34px; font-size: 10px; padding: 6px 0; }
 .inline-feature-link .icon { width: 13px; height: 13px; }
 .device-page .battery-panel { margin-top: 9px; }

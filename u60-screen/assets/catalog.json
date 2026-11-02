@@ -38,9 +38,9 @@
     {
       "id": "tailscale",
       "title": "Tailscale",
-      "subtitle": "回家通道与远程连接",
+      "subtitle": "虚拟组网与子网路由",
       "root": "apps",
-      "icon": "home"
+      "icon": "tailnet"
     },
     {
       "id": "sms",
@@ -1878,17 +1878,17 @@
       ]
     },
     {
-      "id": "tailscale-home",
-      "title": "家庭内网",
+      "id": "tailscale-network",
+      "title": "Tailscale 网络",
       "group": "tailscale",
-      "description": "查看到家里 192.168.1.0/24 的连接。",
+      "description": "查看 Tailscale 连接、子网路由与目标连通性。",
       "rows": [],
       "fields": [],
       "actions": [],
       "apis": [
         "GET /api/tailscale/status"
       ],
-      "view": "home"
+      "view": "tailnet"
     },
     {
       "id": "tailscale-service",
@@ -1926,7 +1926,7 @@
         {
           "label": "停止 Tailscale",
           "effect": "ts-disable",
-          "confirm": "远程访问和家庭内网连接将中断。"
+          "confirm": "远程访问和Tailscale 子网连接将中断。"
         },
         {
           "label": "退出登录",
@@ -1948,7 +1948,7 @@
       "id": "tailscale-config",
       "title": "Tailscale 设置",
       "group": "tailscale",
-      "description": "本机发布子网与接收家庭子网是不同设置。",
+      "description": "本机发布子网与接收远端子网是不同设置。",
       "rows": [],
       "fields": [
         {
@@ -1981,7 +1981,7 @@
           "label": "本机发布的子网",
           "value": "",
           "type": "text",
-          "placeholder": "未发布，不影响接收家里的路由"
+          "placeholder": "未发布，不影响接收其他节点发布的路由"
         }
       ],
       "actions": [
@@ -3059,7 +3059,7 @@
       "kind": "list",
       "items": [
         {
-          "title": "09:41 · 家庭内网可达",
+          "title": "09:41 · 目标服务可达",
           "subtitle": "Tailscale 连接正常",
           "rows": [
             [

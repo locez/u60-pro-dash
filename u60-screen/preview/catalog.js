@@ -8,7 +8,7 @@
     ['radio','信号与锁频','载波、小区与无线诊断','network-menu','network'],
     ['routing','路由与防火墙','转发、访问规则与 QoS','network-menu','network'],
     ['dns','DNS 与隐私','解析、加密 DNS 与缓存','network-menu','network'],
-    ['tailscale','Tailscale','回家通道与远程连接','apps','home'],
+    ['tailscale','Tailscale','虚拟组网与子网路由','apps','tailnet'],
     ['sms','短信','收件箱、发送与自动转发','apps','message'],
     ['sim','SIM 与 eSIM','卡片安全、套餐与配置文件','apps','sim'],
     ['voice','通话与卡片服务','拨号、USSD 与 SIM 菜单','apps','phone'],
