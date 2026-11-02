@@ -1,4 +1,5 @@
 import { Palette, Label, TapButton, MenuRow, Stat, Brightness, TrafficPanel } from "components.slint";
+import { LockScreen, PinPad } from "lock.slint";
 import "../assets/U60Sans.ttf";
 export { Palette }
 export struct MenuEntry { id: string, title: string, subtitle: string, tag: string }
@@ -32,6 +33,26 @@ export component Screen inherits Window {
     in-out property <string> upload: "16.4";
     in-out property <string> message;
     in-out property <int> page-revision;
+    in-out property <bool> locked: true;
+    in-out property <bool> pin-enabled;
+    in-out property <bool> pin-visible;
+    in-out property <bool> pin-busy;
+    in-out property <string> pin-title;
+    in-out property <string> pin-message;
+    in-out property <string> pin-masked;
+    in-out property <int> pin-remaining;
+    in-out property <float> hold-progress;
+    callback hold-start;
+    callback hold-tick;
+    callback hold-end(bool);
+    callback hold-cancel;
+    callback pin-digit(int);
+    callback pin-backspace;
+    callback pin-submit;
+    callback pin-cancel;
+    callback pin-setup(bool);
+    callback pin-key(string);
+    callback lock-now;
     callback navigate(int);
     callback open(string);
     callback back;
@@ -50,7 +71,15 @@ export component Screen inherits Window {
         width: parent.width; height: parent.height;
         key-pressed(event) => {
             root.activity();
+            if root.pin-visible {
+                if event.text == Key.Escape { root.pin-cancel(); }
+                else if event.text == Key.Return { root.pin-submit(); }
+                else if event.text == Key.Backspace { root.pin-backspace(); }
+                else { root.pin-key(event.text); }
+                return accept;
+            }
             if event.text == " " { root.power(); return accept; }
+            if root.locked { return accept; }
             if event.text == Key.Escape { root.back(); return accept; }
             if event.text == Key.RightArrow { root.navigate(mod(root.tab + 1, 4)); return accept; }
             if event.text == Key.LeftArrow { root.navigate(mod(root.tab + 3, 4)); return accept; }
@@ -197,7 +226,15 @@ export component Screen inherits Window {
                     TapButton { text: "切换演示场景"; clicked => { root.scenario(); } }
                     Label { text: "Tailscale 在线与家庭内网可达分别判断。当前读数为演示数据。"; color: Palette.muted; font-size: 12px; wrap: word-wrap; }
                 }
-
+                if root.view == 5: VerticalLayout {
+                    spacing: 12px;
+                    MenuRow { title: "密码解锁"; subtitle: root.pin-enabled ? "已开启 · 6–12 位数字密码" : "未开启 · 仅长按解锁"; clicked => { root.pin-setup(false); } }
+                    TapButton { text: root.pin-enabled ? "修改解锁密码" : "设置解锁密码"; clicked => { root.pin-setup(false); } }
+                    if root.pin-enabled: TapButton { text: "关闭密码解锁"; clicked => { root.pin-setup(true); } }
+                    TapButton { text: "立即锁屏"; clicked => { root.lock-now(); } }
+                    Label { text: "启动与熄屏后自动锁定。开启密码后，更改或关闭密码需要先验证当前密码。"; font-size: 14px; color: Palette.muted; wrap: word-wrap; }
+                    if root.pin-message != "": Label { text: root.pin-message; color: Palette.good; wrap: word-wrap; }
+                }
             }
         }
         Rectangle {
@@ -229,6 +266,25 @@ export component Screen inherits Window {
                     TapButton { text: "知道了"; selected: true; clicked => { root.message = ""; } }
                 }
             }
+        }
+        if root.locked && !root.pin-visible: LockScreen {
+            width: parent.width; height: parent.height;
+            pin-enabled: root.pin-enabled; awake: !root.asleep; progress: root.hold-progress;
+            battery: root.battery; network-online: root.network-online;
+            download: root.download; upload: root.upload;
+            hold-start => { root.hold-start(); }
+            hold-tick => { root.hold-tick(); }
+            hold-end(inside) => { root.hold-end(inside); }
+            hold-cancel => { root.hold-cancel(); }
+        }
+        if root.pin-visible: PinPad {
+            width: parent.width; height: parent.height;
+            title: root.pin-title; message: root.pin-message; masked: root.pin-masked;
+            busy: root.pin-busy; remaining: root.pin-remaining;
+            digit(n) => { root.pin-digit(n); }
+            backspace => { root.pin-backspace(); }
+            submit => { root.pin-submit(); }
+            cancel => { root.pin-cancel(); }
         }
         if root.asleep: Rectangle {
             width: parent.width; height: parent.height; background: #000000;

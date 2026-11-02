@@ -57,6 +57,7 @@ pub struct App {
     timer: slint::Timer,
 }
 pub struct State {
+    pub security: crate::security::ScreenLock,
     pub prefs: Preferences,
     prefs_path: Option<PathBuf>,
     prefs_dirty: bool,
@@ -125,6 +126,12 @@ impl State {
                 title = label.into();
                 if tab == 3 {
                     entries.push(entry(
+                        "screen-lock",
+                        "锁屏与密码",
+                        "长按解锁与可选密码保护",
+                        "",
+                    ));
+                    entries.push(entry(
                         "screen-prefs",
                         "屏幕与外观",
                         "明暗、配色、亮度与熄屏",
@@ -148,6 +155,11 @@ impl State {
                         entries.push(entry(&g.id, &g.title, &g.subtitle, &count.to_string()));
                     }
                 }
+            }
+            "screen-lock" => {
+                title = "锁屏与密码".into();
+                view = 5;
+                tab = 3;
             }
             "screen-prefs" => {
                 title = "屏幕与外观".into();
@@ -317,6 +329,29 @@ impl State {
         });
     }
 
+    pub fn sync_security(&self, ui: &Screen) {
+        use crate::security::Mode;
+        let s = &self.security;
+        ui.set_locked(s.locked);
+        ui.set_pin_enabled(s.enabled());
+        ui.set_pin_visible(s.mode != Mode::Hold);
+        ui.set_pin_busy(s.busy());
+        ui.set_pin_title(
+            match s.mode {
+                Mode::Unlock => "解锁屏幕",
+                Mode::New | Mode::Confirm => "设置解锁密码",
+                Mode::Change => "修改解锁密码",
+                Mode::Disable => "关闭密码解锁",
+                Mode::Hold => "屏幕锁",
+            }
+            .into(),
+        );
+        ui.set_pin_message(s.message.clone().into());
+        ui.set_pin_masked("●".repeat(s.input.len()).into());
+        ui.set_pin_remaining(s.remaining() as i32);
+        ui.set_hold_progress(s.progress);
+    }
+
     fn persist(&mut self, ui: &Screen) {
         self.last_input = Instant::now();
         self.apply_preferences(ui);
@@ -349,6 +384,10 @@ impl App {
     pub fn new(prefs: Preferences, prefs_path: Option<PathBuf>) -> Result<Self> {
         let ui = Screen::new()?;
         let state = Rc::new(RefCell::new(State {
+            security: crate::security::ScreenLock::load(prefs_path.as_ref().map(|p| {
+                p.with_file_name(".screen-private")
+                    .join("screen-lock.private.json")
+            }))?,
             prefs,
             prefs_path,
             prefs_dirty: false,
@@ -361,6 +400,7 @@ impl App {
         }));
         state.borrow().apply_preferences(&ui);
         state.borrow_mut().show(&ui, "overview", false)?;
+        state.borrow().sync_security(&ui);
         // Weak component handles avoid keeping the UI alive through its own callbacks.
         macro_rules! bind {
             ($method:ident, |$s:ident, $u:ident $(, $arg:ident)*| $body:block) => {{
@@ -368,8 +408,13 @@ impl App {
                 ui.$method(move |$($arg),*| {
                     if let Some($u) = weak.upgrade() {
                         let mut $s = state.borrow_mut();
+                        if ($s.security.locked || $s.security.mode != crate::security::Mode::Hold)
+                            && !matches!(stringify!($method), "on_power" | "on_activity" | "on_hold_start" | "on_hold_tick" | "on_hold_end" | "on_hold_cancel" | "on_pin_digit" | "on_pin_backspace" | "on_pin_submit" | "on_pin_cancel" | "on_pin_key") {
+                            return;
+                        }
                         $s.last_input = Instant::now();
                         $body
+                        $s.sync_security(&$u);
                     }
                 });
             }};
@@ -446,8 +491,48 @@ impl App {
                 % options.len()];
             s.persist(&u);
         });
-        bind!(on_power, |_s, u| {
+        bind!(on_power, |s, u| {
+            if !u.get_asleep() {
+                s.security.lock();
+            }
             u.set_asleep(!u.get_asleep());
+        });
+        bind!(on_hold_start, |s, _u| {
+            s.security.hold_start();
+        });
+        bind!(on_hold_tick, |s, _u| {
+            s.security.hold_tick();
+        });
+        bind!(on_hold_end, |s, _u, inside| {
+            s.security.hold_release(inside);
+        });
+        bind!(on_hold_cancel, |s, _u| {
+            s.security.hold_cancel();
+        });
+        bind!(on_pin_setup, |s, _u, disable| {
+            s.security.setup(disable);
+        });
+        bind!(on_pin_digit, |s, _u, n| {
+            s.security.digit(n);
+        });
+        bind!(on_pin_key, |s, _u, key| {
+            if key.len() == 1
+                && let Ok(n) = key.parse::<i32>()
+            {
+                s.security.digit(n);
+            }
+        });
+        bind!(on_pin_backspace, |s, _u| {
+            s.security.backspace();
+        });
+        bind!(on_pin_submit, |s, _u| {
+            s.security.submit();
+        });
+        bind!(on_pin_cancel, |s, _u| {
+            s.security.cancel();
+        });
+        bind!(on_lock_now, |s, _u| {
+            s.security.lock();
         });
         bind!(on_activity, |_s, _u| {});
         bind!(on_scenario, |s, u| {
@@ -466,14 +551,19 @@ impl App {
             move || {
                 if let Some(ui) = weak.upgrade() {
                     let mut s = timer_state.borrow_mut();
+                    s.security.poll();
                     if s.prefs_dirty && s.prefs_changed.elapsed() >= Duration::from_millis(500) {
                         s.flush_preferences(&ui);
                     }
                     if s.prefs.sleep_seconds != 0
                         && s.last_input.elapsed().as_secs() >= s.prefs.sleep_seconds as u64
                     {
+                        if !ui.get_asleep() {
+                            s.security.lock();
+                        }
                         ui.set_asleep(true);
                     }
+                    s.sync_security(&ui);
                 }
             },
         );

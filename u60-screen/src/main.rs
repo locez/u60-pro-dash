@@ -3,6 +3,7 @@ mod config;
 #[cfg(feature = "device")]
 mod device;
 mod platform;
+mod security;
 
 use anyhow::{Context, Result, bail};
 use config::Preferences;
@@ -108,10 +109,18 @@ fn main() -> Result<()> {
         None
     };
     let app = app::App::new(prefs, opts.prefs)?;
-    if let Some(page) = &opts.page {
+    if let Some(page) = &opts.page
+        && page != "lock"
+    {
         app.open(page)?;
     }
     if let Some(path) = opts.screenshot {
+        // Offline demo captures can show pages without a hold gesture. A supplied
+        // password configuration still remains locked; --device cannot use this path.
+        if opts.page.as_deref() != Some("lock") && !app.state.borrow().security.enabled() {
+            app.state.borrow_mut().security.locked = false;
+            app.state.borrow().sync_security(&app.ui);
+        }
         app.ui.show()?;
         slint::platform::update_timers_and_animations();
         let pixels = platform::capture(
@@ -170,6 +179,23 @@ mod tests {
                 button: PointerEventButton::Left,
             });
         };
+        assert!(app.ui.get_locked());
+        tap(120., 450.);
+        assert_eq!(app.ui.get_tab(), 0, "navigation must be gated while locked");
+        let hold = || {
+            let position = LogicalPosition::new(160., 355.);
+            window.dispatch_event(WindowEvent::PointerPressed {
+                position,
+                button: PointerEventButton::Left,
+            });
+            std::thread::sleep(std::time::Duration::from_millis(1010));
+            window.dispatch_event(WindowEvent::PointerReleased {
+                position,
+                button: PointerEventButton::Left,
+            });
+        };
+        hold();
+        assert!(!app.ui.get_locked());
         tap(120., 450.);
         assert_eq!(app.ui.get_tab(), 1);
         assert_eq!(app.ui.get_heading(), "网络");
@@ -204,6 +230,8 @@ mod tests {
         assert!(platform::capture(&window, false).iter().all(|p| p.0 == 0));
         tap(100., 100.);
         assert!(!app.ui.get_asleep());
+        assert!(app.ui.get_locked(), "waking must not unlock");
+        hold();
         assert_eq!(app.ui.get_heading(), "随身网络");
         // Damage and input rotations are independent. The capture rotation must
         // invert the entire pixel buffer, including asymmetric text and corners.
@@ -223,6 +251,66 @@ mod tests {
         );
         app.ui.invoke_action(0);
         assert!(app.ui.get_message().contains("尚未接入"));
+        app.ui.set_message("".into());
+        app.open("screen-lock")?;
+        app.ui.invoke_pin_setup(false);
+        platform::capture(&window, false);
+        if let Ok(path) = std::env::var("U60_SCREEN_TEST_IMAGES") {
+            let path = std::path::Path::new(&path);
+            std::fs::create_dir_all(path)?;
+            platform::save_png(
+                &path.join("pin-pad.png"),
+                &platform::capture(&window, false),
+            )?;
+        }
+        let type_pin = || {
+            for (x, y) in [
+                (60., 205.),
+                (160., 205.),
+                (260., 205.),
+                (60., 263.),
+                (160., 263.),
+                (260., 263.),
+            ] {
+                tap(x, y);
+            }
+            tap(260., 379.);
+        };
+        let finish_password = || {
+            let deadline = std::time::Instant::now() + std::time::Duration::from_secs(30);
+            while app.state.borrow().security.busy() && std::time::Instant::now() < deadline {
+                std::thread::sleep(std::time::Duration::from_millis(10));
+                slint::platform::update_timers_and_animations();
+            }
+            assert!(!app.state.borrow().security.busy());
+            platform::capture(&window, false);
+        };
+        type_pin();
+        assert!(app.state.borrow().security.mode == crate::security::Mode::Confirm);
+        type_pin();
+        finish_password();
+        assert!(app.ui.get_pin_enabled());
+        assert!(!app.ui.get_pin_visible());
+        app.ui.invoke_lock_now();
+        platform::capture(&window, false);
+        hold();
+        assert!(app.ui.get_locked());
+        assert!(app.ui.get_pin_visible());
+        platform::capture(&window, false);
+        app.ui.invoke_navigate(1);
+        assert_eq!(
+            app.ui.get_heading(),
+            "锁屏与密码",
+            "locked callbacks must not navigate"
+        );
+        type_pin();
+        finish_password();
+        assert!(!app.ui.get_locked());
+        app.ui.invoke_power();
+        assert!(
+            app.ui.get_locked(),
+            "sleep must discard the unlocked session"
+        );
         Ok(())
     }
 }
