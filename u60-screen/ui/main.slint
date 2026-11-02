@@ -26,6 +26,18 @@ export component Screen inherits Window {
     in-out property <int> brightness: 70;
     in-out property <string> sleep-label: "60 秒";
     in-out property <string> accent-hex: "#2563eb";
+    in-out property <bool> demo: true;
+    in-out property <string> connection-label: "演示";
+    in-out property <string> network-mode: "5G";
+    in-out property <string> radio-label: "5G SA · n78";
+    in-out property <string> signal-strength: "−86";
+    in-out property <string> client-count: "3";
+    in-out property <string> traffic-total: "2.38 GB";
+    in-out property <string> home-status: "家庭内网可达";
+    in-out property <[Reading]> home-readings;
+    callback refresh;
+    callback agent-login(string);
+    callback agent-forget;
     in-out property <string> battery: "82%";
     in-out property <bool> network-online: true;
     in-out property <bool> home-online: true;
@@ -91,8 +103,8 @@ export component Screen inherits Window {
             HorizontalLayout {
                 padding-left: 14px; padding-right: 14px;
                 Label { text: "U60"; font-size: 12px; font-weight: 700; vertical-alignment: center; }
-                Label { text: "演示"; color: Palette.warning; font-size: 12px; vertical-alignment: center; horizontal-alignment: center; }
-                Label { text: root.network-online ? "5G  ·  " + root.battery : "离线  ·  " + root.battery; font-size: 12px; vertical-alignment: center; horizontal-alignment: right; }
+                Label { text: root.connection-label; color: Palette.warning; font-size: 12px; vertical-alignment: center; horizontal-alignment: center; }
+                Label { text: root.network-mode + "  ·  " + root.battery; font-size: 12px; vertical-alignment: center; horizontal-alignment: right; }
             }
         }
         Rectangle {
@@ -120,12 +132,13 @@ export component Screen inherits Window {
                 padding-left: 12px; padding-right: 12px; padding-top: 2px; padding-bottom: 12px; spacing: 10px;
                 if root.view == 0: TrafficPanel {
                     online: root.network-online; download: root.download; upload: root.upload;
+                    network-label: root.radio-label; total: root.traffic-total;
                     interactive: true; clicked => { root.open("traffic"); }
                 }
                 if root.view == 0: HorizontalLayout {
                     spacing: 10px;
-                    Stat { label: "信号强度"; value: root.network-online ? "−86" : "—"; unit: "dBm"; clicked => { root.open("signal-live"); } }
-                    Stat { label: "热点设备"; value: "3"; unit: "台在线"; clicked => { root.open("clients"); } }
+                    Stat { label: "信号强度"; value: root.signal-strength; unit: "dBm"; clicked => { root.open("signal-live"); } }
+                    Stat { label: "热点设备"; value: root.client-count; unit: "台设备"; clicked => { root.open("clients"); } }
                 }
                 if root.view == 0: Rectangle {
                     height: 86px; border-radius: 10px; background: Palette.surface;
@@ -133,8 +146,8 @@ export component Screen inherits Window {
                         padding: 14px; spacing: 8px;
                         VerticalLayout {
                             Label { text: "TAILSCALE / 回家"; height: 16px; font-size: 12px; color: Palette.muted; }
-                            Label { text: root.home-online ? "家庭内网可达" : "家庭内网未连通"; height: 24px; font-size: 17px; font-weight: 600; color: root.home-online ? Palette.good : Palette.warning; }
-                            Label { text: "192.168.1.0/24"; height: 18px; font-size: 13px; color: Palette.muted; }
+                            Label { text: root.home-status; height: 24px; font-size: 17px; font-weight: 600; color: root.home-online ? Palette.good : Palette.warning; }
+                            Label { text: root.demo ? "192.168.1.0/24" : "查看连接与验证结果"; height: 18px; font-size: 13px; color: Palette.muted; }
                         }
                         Label { text: "↗"; font-size: 24px; vertical-alignment: center; color: Palette.accent-ink; width: 24px; }
                     }
@@ -207,15 +220,11 @@ export component Screen inherits Window {
                         VerticalLayout {
                             padding: 16px; spacing: 8px;
                             Label { text: "U60   →   Tailscale   →   家"; font-size: 13px; color: Palette.accent-ink; }
-                            Label { text: root.home-online ? "连上热点，就能回家。" : "回家通道暂未打通。"; font-size: 20px; font-weight: 600; }
-                            Label { text: "192.168.1.0/24"; font-size: 12px; color: Palette.muted; }
+                            Label { text: root.home-status; font-size: 20px; font-weight: 600; }
+                            Label { text: root.demo ? "192.168.1.0/24" : "查看连接与验证结果"; font-size: 12px; color: Palette.muted; }
                         }
                     }
-                    for row in [
-                        {label: "Tailscale", value: root.network-online ? "已连接" : "等待网络"},
-                        {label: "家庭节点", value: root.home-online ? "在线" : "离线"},
-                        {label: "家庭子网", value: root.home-online ? "演示：已验证可达" : "演示：不可达"}
-                    ]: Rectangle {
+                    for row in root.home-readings: Rectangle {
                         height: 48px; background: Palette.surface; border-radius: 8px;
                         HorizontalLayout {
                             padding: 12px;
@@ -223,8 +232,27 @@ export component Screen inherits Window {
                             Label { text: row.value; horizontal-alignment: right; }
                         }
                     }
-                    TapButton { text: "切换演示场景"; clicked => { root.scenario(); } }
-                    Label { text: "Tailscale 在线与家庭内网可达分别判断。当前读数为演示数据。"; color: Palette.muted; font-size: 12px; wrap: word-wrap; }
+                    if root.demo: TapButton { text: "切换演示场景"; clicked => { root.scenario(); } }
+                    if !root.demo: TapButton { text: "刷新连接状态"; clicked => { root.refresh(); } }
+                    Label { text: root.demo ? "当前读数为演示数据。" : "家庭连接需要同时通过路由与服务连通性检查。"; color: Palette.muted; font-size: 12px; wrap: word-wrap; }
+                }
+                if root.view == 6: VerticalLayout {
+                    spacing: 12px;
+                    Label { text: "后台连接 · " + root.connection-label; font-size: 18px; }
+                    Label { text: "机身屏幕使用本机后台账号连接。也可以输入后台密码重新登录。"; color: Palette.muted; wrap: word-wrap; }
+                    Rectangle {
+                        height: 48px; background: Palette.surface; border-radius: 8px;
+                        password := TextInput {
+                            x: 12px; width: parent.width - 24px; height: parent.height;
+                            input-type: InputType.password; color: Palette.text; vertical-alignment: center;
+                            accepted => { root.agent-login(self.text); self.text = ""; }
+                            in property <bool> active: !root.locked;
+                            changed active => { if !self.active { self.text = ""; } }
+                        }
+                    }
+                    TapButton { text: "登录后台"; selected: true; clicked => { root.agent-login(password.text); password.text = ""; } }
+                    TapButton { text: "重新连接"; clicked => { root.refresh(); } }
+                    TapButton { text: "断开并清除本地会话"; clicked => { root.agent-forget(); } }
                 }
                 if root.view == 5: VerticalLayout {
                     spacing: 12px;
@@ -271,6 +299,8 @@ export component Screen inherits Window {
             width: parent.width; height: parent.height;
             pin-enabled: root.pin-enabled; awake: !root.asleep; progress: root.hold-progress;
             battery: root.battery; network-online: root.network-online;
+            connection-label: root.connection-label; radio-label: root.radio-label;
+            signal-strength: root.signal-strength; traffic-total: root.traffic-total;
             download: root.download; upload: root.upload;
             hold-start => { root.hold-start(); }
             hold-tick => { root.hold-tick(); }

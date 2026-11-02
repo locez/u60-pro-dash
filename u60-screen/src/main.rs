@@ -1,3 +1,4 @@
+mod agent;
 mod app;
 mod config;
 #[cfg(feature = "device")]
@@ -13,6 +14,10 @@ slint::include_modules!();
 
 #[derive(Default)]
 struct Options {
+    agent: Option<std::net::SocketAddr>,
+    demo: bool,
+    local_agent: bool,
+    probe: bool,
     device: bool,
     screenshot: Option<PathBuf>,
     prefs: Option<PathBuf>,
@@ -33,6 +38,10 @@ fn options() -> Result<Options> {
                 .with_context(|| format!("missing value after {arg}"))
         };
         match arg.as_str() {
+            "--agent" => opts.agent = Some(value()?.parse()?),
+            "--demo" => opts.demo = true,
+            "--local-agent" => opts.local_agent = true,
+            "--probe-agent" => opts.probe = true,
             "--device" => opts.device = true,
             "--screenshot" => opts.screenshot = Some(value()?.into()),
             "--prefs" => opts.prefs = Some(value()?.into()),
@@ -56,7 +65,7 @@ fn options() -> Result<Options> {
             "--seconds" => opts.seconds = Some(value()?.parse()?),
             "--help" | "-h" => {
                 println!(
-                    "u60-screen — native Slint screen (demonstration data)\n\n\
+                    "u60-screen — native Slint screen\n\n\
                     Desktop: u60-screen [--light|--dark] [--accent '#2563eb']\n\
                     Capture: u60-screen --screenshot FILE.png [--page FEATURE_ID]\n\
                     Device:  use scripts/device-trial.sh (guarded, 90 seconds by default)\n\n\
@@ -65,8 +74,12 @@ fn options() -> Result<Options> {
                     --touch-rotate 0|180  Independent input calibration (default: 180)\n\
                     --touch /dev/input/eventN  Override Sitronix auto-detection\n\
                     --seconds 5..600      Device trial deadline\n\n\
+                    --agent HOST:PORT     Live agent through a loopback tunnel\n\
+                    --demo                Use demonstration data, also on device\n\
+                    --local-agent         Authenticate with the on-device agent process\n\
+                    --probe-agent         Check login and live topics without taking the display\n\n\
                     Desktop: arrows navigate; Escape goes back; Space sleeps/wakes.\n\
-                    Native business actions are not connected to the agent yet."
+                    Desktop defaults to demo; guarded device trials use live data."
                 );
                 std::process::exit(0);
             }
@@ -76,11 +89,29 @@ fn options() -> Result<Options> {
     if opts.device && opts.screenshot.is_some() {
         bail!("--device and --screenshot are mutually exclusive");
     }
+    if opts.demo && (opts.agent.is_some() || opts.local_agent || opts.probe) {
+        bail!("--demo cannot be combined with agent options");
+    }
     Ok(opts)
 }
 
 fn main() -> Result<()> {
     let opts = options()?;
+    let agent = (!opts.demo
+        && (opts.device || opts.agent.is_some() || opts.local_agent || opts.probe))
+        .then(|| agent::Config {
+            address: opts
+                .agent
+                .unwrap_or_else(|| "127.0.0.1:9090".parse().unwrap()),
+            session_file: opts.prefs.as_ref().map(|p| {
+                p.with_file_name(".screen-private")
+                    .join("agent-session.private.json")
+            }),
+            local_credentials: opts.device || opts.local_agent,
+        });
+    if opts.probe {
+        return agent::probe(agent.expect("probe configuration"));
+    }
     let mut prefs = match &opts.prefs {
         Some(path) if path.exists() => Preferences::load(path)
             .context("invalid screen preferences; correct or rename the file")?,
@@ -109,6 +140,9 @@ fn main() -> Result<()> {
         None
     };
     let app = app::App::new(prefs, opts.prefs)?;
+    if let Some(config) = agent {
+        app.connect(config)?;
+    }
     if let Some(page) = &opts.page
         && page != "lock"
     {

@@ -103,15 +103,17 @@ export component TrafficPanel inherits Rectangle {
     in property <bool> online;
     in property <string> download;
     in property <string> upload;
+    in property <string> network-label: "5G SA · n78";
+    in property <string> total: "2.38 GB";
     in property <bool> interactive: false;
     callback clicked;
     height: 142px; background: Palette.surface; border-radius: 12px;
     Rectangle { x: 14px; y: 16px; width: 3px; height: 12px; background: root.online ? Palette.good : Palette.warning; border-radius: 1px; }
-    Label { x: 24px; y: 14px; text: root.online ? "5G SA · n78" : "等待蜂窝网络"; font-size: 13px; color: Palette.muted; }
+    Label { x: 24px; y: 14px; text: root.network-label; font-size: 13px; color: Palette.muted; }
     Label { x: 14px; y: 34px; height: 58px; text: root.download; font-size: 46px; font-weight: 600; color: Palette.accent-ink; }
     Label { x: 226px; y: 68px; text: "Mbps ↓"; font-size: 12px; color: Palette.muted; }
     Rectangle { x: 14px; y: 103px; width: parent.width - 28px; height: 1px; background: Palette.line; }
     Label { x: 14px; y: 115px; text: "↑ " + root.upload + " Mbps"; font-size: 13px; }
-    Label { x: 175px; y: 115px; text: "本次  2.38 GB"; font-size: 12px; color: Palette.muted; }
+    Label { x: 175px; y: 115px; text: "本次 " + root.total; font-size: 12px; color: Palette.muted; }
     TouchArea { enabled: root.interactive; clicked => { root.clicked(); } }
 }
