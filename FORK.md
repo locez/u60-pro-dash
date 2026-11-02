@@ -1,6 +1,6 @@
 # u60-pro-dash 的 fork 维护方式
 
-这是 [locez/u60-pro-dash](https://github.com/locez/u60-pro-dash)，上游是 [jesther-ai/open-u60-pro](https://github.com/jesther-ai/open-u60-pro)。本 fork 维护机身小屏原型、Tailscale 家庭子网网关，以及 Linux / 旧版 ADB 下的安装校验修复。
+这是 [locez/u60-pro-dash](https://github.com/locez/u60-pro-dash)，上游是 [jesther-ai/open-u60-pro](https://github.com/jesther-ai/open-u60-pro)。本 fork 维护机身小屏原型、Tailscale 子网网关，以及 Linux / 旧版 ADB 下的安装校验修复。
 
 ## 分支和远程
 
@@ -72,7 +72,7 @@ git push -u origin feat/my-screen
 - Rust 改动遵循 `CONTRIBUTING.md`：格式、Clippy、相关测试和 ARM64 musl release 构建。网关相关至少运行 `cargo test --locked -p zte-agent tailscale::tests`；发布构建还要检查 section 总大小和 gzip 大小。
 - 同步脚本可运行 `python3 scripts/tests/test_sync_upstream.py`，测试使用临时本地仓库，不访问 GitHub 或设备。
 - 小屏预览：`bash u60-screen/preview.sh`，见 [预览说明](u60-screen/README.md)。当前 76 个入口以原型建立时的 `03f86da` API 为基线；新合入的上游 WireGuard / OTA 页面还没有设计到小屏。
-- 网关的旧版布局部署与验证范围见 [工具说明](local-tools/u60-home-gateway/README.md)。同步 Git、编译和推送不会更新真实设备。
+- 网关的旧版布局部署与验证范围见 [工具说明](local-tools/tailscale-gateway/README.md)。同步 Git、编译和推送不会更新真实设备。
 - `setup.sh` 下载上游二进制的选项仍指向官方 release；需要 fork 功能时选择从本 fork 源码构建，不能用官方二进制代替。
 - 上游新增的 OTA 使用签名发布；普通本地构建没有签名公钥，OTA 不可用。将来给 fork 发布 OTA 前，还需配置自己的发布地址、签名密钥和分支流程。本次只推送源码分支，不推送 release tag。
 

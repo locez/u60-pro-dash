@@ -30,7 +30,9 @@ const LOG_FILE: &str = "/tmp/tailscaled.log";
 // The companion script owns narrowly scoped forwarding/NAT rules; Tailscale
 // must not install netfilter rules on the firmware-owned cellular firewall.
 const GATEWAY_ENV: &str = "ZTE_AGENT_TAILSCALE_GATEWAY";
-const GATEWAY_SCRIPT: &str = "/data/local/tmp/u60-home-network.sh";
+const GATEWAY_SCRIPT: &str = "/data/local/tmp/tailscale-gateway.sh";
+// Existing devices continue to work until their rules script is migrated.
+const LEGACY_GATEWAY_SCRIPT: &str = "/data/local/tmp/u60-home-network.sh";
 
 fn gateway_mode() -> bool {
     std::env::var(GATEWAY_ENV).as_deref() == Ok("1")
@@ -758,7 +760,8 @@ impl TailscaleManager {
             return;
         }
         let mut cmd = Command::new("sh");
-        cmd.args([GATEWAY_SCRIPT, "apply"]);
+        let script = if Path::new(GATEWAY_SCRIPT).is_file() { GATEWAY_SCRIPT } else { LEGACY_GATEWAY_SCRIPT };
+        cmd.args([script, "apply"]);
         match run_with_timeout(cmd, 20) {
             Ok(output) if output.status.success() => {}
             Ok(output) => eprintln!("[tailscale] gateway rules failed: {}", String::from_utf8_lossy(&output.stderr)),
