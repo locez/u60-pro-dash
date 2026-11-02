@@ -204,28 +204,80 @@ fi
 ok "All prerequisites found."
 
 # ── Helper: SHA-256 ──────────────────────────────────────────────────
+# `tool ... | awk ... || fallback` never fell back: the pipeline status is
+# awk's, so a host without `shasum` produced an empty hash and the empty
+# local hash then matched an empty remote hash (see step 4).
+sha256_stream() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum | awk '{print $1}'
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 | awk '{print $1}'
+    else
+        return 1
+    fi
+}
+
 sha256() {
-    echo -n "$1" | shasum -a 256 2>/dev/null | awk '{print $1}' \
-        || echo -n "$1" | sha256sum | awk '{print $1}'
+    printf '%s' "$1" | sha256_stream
 }
 
 sha256_file() {
-    shasum -a 256 "$1" 2>/dev/null | awk '{print $1}' \
-        || sha256sum "$1" | awk '{print $1}'
+    sha256_stream < "$1"
 }
+
+if ! command -v sha256sum >/dev/null 2>&1 && ! command -v shasum >/dev/null 2>&1; then
+    fail "Neither sha256sum (coreutils) nor shasum (perl) is installed. Hashing is required to deploy and to log in to the router."
+fi
 
 upper() {
     echo "$1" | tr '[:lower:]' '[:upper:]'
 }
 
+# Quote an arbitrary string as one POSIX shell word (for remote commands).
+shell_quote() {
+    printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"
+}
+
 # ── Helper: ubus JSON-RPC call ───────────────────────────────────────
 ubus_call() {
     local session="$1" object="$2" method="$3" params="$4"
-    local ts
+    local ts response
     ts=$(date +%s)
-    curl -sf "http://$GATEWAY/ubus/?t=$ts" \
+    response=$(curl -fsS --connect-timeout 5 --max-time 10 "http://$GATEWAY/ubus/?t=$ts" \
         -H 'Content-Type: application/json' \
-        -d "[{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"call\",\"params\":[\"$session\",\"$object\",\"$method\",$params]}]"
+        -d "[{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"call\",\"params\":[\"$session\",\"$object\",\"$method\",$params]}]") || return 1
+
+    # ubus failures also arrive as HTTP 200. Check both JSON-RPC errors and
+    # the ubus status before treating a request as successful. Do not log
+    # the full response: login responses contain the session token.
+    printf '%s' "$response" | python3 -c '
+import json, sys
+label = sys.argv[1] + "." + sys.argv[2]
+def reject(message):
+    print(label + ": " + message, file=sys.stderr)
+    sys.exit(1)
+try:
+    data = json.load(sys.stdin)
+except (ValueError, UnicodeError):
+    reject("invalid JSON response")
+if isinstance(data, dict):
+    data = [data]
+if not isinstance(data, list) or len(data) != 1 or not isinstance(data[0], dict):
+    reject("unexpected JSON-RPC response")
+entry = data[0]
+if "error" in entry:
+    error = entry["error"]
+    code = error.get("code") if isinstance(error, dict) else None
+    reject("JSON-RPC error " + (str(code) if type(code) is int else "(unknown code)"))
+result = entry.get("result")
+if not isinstance(result, list) or not result or type(result[0]) is not int:
+    reject("missing ubus status")
+if result[0] != 0:
+    names = {2: "invalid argument", 3: "method not found", 4: "object not found",
+             6: "permission denied", 7: "timeout", 8: "not supported"}
+    reject("ubus status " + str(result[0]) + " (" + names.get(result[0], "request failed") + ")")
+print(json.dumps(data, separators=(",", ":")))
+' "$object" "$method"
 }
 
 # ── Helper: timeout (macOS-compatible) ───────────────────────────────
@@ -299,22 +351,40 @@ except Exception:
     pass
 ' 2>/dev/null)
 
-        if [ -z "$SESSION" ] || [ "$SESSION" = "null" ]; then
+        if [ -z "$SESSION" ] || [ "$SESSION" = "null" ] || [ "$SESSION" = "$ANON_SESSION" ]; then
             fail "Login failed. Check your router password."
         fi
-        ok "Logged in to router (session: ${SESSION:0:8}...)."
+        ok "Logged in to router."
 
         # Set USB mode to debug
         info "Enabling ADB (USB debug mode)..."
         if ! ubus_call "$SESSION" "zwrt_bsp.usb" "set" '{"mode":"debug"}' >/dev/null; then
-            fail "Failed to enable USB debug mode. Session may have expired."
+            fail "The router did not confirm USB debug mode. See the error above; no automatic retry was made."
         fi
-        ok "USB debug mode enabled."
+        info "Debug-mode request accepted. Reading back the device USB mode..."
+        USB_MODE=unknown
+        for USB_CHECK in 1 2 3; do
+            sleep 1
+            USB_RESP=$(ubus_call "$SESSION" "zwrt_bsp.usb" "list" '{}') \
+                || fail "Debug-mode request was accepted, but its result could not be verified. Check the USB connection and Wi-Fi; do not repeat the write blindly."
+            USB_MODE=$(printf '%s' "$USB_RESP" | python3 -c '
+import json, re, sys
+try:
+    mode = json.load(sys.stdin)[0]["result"][1].get("mode")
+except (ValueError, IndexError, KeyError, TypeError, AttributeError):
+    mode = None
+print(mode if isinstance(mode, str) and re.fullmatch(r"[A-Za-z0-9_-]{1,32}", mode) else "unknown")
+')
+            [ "$USB_MODE" = "debug" ] && break
+        done
+        [ "$USB_MODE" = "debug" ] \
+            || fail "The router reports USB mode '$USB_MODE', not 'debug'. Stopping before deployment."
+        ok "The router reports USB mode debug; ADB enumeration still needs to succeed."
 
         # Wait for ADB device
         info "Waiting for ADB device (plug USB cable if not connected)..."
         if ! wait_with_timeout 30 adb wait-for-device 2>/dev/null; then
-            fail "ADB device not found after 30s. Check USB connection."
+            fail "The router reports debug mode, but ADB did not connect within 30s. Check for an ADB USB interface and host USB permissions."
         fi
         ok "ADB device connected."
     fi
@@ -336,6 +406,16 @@ rpush() {
     else
         adb push "$src" "$dst" && adb shell "chmod +x $dst"
     fi
+}
+
+# The vendor adbd exits 0 even when the command it ran failed, so
+# `if rcmd "grep -q ..."` treats a missing file as a match. Ask the remote
+# shell for an explicit marker and decide on that output instead.
+remote_ok() {
+    local out
+    out=$(rcmd "{ $1 ; } >/dev/null 2>&1 && echo __ok__ || echo __fail__" 2>/dev/null \
+        | tr -d '\r' | tail -n 1)
+    [ "$out" = "__ok__" ]
 }
 
 # ── Step 3: Get zte-agent binary ─────────────────────────────────────
@@ -361,11 +441,21 @@ fi
 
 # ── Step 4: Push binary ─────────────────────────────────────────────
 info "Checking zte-agent binary..."
-LOCAL_SHA=$(sha256_file "$BINARY")
-REMOTE_SHA=$(rcmd "sha256sum $REMOTE_BIN 2>/dev/null" | awk '{print $1}')
-if [ "$LOCAL_SHA" = "$REMOTE_SHA" ]; then
+LOCAL_SHA=$(sha256_file "$BINARY" 2>/dev/null) || LOCAL_SHA=""
+if [ -z "$LOCAL_SHA" ]; then
+    fail "Cannot hash $BINARY locally. Install sha256sum (coreutils) or shasum (perl) and retry."
+fi
+
+REMOTE_SHA=$(rcmd "sha256sum $REMOTE_BIN 2>/dev/null" 2>/dev/null | tr -d '\r' | awk '{print $1}')
+case "$REMOTE_SHA" in
+    *[!0-9a-f]*) REMOTE_SHA="" ;;
+esac
+[ "${#REMOTE_SHA}" -eq 64 ] || REMOTE_SHA=""
+
+if [ -n "$REMOTE_SHA" ] && [ "$LOCAL_SHA" = "$REMOTE_SHA" ]; then
     ok "Binary unchanged, skipping push."
 else
+    [ -n "$REMOTE_SHA" ] || info "Remote checksum unavailable; pushing the binary to be safe."
     info "Stopping running agent before push..."
     rcmd "killall zte-agent 2>/dev/null; sleep 1"
     info "Pushing zte-agent to device..."
@@ -377,30 +467,39 @@ fi
 # ── Step 5: Create startup script ───────────────────────────────────
 # Escape single quotes for safe embedding in sh single-quoted string
 SAFE_PASSWORD=$(printf '%s' "$AGENT_PASSWORD" | sed "s/'/'\\\\''/g")
+BOOT_LINE="export ZTE_AGENT_PASSWORD='${SAFE_PASSWORD}'"
+BOOT_LINE_Q=$(shell_quote "$BOOT_LINE")
 
-if rcmd "grep -qF '${SAFE_PASSWORD}' $STARTUP_SCRIPT 2>/dev/null"; then
+# Match the exported line, not the whole file: local edits elsewhere in the
+# script (e.g. nice/tunables) are kept.
+if remote_ok "grep -qxF -- $BOOT_LINE_Q $STARTUP_SCRIPT"; then
     ok "Startup script already up to date."
 else
     info "Creating startup script..."
+    rcmd "mkdir -p $(dirname "$STARTUP_SCRIPT")"
     cat > /tmp/start_zte_agent.sh <<BOOT
 #!/bin/sh
-export ZTE_AGENT_PASSWORD='${SAFE_PASSWORD}'
+${BOOT_LINE}
 nohup /data/zte-agent >/tmp/zte-agent.log 2>&1 &
 BOOT
     rpush /tmp/start_zte_agent.sh "$STARTUP_SCRIPT"
-    rm /tmp/start_zte_agent.sh
+    rm -f /tmp/start_zte_agent.sh
+    remote_ok "test -s $STARTUP_SCRIPT" \
+        || fail "The startup script was written to $STARTUP_SCRIPT but the device cannot see it."
     ok "Startup script created at $STARTUP_SCRIPT."
 fi
 
 # ── Step 6: Update rc.local for boot persistence ────────────────────
 info "Configuring auto-start on boot..."
 RC_LINE="sh $STARTUP_SCRIPT"
-if rcmd "grep -qF '$RC_LINE' /etc/rc.local 2>/dev/null"; then
+if remote_ok "grep -qxF -- '$RC_LINE' /etc/rc.local"; then
     ok "rc.local already configured."
 else
     rcmd "grep -q '^exit 0' /etc/rc.local \
         && sed -i '/^exit 0/i $RC_LINE' /etc/rc.local \
         || echo '$RC_LINE' >> /etc/rc.local"
+    remote_ok "grep -qxF -- '$RC_LINE' /etc/rc.local" \
+        || fail "Could not add '$RC_LINE' to /etc/rc.local."
     ok "Added zte-agent to /etc/rc.local."
 fi
 
@@ -415,7 +514,7 @@ if [ "$BINARY_CHANGED" = true ] || [ "$AGENT_RUNNING" = false ]; then
     info "Starting zte-agent..."
     rcmd "killall zte-agent 2>/dev/null; true"
     sleep 1
-    rcmd "sh $STARTUP_SCRIPT"
+    remote_ok "sh $STARTUP_SCRIPT" || fail "Could not run $STARTUP_SCRIPT on the device."
     ok "Agent (re)started."
 else
     ok "Agent already running with current binary, skipping restart."
@@ -435,14 +534,19 @@ fi
 TOKEN=$(curl -sf "$VERIFY_URL" \
     -H 'Content-Type: application/json' \
     -d "{\"password\":\"$AGENT_PASSWORD\"}" \
-    | python3 -c 'import sys,json; print(json.load(sys.stdin)["data"]["token"])')
+    | python3 -c 'import sys, json
+try:
+    token = json.load(sys.stdin).get("data", {}).get("token")
+except (ValueError, UnicodeError, AttributeError):
+    token = None
+print(token if isinstance(token, str) else "")' 2>/dev/null) || TOKEN=""
 
 if [ "$USE_SSH" != true ]; then
     adb forward --remove tcp:19090 2>/dev/null || true
 fi
 
 if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
-    fail "Agent started but login verification failed."
+    fail "The agent did not answer the login request at $VERIFY_URL. Check that $REMOTE_BIN exists on the device and read /tmp/zte-agent.log there."
 fi
 ok "Agent is running and authenticated."
 
@@ -471,7 +575,7 @@ if [ "$SETUP_SSH" = "y" ] || [ "$SETUP_SSH" = "Y" ]; then
     info "Setting up dropbear SSH server..."
 
     # Check if dropbear is already present
-    if adb shell "test -x /usr/sbin/dropbear" 2>/dev/null; then
+    if remote_ok "test -x /usr/sbin/dropbear"; then
         ok "Dropbear already installed."
     else
         info "Downloading dropbear for aarch64..."
@@ -489,7 +593,7 @@ if [ "$SETUP_SSH" = "y" ] || [ "$SETUP_SSH" = "Y" ]; then
     info "Configuring SSH keys..."
     adb shell "mkdir -p /etc/dropbear && chmod 700 /etc/dropbear"
     PUBKEY=$(cat "$SSH_PUB")
-    if adb shell "grep -qF '$PUBKEY' /etc/dropbear/authorized_keys 2>/dev/null"; then
+    if remote_ok "grep -qF -- '$PUBKEY' /etc/dropbear/authorized_keys"; then
         ok "SSH key already authorized."
     else
         adb shell "echo '$PUBKEY' >> /etc/dropbear/authorized_keys"
@@ -499,7 +603,7 @@ if [ "$SETUP_SSH" = "y" ] || [ "$SETUP_SSH" = "Y" ]; then
 
     # Create dropbear startup script
     DROPBEAR_STARTUP=/data/local/tmp/start_dropbear.sh
-    if adb shell "test -x $DROPBEAR_STARTUP" 2>/dev/null; then
+    if remote_ok "test -x $DROPBEAR_STARTUP"; then
         ok "Dropbear startup script already exists."
     else
         adb shell "cat > $DROPBEAR_STARTUP" <<'DBBOOT'
@@ -512,7 +616,7 @@ DBBOOT
 
     # Add to rc.local if not already there
     DB_RC_LINE="sh $DROPBEAR_STARTUP"
-    if adb shell "grep -qF '$DB_RC_LINE' /etc/rc.local 2>/dev/null"; then
+    if remote_ok "grep -qxF -- '$DB_RC_LINE' /etc/rc.local"; then
         ok "Dropbear rc.local entry already configured."
     else
         adb shell "grep -q '^exit 0' /etc/rc.local \
@@ -522,7 +626,7 @@ DBBOOT
     fi
 
     # Start dropbear now
-    if adb shell "pidof dropbear" >/dev/null 2>&1; then
+    if remote_ok "pidof dropbear"; then
         ok "Dropbear already running on port $SSH_PORT."
     else
         info "Starting dropbear..."
