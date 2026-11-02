@@ -56,10 +56,19 @@ pub struct App {
     pub state: Rc<RefCell<State>>,
     timer: slint::Timer,
 }
+#[derive(Clone, Copy)]
+enum Editor {
+    AgentLogin,
+    ProbeTarget,
+    Accent,
+}
+
 pub struct State {
     agent: Option<crate::agent::Agent>,
     live_revision: u64,
-    last_tailscale: Instant,
+    network: crate::agent::network::Network,
+    network_rows: Vec<(String, String)>,
+    editor: Option<Editor>,
     pub security: crate::security::ScreenLock,
     pub prefs: Preferences,
     prefs_path: Option<PathBuf>,
@@ -183,6 +192,7 @@ impl State {
                 title = "Tailscale 网络".into();
                 view = 4;
                 tab = 2;
+                self.network.refresh();
             }
             "demo-scenario" => {
                 title = "演示场景".into();
@@ -340,6 +350,7 @@ impl State {
         let on = crate::config::button_ink(rgb);
         palette.set_accent_on(Color::from_rgb_u8(on[0], on[1], on[2]));
         ui.set_accent_hex(self.prefs.accent.clone().into());
+        ui.set_probe_target(self.prefs.probe_target.clone().into());
         ui.set_brightness(self.prefs.brightness.into());
         ui.set_sleep_label(if self.prefs.sleep_seconds == 0 {
             "从不".into()
@@ -349,6 +360,12 @@ impl State {
     }
 
     pub fn sync_security(&self, ui: &Screen) {
+        if self.security.locked
+            || self.security.mode != crate::security::Mode::Hold
+            || ui.get_asleep()
+        {
+            self.close_editor(ui);
+        }
         use crate::security::Mode;
         let s = &self.security;
         ui.set_locked(s.locked);
@@ -465,49 +482,144 @@ impl State {
             ui.set_traffic_total(dashboard.total.into());
             ui.set_client_count(dashboard.clients.into());
         }
-        if snapshot.authenticated
-            && !ui.get_asleep()
-            && !self.security.locked
-            && matches!(self.page.as_str(), "overview" | "tailscale-network")
-            && self.last_tailscale.elapsed() >= Duration::from_secs(30)
-        {
-            self.last_tailscale = Instant::now();
-            let _ = agent.call(1, crate::agent::Request::get("/api/tailscale/status"));
+        let active = !ui.get_asleep() && !self.security.locked;
+        if !active {
+            self.network.suspend();
         }
+        if !snapshot.authenticated || snapshot.status != crate::agent::Status::Live {
+            self.network.disconnected();
+        }
+        let on_network = self.page == "tailscale-network";
         for reply in agent.replies() {
             if reply.id == 1 {
-                match reply.result {
-                    Ok(data) => {
-                        let text = match data["state"].as_str() {
-                            Some("healthy") => "已连接",
-                            Some("not_installed") => "尚未安装 Tailscale",
-                            Some("disabled" | "paused") => "Tailscale 已停止",
-                            Some("needs_login" | "awaiting_setup") => "Tailscale 需要登录",
-                            Some("pending_approval") => "等待设备批准",
-                            _ => "Tailscale 正在连接",
-                        };
-                        ui.set_tailnet_status(text.into());
-                        ui.set_tailnet_online(data["state"] == "healthy");
-                        ui.set_tailnet_readings(model(vec![
-                            reading("Tailscale", text),
-                            reading(
-                                "热点网关",
-                                if data["gateway_mode"] == true {
-                                    "已开启"
-                                } else {
-                                    "未开启"
-                                },
-                            ),
-                            reading("检测目标", "尚未验证"),
-                        ]));
-                    }
-                    Err(error) => {
-                        ui.set_tailnet_status(error.message().into());
-                        ui.set_tailnet_online(false);
-                    }
+                // Replies from a previous login or a sleeping screen do not
+                // establish fresh service status for the active session.
+                if !active
+                    || !snapshot.authenticated
+                    || snapshot.status != crate::agent::Status::Live
+                {
+                    continue;
                 }
+                self.network.accept_status(reply.result);
+                if on_network
+                    && let Ok(address) =
+                        crate::agent::connectivity::target(&self.prefs.probe_target)
+                    && let Some(id) = self.network.begin_probe(address)
+                    && let Err(error) = agent.probe_target(id, address)
+                {
+                    self.network
+                        .accept_probe(id, &self.prefs.probe_target, Err(error));
+                }
+            } else {
+                self.network
+                    .accept_probe(reply.id, &self.prefs.probe_target, reply.result);
             }
         }
+        if active
+            && snapshot.authenticated
+            && snapshot.status == crate::agent::Status::Live
+            && (on_network || self.page == "overview")
+            && self.network.last_refresh.elapsed() >= Duration::from_secs(30)
+        {
+            self.network.last_refresh = Instant::now();
+            if let Err(error) = agent.call(1, crate::agent::Request::get("/api/tailscale/status")) {
+                self.network.accept_status(Err(error));
+            }
+        }
+        ui.set_tailnet_status(self.network.label().into());
+        ui.set_tailnet_online(self.network.online());
+        let rows = self.network.rows(&self.prefs.probe_target);
+        if rows != self.network_rows {
+            self.network_rows = rows.clone();
+            ui.set_tailnet_readings(model(
+                rows.into_iter().map(|(k, v)| reading(&k, &v)).collect(),
+            ));
+        }
+        ui.set_probe_note("仅在此页亮屏解锁时检测，每 30 秒更新，结果有效期 60 秒。TCP 检测从 U60 发起；热点客户端仍需实际访问验证。".into());
+    }
+
+    fn close_editor(&self, ui: &Screen) {
+        ui.set_editor_visible(false);
+        ui.set_editor_value("".into());
+        ui.set_editor_error("".into());
+    }
+    fn edit(&mut self, ui: &Screen, kind: &str) {
+        let (purpose, title, hint, value, secret, layout) = match kind {
+            "agent-login" => (
+                Editor::AgentLogin,
+                "后台密码",
+                "输入已有的后台密码。",
+                String::new(),
+                true,
+                0,
+            ),
+            "probe-target" => (
+                Editor::ProbeTarget,
+                "检测目标",
+                "IP:端口 或 [IPv6]:端口；留空关闭检测。",
+                self.prefs.probe_target.clone(),
+                false,
+                1,
+            ),
+            "accent" => (
+                Editor::Accent,
+                "自定义颜色",
+                "输入六位 HEX 颜色，例如 #2563EB。",
+                self.prefs.accent.clone(),
+                false,
+                1,
+            ),
+            _ => return,
+        };
+        self.editor = Some(purpose);
+        ui.set_editor_title(title.into());
+        ui.set_editor_hint(hint.into());
+        ui.set_editor_value(value.into());
+        ui.set_editor_secret(secret);
+        ui.set_editor_layout(layout);
+        ui.set_editor_error("".into());
+        ui.set_editor_visible(true);
+    }
+    fn submit_editor(&mut self, ui: &Screen) {
+        if !ui.get_editor_visible() {
+            return;
+        }
+        let value = zeroize::Zeroizing::new(ui.get_editor_value().to_string());
+        match self.editor {
+            Some(Editor::AgentLogin) => {
+                if value.is_empty() || value.len() > 1024 {
+                    ui.set_editor_error("密码不能为空，长度不能超过 1024 字节。".into());
+                    return;
+                }
+                if let Some(agent) = &self.agent
+                    && let Err(error) = agent.login(value)
+                {
+                    ui.set_editor_error(error.message().into());
+                    return;
+                }
+            }
+            Some(Editor::ProbeTarget) => {
+                let target = value.trim();
+                if !target.is_empty() && crate::agent::connectivity::target(target).is_err() {
+                    ui.set_editor_error("请输入有效目标，例如 10.20.0.10:443。".into());
+                    return;
+                }
+                self.prefs.probe_target = target.into();
+                self.network.reset_target();
+                self.persist(ui);
+            }
+            Some(Editor::Accent) => {
+                if parse_color(value.trim()).is_err() {
+                    ui.set_editor_error("请输入六位 HEX 颜色，例如 #2563EB。".into());
+                    return;
+                }
+                self.prefs.accent = value.trim().into();
+                self.persist(ui);
+            }
+            None => return,
+        }
+        self.editor = None;
+        self.close_editor(ui);
     }
 }
 
@@ -517,7 +629,9 @@ impl App {
         let state = Rc::new(RefCell::new(State {
             agent: None,
             live_revision: u64::MAX,
-            last_tailscale: Instant::now() - Duration::from_secs(30),
+            network: crate::agent::network::Network::default(),
+            network_rows: Vec::new(),
+            editor: None,
             security: crate::security::ScreenLock::load(prefs_path.as_ref().map(|p| {
                 p.with_file_name(".screen-private")
                     .join("screen-lock.private.json")
@@ -547,6 +661,7 @@ impl App {
                             && !matches!(stringify!($method), "on_power" | "on_activity" | "on_hold_start" | "on_hold_tick" | "on_hold_end" | "on_hold_cancel" | "on_pin_digit" | "on_pin_backspace" | "on_pin_submit" | "on_pin_cancel" | "on_pin_key") {
                             return;
                         }
+                        if $u.get_editor_visible() && !matches!(stringify!($method), "on_power" | "on_activity" | "on_editor_submit" | "on_editor_cancel") { return; }
                         $s.last_input = Instant::now();
                         $body
                         $s.sync_security(&$u);
@@ -603,19 +718,39 @@ impl App {
             if let Some(agent) = &s.agent {
                 let _ = agent.retry();
             }
-            s.last_tailscale = Instant::now() - Duration::from_secs(30);
+            s.network.refresh();
         });
-        bind!(on_agent_login, |s, u, password| {
-            if let Some(agent) = &s.agent {
-                if password.is_empty() {
-                    u.set_message("请输入后台密码。".into());
-                } else if let Err(error) =
-                    agent.login(zeroize::Zeroizing::new(password.to_string()))
+        bind!(on_edit, |s, u, kind| {
+            s.edit(&u, &kind);
+        });
+        bind!(on_editor_submit, |s, u| {
+            s.submit_editor(&u);
+        });
+        bind!(on_editor_cancel, |s, u| {
+            s.editor = None;
+            s.close_editor(&u);
+        });
+        {
+            let weak = ui.as_weak();
+            let state = state.clone();
+            ui.on_editor_key(move |key| {
+                let Some(ui) = weak.upgrade() else {
+                    return;
+                };
                 {
-                    u.set_message(error.message().into());
+                    let mut s = state.borrow_mut();
+                    if s.security.locked || ui.get_asleep() || !ui.get_editor_visible() {
+                        return;
+                    }
+                    s.last_input = Instant::now();
                 }
-            }
-        });
+                // Dispatch outside the State borrow: TextInput can call activity.
+                ui.window()
+                    .dispatch_event(slint::platform::WindowEvent::KeyPressed { text: key.clone() });
+                ui.window()
+                    .dispatch_event(slint::platform::WindowEvent::KeyReleased { text: key });
+            });
+        }
         bind!(on_agent_forget, |s, u| {
             if let Some(agent) = &s.agent
                 && let Err(error) = agent.forget()

@@ -1,5 +1,7 @@
+pub mod connectivity;
 mod http;
 pub mod model;
+pub mod network;
 mod sse;
 pub use http::Error;
 
@@ -119,6 +121,7 @@ enum Command {
     Forget,
     Retry,
     Call(u64, Request),
+    Probe(u64, SocketAddr),
 }
 pub struct Agent {
     commands: Option<channel::Sender<Command>>,
@@ -187,6 +190,9 @@ impl Agent {
     pub fn retry(&self) -> Result<(), Error> {
         self.send(Command::Retry)
     }
+    pub fn probe_target(&self, id: u64, address: SocketAddr) -> Result<(), Error> {
+        self.send(Command::Probe(id, address))
+    }
 }
 impl Drop for Agent {
     fn drop(&mut self) {
@@ -235,6 +241,7 @@ async fn worker(
     let mut topics = Vec::<String>::new();
     let mut stream = None;
     let mut job = None;
+    let mut probing = false;
     let mut blocked = false;
     let mut resume_on_wake = false;
     let mut login_after = Instant::now();
@@ -273,13 +280,16 @@ async fn worker(
                 let Some(command) = command else { break; };
                 match command {
                     Command::Watch(wanted) => {
+                        if probing && !wanted.iter().any(|t| t == "clients") {
+                            abort(&mut job); probing = false;
+                        }
                         abort(&mut stream); topics = wanted;
                         if topics.is_empty() { status(&shared, Status::Sleeping); }
                         else if resume_on_wake { blocked = false; resume_on_wake = false; }
                     }
                     Command::Retry => { abort(&mut stream); blocked = false; }
                     Command::Forget => {
-                        abort(&mut stream); abort(&mut job); token = None; blocked = true;
+                        abort(&mut stream); abort(&mut job); probing = false; token = None; blocked = true;
                         if let Some(path) = &config.session_file { let _ = fs::remove_file(path); }
                         update(&shared, |s| { s.authenticated = false; s.values.clear(); s.status = Status::Login; });
                     }
@@ -299,10 +309,20 @@ async fn worker(
                             let _ = replies.try_send(Reply { id, result: Err(error) });
                         }
                     }
+                    Command::Probe(id, address) => {
+                        if config.local_credentials && token.is_some() && job.is_none() {
+                            probing = true;
+                            job = Some(tokio::spawn(async move { Job::Call(id, Ok(connectivity::probe(address).await)) }));
+                        } else {
+                            let error = if !config.local_credentials { Error::LocalOnly } else if token.is_none() { Error::Login } else { Error::Busy(1) };
+                            let _ = replies.try_send(Reply { id, result: Err(error) });
+                        }
+                    }
                 }
             }
             result = finished(&mut job) => {
                 job = None;
+                probing = false;
                 match result {
                     Ok(Job::Login(Ok(value))) => {
                         // Persistence failure must not prevent an in-memory login.

@@ -18,6 +18,8 @@ struct Options {
     demo: bool,
     local_agent: bool,
     probe: bool,
+    set_probe_target: Option<String>,
+    check_target: Option<std::net::SocketAddr>,
     device: bool,
     screenshot: Option<PathBuf>,
     prefs: Option<PathBuf>,
@@ -42,6 +44,8 @@ fn options() -> Result<Options> {
             "--demo" => opts.demo = true,
             "--local-agent" => opts.local_agent = true,
             "--probe-agent" => opts.probe = true,
+            "--set-probe-target" => opts.set_probe_target = Some(value()?),
+            "--check-target" => opts.check_target = Some(agent::connectivity::target(&value()?)?),
             "--device" => opts.device = true,
             "--screenshot" => opts.screenshot = Some(value()?.into()),
             "--prefs" => opts.prefs = Some(value()?.into()),
@@ -69,7 +73,7 @@ fn options() -> Result<Options> {
                     Desktop: u60-screen [--light|--dark] [--accent '#2563eb']\n\
                     Capture: u60-screen --screenshot FILE.png [--page FEATURE_ID]\n\
                     Device:  use scripts/device-trial.sh (guarded, 90 seconds by default)\n\n\
-                    --prefs FILE          Load/save local appearance, never credentials\n\
+                    --prefs FILE          Load/save local preferences, never credentials\n\
                     --rotate 0|180        Output orientation (device default: 180)\n\
                     --touch-rotate 0|180  Independent input calibration (default: 180)\n\
                     --touch /dev/input/eventN  Override Sitronix auto-detection\n\
@@ -78,6 +82,8 @@ fn options() -> Result<Options> {
                     --demo                Use demonstration data, also on device\n\
                     --local-agent         Authenticate with the on-device agent process\n\
                     --probe-agent         Check login and live topics without taking the display\n\n\
+                    --set-probe-target IP:PORT  Save a target with --prefs; empty disables probing\n\
+                    --check-target IP:PORT      Check this host's tunnel route and TCP port; no display\n\n\
                     Desktop: arrows navigate; Escape goes back; Space sleeps/wakes.\n\
                     Desktop defaults to demo; guarded device trials use live data."
                 );
@@ -92,11 +98,34 @@ fn options() -> Result<Options> {
     if opts.demo && (opts.agent.is_some() || opts.local_agent || opts.probe) {
         bail!("--demo cannot be combined with agent options");
     }
+    let maintenance = opts.set_probe_target.is_some() || opts.check_target.is_some();
+    if maintenance
+        && (opts.device
+            || opts.screenshot.is_some()
+            || opts.probe
+            || opts.agent.is_some()
+            || opts.local_agent
+            || opts.demo
+            || (opts.set_probe_target.is_some() && opts.check_target.is_some()))
+    {
+        bail!("target configuration/checks cannot be combined with display or agent options");
+    }
+    if opts.set_probe_target.is_some() && opts.prefs.is_none() {
+        bail!("--set-probe-target requires --prefs FILE");
+    }
     Ok(opts)
 }
 
 fn main() -> Result<()> {
     let opts = options()?;
+    if let Some(target) = opts.check_target {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()?;
+        let result = runtime.block_on(agent::connectivity::probe(target));
+        println!("{result}");
+        return Ok(());
+    }
     let agent = (!opts.demo
         && (opts.device || opts.agent.is_some() || opts.local_agent || opts.probe))
         .then(|| agent::Config {
@@ -124,6 +153,12 @@ fn main() -> Result<()> {
         prefs.accent = accent;
     }
     prefs.validate()?;
+    if let Some(target) = opts.set_probe_target {
+        prefs.probe_target = target.trim().into();
+        prefs.save(opts.prefs.as_deref().expect("validated preferences path"))?;
+        println!("probe target saved to local preferences; no connection attempted");
+        return Ok(());
+    }
     let software = if opts.device || opts.screenshot.is_some() {
         Some(platform::install()?)
     } else {
@@ -259,8 +294,49 @@ mod tests {
         assert_ne!(light[0].0, initial[0].0);
         app.ui.invoke_accent("#d97706".into());
         assert_eq!(app.state.borrow().prefs.accent, "#d97706");
+        app.ui.invoke_edit("probe-target".into());
+        platform::capture(&window, false);
+        // Touch-key events must reach TextInput without triggering navigation.
+        tap(22., 258.);
+        assert_eq!(app.ui.get_editor_value(), "1");
+        app.ui.invoke_editor_submit();
+        assert!(app.ui.get_editor_visible());
+        assert!(!app.ui.get_editor_error().is_empty());
+        assert!(app.state.borrow().prefs.probe_target.is_empty());
+        app.ui.set_editor_value("10.20.0.10:443".into());
+        app.ui
+            .invoke_editor_key(slint::SharedString::from(slint::platform::Key::End));
+        app.ui
+            .invoke_editor_key(slint::SharedString::from(slint::platform::Key::Backspace));
+        assert_eq!(app.ui.get_editor_value(), "10.20.0.10:44");
+        app.ui.invoke_editor_key("3".into());
+        if let Ok(path) = std::env::var("U60_SCREEN_TEST_IMAGES") {
+            let path = std::path::Path::new(&path);
+            std::fs::create_dir_all(path)?;
+            app.ui.set_editor_error("".into());
+            platform::save_png(
+                &path.join("target-editor.png"),
+                &platform::capture(&window, false),
+            )?;
+        }
+        app.ui.invoke_editor_submit();
+        assert!(!app.ui.get_editor_visible());
+        assert_eq!(app.state.borrow().prefs.probe_target, "10.20.0.10:443");
+        app.ui.invoke_edit("agent-login".into());
+        app.ui.set_editor_value("ephemeral test input".into());
+        app.ui.invoke_navigate(2);
+        assert_eq!(
+            app.ui.get_heading(),
+            "随身网络",
+            "editor blocks underlying navigation"
+        );
         app.ui.invoke_power();
         assert!(app.ui.get_asleep());
+        assert!(!app.ui.get_editor_visible());
+        assert!(
+            app.ui.get_editor_value().is_empty(),
+            "locking discards editor secrets"
+        );
         assert!(platform::capture(&window, false).iter().all(|p| p.0 == 0));
         tap(100., 100.);
         assert!(!app.ui.get_asleep());

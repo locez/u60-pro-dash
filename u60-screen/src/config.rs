@@ -9,6 +9,7 @@ pub struct Preferences {
     pub accent: String,
     pub brightness: u8,
     pub sleep_seconds: u16,
+    pub probe_target: String,
 }
 
 impl Default for Preferences {
@@ -18,6 +19,7 @@ impl Default for Preferences {
             accent: "#2563eb".into(),
             brightness: 70,
             sleep_seconds: 60,
+            probe_target: String::new(),
         }
     }
 }
@@ -31,6 +33,9 @@ impl Preferences {
 
     pub fn validate(&self) -> Result<()> {
         parse_color(&self.accent)?;
+        if !self.probe_target.is_empty() {
+            crate::agent::connectivity::target(&self.probe_target)?;
+        }
         ensure!(
             (10..=100).contains(&self.brightness),
             "brightness must be 10..100"

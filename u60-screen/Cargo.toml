@@ -30,8 +30,10 @@ png = "0.18"
 argon2 = "0.5"
 getrandom = "0.2"
 zeroize = "1"
+ipnet = "2"
+socket2 = { version = "0.6", features = ["all"] }
 reqwest = { version = "0.12", default-features = false, features = ["json"] }
-tokio = { version = "1", features = ["rt", "net", "time", "sync", "macros"] }
+tokio = { version = "1", features = ["rt", "net", "time", "sync", "macros", "process"] }
 i-slint-renderer-software = { version = "=1.18.1", default-features = false, features = ["u60-pixel-hinting"] }
 drm = { version = "0.15", optional = true }
 evdev = { version = "0.13", optional = true }

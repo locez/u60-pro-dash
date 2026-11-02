@@ -1,5 +1,6 @@
 import { Palette, Label, TapButton, MenuRow, Stat, Brightness, TrafficPanel } from "components.slint";
 import { LockScreen, PinPad } from "lock.slint";
+import { TextEditor } from "editor.slint";
 import "../assets/U60Sans.ttf";
 export { Palette }
 export struct MenuEntry { id: string, title: string, subtitle: string, tag: string }
@@ -35,8 +36,20 @@ export component Screen inherits Window {
     in-out property <string> traffic-total: "2.38 GB";
     in-out property <string> tailnet-status: "已连接";
     in-out property <[Reading]> tailnet-readings;
+    in-out property <string> probe-target;
+    in-out property <string> probe-note;
+    in-out property <bool> editor-visible;
+    in-out property <string> editor-title;
+    in-out property <string> editor-hint;
+    in-out property <string> editor-error;
+    in-out property <string> editor-value;
+    in-out property <bool> editor-secret;
+    in-out property <int> editor-layout;
+    callback edit(string);
+    callback editor-key(string);
+    callback editor-submit;
+    callback editor-cancel;
     callback refresh;
-    callback agent-login(string);
     callback agent-forget;
     in-out property <string> battery: "82%";
     in-out property <bool> network-online: true;
@@ -79,6 +92,7 @@ export component Screen inherits Window {
     callback exit;
     changed page-revision => { scroll.content-y = 0px; }
     changed asleep => { if root.asleep { focus.focus(); } }
+    changed editor-visible => { if !root.editor-visible { focus.focus(); } }
     focus := FocusScope {
         width: parent.width; height: parent.height;
         key-pressed(event) => {
@@ -89,6 +103,10 @@ export component Screen inherits Window {
                 else if event.text == Key.Backspace { root.pin-backspace(); }
                 else { root.pin-key(event.text); }
                 return accept;
+            }
+            if root.editor-visible {
+                if event.text == Key.Escape { root.editor-cancel(); return accept; }
+                return reject;
             }
             if event.text == " " { root.power(); return accept; }
             if root.locked { return accept; }
@@ -193,20 +211,7 @@ export component Screen inherits Window {
                             TouchArea { clicked => { root.accent(swatch.hex); } }
                         }
                     }
-                    HorizontalLayout {
-                        spacing: 8px;
-                        Rectangle {
-                            height: 44px; background: Palette.surface; border-radius: 8px; border-width: 1px; border-color: Palette.line;
-                            hex := TextInput {
-                                x: 12px; y: 0px; width: parent.width - 24px; height: parent.height;
-                                text: root.accent-hex; color: Palette.text; vertical-alignment: center;
-                                font-weight: 500;
-                                edited => { root.activity(); }
-                                accepted => { root.accent(self.text); }
-                            }
-                        }
-                        TapButton { text: "应用"; width: 72px; clicked => { root.accent(hex.text); } }
-                    }
+                    MenuRow { title: "自定义颜色"; subtitle: root.accent-hex; clicked => { root.edit("accent"); } }
                     Label { text: "屏幕亮度  " + root.brightness + "%"; color: Palette.muted; font-size: 12px; }
                     Brightness { value: root.brightness; changed(value) => { root.set-brightness(value); } }
                     MenuRow { title: "自动熄屏"; subtitle: root.sleep-label; clicked => { root.cycle-sleep(); } }
@@ -224,33 +229,24 @@ export component Screen inherits Window {
                             Label { text: "子网路由与连通性检测"; font-size: 12px; color: Palette.muted; }
                         }
                     }
+                    if !root.demo: MenuRow { title: "检测目标"; subtitle: root.probe-target == "" ? "设置目标 IP 和端口" : root.probe-target; clicked => { root.edit("probe-target"); } }
                     for row in root.tailnet-readings: Rectangle {
-                        height: 48px; background: Palette.surface; border-radius: 8px;
-                        HorizontalLayout {
-                            padding: 12px;
-                            Label { text: row.label; color: Palette.muted; }
-                            Label { text: row.value; horizontal-alignment: right; }
+                        min-height: 64px; background: Palette.surface; border-radius: 8px;
+                        VerticalLayout {
+                            padding: 12px; spacing: 4px;
+                            Label { text: row.label; color: Palette.muted; font-size: 13px; }
+                            Label { text: row.value; wrap: word-wrap; overflow: clip; }
                         }
                     }
                     if root.demo: TapButton { text: "切换演示场景"; clicked => { root.scenario(); } }
                     if !root.demo: TapButton { text: "刷新连接状态"; clicked => { root.refresh(); } }
-                    Label { text: root.demo ? "当前读数为演示数据。" : "网络连接需要同时通过路由与服务连通性检查。"; color: Palette.muted; font-size: 12px; wrap: word-wrap; }
+                    Label { text: root.demo ? "当前读数为演示数据。" : root.probe-note; color: Palette.muted; font-size: 13px; wrap: word-wrap; }
                 }
                 if root.view == 6: VerticalLayout {
                     spacing: 12px;
                     Label { text: "后台连接 · " + root.connection-label; font-size: 18px; }
                     Label { text: "机身屏幕使用本机后台账号连接。也可以输入后台密码重新登录。"; color: Palette.muted; wrap: word-wrap; }
-                    Rectangle {
-                        height: 48px; background: Palette.surface; border-radius: 8px;
-                        password := TextInput {
-                            x: 12px; width: parent.width - 24px; height: parent.height;
-                            input-type: InputType.password; color: Palette.text; vertical-alignment: center;
-                            accepted => { root.agent-login(self.text); self.text = ""; }
-                            in property <bool> active: !root.locked;
-                            changed active => { if !self.active { self.text = ""; } }
-                        }
-                    }
-                    TapButton { text: "登录后台"; selected: true; clicked => { root.agent-login(password.text); password.text = ""; } }
+                    TapButton { text: "输入密码登录"; selected: true; clicked => { root.edit("agent-login"); } }
                     TapButton { text: "重新连接"; clicked => { root.refresh(); } }
                     TapButton { text: "断开并清除本地会话"; clicked => { root.agent-forget(); } }
                 }
@@ -294,6 +290,15 @@ export component Screen inherits Window {
                     TapButton { text: "知道了"; selected: true; clicked => { root.message = ""; } }
                 }
             }
+        }
+        if root.editor-visible && !root.locked && !root.pin-visible: TextEditor {
+            width: parent.width; height: parent.height;
+            title: root.editor-title; hint: root.editor-hint; error: root.editor-error;
+            value <=> root.editor-value; secret: root.editor-secret; layout <=> root.editor-layout;
+            key(value) => { root.editor-key(value); }
+            submit => { root.editor-submit(); }
+            cancel => { root.editor-cancel(); }
+            activity => { root.activity(); }
         }
         if root.locked && !root.pin-visible: LockScreen {
             width: parent.width; height: parent.height;
