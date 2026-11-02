@@ -23,7 +23,7 @@ impl Error {
         match self {
             Self::Login => "需要重新登录后台",
             Self::Unavailable => "后台暂时无法连接",
-            Self::Unsupported => "当前后台版本不支持此功能",
+            Self::Unsupported => "当前后台或固件不支持此功能",
             Self::LocalOnly => "请在设备屏幕上运行此检测",
             Self::InvalidResponse => "后台返回了无法识别的数据",
             Self::Rejected(_) => "后台拒绝了请求，请检查设置后重试",
@@ -162,13 +162,30 @@ fn status(response: &Response) -> Result<(), Error> {
     }
 }
 async fn data(mut response: Response) -> Result<Value, Error> {
-    status(&response)?;
+    let status_result = status(&response);
+    // A missing firmware ubus method is a capability failure, not congestion.
+    // Keep its private body out of UI errors and do not retry it as a busy read.
+    let inspect_unsupported = response.status().as_u16() == 503;
+    if !inspect_unsupported {
+        status_result.clone()?;
+    }
     let mut body = Vec::new();
     while let Some(chunk) = response.chunk().await.map_err(|_| Error::Unavailable)? {
         if body.len() + chunk.len() > MAX_BODY {
             return Err(Error::InvalidResponse);
         }
         body.extend_from_slice(&chunk);
+    }
+    if inspect_unsupported {
+        let envelope = serde_json::from_slice::<Value>(&body).unwrap_or(Value::Null);
+        let message = envelope["error"]
+            .as_str()
+            .unwrap_or("")
+            .to_ascii_lowercase();
+        if message.contains("method not found") || message.contains("ubus status 3") {
+            return Err(Error::Unsupported);
+        }
+        status_result?;
     }
     let mut envelope: Value = serde_json::from_slice(&body).map_err(|_| Error::InvalidResponse)?;
     if envelope["ok"] != true {
@@ -194,6 +211,11 @@ mod tests {
                 (401, "private response"),
                 (302, "private response"),
                 (200, r#"{"ok":true}"#),
+                (
+                    503,
+                    r#"{"ok":false,"error":"ubus status 3 (method not found)"}"#,
+                ),
+                (503, r#"{"ok":false,"error":"agent busy, retry"}"#),
             ] {
                 let (mut socket, _) = listener.accept().unwrap();
                 socket
@@ -241,6 +263,16 @@ mod tests {
                         .await
                         .unwrap(),
                     Value::Null
+                );
+                assert_eq!(
+                    api.call("test-token", Method::GET, "/api/router/qos", None)
+                        .await,
+                    Err(Error::Unsupported)
+                );
+                assert_eq!(
+                    api.call("test-token", Method::GET, "/api/router/qos", None)
+                        .await,
+                    Err(Error::Busy(3))
                 );
             });
         server.join().unwrap();

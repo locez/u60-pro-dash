@@ -524,6 +524,9 @@ fn save_token(path: Option<&Path>, token: &str) -> anyhow::Result<()> {
 // Only the root-owned on-device process is a credential provider. This reads
 // its existing configured password without copying it to a second config or
 // exposing it through arguments/logs. The HTTP login and token rules still apply.
+fn provider_executable(exe: &Path, provider: &Path) -> bool {
+    exe == provider || fs::canonicalize(provider).is_ok_and(|resolved| resolved == exe)
+}
 fn local_password() -> anyhow::Result<Zeroizing<String>> {
     for entry in fs::read_dir("/proc")?.flatten() {
         if !entry
@@ -542,7 +545,8 @@ fn local_password() -> anyhow::Result<Zeroizing<String>> {
             Path::new("/data/zte-agent"),
             Path::new("/data/local/tmp/zte-agent"),
         ]
-        .contains(&exe.as_path())
+        .iter()
+        .any(|provider| provider_executable(&exe, provider))
         {
             continue;
         }
@@ -601,6 +605,26 @@ pub fn probe(config: Config) -> anyhow::Result<()> {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(unix)]
+    #[test]
+    fn ota_launcher_link_identifies_only_its_resolved_executable() {
+        use std::os::unix::fs::symlink;
+        let dir = tempfile::tempdir().unwrap();
+        let slot = dir.path().join("slot-a");
+        std::fs::create_dir(&slot).unwrap();
+        let binary = slot.join("zte-agent");
+        std::fs::write(&binary, b"test executable").unwrap();
+        let launcher = dir.path().join("zte-agent");
+        symlink(&binary, &launcher).unwrap();
+        assert!(super::provider_executable(&binary, &launcher));
+        assert!(!super::provider_executable(
+            &dir.path().join("other/zte-agent"),
+            &launcher
+        ));
+        std::fs::remove_file(&launcher).unwrap();
+        assert!(!super::provider_executable(&binary, &launcher));
+    }
+
     use super::*;
     use std::io::{Read, Write};
 

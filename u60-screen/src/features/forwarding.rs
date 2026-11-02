@@ -57,6 +57,26 @@ fn list_text(v: &Value) -> Value {
 fn optional(v: &Value) -> Value {
     json!(text(v))
 }
+fn destination_label(destination: &Value) -> String {
+    let origin = |key: &str| {
+        reqwest::Url::parse(&text(&destination[key]))
+            .ok()
+            .map(|u| u.origin().ascii_serialization())
+            .unwrap_or_else(|| "地址不可用".into())
+    };
+    match text(&destination["type"]).as_str() {
+        "telegram" => format!("Telegram · {}", shown(&destination["chat_id"])),
+        "sms" => format!("短信 · {}", shown(&destination["forward_number"])),
+        "ntfy" => format!("{} · 主题 {}", origin("url"), shown(&destination["topic"])),
+        "webhook" => format!("{} · {}", origin("url"), shown(&destination["method"])),
+        "discord" | "slack" => format!(
+            "{} · {}",
+            shown(&destination["type"]),
+            origin("webhook_url")
+        ),
+        _ => "未提供".into(),
+    }
+}
 pub fn page(id: &str, d: &Data) -> Page {
     let mut p = Page::default();
     let envelope = data(d, "config");
@@ -85,7 +105,10 @@ pub fn page(id: &str, d: &Data) -> Page {
                 }
                 if let Some(current) = rule(d, &text(&v["rule_id"])) {
                     p.row("当前规则名称", &current["name"]);
-                    p.row("当前目的地类型", &current["destination"]["type"]);
+                    p.rows.push((
+                        "当前接收目的地".into(),
+                        destination_label(&current["destination"]),
+                    ));
                     let mut a = Action::new(
                         "retry",
                         "重试此次转发",
@@ -238,6 +261,10 @@ pub fn page(id: &str, d: &Data) -> Page {
     p.fields[0].required = true;
     p.fields[0].max = 80;
     let dest = &current["destination"];
+    if !dest["type"].is_null() {
+        p.rows
+            .push(("已保存目的地".into(), destination_label(dest)));
+    }
     let secret = |key, label| Field::password(key, label, true);
     match kind {
         "telegram" => p.fields.extend([
@@ -538,6 +565,22 @@ pub fn plan(id: &str, action: &str, p: &Page, d: &Data) -> Result<Plan> {
             _ => anyhow::bail!("不支持的规则操作。"),
         }
     };
+    if let Some(destination) = result
+        .requests
+        .first()
+        .and_then(|r| r.body.as_ref())
+        .and_then(|b| b.get("destination"))
+    {
+        result.summary = format!("接收目的地：{}", destination_label(destination));
+    } else if action == "retry"
+        && let Some((_, entry)) = log_entry(d)
+        && let Some(current) = rule(d, &text(&entry["rule_id"]))
+    {
+        result.summary = format!(
+            "当前接收目的地：{}",
+            destination_label(&current["destination"])
+        );
+    }
     result.guards.push(Guard::new(
         Read::get("config", "/api/sms/forward/config"),
         envelope,
@@ -598,5 +641,13 @@ mod tests {
             "test-placeholder"
         );
         assert!(plan.keep_draft);
+        assert!(plan.summary.contains("123"));
+        assert!(!plan.summary.contains("test-placeholder"));
+        assert_eq!(
+            destination_label(
+                &json!({"type":"webhook","url":"https://example.com/private-token?key=secret","method":"POST"})
+            ),
+            "https://example.com · POST"
+        );
     }
 }

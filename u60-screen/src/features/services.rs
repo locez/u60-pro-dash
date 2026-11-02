@@ -311,7 +311,19 @@ pub fn page(id: &str, readings: &Data) -> Page {
                 for c in calls {
                     p.rows.push((
                         shown(&c["number"]),
-                        format!("通话 {} · 状态 {}", shown(&c["id"]), shown(&c["stat"])),
+                        format!(
+                            "通话 {} · {}",
+                            shown(&c["id"]),
+                            match text(&c["stat"]).as_str() {
+                                "0" => "通话中",
+                                "1" => "保持",
+                                "2" => "正在拨号",
+                                "3" => "对方响铃",
+                                "4" => "来电",
+                                "5" => "呼叫等待",
+                                _ => "状态未知",
+                            }
+                        ),
                     ));
                 }
             }
@@ -557,7 +569,26 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                 "answer" | "hangup" => (action, json!({})),
                 _ => anyhow::bail!("操作不存在。"),
             };
-            Ok(post(&format!("/api/call/{action}"), body))
+            let mut plan = post(&format!("/api/call/{action}"), body);
+            if action != "dial" {
+                ensure!(
+                    d["calls"].as_array().is_some_and(|calls| !calls.is_empty()),
+                    "当前没有可操作的通话，请刷新。"
+                );
+                plan.guards.push(Guard::new(
+                    Read::get("status", "/api/call/status"),
+                    d,
+                    &["/calls"],
+                ));
+                plan.summary = d["calls"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|c| format!("通话 {}：{}", shown(&c["id"]), shown(&c["number"])))
+                    .collect::<Vec<_>>()
+                    .join("\n");
+            }
+            Ok(plan)
         }
         "ussd" => {
             ensure!(

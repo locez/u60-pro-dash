@@ -157,6 +157,21 @@ pub fn page(id: &str, readings: &Data) -> Page {
                     _ => Field::choice(&wire, label, &d[key], ON),
                 });
             }
+            p.fields.push(Field::choice(
+                "guest_active_time",
+                "访客访问时限",
+                &d["guest_active_time"],
+                &[
+                    ("0", "不限时"),
+                    ("30", "30 分钟"),
+                    ("60", "1 小时"),
+                    ("120", "2 小时"),
+                    ("240", "4 小时"),
+                    ("480", "8 小时"),
+                    ("720", "12 小时"),
+                    ("1440", "24 小时"),
+                ],
+            ));
             p.row("剩余访问时间 / 秒", &d["remaining_seconds"]);
         }
         "charge" => {

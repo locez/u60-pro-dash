@@ -95,7 +95,7 @@ pub fn page(id: &str, readings: &Data) -> Page {
                         &v["pppAuthMode"],
                         &[("0", "无"), ("1", "PAP"), ("2", "CHAP")],
                     ),
-                    Field::text("username", "用户名", &v["username"]),
+                    Field::text("username", "用户名", &json!(text(&v["username"]))),
                     Field::password("password", "新密码", true),
                 ];
                 p.actions.push(Action::new("save", "保存 APN", CUT));

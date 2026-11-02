@@ -196,6 +196,7 @@ pub fn page(id: &str, readings: &Data) -> Page {
                 ("l2tp_passthrough", "L2TP 穿透"),
                 ("pptp_passthrough", "PPTP 穿透"),
                 ("ipsec_passthrough", "IPsec 穿透"),
+                ("alg_sip_enable", "SIP ALG"),
             ] {
                 p.fields.push(bit(key, label, &d[key]));
             }
@@ -393,7 +394,12 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
         "qos" => put("/api/router/qos", p.changed(&["qos_switch"])?),
         "vpn" => put(
             "/api/router/vpn",
-            p.changed(&["l2tp_passthrough", "pptp_passthrough", "ipsec_passthrough"])?,
+            p.changed(&[
+                "l2tp_passthrough",
+                "pptp_passthrough",
+                "ipsec_passthrough",
+                "alg_sip_enable",
+            ])?,
         ),
         _ => anyhow::bail!("操作不存在。"),
     }

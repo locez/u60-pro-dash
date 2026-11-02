@@ -175,7 +175,18 @@ pub fn page(id: &str, readings: &Data) -> Page {
                 "sim-verify" => p.fields.push(credential("pin", "SIM PIN（4–8 位）", 8)),
                 "sim-pin" => {
                     p.fields = vec![
-                        Field::boolean("enabled", "开机要求 SIM PIN", &sim["pin_status"]),
+                        {
+                            let mut field =
+                                Field::boolean("enabled", "开机要求 SIM PIN", &sim["pin_status"]);
+                            if !field.available {
+                                field.available = true;
+                                field.required = true;
+                                field.value.clear();
+                                field.original.clear();
+                                field.label = "目标 PIN 保护状态（当前状态未知）".into();
+                            }
+                            field
+                        },
                         credential("pin", "当前 SIM PIN", 8),
                     ];
                 }
@@ -334,6 +345,7 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
         Read::get("sim", "/api/sim/info"),
         sim,
         &[
+            "/agent_instance",
             "/sim_epoch",
             "/sim_iccid",
             "/sim_states",
@@ -423,6 +435,35 @@ pub fn checked(path: &str, value: &Value) -> Result<(), Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn unknown_firmware_pin_flag_requires_an_explicit_target() {
+        let d = Data::from([
+            (
+                "sim".into(),
+                Ok(
+                    json!({"sim_states":"sim ready","pin_status":"5","pinnumber":3,"agent_instance":12}),
+                ),
+            ),
+            ("trials".into(), Ok(json!({"available_trials":3}))),
+        ]);
+        let mut p = page("sim-pin", &d);
+        assert!(p.field("enabled").unwrap().available);
+        assert!(p.value("enabled").is_err());
+        p.fields
+            .iter_mut()
+            .find(|f| f.key == "enabled")
+            .unwrap()
+            .value = "false".into();
+        p.fields.iter_mut().find(|f| f.key == "pin").unwrap().value = "1234".into();
+        let change = plan("sim-pin", "apply", &p, &d).unwrap();
+        assert_eq!(change.requests[0].body.as_ref().unwrap()["pin_mode"], 0);
+        assert!(
+            change.guards[0]
+                .pointers
+                .iter()
+                .any(|p| p == "/agent_instance")
+        );
+    }
     #[test]
     fn sms_codec_roundtrips_cjk_and_surrogates_and_rejection_is_not_success() {
         let b = send_body("+15555550100", "中文🙂", "26;01;01;12;00;00;+8").unwrap();

@@ -111,7 +111,8 @@ impl Controller {
         self.cancel();
         self.resume = true;
         if writing {
-            self.notice = "操作结果未确认。请刷新状态后再决定是否重试。".into();
+            self.outcome = Some("操作结果未确认。请刷新状态后再决定是否重试。".into());
+            self.notice = self.outcome.clone().unwrap_or_default();
         }
     }
     pub fn refresh(&mut self) {
@@ -586,6 +587,14 @@ mod tests {
         assert!(!c.busy());
         assert!(c.confirmation.is_none());
         assert!(c.page.fields.is_empty());
+        c.refresh();
+        c.queue.clear();
+        c.data.insert("settings".into(), Ok(json!({"charge_limit_enabled":true,"charge_limit":90,"hysteresis":5,"charging_stopped":false})));
+        c.finish_reads();
+        assert!(
+            c.notice.contains("操作结果未确认"),
+            "waking must retain the uncertain write outcome"
+        );
         c.open("fast-boot");
         let (key, request) = c.queue.pop_front().unwrap();
         c.pending = Some(Pending {
