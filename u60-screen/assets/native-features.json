@@ -1,0 +1,83 @@
+[
+  {
+    "id": "wireguard",
+    "title": "WireGuard",
+    "group": "routing",
+    "description": "管理独立的 WireGuard 隧道。",
+    "rows": [
+      [
+        "隧道状态",
+        "未启用"
+      ],
+      [
+        "配置文件",
+        "尚未导入"
+      ]
+    ],
+    "guide": [
+      "在管理后台导入配置，配置可能包含私钥。机身屏幕用于查看连接状态与启停。"
+    ],
+    "actions": [
+      {
+        "label": "启用隧道"
+      },
+      {
+        "label": "停止隧道"
+      }
+    ],
+    "apis": [
+      "GET /api/vpn/wireguard",
+      "PUT /api/vpn/wireguard",
+      "POST /api/vpn/wireguard/enable",
+      "POST /api/vpn/wireguard/disable"
+    ]
+  },
+  {
+    "id": "agent-update",
+    "title": "后台程序更新",
+    "group": "system",
+    "description": "检查 agent 的更新、下载进度与回退状态。",
+    "rows": [
+      [
+        "更新状态",
+        "尚未检查"
+      ]
+    ],
+    "guide": [
+      "这里更新的是后台程序。原厂固件升级仍由原厂管理端完成。",
+      "自定义网关与官方发布的兼容性需要在安装前核对。"
+    ],
+    "actions": [
+      {
+        "label": "检查更新"
+      },
+      {
+        "label": "下载更新"
+      },
+      {
+        "label": "安装更新"
+      },
+      {
+        "label": "回退版本"
+      }
+    ],
+    "apis": [
+      "GET /api/update/status",
+      "PUT /api/update/settings",
+      "POST /api/update/check",
+      "POST /api/update/download",
+      "POST /api/update/install",
+      "POST /api/update/rollback"
+    ]
+  },
+  {
+    "id": "screen-lock",
+    "title": "锁屏与密码",
+    "group": "system",
+    "local": true,
+    "description": "长按解锁与可选数字密码保护。",
+    "rows": [],
+    "actions": [],
+    "apis": []
+  }
+]
