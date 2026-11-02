@@ -673,6 +673,7 @@ impl State {
             );
             ui.set_editor_value(field.value.clone().into());
             ui.set_editor_secret(field.secret);
+            ui.set_editor_multiline(field.multiline);
             ui.set_editor_layout(if field.range.is_some() { 1 } else { 0 });
             ui.set_editor_error("".into());
             ui.set_editor_visible(true);
@@ -727,6 +728,7 @@ impl State {
         ui.set_editor_hint(hint.into());
         ui.set_editor_value(value.into());
         ui.set_editor_secret(secret);
+        ui.set_editor_multiline(false);
         ui.set_editor_layout(layout);
         ui.set_editor_error("".into());
         ui.set_editor_visible(true);

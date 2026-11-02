@@ -63,6 +63,7 @@ export component Screen inherits Window {
     in-out property <string> editor-error;
     in-out property <string> editor-value;
     in-out property <bool> editor-secret;
+    in-out property <bool> editor-multiline;
     in-out property <int> editor-layout;
     callback edit(string);
     callback editor-key(string);
@@ -375,6 +376,7 @@ export component Screen inherits Window {
             width: parent.width; height: parent.height;
             title: root.editor-title; hint: root.editor-hint; error: root.editor-error;
             value <=> root.editor-value; secret: root.editor-secret; layout <=> root.editor-layout;
+            multiline: root.editor-multiline;
             key(value) => { root.editor-key(value); }
             submit => { root.editor-submit(); }
             cancel => { root.editor-cancel(); }

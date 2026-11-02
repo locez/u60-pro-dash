@@ -32,6 +32,9 @@ pub struct Controller {
     draft: BTreeMap<String, String>,
     pub editing: bool,
     next_poll: Option<Instant>,
+    guards: BTreeMap<String, Guard>,
+    outcome: Option<String>,
+    keep_draft: bool,
 }
 impl Default for Controller {
     fn default() -> Self {
@@ -54,6 +57,9 @@ impl Default for Controller {
             draft: BTreeMap::new(),
             editing: false,
             next_poll: None,
+            guards: BTreeMap::new(),
+            outcome: None,
+            keep_draft: false,
         }
     }
 }
@@ -84,6 +90,8 @@ impl Controller {
         self.queue.clear();
         self.pending = None;
         self.confirmation = None;
+        self.guards.clear();
+        self.outcome = None;
         self.page = Page::default();
         self.data.clear();
         self.loaded = None;
@@ -159,7 +167,7 @@ impl Controller {
             if restored {
                 "状态已重新读取，请检查更改后保存。".into()
             } else {
-                "".into()
+                self.outcome.clone().unwrap_or_default()
             }
         } else {
             format!("部分状态读取失败：{}", errors.join("；"))
@@ -181,7 +189,6 @@ impl Controller {
             && !self.editing
             && !self.page.dirty()
             && self.confirmation.is_none()
-            && selected(&self.data).is_none()
             && self.next_poll.is_some_and(|at| Instant::now() >= at)
         {
             self.refresh();
@@ -208,6 +215,18 @@ impl Controller {
         }
         let pending = self.pending.take().unwrap();
         if let Some(key) = pending.key {
+            if let Some(guard) = self.guards.remove(&key) {
+                if result.as_ref().is_ok_and(|value| guard.matches(value)) {
+                    return true;
+                }
+                self.queue.clear();
+                self.guards.clear();
+                self.writes = 0;
+                self.outcome =
+                    Some("提交前核对失败或状态已变化，已取消全部写入。请重新检查并填写。".into());
+                self.refresh();
+                return true;
+            }
             if let Err(Error::Busy(seconds)) = &result
                 && pending.attempt < 2
             {
@@ -228,6 +247,16 @@ impl Controller {
                     self.data.insert("last_result".into(), Ok(value));
                     if self.queue.is_empty() {
                         self.writes = 0;
+                        if self.keep_draft {
+                            self.draft = self
+                                .page
+                                .fields
+                                .iter()
+                                .filter(|f| f.dirty())
+                                .map(|f| (f.key.clone(), f.value.clone()))
+                                .collect();
+                        }
+                        self.outcome = Some("请求已接受；请核对下方设备实际状态。".into());
                         self.refresh();
                         self.notice = "请求已接受，正在读取实际结果…".into();
                     }
@@ -236,11 +265,14 @@ impl Controller {
                     self.queue.clear();
                     self.writes = 0;
                     self.confirmation = None;
-                    self.notice = format!(
+                    self.guards.clear();
+                    self.outcome = Some(format!(
                         "{}。已完成 {} 项；结果以刷新后的设备状态为准。",
                         error.message(),
                         self.completed
-                    );
+                    ));
+                    self.refresh();
+                    self.notice = self.outcome.clone().unwrap_or_default();
                 }
             }
             self.revision += 1;
@@ -292,7 +324,13 @@ impl Controller {
             .map(|f| format!("{}：{}", f.label, f.display()))
             .collect::<Vec<_>>()
             .join("\n");
-        plan.summary = format!("{}\n\n{}\n\n{}", action.label, changes, action.warning);
+        plan.summary = format!(
+            "{}\n{}\n\n{}\n\n{}",
+            action.label,
+            self.page.title.as_deref().unwrap_or(""),
+            changes,
+            action.warning
+        );
         plan.phrase = action.phrase.clone();
         self.confirmation = Some(plan);
         Ok(())
@@ -315,6 +353,14 @@ impl Controller {
         let plan = self.confirmation.take().unwrap();
         self.writes = plan.requests.len();
         self.completed = 0;
+        self.keep_draft = plan.keep_draft;
+        self.outcome = None;
+        for (index, guard) in plan.guards.into_iter().enumerate() {
+            let key = format!("__guard/{index}");
+            self.queue
+                .push_back((Some(key.clone()), guard.read.request.clone()));
+            self.guards.insert(key, guard);
+        }
         for request in plan.requests {
             self.queue.push_back((None, request));
         }
@@ -342,6 +388,10 @@ impl Controller {
     pub fn select(&mut self, id: &str) -> Result<()> {
         ensure!(!self.busy(), "正在读取，请稍后。");
         ensure!(
+            !self.page.dirty(),
+            "请先保存当前更改，或返回后重新打开页面放弃草稿。"
+        );
+        ensure!(
             self.page.items.iter().any(|item| item.id == id),
             "记录已变化，请刷新。"
         );
@@ -368,7 +418,6 @@ impl Controller {
             || self.editing
             || self.page.dirty()
             || self.confirmation.is_some()
-            || selected(&self.data).is_some()
         {
             return;
         }
@@ -438,6 +487,30 @@ mod tests {
         c
     }
     #[test]
+    fn changed_preflight_cancels_all_writes_before_the_first_mutation() {
+        let mut c = charge();
+        c.edit(1, "85".into()).unwrap();
+        c.prepare(0).unwrap();
+        c.confirmation.as_mut().unwrap().guards.push(Guard::new(
+            Read::get("reviewed", "/api/router/lan"),
+            &serde_json::json!({"lan_ipaddr":"10.0.0.1"}),
+            &["/lan_ipaddr"],
+        ));
+        c.confirm("").unwrap();
+        let (key, request) = c.queue.pop_front().unwrap();
+        assert!(key.as_deref().unwrap().starts_with("__guard/"));
+        c.pending = Some(Pending {
+            id: 899,
+            key,
+            request,
+            attempt: 0,
+        });
+        c.receive(899, Ok(serde_json::json!({"lan_ipaddr":"10.10.0.1"})));
+        assert_eq!(c.writes, 0);
+        assert!(c.queue.iter().all(|(key, _)| key.is_some()));
+        assert!(c.outcome.as_ref().unwrap().contains("取消全部写入"));
+    }
+    #[test]
     fn writes_require_fresh_single_use_confirmation_and_failures_never_retry() {
         let mut c = charge();
         c.edit(1, "85".into()).unwrap();
@@ -457,11 +530,10 @@ mod tests {
             attempt: 0,
         });
         c.receive(900, Err(Error::Busy(3)));
-        assert!(!c.busy());
         assert!(c.notice.contains("结果"));
         assert!(
-            c.queue.is_empty(),
-            "a 503 may follow a partial write; do not repeat it"
+            c.queue.iter().all(|(key, _)| key.is_some()),
+            "a 503 may follow a partial write; only reads may follow it"
         );
         c.loaded = Some(Instant::now() - Duration::from_secs(61));
         assert!(c.prepare(0).is_err());

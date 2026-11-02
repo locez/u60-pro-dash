@@ -7,6 +7,7 @@ export component TextEditor inherits Rectangle {
     in property <string> hint;
     in property <string> error;
     in property <bool> secret;
+    in property <bool> multiline;
     in-out property <string> value;
     in-out property <int> layout: 1;
     property <bool> upper;
@@ -25,16 +26,17 @@ export component TextEditor inherits Rectangle {
         padding: 8px; spacing: 4px;
         Label { text: root.title; height: 28px; font-size: 22px; font-weight: 650; }
         Rectangle {
-            height: 44px; background: Palette.surface; border-radius: 8px;
+            height: root.multiline ? 104px : 44px; background: Palette.surface; border-radius: 8px;
             border-width: 1px; border-color: Palette.accent-ink;
             input := TextInput {
                 x: 10px; width: parent.width - 20px; height: parent.height;
                 text <=> root.value;
                 input-type: root.secret ? InputType.password : InputType.text;
-                single-line: true; color: Palette.text; font-size: 18px; vertical-alignment: center;
+                single-line: !root.multiline; wrap: word-wrap; color: Palette.text; font-size: 18px;
+                vertical-alignment: root.multiline ? top : center;
                 init => { self.focus(); }
                 edited => { root.activity(); }
-                accepted => { root.submit(); }
+                accepted => { if !root.multiline { root.submit(); } }
             }
         }
         Label {
@@ -55,6 +57,7 @@ export component TextEditor inherits Rectangle {
             TapButton { text: root.layout == 0 ? "123" : root.layout == 1 ? "#+=" : "ABC"; clicked => { root.layout = mod(root.layout + 1, 3); root.activity(); } }
             TapButton { text: "Aa"; clicked => { root.upper = !root.upper; root.layout = 0; root.activity(); } }
             TapButton { text: "空格"; clicked => { input.focus(); root.key(" "); } }
+            if root.multiline: TapButton { text: "换行"; clicked => { input.focus(); root.key(Key.Return); } }
             TapButton { text: "退格"; clicked => { input.focus(); root.key(Key.Backspace); } }
         }
         HorizontalLayout {

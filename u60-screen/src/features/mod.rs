@@ -1,5 +1,7 @@
 //! Native feature contracts. Browser fixtures are never request bodies.
 pub mod controller;
+mod lists;
+mod network;
 mod settings;
 mod status;
 
@@ -308,22 +310,65 @@ pub struct Plan {
     pub requests: Vec<Request>,
     pub summary: String,
     pub phrase: Option<String>,
+    pub guards: Vec<Guard>,
+    pub keep_draft: bool,
+}
+pub struct Guard {
+    pub read: Read,
+    pub pointers: Vec<String>,
+    pub expected: Vec<Value>,
+}
+impl Guard {
+    pub fn new(read: Read, original: &Value, pointers: &[&str]) -> Self {
+        Self {
+            read,
+            pointers: pointers.iter().map(|p| (*p).into()).collect(),
+            expected: pointers
+                .iter()
+                .map(|p| original.pointer(p).cloned().unwrap_or(Value::Null))
+                .collect(),
+        }
+    }
+    pub fn matches(&self, value: &Value) -> bool {
+        self.pointers
+            .iter()
+            .zip(&self.expected)
+            .all(|(p, expected)| value.pointer(p).unwrap_or(&Value::Null) == expected)
+    }
 }
 impl Plan {
+    pub fn many(requests: Vec<Request>) -> Self {
+        Self {
+            requests,
+            summary: String::new(),
+            phrase: None,
+            guards: vec![],
+            keep_draft: false,
+        }
+    }
     pub fn one(method: Method, path: &str, body: Value) -> Self {
         Self {
             requests: vec![Request::json(method, path, body)],
             summary: String::new(),
             phrase: None,
+            guards: vec![],
+            keep_draft: false,
         }
     }
 }
 pub fn reads(id: &str) -> Option<Vec<Read>> {
-    settings::reads(id).or_else(|| status::reads(id))
+    settings::reads(id)
+        .or_else(|| status::reads(id))
+        .or_else(|| network::reads(id))
+        .or_else(|| lists::reads(id))
 }
 pub fn page(id: &str, readings: &Data) -> Page {
     if settings::reads(id).is_some() {
         settings::page(id, readings)
+    } else if lists::reads(id).is_some() {
+        lists::page(id, readings)
+    } else if network::reads(id).is_some() {
+        network::page(id, readings)
     } else {
         status::page(id, readings)
     }
@@ -331,6 +376,10 @@ pub fn page(id: &str, readings: &Data) -> Page {
 pub fn plan(id: &str, action: &str, page: &Page, readings: &Data) -> Result<Plan> {
     if settings::reads(id).is_some() {
         settings::plan(id, action, page, readings)
+    } else if lists::reads(id).is_some() {
+        lists::plan(id, action, page, readings)
+    } else if network::reads(id).is_some() {
+        network::plan(id, action, page, readings)
     } else {
         status::plan(id, action, page, readings)
     }
@@ -353,6 +402,7 @@ pub fn topics(id: &str) -> &'static [&'static str] {
 pub fn poll_seconds(id: &str) -> Option<u64> {
     match id {
         "clients" => Some(10),
+        "dns-cache" | "operators" => Some(5),
         "resources" | "wan" | "device-info" => Some(30),
         _ => None,
     }
