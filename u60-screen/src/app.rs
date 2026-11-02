@@ -1,5 +1,5 @@
 use crate::{
-    FeatureAction, MenuEntry, Palette, Reading, Screen,
+    FeatureAction, FeatureInput, MenuEntry, Palette, Reading, Screen,
     config::{Preferences, parse_color, readable_accent},
 };
 use anyhow::{Result, bail};
@@ -70,6 +70,7 @@ pub struct State {
     live_revision: u64,
     network: crate::agent::network::Network,
     network_rows: Vec<(String, String)>,
+    clients: crate::agent::clients::Clients,
     editor: Option<Editor>,
     features: crate::features::controller::Controller,
     feature_revision: u64,
@@ -482,18 +483,16 @@ impl State {
         } else {
             ["signal", "traffic", "battery"].map(String::from).to_vec()
         };
-        if !ui.get_asleep() && !self.security.locked {
-            topics.push("clients".into());
-            if ui.get_view() == 7 {
-                topics.extend(
-                    crate::features::topics(&self.features.id)
-                        .iter()
-                        .map(|s| (*s).into()),
-                );
-            }
+        if !ui.get_asleep() && !self.security.locked && ui.get_view() == 7 {
+            topics.extend(
+                crate::features::topics(&self.features.id)
+                    .iter()
+                    .map(|s| (*s).into()),
+            );
         }
         agent.watch(topics);
         let snapshot = agent.snapshot();
+        self.features.observe(&snapshot);
         if snapshot.revision != self.live_revision {
             self.live_revision = snapshot.revision;
             let dashboard = crate::agent::model::Dashboard::read(&snapshot);
@@ -506,7 +505,6 @@ impl State {
             ui.set_download(dashboard.download.into());
             ui.set_upload(dashboard.upload.into());
             ui.set_traffic_total(dashboard.total.into());
-            ui.set_client_count(dashboard.clients.into());
         }
         let active = !ui.get_asleep() && !self.security.locked;
         if !active {
@@ -517,6 +515,9 @@ impl State {
         }
         let on_network = self.page == "tailscale-network";
         for reply in agent.replies() {
+            if self.clients.receive(reply.id, reply.result.clone()) {
+                continue;
+            }
             if self.features.receive(reply.id, reply.result.clone()) {
                 continue;
             }
@@ -555,6 +556,11 @@ impl State {
                 self.network.accept_status(Err(error));
             }
         }
+        self.clients.tick(
+            agent,
+            active && snapshot.authenticated && self.page == "overview",
+        );
+        ui.set_client_count(self.clients.label().into());
         self.features.editing =
             ui.get_editor_visible() || ui.get_choice_visible() || ui.get_confirm_visible();
         self.features
@@ -607,13 +613,12 @@ impl State {
             page.fields
                 .iter()
                 .enumerate()
-                .map(|(i, f)| {
-                    entry(
-                        &i.to_string(),
-                        &f.label,
-                        &f.display(),
-                        if f.dirty() { "已改" } else { "" },
-                    )
+                .filter(|(_, f)| f.visible)
+                .map(|(i, f)| FeatureInput {
+                    index: i as i32,
+                    title: f.label.clone().into(),
+                    subtitle: f.display().into(),
+                    tag: if f.dirty() { "已改" } else { "" }.into(),
                 })
                 .collect(),
         ));
@@ -808,6 +813,7 @@ impl App {
             agent: None,
             live_revision: u64::MAX,
             network: crate::agent::network::Network::default(),
+            clients: Default::default(),
             network_rows: Vec::new(),
             editor: None,
             features: crate::features::controller::Controller::default(),
@@ -1148,6 +1154,17 @@ impl App {
         state.features.seed(id, value);
         state.feature_revision = u64::MAX;
         self.ui.set_view(7);
+        state.render_features(&self.ui);
+    }
+    #[cfg(test)]
+    pub fn feature_data_fixture(&self, id: &str, data: crate::features::Data) {
+        let mut state = self.state.borrow_mut();
+        state.features.seed_data(id, data);
+        state.feature_revision = u64::MAX;
+        self.ui.set_view(7);
+        self.ui.set_demo(false);
+        self.ui
+            .set_page_revision(self.ui.get_page_revision().wrapping_add(1));
         state.render_features(&self.ui);
     }
     #[cfg(feature = "device")]

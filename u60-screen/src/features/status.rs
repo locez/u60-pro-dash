@@ -199,7 +199,11 @@ pub fn page(id: &str, readings: &Data) -> Page {
                                 .into();
                     }
                 } else {
-                    p.row("设备数量", &json!(devices.len()));
+                    p.row("列表记录", &json!(devices.len()));
+                    p.row(
+                        "当前已连接",
+                        &json!(devices.iter().filter(|v| v["connected"] == true).count()),
+                    );
                     p.row("数据来源完整", &d["inventory_complete"]);
                     p.items = devices
                         .iter()

@@ -1,3 +1,4 @@
+pub mod clients;
 pub mod connectivity;
 mod http;
 pub mod model;

@@ -33,7 +33,6 @@ pub struct Dashboard {
     pub download: String,
     pub upload: String,
     pub total: String,
-    pub clients: String,
 }
 impl Dashboard {
     pub fn read(state: &Snapshot) -> Self {
@@ -85,11 +84,6 @@ impl Dashboard {
             total: number(&traffic["real_rx_bytes"])
                 .zip(number(&traffic["real_tx_bytes"]))
                 .map(|(rx, tx)| bytes(rx + tx))
-                .unwrap_or("—".into()),
-            clients: state
-                .get("clients")
-                .and_then(|v| v["hosts"].as_object())
-                .map(|v| v.len().to_string())
                 .unwrap_or("—".into()),
         }
     }

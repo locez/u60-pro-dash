@@ -324,6 +324,71 @@ mod tests {
         app.ui.invoke_confirm_cancel();
         assert!(!app.ui.get_confirm_visible());
         assert!(!app.ui.get_feature_busy());
+        // Exercise real feature rendering without a device or network writes.
+        let fixture = |pairs: Vec<(&str, serde_json::Value)>| {
+            pairs.into_iter().map(|(k, v)| (k.into(), Ok(v))).collect()
+        };
+        let save = |name: &str| -> Result<()> {
+            if let Ok(dir) = std::env::var("U60_SCREEN_TEST_IMAGES") {
+                let dir = std::path::Path::new(&dir);
+                std::fs::create_dir_all(dir)?;
+                platform::save_png(&dir.join(name), &platform::capture(&window, false))?;
+            }
+            Ok(())
+        };
+        app.feature_data_fixture("sms-inbox", fixture(vec![
+            ("internal",serde_json::json!({"messages":[{"id":1,"number":"+15555550100","date":"2026-11-03 08:00","tag":1,"mem_store":1,"content":"测试短信：中文正文应清楚显示。\n这是第二行，带有网络状态提示。"}]})),
+            ("card",serde_json::json!({"messages":[]})),("__selection",serde_json::json!("1")),
+        ]));
+        assert!(app.ui.get_feature_content().contains("中文正文"));
+        save("live-sms.png")?;
+        app.ui.invoke_open("feature-item:reply:1".into());
+        app.ui.invoke_feature_edit(1);
+        assert!(app.ui.get_editor_multiline());
+        app.ui.set_editor_value("Hello\nsecond line".into());
+        save("live-multiline.png")?;
+        app.ui.invoke_editor_submit();
+        assert!(!app.ui.get_editor_visible());
+        app.ui.invoke_feature_action(0);
+        assert!(
+            app.ui.get_confirm_body().contains("+15555550100"),
+            "default reply recipient must be reviewed"
+        );
+        save("live-confirmation.png")?;
+        app.ui.invoke_confirm_cancel();
+        app.feature_data_fixture("tailscale-service",fixture(vec![("status",serde_json::json!({"installed":true,"enabled":true,"enrolled":false,"backend_state":"NeedsLogin","login_url":"https://example.com/authorize/demonstration"}))]));
+        assert!(app.ui.get_feature_has_qr());
+        save("live-tailscale-qr.png")?;
+        app.feature_data_fixture("esim-download",fixture(vec![("inventory",serde_json::json!({"agent_instance":12})),("download",serde_json::json!({"state":"confirm","started_at":1234,"provider":"演示运营商","name":"示例套餐","iccid":"8900000000000000000"}))]));
+        app.ui.invoke_feature_action(0);
+        assert!(app.ui.get_confirm_body().contains("示例套餐"));
+        assert!(app.ui.get_confirm_body().contains("8900000000000000000"));
+        save("live-esim-confirmation.png")?;
+        app.ui.invoke_confirm_cancel();
+        app.feature_data_fixture(
+            "scheduler",
+            fixture(vec![
+                ("jobs", serde_json::json!([])),
+                ("__selection", serde_json::json!("new")),
+            ]),
+        );
+        assert_eq!(app.ui.get_feature_fields().row_count(), 7);
+        save("live-scheduler.png")?;
+        let action_field = app.ui.get_feature_fields().row_data(5).unwrap();
+        assert_eq!(
+            action_field.index, 6,
+            "hidden fields must not shift input targets"
+        );
+        app.ui.invoke_feature_edit(action_field.index);
+        app.ui.invoke_choose(5);
+        assert_eq!(app.ui.get_feature_fields().row_count(), 11);
+        assert!(
+            app.ui
+                .get_feature_fields()
+                .iter()
+                .any(|f| f.title == "请求参数 JSON")
+        );
+        app.ui.set_demo(true);
         app.open("overview")?;
         app.ui.invoke_edit("probe-target".into());
         platform::capture(&window, false);

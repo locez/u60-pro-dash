@@ -1,10 +1,13 @@
 //! Native feature contracts. Browser fixtures are never request bodies.
 pub mod controller;
 mod esim;
+mod forwarding;
+mod history;
 mod lists;
 mod messages;
 mod network;
 mod radio;
+mod scheduler;
 mod services;
 mod settings;
 mod status;
@@ -86,6 +89,7 @@ pub struct Field {
     pub secret: bool,
     pub multiline: bool,
     pub available: bool,
+    pub visible: bool,
     pub wire: Wire,
     pub required: bool,
     pub max: usize,
@@ -102,6 +106,7 @@ impl Field {
             secret: false,
             multiline: false,
             available: !value.is_null(),
+            visible: true,
             wire: Wire::String,
             required: false,
             max: 4096,
@@ -261,8 +266,8 @@ impl Action {
 #[derive(Default)]
 pub struct Page {
     pub title: Option<String>,
-    pub content: String,
     pub qr: Option<String>,
+    pub content: String,
     pub rows: Vec<(String, String)>,
     pub fields: Vec<Field>,
     pub items: Vec<Item>,
@@ -363,6 +368,9 @@ impl Plan {
     }
 }
 pub fn reads(id: &str) -> Option<Vec<Read>> {
+    if id == "history" {
+        return Some(vec![]);
+    }
     settings::reads(id)
         .or_else(|| status::reads(id))
         .or_else(|| network::reads(id))
@@ -371,6 +379,8 @@ pub fn reads(id: &str) -> Option<Vec<Read>> {
         .or_else(|| radio::reads(id))
         .or_else(|| services::reads(id))
         .or_else(|| esim::reads(id))
+        .or_else(|| forwarding::reads(id))
+        .or_else(|| scheduler::reads(id))
 }
 pub fn page(id: &str, readings: &Data) -> Page {
     let mut result = feature_page(id, readings);
@@ -390,19 +400,29 @@ pub fn page(id: &str, readings: &Data) -> Page {
         }
         result.items.clear();
     }
+    visibility(id, &mut result);
     result
 }
 fn feature_page(id: &str, readings: &Data) -> Page {
+    if id == "history" {
+        return history::page(readings);
+    }
+    if forwarding::reads(id).is_some() {
+        return forwarding::page(id, readings);
+    }
+    if scheduler::reads(id).is_some() {
+        return scheduler::page(id, readings);
+    }
     if settings::reads(id).is_some() {
         settings::page(id, readings)
-    } else if messages::reads(id).is_some() {
-        messages::page(id, readings)
-    } else if radio::reads(id).is_some() {
-        radio::page(id, readings)
-    } else if services::reads(id).is_some() {
-        services::page(id, readings)
     } else if esim::reads(id).is_some() {
         esim::page(id, readings)
+    } else if services::reads(id).is_some() {
+        services::page(id, readings)
+    } else if radio::reads(id).is_some() {
+        radio::page(id, readings)
+    } else if messages::reads(id).is_some() {
+        messages::page(id, readings)
     } else if lists::reads(id).is_some() {
         lists::page(id, readings)
     } else if network::reads(id).is_some() {
@@ -411,17 +431,54 @@ fn feature_page(id: &str, readings: &Data) -> Page {
         status::page(id, readings)
     }
 }
+/// Show only the inputs relevant to the current form choices; keep hidden
+/// drafts intact, and retain original field indexes for keyboard callbacks.
+pub fn visibility(id: &str, page: &mut Page) {
+    let value = |key: &str| {
+        page.fields
+            .iter()
+            .find(|f| f.key == key)
+            .map(|f| f.value.clone())
+            .unwrap_or_default()
+    };
+    let schedule = value("schedule");
+    let custom = value("action") == "custom";
+    let restore = value("restore") == "true";
+    let filter = value("filter");
+    for f in &mut page.fields {
+        f.visible = match (id, f.key.as_str()) {
+            ("scheduler", "time" | "days") => schedule == "recurring",
+            ("scheduler", "at") => schedule == "once",
+            ("scheduler", "restore_time") => restore,
+            ("scheduler", "method" | "path" | "body" | "clear_body") => custom,
+            ("scheduler", "restore_body" | "clear_restore_body") => custom && restore,
+            ("sms-forward", "patterns") => {
+                ["sender", "sender_and_content"].contains(&filter.as_str())
+            }
+            ("sms-forward", "keywords") => {
+                ["content", "sender_and_content"].contains(&filter.as_str())
+            }
+            _ => true,
+        };
+    }
+}
 pub fn plan(id: &str, action: &str, page: &Page, readings: &Data) -> Result<Plan> {
+    if forwarding::reads(id).is_some() {
+        return forwarding::plan(id, action, page, readings);
+    }
+    if scheduler::reads(id).is_some() {
+        return scheduler::plan(id, action, page, readings);
+    }
     if settings::reads(id).is_some() {
         settings::plan(id, action, page, readings)
-    } else if messages::reads(id).is_some() {
-        messages::plan(id, action, page, readings)
-    } else if radio::reads(id).is_some() {
-        radio::plan(id, action, page, readings)
-    } else if services::reads(id).is_some() {
-        services::plan(id, action, page, readings)
     } else if esim::reads(id).is_some() {
         esim::plan(id, action, page, readings)
+    } else if services::reads(id).is_some() {
+        services::plan(id, action, page, readings)
+    } else if radio::reads(id).is_some() {
+        radio::plan(id, action, page, readings)
+    } else if messages::reads(id).is_some() {
+        messages::plan(id, action, page, readings)
     } else if lists::reads(id).is_some() {
         lists::plan(id, action, page, readings)
     } else if network::reads(id).is_some() {
@@ -474,7 +531,8 @@ pub fn topics(id: &str) -> &'static [&'static str] {
 }
 pub fn poll_seconds(id: &str) -> Option<u64> {
     match id {
-        "clients" | "sms-inbox" | "esim-profiles" | "esim-receipts" => Some(10),
+        "clients" | "sms-inbox" | "sms-forward-log" | "scheduler" | "esim-profiles"
+        | "esim-receipts" => Some(10),
         "esim-download" => Some(3),
         "dns-cache" | "operators" | "neighbors" => Some(5),
         "signal-test" | "speedtest" | "phone" | "stk" => Some(2),
@@ -502,7 +560,8 @@ pub fn probe(config: crate::agent::Config) -> Result<()> {
     );
     let mut request_id = 1u64 << 48;
     for feature in crate::app::Catalog::load()?.features {
-        // These reads can initialize a card session or resume queued receipts.
+        // Loading an eSIM inventory can resume queued operator receipts in
+        // the existing agent. Keep the unattended probe strictly observational.
         if feature.id.starts_with("esim-") || feature.id == "stk" {
             println!("{}: skipped (interactive SIM session)", feature.id);
             continue;
@@ -547,4 +606,48 @@ pub fn probe(config: crate::agent::Config) -> Result<()> {
         );
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod coverage {
+    use super::*;
+    #[test]
+    fn every_catalog_entry_has_a_live_contract_or_an_explicit_local_flow() {
+        let catalog = crate::app::Catalog::load().unwrap();
+        let local = [
+            "screen-prefs",
+            "screen-lock",
+            "account",
+            "tailscale-network",
+        ];
+        for feature in catalog.features {
+            assert!(
+                reads(&feature.id).is_some() || local.contains(&feature.id.as_str()),
+                "missing live page: {}",
+                feature.id
+            );
+            if let Some(reads) = reads(&feature.id) {
+                let failed = reads
+                    .iter()
+                    .map(|r| (r.key.clone(), Err(Error::Unsupported)))
+                    .collect();
+                let p = page(&feature.id, &failed);
+                if !reads.is_empty() {
+                    assert!(
+                        p.actions.iter().all(|a| !a.enabled),
+                        "write without device data: {}",
+                        feature.id
+                    );
+                }
+                for read in reads {
+                    assert!(
+                        read.request.method == Method::GET
+                            || ["/api/sms/list", "/api/device/power-save"]
+                                .contains(&read.request.path.as_str()),
+                        "unattended mutation"
+                    );
+                }
+            }
+        }
+    }
 }

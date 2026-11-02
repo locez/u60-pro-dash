@@ -6,6 +6,7 @@ export { Palette }
 export struct MenuEntry { id: string, title: string, subtitle: string, tag: string }
 export struct Reading { label: string, value: string }
 export struct FeatureAction { label: string, enabled: bool }
+export struct FeatureInput { index: int, title: string, subtitle: string, tag: string }
 
 export component Screen inherits Window {
     width: 320px; height: 480px;
@@ -22,13 +23,13 @@ export component Screen inherits Window {
     in-out property <[MenuEntry]> entries;
     in-out property <[Reading]> readings;
     in-out property <[string]> actions;
-    in-out property <[MenuEntry]> feature-fields;
-    in-out property <string> feature-content;
-    in-out property <image> feature-qr;
-    in-out property <bool> feature-has-qr;
+    in-out property <[FeatureInput]> feature-fields;
     in-out property <[FeatureAction]> feature-actions;
     in-out property <bool> feature-busy;
     in-out property <string> feature-notice;
+    in-out property <image> feature-qr;
+    in-out property <string> feature-content;
+    in-out property <bool> feature-has-qr;
     in-out property <bool> choice-visible;
     in-out property <string> choice-title;
     in-out property <[MenuEntry]> choices;
@@ -184,7 +185,7 @@ export component Screen inherits Window {
                 if root.view == 0: HorizontalLayout {
                     spacing: 10px;
                     Stat { label: "信号强度"; value: root.signal-strength; unit: "dBm"; clicked => { root.open("signal-live"); } }
-                    Stat { label: "热点设备"; value: root.client-count; unit: "台设备"; clicked => { root.open("clients"); } }
+                    Stat { label: "连接设备"; value: root.client-count; unit: "台设备"; clicked => { root.open("clients"); } }
                 }
                 if root.view == 0: Rectangle {
                     height: 86px; border-radius: 10px; background: Palette.surface;
@@ -303,9 +304,9 @@ export component Screen inherits Window {
                         background: Palette.surface; border-radius: 8px;
                         VerticalLayout { padding: 12px; Label { text: root.feature-content; font-size: 16px; wrap: word-wrap; overflow: clip; } }
                     }
-                    for field[index] in root.feature-fields: MenuRow {
+                    for field in root.feature-fields: MenuRow {
                         title: field.title; subtitle: field.subtitle; tag: field.tag;
-                        clicked => { root.feature-edit(index); }
+                        clicked => { root.feature-edit(field.index); }
                     }
                     for entry in root.entries: MenuRow { title: entry.title; subtitle: entry.subtitle; tag: entry.tag; clicked => { root.open(entry.id); } }
                     for action[index] in root.feature-actions: TapButton {

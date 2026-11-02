@@ -35,6 +35,7 @@ pub struct Controller {
     guards: BTreeMap<String, Guard>,
     outcome: Option<String>,
     keep_draft: bool,
+    history: super::history::History,
 }
 impl Default for Controller {
     fn default() -> Self {
@@ -60,6 +61,7 @@ impl Default for Controller {
             guards: BTreeMap::new(),
             outcome: None,
             keep_draft: false,
+            history: Default::default(),
         }
     }
 }
@@ -144,6 +146,10 @@ impl Controller {
         }
     }
     fn finish_reads(&mut self) {
+        if self.id == "history" {
+            self.data
+                .insert("__history".into(), Ok(self.history.value()));
+        }
         self.page = super::page(&self.id, &self.data);
         let restored = !self.draft.is_empty();
         for field in &mut self.page.fields {
@@ -155,6 +161,7 @@ impl Controller {
             value.zeroize();
         }
         self.draft.clear();
+        super::visibility(&self.id, &mut self.page);
         self.loaded = Some(Instant::now());
         self.next_poll =
             super::poll_seconds(&self.id).map(|s| Instant::now() + Duration::from_secs(s));
@@ -302,6 +309,7 @@ impl Controller {
         if f.secret {
             old.zeroize();
         }
+        super::visibility(&self.id, &mut self.page);
         self.confirmation = None;
         self.revision += 1;
         Ok(())
@@ -318,7 +326,10 @@ impl Controller {
             .get(index)
             .ok_or_else(|| anyhow::anyhow!("操作已变化，请刷新。"))?;
         ensure!(action.enabled, "此操作当前不可用。");
-        if action.id == "clear-local" && self.id == "at-terminal" {
+        if action.id == "clear-local" && ["history", "at-terminal"].contains(&self.id.as_str()) {
+            if self.id == "history" {
+                self.history.clear();
+            }
             self.data.remove("last_result");
             self.finish_reads();
             return Ok(());
@@ -329,18 +340,21 @@ impl Controller {
             .page
             .fields
             .iter()
-            .filter(|f| f.available && (!f.secret || f.dirty()))
+            .filter(|f| f.visible && f.available && (!f.secret || f.dirty()))
             .map(|f| format!("{}：{}", f.label, f.display()))
             .collect::<Vec<_>>()
             .join("\n");
-        plan.summary = format!(
-            "{}\n{}\n{}\n\n{}\n\n{}",
-            action.label,
+        plan.summary = [
+            action.label.as_str(),
             self.page.title.as_deref().unwrap_or(""),
-            plan.summary,
-            changes,
-            action.warning
-        );
+            &plan.summary,
+            &changes,
+            &action.warning,
+        ]
+        .into_iter()
+        .filter(|s| !s.trim().is_empty())
+        .collect::<Vec<_>>()
+        .join("\n\n");
         plan.phrase = action.phrase.clone();
         self.confirmation = Some(plan);
         Ok(())
@@ -422,6 +436,11 @@ impl Controller {
             false
         }
     }
+    pub fn observe(&mut self, snapshot: &crate::agent::Snapshot) {
+        if self.history.observe(snapshot) && self.id == "history" && !self.resume && !self.busy() {
+            self.finish_reads();
+        }
+    }
     pub fn stream(&mut self, snapshot: &crate::agent::Snapshot) {
         if self.resume
             || self.busy()
@@ -445,9 +464,9 @@ impl Controller {
                 "/api/network/wan" => ("wan", Some("wan")),
                 "/api/network/wan6" => ("wan", Some("wan6")),
                 "/api/system/top" => ("processes", None),
-                "/api/speedtest/progress" => ("speedtest", None),
                 "/api/esim/download" => ("esim_download", None),
                 "/api/esim/switch" => ("esim_switch", None),
+                "/api/speedtest/progress" => ("speedtest", None),
                 "/api/usb/status" => ("usb", None),
                 "/api/stk/menu" => ("stk", None),
                 _ => continue,
@@ -480,12 +499,16 @@ impl Controller {
         }
     }
     #[cfg(test)]
-    pub fn seed(&mut self, id: &str, settings: Value) {
+    pub fn seed_data(&mut self, id: &str, data: Data) {
         self.open(id);
         self.queue.clear();
         self.pending = None;
-        self.data.insert("settings".into(), Ok(settings));
+        self.data = data;
         self.finish_reads();
+    }
+    #[cfg(test)]
+    pub fn seed(&mut self, id: &str, settings: Value) {
+        self.seed_data(id, Data::from([("settings".into(), Ok(settings))]));
     }
 }
 
