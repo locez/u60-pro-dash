@@ -1,0 +1,137 @@
+# 原生屏幕开发
+
+独立的 Rust + Slint 1.18.1 程序，同一份 320×480 页面支持 Linux 桌面预览、无窗口 PNG 截图和 U60 机身屏幕。构建与锁文件独立于上游 agent，合并上游时无需把图形依赖带进 agent。
+
+**当前是原生显示与交互的第一阶段。** 13 个分类、79 个功能入口可以导航、滚动、查看字段和条目；包括原浏览器原型的 76 项及新增的 WireGuard、agent OTA、锁屏与密码页面。业务读数为演示数据，表单字段仅展示，业务动作会明确提示尚未接入。完整的模拟表单交互仍在 `preview/`。当前原生程序没有 HTTP 客户端，不会发送短信、修改 Wi-Fi、升级程序或改变 Tailscale 配置。
+
+真实生效的功能是本地外观、6 种预设强调色、HEX 配色、亮度、自动熄屏和页面导航。设备端实际写入背光节点；偏好只保存外观，不保存密码或业务数据。拖动亮度会合并保存，避免每个触摸事件都写闪存。电脑上可用键盘输入 HEX；实体屏幕支持预设色，尚未实现软键盘。
+
+![原生界面](docs/native-preview.png)
+
+## 锁屏与密码
+
+启动、熄屏和手动锁屏后，屏幕进入**只读状态看板**：网络制式、上下行网速、信号强度和电量仍然可见，数据与主页共用同一模型。当前仍使用演示数据。设置、短信和其他操作入口受锁定状态约束。
+
+长按「长按解锁」至少 1 秒后松开；移出按钮会取消。默认仅用长按防误触。在「设备 → 锁屏与密码」可开启可选的 **6–12 位数字密码**，需要输入两次确认；修改或关闭时必须验证现有密码。开启后，长按只进入数字键盘，正确验证后才能操作。触摸唤醒只亮屏，保持锁定。
+
+密码以独立随机盐的 Argon2id 校验值保存（19 MiB、2 次迭代、1 lane），不保存明文，不写日志，也不发送到网络。密码输入在 Rust 内存里处理，界面只持有掩码；哈希计算在工作线程完成。连续 5 次错误后等待 30 秒，之后递增到最多 5 分钟。尝试计数在开始校验前持久化，重启程序后保留；验证结果未能保存、配置损坏或验证被取消时不放行。
+
+私有文件位于外观文件同级的 `.screen-private/screen-lock.private.json`（目录 0700、文件 0600），设备端对应 `/data/local/tmp/u60-native-screen/.screen-private/`。修改外观不会清除密码。
+
+这是**自定义屏幕程序的操作锁**。试运行结束后原厂 UI 按原厂规则工作；该锁不修改原厂界面、网页后台认证、ADB 或 SSH，也不防御已有 root 权限的管理员。忘记密码时，可在已授权的 root 终端结束试运行后，将该私有文件移出原位置，再运行程序重新设置；程序不会自动清除损坏的密码配置。
+
+## 在电脑上运行
+
+需要 Rust 1.92 或更新版本、Cargo，以及 Linux 桌面的 X11 或 Wayland 运行库。默认使用 Winit + 软件渲染，不依赖 GPU 加速。命令均从仓库根目录执行：
+
+```bash
+bash u60-screen/native.sh preview
+```
+
+窗口逻辑尺寸固定为 320×480；桌面系统可能按显示缩放比例放大。左右方向键切换一级导航，Escape 返回，空格熄屏/唤醒，鼠标拖动滚动。外观默认保存在被 Git 忽略的 `u60-screen/appearance.json`。
+
+```bash
+# 指定初始页面和浅色；也可在界面内切换
+bash u60-screen/native.sh preview --page screen-prefs --light
+
+# 不需要图形桌面的截图；使用与设备一致的 RGB565 软件渲染
+bash u60-screen/native.sh snapshot /tmp/u60.png --light --page tailscale-home
+```
+
+`--page` 支持 `overview`、`network-menu`、`apps`、`device-settings`、分类 ID 及功能 ID；完整列表在 `assets/catalog.json`。例如 `wifi2`、`nr-bands`、`wireguard`、`agent-update`、`screen-lock`。`--screenshot /tmp/lock.png --page lock` 输出锁屏。离屏演示截图可以展示未设密码的页面；提供了密码配置时仍保留锁屏。设备运行无法使用截图模式绕过锁定。
+
+## 构建设备程序
+
+需要 `aarch64-unknown-linux-musl` Rust 标准库及交叉链接器。脚本优先使用 `aarch64-linux-musl-gcc`，也支持这台 Linux 开发机上的 `aarch64-unknown-linux-gnu-gcc` 驱动，musl 的 CRT/libc 来自 Rust target。使用 GNU 驱动时需确认产物仍为静态 musl 程序，不能因此引入设备不存在的 glibc 动态依赖。
+
+```bash
+bash u60-screen/native.sh build-device
+```
+
+默认产物：`target/u60-screen/aarch64-unknown-linux-musl/release/u60-screen`。支持 `CARGO_TARGET_DIR`、`CARGO`、`RUSTC`、`CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER` 覆盖。存在 `~/.local/share/u60-build/` 时会复用该项目已有的 Rust 工具链与缓存。
+
+直接使用 Cargo 等价于：
+
+```bash
+cargo build --locked --release --manifest-path u60-screen/Cargo.toml \
+  --target aarch64-unknown-linux-musl --no-default-features --features device
+```
+
+字体和页面嵌入二进制。设备构建不包含 Winit、X11、Wayland、Mesa、libinput 或 libudev 后端。Fontique 的 fontconfig 发现使用可选动态加载，缺少该库时仍使用内嵌字体。
+
+## 在 U60 上限时试运行
+
+开启 ADB、保持数据线连接，并先让设备正常启动到原厂界面。每次最长 600 秒，默认 90 秒：
+
+```bash
+bash u60-screen/native.sh trial 120
+bash u60-screen/native.sh status
+```
+
+试运行程序和日志位于 `/data/local/tmp/u60-native-screen/`。脚本核对启动同步、保存背光、启动独立恢复守护，再临时停止原厂 UI 服务；会等待原厂进程真正退出，避免 procd 的异步停止与恢复发生竞争。首帧通过 `DIRTYFB` 提交后才报告启动成功。后台 agent、Tailscale 与网络服务不参与接管。
+
+到时自动退出并恢复原厂 UI。提前恢复：
+
+```bash
+bash u60-screen/native.sh stop
+bash u60-screen/native.sh status
+```
+
+恢复守护独立于 Rust 程序和启动 shell，覆盖程序崩溃、启动 shell 被杀、ADB 会话结束及试运行超时。脚本只临时 `stop/start` 显示服务，不执行 `disable`，不修改 `rc.local`、init 链接、daemon 注册列表、固件或 OTA 槽位。这里没有提供开机自启安装器。
+
+显示与触摸分别默认旋转 180°；触摸按设备名称和能力探测，不写死 `event3`。手工排查时可在设备运行：
+
+```sh
+sh /data/local/tmp/u60-native-screen/device-trial.sh --seconds 120 \
+  --rotate 180 --touch-rotate 180
+```
+
+短按电源键切换屏幕；触摸唤醒只唤醒，不点击下面的业务控件。电源键不独占，长按仍由固件处理。当前只是关闭背光和停止无必要重绘，不代替整机的休眠、关机或充电模式管理。
+
+如果守护日志明确报告恢复失败，先结束试运行，再启动原厂服务：
+
+```bash
+bash u60-screen/native.sh stop
+adb shell /etc/init.d/zte_topsw_devui start
+```
+
+正常恢复日志应包含 `recovery: vendor UI running; backlight restored` 和 `no active trial`。残留 `/tmp/u60-native-screen-trial` 表示恢复尚未完成，不要直接删除后重试。ADB 不在线时先短按电源键唤醒并检查数据线。
+
+## 代码分工
+
+| 位置 | 用途 |
+| --- | --- |
+| `ui/main.slint` | 主页面、详情、外观和导航 |
+| `ui/components.slint` | 配色、小屏按钮、列表、亮度控件 |
+| `src/app.rs` | 页面模型、演示状态、本地偏好与休眠计时 |
+| `src/platform.rs` | 无窗口与设备共用的 Slint 软件平台、PNG 输出 |
+| `src/device/display.rs` | 枚举 DRM、RGB565 dumb buffer、按损坏区域复制和 DIRTYFB |
+| `src/device/input.rs` | evdev 触摸、MT 槽位、坐标校准、事件丢失取消、电源键 |
+| `src/device/mod.rs` | 设备事件循环、背光、信号退出和试运行期限 |
+| `src/config.rs` | 配色对比度、校验、原子保存 |
+| `src/security.rs` | 长按解锁、密码设置与校验、持久化重试限制 |
+| `ui/lock.slint` | 只读锁屏与数字键盘 |
+| `vendor/` | 固定版本 Slint 软件字体 hinting 与整像素补丁 |
+| `assets/catalog.json` | 从浏览器原型导出的共享功能目录 |
+| `assets/native-features.json` | 新增功能的设计定义 |
+| `scripts/device-trial.sh` | 只在设备上运行的接管与恢复守护 |
+
+修改浏览器功能定义或新增功能后运行 `node u60-screen/scripts/export-catalog.cjs`，提交更新后的 JSON。普通 Cargo 构建无需 Node。添加中文文案后按 [字体说明](assets/FONT.md) 重新生成子集。
+
+每完成一个可独立验证的功能或修复就提交，保持提交后的程序可编译。第三方依赖、设备适配、交互功能和文档尽量分开；同步上游也单独提交，避免在阶段末尾混成一个大提交。
+
+## 验证与下一阶段
+
+```bash
+bash u60-screen/native.sh test
+cargo fmt --manifest-path u60-screen/Cargo.toml --check
+cargo clippy --manifest-path u60-screen/Cargo.toml --all-targets --all-features -- -D warnings
+```
+
+测试包括全部原生入口、触摸切页、明暗与强调色、黑屏唤醒保持锁定、长按时长与取消、实际触摸数字键盘、密码设置/修改/关闭、跨进程重试限制、验证取消/存储错误不得解锁、旋转图像、含 padding 的 RGB565 帧缓冲，以及无设备参与的恢复脚本回归。脚本回归需要 Python 3 和 C 编译器，模拟原厂服务的延迟停止、正常/错误退出、UI 或启动 shell 被 SIGKILL、启动同步未完成等情况。
+
+MU5250/B31 实机已确认 ARM 静态程序运行、内嵌中文字形、DRM 首帧刷新、显示方向、触摸导航、只读状态锁屏和长按解锁，以及限时结束后恢复原厂界面。用户确认小字清晰度改善。物理按键、不同休眠/充电模式和长时间功耗需继续验证；仅凭桌面测试不能把这些标为完成。测试范围与产物大小见 [2026-11-03 验证记录](docs/validation-2026-11-03.md)。
+
+下一阶段接入 agent：本机仍通过认证后的 HTTP/SSE 读写；需有凭证交接、过期重登、断线/陈旧状态和页面级订阅。亮屏锁定时仍订阅网速、信号和电量，熄屏时关闭流。Tailscale 在线不能等同家庭子网可达，家庭网关需要独立路由/连通性读数。随后逐项迁移表单、确认操作、软键盘和业务错误反馈；所有写接口需按实际请求体核对，不能直接提交原型中的展示字段。自启要等这些行为和整机唤醒经过验证后再设计。
+
+许可见 [THIRD_PARTY.md](THIRD_PARTY.md)。

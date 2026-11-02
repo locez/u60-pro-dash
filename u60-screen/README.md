@@ -1,6 +1,16 @@
 # OpenU60 自定义机身屏幕
 
-基于本仓库的 `zte-agent` 功能设计，提供 320×480 机身屏幕的完整交互原型。一级导航是「概览 / 网络 / 应用 / 设备」，13 个分类下共 76 个功能入口。不是把桌面管理网页缩小：每项功能通过小屏列表、独立详情、表单、操作确认和结果页组织。
+本目录包含 **Rust + Slint 原生屏幕程序**和浏览器交互原型。原生程序已在 U60 Pro/B31 上跑通显示、触摸和限时退出恢复；当前使用演示数据，业务接口尚未接入。13 个分类、79 个原生入口复用浏览器的功能设计，并补充 WireGuard、agent OTA 和本地锁屏。
+
+```bash
+bash u60-screen/native.sh preview       # 电脑上的原生窗口
+bash u60-screen/native.sh build-device  # ARM 静态构建
+bash u60-screen/native.sh trial 120     # ADB 限时试运行，自动恢复原厂界面
+```
+
+**[原生开发、设备试运行与当前边界 → NATIVE.md](NATIVE.md)**
+
+下面介绍浏览器原型：基于本仓库的 `zte-agent` 功能设计，提供 320×480 机身屏幕的完整交互模型。一级导航是「概览 / 网络 / 应用 / 设备」，13 个分类下共 76 个浏览器功能入口，每项功能通过小屏列表、独立详情、表单、操作确认和结果页组织。
 
 ## 打开预览
 
@@ -63,11 +73,11 @@ bash u60-screen/preview.sh
 
 备份/恢复目前没有 agent API，因此小屏只提供配套端操作指引。局域网吞吐测试需要热点客户端参与；iPhone 实时活动需要在手机 App 注册；Tailscale 网页授权需要手机/电脑完成。这些边界在相应页面有说明。
 
-## 下一步接实体屏幕
+## 浏览器原型与原生程序
 
-原型是浏览器 HTML/CSS/JavaScript，尚未编译为设备程序，也没有进行 DRM、触摸或整机启动验证。不能直接把整个 `preview/` 当作 litehtml 页面推到设备上。
+`preview/` 是浏览器 HTML/CSS/JavaScript，不能直接作为 litehtml 页面推到设备上。实体版本使用独立 Rust/Slint 页面，已完成第一阶段 DRM 与触摸验证，见 [NATIVE.md](NATIVE.md)。以下仍是业务接口接入时的设计约束。
 
-推荐在本仓库添加独立的 `u60-screen` 进程：
+`u60-screen` 作为独立进程，后续业务数据路径为：
 
 ```text
 zte-agent 的认证 API / SSE
