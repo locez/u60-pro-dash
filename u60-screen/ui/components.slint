@@ -1,0 +1,117 @@
+export global Palette {
+    in-out property <bool> dark: true;
+    in-out property <color> accent: #2563eb;
+    in-out property <color> accent-ink: #87aeff;
+    // These neutral grays also stay neutral after RGB565 quantization.
+    out property <color> bg: dark ? #101010 : #efefef;
+    out property <color> surface: dark ? #181818 : #ffffff;
+    out property <color> text: dark ? #eef0f4 : #1b2028;
+    out property <color> muted: dark ? #bec3cc : #4b525e;
+    out property <color> line: dark ? #303030 : #dedfde;
+    in-out property <color> accent-on: #ffffff;
+    out property <color> good: dark ? #95d8a8 : #1f713e;
+    out property <color> warning: dark ? #efbf78 : #925d12;
+}
+
+export component Label inherits Text {
+    color: Palette.text;
+    font-size: 14px;
+    font-weight: 500;
+    overflow: elide;
+}
+
+export component TapButton inherits Rectangle {
+    in property <string> text;
+    in property <bool> selected;
+    in property <bool> interactive: true;
+    in property <length> text-size: 15px;
+    callback clicked;
+    min-height: 44px;
+    border-radius: 8px;
+    background: selected ? Palette.accent : Palette.surface;
+    border-width: 1px;
+    border-color: selected ? Palette.accent : Palette.line;
+    opacity: !root.interactive ? 0.5 : touch.pressed ? 0.65 : 1;
+    Label {
+        text: root.text;
+        font-size: root.text-size;
+        color: root.selected ? Palette.accent-on : Palette.text;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+        font-weight: 600;
+    }
+    touch := TouchArea { enabled: root.interactive; clicked => { root.clicked(); } }
+}
+
+export component MenuRow inherits Rectangle {
+    in property <string> title;
+    in property <string> subtitle;
+    in property <string> tag;
+    callback clicked;
+    height: 68px;
+    background: touch.pressed ? Palette.line : Palette.surface;
+    border-radius: 10px;
+    HorizontalLayout {
+        padding: 12px; spacing: 8px;
+        VerticalLayout {
+            spacing: 3px;
+            Label { text: root.title; height: 23px; font-size: 15px; font-weight: 600; }
+            Label { text: root.subtitle; height: 18px; color: Palette.muted; font-size: 13px; }
+        }
+        Label { text: root.tag; color: Palette.accent-ink; font-size: 12px; width: 30px; horizontal-alignment: right; vertical-alignment: center; }
+        Label { text: "›"; color: Palette.muted; font-size: 24px; width: 12px; vertical-alignment: center; }
+    }
+    touch := TouchArea { clicked => { root.clicked(); } }
+}
+
+export component Stat inherits Rectangle {
+    in property <string> label;
+    in property <string> value;
+    in property <string> unit;
+    callback clicked;
+    height: 72px;
+    border-radius: 10px;
+    background: Palette.surface;
+    VerticalLayout {
+        padding: 12px; spacing: 3px;
+        Label { text: root.label; height: 18px; color: Palette.muted; font-size: 13px; }
+        HorizontalLayout {
+            height: 27px;
+            spacing: 4px;
+            Label { text: root.value; font-size: 22px; font-weight: 600; }
+            Label { text: root.unit; color: Palette.muted; font-size: 13px; vertical-alignment: bottom; }
+        }
+    }
+    TouchArea { clicked => { root.clicked(); } }
+}
+
+export component Brightness inherits Rectangle {
+    in property <int> value: 70;
+    callback changed(int);
+    height: 44px;
+    Rectangle { x: 8px; y: 20px; height: 4px; width: parent.width - 16px; background: Palette.line; border-radius: 2px; }
+    Rectangle { x: 8px; y: 20px; height: 4px; width: (parent.width - 16px) * (root.value - 10) / 90; background: Palette.accent; border-radius: 2px; }
+    Rectangle { x: (parent.width - 16px) * (root.value - 10) / 90; y: 14px; width: 16px; height: 16px; background: Palette.text; border-radius: 8px; }
+    touch := TouchArea {
+        function update() { root.changed(round(clamp((self.mouse-x - 8px) / (root.width - 16px), 0, 1) * 90 + 10)); }
+        pointer-event(event) => { if event.kind == PointerEventKind.down { self.update(); } }
+        moved => { if self.pressed { self.update(); } }
+    }
+}
+
+export component TrafficPanel inherits Rectangle {
+    in property <bool> online;
+    in property <string> download;
+    in property <string> upload;
+    in property <bool> interactive: false;
+    callback clicked;
+    height: 142px; background: Palette.surface; border-radius: 12px;
+    Rectangle { x: 14px; y: 16px; width: 3px; height: 12px; background: root.online ? Palette.good : Palette.warning; border-radius: 1px; }
+    Label { x: 24px; y: 14px; text: root.online ? "5G SA · n78" : "等待蜂窝网络"; font-size: 13px; color: Palette.muted; }
+    Label { x: 14px; y: 34px; height: 58px; text: root.download; font-size: 46px; font-weight: 600; color: Palette.accent-ink; }
+    Label { x: 226px; y: 68px; text: "Mbps ↓"; font-size: 12px; color: Palette.muted; }
+    Rectangle { x: 14px; y: 103px; width: parent.width - 28px; height: 1px; background: Palette.line; }
+    Label { x: 14px; y: 115px; text: "↑ " + root.upload + " Mbps"; font-size: 13px; }
+    Label { x: 175px; y: 115px; text: "本次  2.38 GB"; font-size: 12px; color: Palette.muted; }
+    TouchArea { enabled: root.interactive; clicked => { root.clicked(); } }
+}

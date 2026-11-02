@@ -1,0 +1,48 @@
+[package]
+name = "u60-screen"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.92"
+license = "MIT"
+description = "Native 320×480 Slint screen for U60 Pro"
+
+# Keep graphics dependencies and lockfile out of the upstream agent workspace.
+[workspace]
+resolver = "2"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true
+
+[features]
+default = ["desktop"]
+desktop = ["slint/backend-winit"]
+device = ["dep:drm", "dep:evdev", "dep:signal-hook", "dep:nix"]
+
+[dependencies]
+anyhow = "1"
+slint = { version = "=1.18.1", default-features = false, features = ["std", "compat-1-18", "renderer-software"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+png = "0.18"
+i-slint-renderer-software = { version = "=1.18.1", default-features = false, features = ["u60-pixel-hinting"] }
+drm = { version = "0.15", optional = true }
+evdev = { version = "0.13", optional = true }
+signal-hook = { version = "0.3", optional = true }
+nix = { version = "0.30", features = ["poll"], optional = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+# Slint enables system font discovery. Make fontconfig optional at runtime:
+# the U60 uses our embedded OFL font and has no fontconfig development sysroot.
+fontique = { version = "0.11.1", default-features = false, features = ["fontconfig-dlopen"] }
+
+[build-dependencies]
+slint-build = "=1.18.1"
+
+[dev-dependencies]
+tempfile = "3"
+
+[patch.crates-io]
+i-slint-renderer-software = { path = "vendor/i-slint-renderer-software" }

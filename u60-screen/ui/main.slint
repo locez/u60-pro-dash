@@ -1,0 +1,238 @@
+import { Palette, Label, TapButton, MenuRow, Stat, Brightness, TrafficPanel } from "components.slint";
+import "../assets/U60Sans.ttf";
+export { Palette }
+export struct MenuEntry { id: string, title: string, subtitle: string, tag: string }
+export struct Reading { label: string, value: string }
+
+export component Screen inherits Window {
+    width: 320px; height: 480px;
+    title: "U60 · 原生屏幕预览";
+    default-font-family: "U60 Sans";
+    default-font-size: 14px;
+    background: Palette.bg;
+    in-out property <int> tab: 0;
+    // 0 overview, 1 menu, 2 detail, 3 appearance, 4 home connection.
+    in-out property <int> view: 0;
+    in-out property <string> heading: "随身网络";
+    in-out property <string> kicker: "01 / OVERVIEW";
+    in-out property <bool> can-back: false;
+    in-out property <[MenuEntry]> entries;
+    in-out property <[Reading]> readings;
+    in-out property <[string]> actions;
+    in-out property <string> description;
+    in-out property <string> note;
+    in-out property <bool> asleep: false;
+    in-out property <int> brightness: 70;
+    in-out property <string> sleep-label: "60 秒";
+    in-out property <string> accent-hex: "#2563eb";
+    in-out property <string> battery: "82%";
+    in-out property <bool> network-online: true;
+    in-out property <bool> home-online: true;
+    in-out property <string> download: "128.6";
+    in-out property <string> upload: "16.4";
+    in-out property <string> message;
+    in-out property <int> page-revision;
+    callback navigate(int);
+    callback open(string);
+    callback back;
+    callback action(int);
+    callback theme(bool);
+    callback accent(string);
+    callback set-brightness(int);
+    callback cycle-sleep;
+    callback power;
+    callback activity;
+    callback scenario;
+    callback exit;
+    changed page-revision => { scroll.content-y = 0px; }
+    changed asleep => { if root.asleep { focus.focus(); } }
+    focus := FocusScope {
+        width: parent.width; height: parent.height;
+        key-pressed(event) => {
+            root.activity();
+            if event.text == " " { root.power(); return accept; }
+            if event.text == Key.Escape { root.back(); return accept; }
+            if event.text == Key.RightArrow { root.navigate(mod(root.tab + 1, 4)); return accept; }
+            if event.text == Key.LeftArrow { root.navigate(mod(root.tab + 3, 4)); return accept; }
+            return reject;
+        }
+        init => { self.focus(); }
+        Rectangle {
+            x: 0px; y: 0px; width: parent.width; height: 28px;
+            HorizontalLayout {
+                padding-left: 14px; padding-right: 14px;
+                Label { text: "U60"; font-size: 12px; font-weight: 700; vertical-alignment: center; }
+                Label { text: "演示"; color: Palette.warning; font-size: 12px; vertical-alignment: center; horizontal-alignment: center; }
+                Label { text: root.network-online ? "5G  ·  " + root.battery : "离线  ·  " + root.battery; font-size: 12px; vertical-alignment: center; horizontal-alignment: right; }
+            }
+        }
+        Rectangle {
+            y: 28px; width: parent.width; height: 62px;
+            HorizontalLayout {
+                padding-left: 14px; padding-right: 14px; spacing: 8px;
+                if root.can-back: Rectangle {
+                    width: 36px;
+                    Label { text: "‹"; font-size: 32px; vertical-alignment: center; }
+                    TouchArea { clicked => { root.back(); } }
+                }
+                VerticalLayout {
+                    padding-top: 3px; padding-bottom: 6px; spacing: 2px;
+                    Label { text: root.kicker; height: 17px; font-size: 12px; color: Palette.muted; letter-spacing: 0.5px; }
+                    Label { text: root.heading; height: 32px; font-size: 22px; font-weight: 650; }
+                }
+            }
+        }
+        scroll := Flickable {
+            x: 0px; y: 90px; width: 320px; height: 334px;
+            content-width: self.width; content-height: content.height;
+            changed content-y => { root.activity(); }
+            content := VerticalLayout {
+                width: scroll.width; height: self.preferred-height;
+                padding-left: 12px; padding-right: 12px; padding-top: 2px; padding-bottom: 12px; spacing: 10px;
+                if root.view == 0: TrafficPanel {
+                    online: root.network-online; download: root.download; upload: root.upload;
+                    interactive: true; clicked => { root.open("traffic"); }
+                }
+                if root.view == 0: HorizontalLayout {
+                    spacing: 10px;
+                    Stat { label: "信号强度"; value: root.network-online ? "−86" : "—"; unit: "dBm"; clicked => { root.open("signal-live"); } }
+                    Stat { label: "热点设备"; value: "3"; unit: "台在线"; clicked => { root.open("clients"); } }
+                }
+                if root.view == 0: Rectangle {
+                    height: 86px; border-radius: 10px; background: Palette.surface;
+                    HorizontalLayout {
+                        padding: 14px; spacing: 8px;
+                        VerticalLayout {
+                            Label { text: "TAILSCALE / 回家"; height: 16px; font-size: 12px; color: Palette.muted; }
+                            Label { text: root.home-online ? "家庭内网可达" : "家庭内网未连通"; height: 24px; font-size: 17px; font-weight: 600; color: root.home-online ? Palette.good : Palette.warning; }
+                            Label { text: "192.168.1.0/24"; height: 18px; font-size: 13px; color: Palette.muted; }
+                        }
+                        Label { text: "↗"; font-size: 24px; vertical-alignment: center; color: Palette.accent-ink; width: 24px; }
+                    }
+                    TouchArea { clicked => { root.open("tailscale-home"); } }
+                }
+                if root.view == 1: VerticalLayout {
+                    spacing: 8px;
+                    for entry in root.entries: MenuRow { title: entry.title; subtitle: entry.subtitle; tag: entry.tag; clicked => { root.open(entry.id); } }
+                }
+                if root.view == 2: VerticalLayout {
+                    spacing: 10px;
+                    if root.description != "": Label { text: root.description; color: Palette.muted; wrap: word-wrap; overflow: clip; }
+                    for reading in root.readings: Rectangle {
+                        background: Palette.surface; border-radius: 8px; min-height: 58px;
+                        VerticalLayout {
+                            padding: 12px; spacing: 4px;
+                            Label { text: reading.label; font-size: 13px; color: Palette.muted; }
+                            Label { text: reading.value; font-size: 14px; wrap: word-wrap; overflow: clip; }
+                        }
+                    }
+                    for entry in root.entries: MenuRow { title: entry.title; subtitle: entry.subtitle; tag: entry.tag; clicked => { root.open(entry.id); } }
+                    if root.note != "": Label { text: root.note; color: Palette.muted; font-size: 12px; wrap: word-wrap; overflow: clip; }
+                    for action[index] in root.actions: TapButton { text: action; clicked => { root.action(index); } }
+                }
+                if root.view == 3: VerticalLayout {
+                    spacing: 12px;
+                    Label { text: "界面主题"; color: Palette.muted; font-size: 12px; }
+                    HorizontalLayout {
+                        spacing: 10px;
+                        TapButton { text: "浅色"; selected: !Palette.dark; clicked => { root.theme(false); } }
+                        TapButton { text: "深色"; selected: Palette.dark; clicked => { root.theme(true); } }
+                    }
+                    Label { text: "强调色"; color: Palette.muted; font-size: 12px; }
+                    HorizontalLayout {
+                        spacing: 5px;
+                        for swatch in [
+                            { color: #2563eb, hex: "#2563eb" }, { color: #0891b2, hex: "#0891b2" },
+                            { color: #258052, hex: "#258052" }, { color: #d97706, hex: "#d97706" },
+                            { color: #db3d70, hex: "#db3d70" }, { color: #64748b, hex: "#64748b" }
+                        ]: Rectangle {
+                            height: 44px; border-radius: 8px; background: swatch.color;
+                            border-width: swatch.color == Palette.accent ? 3px : 0px; border-color: Palette.text;
+                            TouchArea { clicked => { root.accent(swatch.hex); } }
+                        }
+                    }
+                    HorizontalLayout {
+                        spacing: 8px;
+                        Rectangle {
+                            height: 44px; background: Palette.surface; border-radius: 8px; border-width: 1px; border-color: Palette.line;
+                            hex := TextInput {
+                                x: 12px; y: 0px; width: parent.width - 24px; height: parent.height;
+                                text: root.accent-hex; color: Palette.text; vertical-alignment: center;
+                                font-weight: 500;
+                                edited => { root.activity(); }
+                                accepted => { root.accent(self.text); }
+                            }
+                        }
+                        TapButton { text: "应用"; width: 72px; clicked => { root.accent(hex.text); } }
+                    }
+                    Label { text: "屏幕亮度  " + root.brightness + "%"; color: Palette.muted; font-size: 12px; }
+                    Brightness { value: root.brightness; changed(value) => { root.set-brightness(value); } }
+                    MenuRow { title: "自动熄屏"; subtitle: root.sleep-label; clicked => { root.cycle-sleep(); } }
+                    TapButton { text: "熄屏"; clicked => { root.power(); } }
+                    Label { text: "明暗、配色与亮度即时生效。"; color: Palette.muted; font-size: 12px; }
+                }
+                if root.view == 4: VerticalLayout {
+                    spacing: 10px;
+                    Rectangle {
+                        height: 108px; background: Palette.surface; border-radius: 12px;
+                        VerticalLayout {
+                            padding: 16px; spacing: 8px;
+                            Label { text: "U60   →   Tailscale   →   家"; font-size: 13px; color: Palette.accent-ink; }
+                            Label { text: root.home-online ? "连上热点，就能回家。" : "回家通道暂未打通。"; font-size: 20px; font-weight: 600; }
+                            Label { text: "192.168.1.0/24"; font-size: 12px; color: Palette.muted; }
+                        }
+                    }
+                    for row in [
+                        {label: "Tailscale", value: root.network-online ? "已连接" : "等待网络"},
+                        {label: "家庭节点", value: root.home-online ? "在线" : "离线"},
+                        {label: "家庭子网", value: root.home-online ? "演示：已验证可达" : "演示：不可达"}
+                    ]: Rectangle {
+                        height: 48px; background: Palette.surface; border-radius: 8px;
+                        HorizontalLayout {
+                            padding: 12px;
+                            Label { text: row.label; color: Palette.muted; }
+                            Label { text: row.value; horizontal-alignment: right; }
+                        }
+                    }
+                    TapButton { text: "切换演示场景"; clicked => { root.scenario(); } }
+                    Label { text: "Tailscale 在线与家庭内网可达分别判断。当前读数为演示数据。"; color: Palette.muted; font-size: 12px; wrap: word-wrap; }
+                }
+
+            }
+        }
+        Rectangle {
+            y: 424px; height: 56px; width: parent.width; background: Palette.surface;
+            Rectangle { x: 0px; y: 0px; height: 1px; width: parent.width; background: Palette.line; }
+            HorizontalLayout {
+                for name[index] in ["概览", "网络", "应用", "设备"]: Rectangle {
+                    width: 80px;
+                    VerticalLayout {
+                        padding-top: 8px; padding-bottom: 8px; spacing: 2px;
+                        Label { text: "0" + (index + 1); height: 16px; color: root.tab == index ? Palette.accent-ink : Palette.muted; font-size: 12px; horizontal-alignment: center; }
+                        Label { text: name; height: 20px; color: root.tab == index ? Palette.accent-ink : Palette.muted; font-size: 14px; font-weight: root.tab == index ? 650 : 500; horizontal-alignment: center; }
+                    }
+                    if root.tab == index: Rectangle { x: (parent.width - 18px) / 2; y: 0px; height: 2px; width: 18px; background: Palette.accent; }
+                    TouchArea { clicked => { root.navigate(index); } }
+                }
+            }
+        }
+        if root.message != "": Rectangle {
+            width: parent.width; height: parent.height; background: #000000a0;
+            TouchArea { }
+            Rectangle {
+                x: 16px; y: (parent.height - self.height) / 2; width: 288px;
+                background: Palette.surface; border-radius: 12px;
+                VerticalLayout {
+                    padding: 18px; spacing: 16px;
+                    Label { text: "提示"; font-size: 20px; font-weight: 600; }
+                    Label { text: root.message; wrap: word-wrap; overflow: clip; }
+                    TapButton { text: "知道了"; selected: true; clicked => { root.message = ""; } }
+                }
+            }
+        }
+        if root.asleep: Rectangle {
+            width: parent.width; height: parent.height; background: #000000;
+            TouchArea { clicked => { root.power(); } }
+        }
+    }
+}
