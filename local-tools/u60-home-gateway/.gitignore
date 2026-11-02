@@ -1,0 +1,5 @@
+/zte-agent
+/zte-agent.sha256
+# Legacy generated patch; maintain the actual source in zte-agent/src/tailscale/mod.rs.
+/upstream-gateway.patch
+/__pycache__/

@@ -26,6 +26,20 @@ const RUN_DIR: &str = "/tmp/tailscale";
 const SOCK: &str = "/tmp/tailscale/tailscaled.sock";
 const LOG_FILE: &str = "/tmp/tailscaled.log";
 
+// Opt-in for a U60 used as a gateway to an existing remote subnet router.
+// The companion script owns narrowly scoped forwarding/NAT rules; Tailscale
+// must not install netfilter rules on the firmware-owned cellular firewall.
+const GATEWAY_ENV: &str = "ZTE_AGENT_TAILSCALE_GATEWAY";
+const GATEWAY_SCRIPT: &str = "/data/local/tmp/u60-home-network.sh";
+
+fn gateway_mode() -> bool {
+    std::env::var(GATEWAY_ENV).as_deref() == Ok("1")
+}
+
+fn tun_name(gateway: bool) -> &'static str {
+    if gateway { "tailscale0" } else { "userspace-networking" }
+}
+
 const POLL_SECS: u64 = 30;
 /// WAN-reconnect events closer together than this get one health check.
 const WAN_DEBOUNCE: Duration = Duration::from_secs(30);
@@ -336,6 +350,7 @@ impl TailscaleManager {
                 if !mgr.running.load(Ordering::SeqCst) {
                     continue;
                 }
+                mgr.apply_gateway_network();
                 mgr.refresh_status();
                 if mgr.is_unhealthy() {
                     eprintln!("[tailscale] unhealthy after WAN reconnect — rebind/restun");
@@ -483,7 +498,7 @@ impl TailscaleManager {
         };
         Command::new(TAILSCALED_BIN)
             .args([
-                "--tun=userspace-networking",
+                &format!("--tun={}", tun_name(gateway_mode())),
                 &format!("--state={STATE_FILE}"),
                 &format!("--statedir={RUN_DIR}"),
                 &format!("--socket={SOCK}"),
@@ -726,7 +741,29 @@ impl TailscaleManager {
                 eprintln!("[tailscale] apply prefs: {e}");
             }
         }
+        self.apply_gateway_network();
+        if gateway_mode() {
+            // Native TUN delivers real peer IPs, whereas the agent's browser
+            // guards expect remote management to arrive on loopback. Serve's
+            // tailnet TCP handler retains that path without weakening them.
+            if let Err(e) = cli(&["serve", "--bg", "--yes", "--tcp=9090", "tcp://127.0.0.1:9090"], 20) {
+                eprintln!("[tailscale] gateway management proxy: {e}");
+            }
+        }
         self.refresh_status();
+    }
+
+    fn apply_gateway_network(&self) {
+        if !gateway_mode() {
+            return;
+        }
+        let mut cmd = Command::new("sh");
+        cmd.args([GATEWAY_SCRIPT, "apply"]);
+        match run_with_timeout(cmd, 20) {
+            Ok(output) if output.status.success() => {}
+            Ok(output) => eprintln!("[tailscale] gateway rules failed: {}", String::from_utf8_lossy(&output.stderr)),
+            Err(error) => eprintln!("[tailscale] gateway rules: {error}"),
+        }
     }
 
     /// Shared pref flags for `set` (steady state) and `up` (enrollment /
@@ -781,6 +818,7 @@ impl TailscaleManager {
             "tailscale_ssh": cfg.tailscale_ssh,
             "hold_wakelock": cfg.hold_wakelock,
             "pinned_version": cfg.pinned_version,
+            "gateway_mode": gateway_mode(),
         });
 
         if !installed() {
@@ -1048,14 +1086,21 @@ impl TailscaleManager {
 }
 
 fn pref_args_for(cfg: &TsConfig, verb: &str) -> Vec<String> {
+    pref_args_for_mode(cfg, verb, gateway_mode())
+}
+
+fn pref_args_for_mode(cfg: &TsConfig, verb: &str, gateway: bool) -> Vec<String> {
     let mut args = vec![
         verb.to_string(),
         "--accept-dns=false".to_string(),
-        "--accept-routes=false".to_string(),
+        format!("--accept-routes={gateway}"),
         format!("--hostname={}", cfg.hostname),
         format!("--advertise-routes={}", cfg.advertise_routes.join(",")),
         format!("--ssh={}", cfg.tailscale_ssh),
     ];
+    if gateway {
+        args.push("--netfilter-mode=off".to_string());
+    }
     if verb == "up" {
         args.push("--reset".to_string());
     }
@@ -1587,6 +1632,28 @@ mod tests {
 
     /// Tab-indented like tailscaled's encoder (`SetIndent("", "\t")`).
     const STATUS_BODY: &str = "{\n\t\"Version\": \"1.86.2\",\n\t\"BackendState\": \"Running\",\n\t\"Self\": {\n\t\t\"Online\": true,\n\t\t\"DNSName\": \"u60-pro.tail.ts.net.\"\n\t},\n\t\"Health\": []\n}\n";
+
+    #[test]
+    fn subnet_gateway_retains_preferences_across_up_and_set() {
+        let cfg = TsConfig::default();
+        for verb in ["up", "set"] {
+            let flags = pref_args_for_mode(&cfg, verb, true);
+            for expected in ["--accept-routes=true", "--netfilter-mode=off", "--accept-dns=false"] {
+                assert!(flags.iter().any(|f| f == expected), "{verb}: {expected}");
+            }
+            assert!(!flags.iter().any(|f| f.contains("auth-key") || f.contains("exit-node")));
+            assert_eq!(flags.iter().any(|f| f == "--reset"), verb == "up");
+        }
+        assert_eq!(tun_name(true), "tailscale0");
+    }
+
+    #[test]
+    fn default_keeps_userspace_management_without_subnet_routes() {
+        let flags = pref_args_for_mode(&TsConfig::default(), "set", false);
+        assert!(flags.iter().any(|f| f == "--accept-routes=false"));
+        assert!(!flags.iter().any(|f| f.starts_with("--netfilter-mode=")));
+        assert_eq!(tun_name(false), "userspace-networking");
+    }
 
     #[test]
     fn wan_gate_accepts_every_connected_variant() {
