@@ -99,11 +99,13 @@ impl Api {
         body: Option<Value>,
     ) -> Result<Value, Error> {
         let request = self.authorized(&self.requests, method, path, token)?;
-        let request = request.timeout(Duration::from_secs(if path == "/api/at/send" {
-            35
-        } else {
-            30
-        }));
+        let timeout = match path {
+            "/api/update/check" | "/api/update/download" => 360,
+            "/api/tailscale/setup" | "/api/tailscale/login-url" => 65,
+            "/api/at/send" => 35,
+            _ => 30,
+        };
+        let request = request.timeout(Duration::from_secs(timeout));
         let request = if let Some(body) = body {
             request.json(&body)
         } else {

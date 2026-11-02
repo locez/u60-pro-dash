@@ -586,6 +586,9 @@ impl State {
         }
         self.feature_revision = self.features.revision;
         let page = &self.features.page;
+        let qr = page.qr.as_deref().and_then(crate::features::qr_image);
+        ui.set_feature_has_qr(qr.is_some());
+        ui.set_feature_qr(qr.unwrap_or_default());
         ui.set_feature_content(page.content.clone().into());
         if let Some(title) = &page.title {
             ui.set_heading(title.clone().into());

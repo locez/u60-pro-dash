@@ -447,9 +447,24 @@ pub fn page(id: &str, readings: &Data) -> Page {
                 action.enabled = d["configured"] == true && d["supported"] == true;
                 p.actions.push(action);
             }
-            p.note =
-                "在管理后台导入 WireGuard 配置，配置包含私钥。本页管理独立隧道的连接状态与启停。"
-                    .into();
+            let mut config =
+                Field::password("config", "导入完整 WireGuard 配置", d["supported"] == true);
+            config.multiline = true;
+            config.max = 65536;
+            p.fields.push(config);
+            p.fields.push(Field::boolean(
+                "import_enabled",
+                "导入后启用",
+                &json!(false),
+            ));
+            let mut import = Action::new(
+                "import",
+                "替换 WireGuard 配置",
+                "替换已有配置与私钥；如启用，会重新建立隧道并改变对应子网的路由。",
+            );
+            import.enabled = d["supported"] == true;
+            p.actions.push(import);
+            p.note = "输入标准 [Interface] / [Peer] 配置。后台拒绝执行脚本钩子；此独立隧道按 AllowedIPs 转发子网，配置中的 DNS 不会自动更改系统 DNS。".into();
         }
         "lan-test" => {
             p.note="局域网吞吐测试需要另一台设备。请让电脑或手机连接此热点，在管理后台打开局域网测速。\n\n机身到本机的测试不会反映 Wi-Fi 链路速度。".into();
@@ -466,7 +481,7 @@ pub fn page(id: &str, readings: &Data) -> Page {
     }
     p
 }
-pub fn plan(id: &str, action: &str, _p: &Page, readings: &Data) -> Result<Plan> {
+pub fn plan(id: &str, action: &str, page: &Page, readings: &Data) -> Result<Plan> {
     match (id, action) {
         ("processes", "clean") => {
             ensure!(
@@ -480,6 +495,25 @@ pub fn plan(id: &str, action: &str, _p: &Page, readings: &Data) -> Result<Plan> 
                 "/api/system/kill-bloat",
                 json!({"all":true}),
             ))
+        }
+        ("wireguard", "import") => {
+            let config = page.value("config")?;
+            let config_text = text(&config);
+            ensure!(
+                config_text.contains("[Interface]") && config_text.contains("[Peer]"),
+                "请填写完整的 WireGuard 配置。"
+            );
+            let mut plan = Plan::one(
+                Method::PUT,
+                "/api/vpn/wireguard",
+                json!({"config":config,"enabled":page.value("import_enabled")?}),
+            );
+            plan.guards.push(Guard::new(
+                Read::get("wireguard", "/api/vpn/wireguard"),
+                data(readings, "wireguard"),
+                &["/public_key", "/configured", "/addresses", "/peers"],
+            ));
+            Ok(plan)
         }
         ("wireguard", "enable" | "disable") => Ok(Plan::one(
             Method::POST,

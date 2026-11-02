@@ -31,6 +31,7 @@ argon2 = "0.5"
 getrandom = "0.2"
 zeroize = "1"
 libc = "0.2"
+qrcodegen = "1.8"
 ipnet = "2"
 socket2 = { version = "0.6", features = ["all"] }
 reqwest = { version = "0.12", default-features = false, features = ["json"] }

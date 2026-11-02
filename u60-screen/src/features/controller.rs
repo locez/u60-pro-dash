@@ -446,6 +446,10 @@ impl Controller {
                 "/api/network/wan6" => ("wan", Some("wan6")),
                 "/api/system/top" => ("processes", None),
                 "/api/speedtest/progress" => ("speedtest", None),
+                "/api/esim/download" => ("esim_download", None),
+                "/api/esim/switch" => ("esim_switch", None),
+                "/api/usb/status" => ("usb", None),
+                "/api/stk/menu" => ("stk", None),
                 _ => continue,
             };
             // An unsupported/newly requested topic must not erase a fresh HTTP

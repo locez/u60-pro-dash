@@ -1,9 +1,11 @@
 //! Native feature contracts. Browser fixtures are never request bodies.
 pub mod controller;
+mod esim;
 mod lists;
 mod messages;
 mod network;
 mod radio;
+mod services;
 mod settings;
 mod status;
 
@@ -260,6 +262,7 @@ impl Action {
 pub struct Page {
     pub title: Option<String>,
     pub content: String,
+    pub qr: Option<String>,
     pub rows: Vec<(String, String)>,
     pub fields: Vec<Field>,
     pub items: Vec<Item>,
@@ -366,6 +369,8 @@ pub fn reads(id: &str) -> Option<Vec<Read>> {
         .or_else(|| lists::reads(id))
         .or_else(|| messages::reads(id))
         .or_else(|| radio::reads(id))
+        .or_else(|| services::reads(id))
+        .or_else(|| esim::reads(id))
 }
 pub fn page(id: &str, readings: &Data) -> Page {
     let mut result = feature_page(id, readings);
@@ -394,6 +399,10 @@ fn feature_page(id: &str, readings: &Data) -> Page {
         messages::page(id, readings)
     } else if radio::reads(id).is_some() {
         radio::page(id, readings)
+    } else if services::reads(id).is_some() {
+        services::page(id, readings)
+    } else if esim::reads(id).is_some() {
+        esim::page(id, readings)
     } else if lists::reads(id).is_some() {
         lists::page(id, readings)
     } else if network::reads(id).is_some() {
@@ -409,6 +418,10 @@ pub fn plan(id: &str, action: &str, page: &Page, readings: &Data) -> Result<Plan
         messages::plan(id, action, page, readings)
     } else if radio::reads(id).is_some() {
         radio::plan(id, action, page, readings)
+    } else if services::reads(id).is_some() {
+        services::plan(id, action, page, readings)
+    } else if esim::reads(id).is_some() {
+        esim::plan(id, action, page, readings)
     } else if lists::reads(id).is_some() {
         lists::plan(id, action, page, readings)
     } else if network::reads(id).is_some() {
@@ -420,6 +433,28 @@ pub fn plan(id: &str, action: &str, page: &Page, readings: &Data) -> Result<Plan
 pub fn selected(readings: &Data) -> Option<&str> {
     data(readings, "__selection").as_str()
 }
+pub fn qr_image(value: &str) -> Option<slint::Image> {
+    use qrcodegen::{QrCode, QrCodeEcc};
+    if value.len() > 2048 {
+        return None;
+    }
+    let qr = QrCode::encode_text(value, QrCodeEcc::Medium).ok()?;
+    let modules = qr.size() + 8;
+    let scale = 256 / modules;
+    if scale < 2 {
+        return None;
+    }
+    let size = 256u32;
+    let margin = (256 - modules * scale) / 2;
+    let mut pixels = slint::SharedPixelBuffer::<slint::Rgb8Pixel>::new(size, size);
+    for (index, pixel) in pixels.make_mut_slice().iter_mut().enumerate() {
+        let x = ((index as u32 % size) as i32 - margin) / scale - 4;
+        let y = ((index as u32 / size) as i32 - margin) / scale - 4;
+        let v = if qr.get_module(x, y) { 0 } else { 255 };
+        *pixel = slint::Rgb8Pixel::new(v, v, v);
+    }
+    Some(slint::Image::from_rgb8(pixels))
+}
 pub fn topics(id: &str) -> &'static [&'static str] {
     match id {
         "signal-live" | "carriers" => &["signal"],
@@ -429,15 +464,21 @@ pub fn topics(id: &str) -> &'static [&'static str] {
         "sim-info" => &["sim"],
         "wan" => &["wan"],
         "processes" => &["processes"],
+        "esim-download" => &["esim_download"],
+        "esim-profiles" => &["esim_switch"],
         "speedtest" => &["speedtest"],
+        "usb" => &["usb", "charger"],
+        "stk" => &["stk"],
         _ => &[],
     }
 }
 pub fn poll_seconds(id: &str) -> Option<u64> {
     match id {
-        "clients" => Some(10),
+        "clients" | "sms-inbox" | "esim-profiles" | "esim-receipts" => Some(10),
+        "esim-download" => Some(3),
         "dns-cache" | "operators" | "neighbors" => Some(5),
-        "signal-test" | "speedtest" => Some(2),
+        "signal-test" | "speedtest" | "phone" | "stk" => Some(2),
+        "tailscale-service" | "tailscale-version" | "agent-update" | "https" | "usb" => Some(5),
         "resources" | "wan" | "device-info" => Some(30),
         _ => None,
     }
@@ -461,6 +502,11 @@ pub fn probe(config: crate::agent::Config) -> Result<()> {
     );
     let mut request_id = 1u64 << 48;
     for feature in crate::app::Catalog::load()?.features {
+        // These reads can initialize a card session or resume queued receipts.
+        if feature.id.starts_with("esim-") || feature.id == "stk" {
+            println!("{}: skipped (interactive SIM session)", feature.id);
+            continue;
+        }
         let Some(reads) = reads(&feature.id) else {
             continue;
         };

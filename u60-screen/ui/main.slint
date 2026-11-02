@@ -24,6 +24,8 @@ export component Screen inherits Window {
     in-out property <[string]> actions;
     in-out property <[MenuEntry]> feature-fields;
     in-out property <string> feature-content;
+    in-out property <image> feature-qr;
+    in-out property <bool> feature-has-qr;
     in-out property <[FeatureAction]> feature-actions;
     in-out property <bool> feature-busy;
     in-out property <string> feature-notice;
@@ -288,6 +290,7 @@ export component Screen inherits Window {
                 if root.view == 7: VerticalLayout {
                     spacing: 8px;
                     if root.feature-notice != "": Label { text: root.feature-notice; color: Palette.warning; wrap: word-wrap; overflow: clip; font-size: 14px; }
+                    if root.feature-has-qr: Image { source: root.feature-qr; width: 256px; height: 256px; image-fit: contain; horizontal-stretch: 0; }
                     for row in root.readings: Rectangle {
                         min-height: 62px; background: Palette.surface; border-radius: 8px;
                         VerticalLayout {
