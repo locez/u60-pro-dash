@@ -484,6 +484,13 @@ impl State {
         };
         if !ui.get_asleep() && !self.security.locked {
             topics.push("clients".into());
+            if ui.get_view() == 7 {
+                topics.extend(
+                    crate::features::topics(&self.features.id)
+                        .iter()
+                        .map(|s| (*s).into()),
+                );
+            }
         }
         agent.watch(topics);
         let snapshot = agent.snapshot();
@@ -548,8 +555,13 @@ impl State {
                 self.network.accept_status(Err(error));
             }
         }
+        self.features.editing =
+            ui.get_editor_visible() || ui.get_choice_visible() || ui.get_confirm_visible();
         self.features
             .tick(agent, active && ui.get_view() == 7, snapshot.authenticated);
+        if active && ui.get_view() == 7 {
+            self.features.stream(&snapshot);
+        }
         self.render_features(ui);
         ui.set_tailnet_status(self.network.label().into());
         ui.set_tailnet_online(self.network.online());
@@ -574,6 +586,9 @@ impl State {
         }
         self.feature_revision = self.features.revision;
         let page = &self.features.page;
+        if let Some(title) = &page.title {
+            ui.set_heading(title.clone().into());
+        }
         ui.set_readings(model(
             page.rows.iter().map(|(k, v)| reading(k, v)).collect(),
         ));
@@ -603,10 +618,9 @@ impl State {
         ui.set_entries(model(
             page.items
                 .iter()
-                .enumerate()
-                .map(|(i, item)| {
+                .map(|item| {
                     entry(
-                        &format!("feature-item:{i}"),
+                        &format!("feature-item:{}", item.id),
                         &item.title,
                         &item.subtitle,
                         "",
@@ -841,6 +855,14 @@ impl App {
             );
         });
         bind!(on_open, |s, u, id| {
+            if let Some(id) = id.strip_prefix("feature-item:") {
+                if let Err(error) = s.features.select(id) {
+                    u.set_message(error.to_string().into());
+                }
+                s.render_features(&u);
+                u.set_page_revision(u.get_page_revision().wrapping_add(1));
+                return;
+            }
             if let Some(n) = id
                 .strip_prefix("scenario:")
                 .and_then(|s| s.parse::<u8>().ok())
@@ -857,6 +879,14 @@ impl App {
         bind!(on_back, |s, u| {
             if !u.get_message().is_empty() {
                 u.set_message("".into());
+                return;
+            }
+            if u.get_view() == 7 && s.features.back() {
+                if let Some(feature) = s.catalog.features.iter().find(|f| f.id == s.features.id) {
+                    u.set_heading(feature.title.clone().into());
+                }
+                s.render_features(&u);
+                u.set_page_revision(u.get_page_revision().wrapping_add(1));
                 return;
             }
             if let Some(id) = s.history.pop() {

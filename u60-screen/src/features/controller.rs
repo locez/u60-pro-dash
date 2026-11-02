@@ -30,6 +30,8 @@ pub struct Controller {
     writes: usize,
     completed: usize,
     draft: BTreeMap<String, String>,
+    pub editing: bool,
+    next_poll: Option<Instant>,
 }
 impl Default for Controller {
     fn default() -> Self {
@@ -50,12 +52,15 @@ impl Default for Controller {
             writes: 0,
             completed: 0,
             draft: BTreeMap::new(),
+            editing: false,
+            next_poll: None,
         }
     }
 }
 impl Controller {
     pub fn open(&mut self, id: &str) -> bool {
         self.cancel();
+        self.reads.clear();
         self.id = id.into();
         let Some(reads) = super::reads(id) else {
             return false;
@@ -82,6 +87,7 @@ impl Controller {
         self.page = Page::default();
         self.data.clear();
         self.loaded = None;
+        self.next_poll = None;
         self.resume = false;
         self.writes = 0;
         self.completed = 0;
@@ -105,7 +111,11 @@ impl Controller {
         self.queue.clear();
         self.pending = None;
         let last_result = self.data.remove("last_result");
+        let selection = self.data.remove("__selection");
         self.data.clear();
+        if let Some(selection) = selection {
+            self.data.insert("__selection".into(), selection);
+        }
         if let Some(result) = last_result {
             self.data.insert("last_result".into(), result);
         }
@@ -138,6 +148,8 @@ impl Controller {
         }
         self.draft.clear();
         self.loaded = Some(Instant::now());
+        self.next_poll =
+            super::poll_seconds(&self.id).map(|s| Instant::now() + Duration::from_secs(s));
         let errors = self
             .data
             .values()
@@ -163,6 +175,15 @@ impl Controller {
             return;
         }
         if self.resume {
+            self.refresh();
+        }
+        if !self.busy()
+            && !self.editing
+            && !self.page.dirty()
+            && self.confirmation.is_none()
+            && selected(&self.data).is_none()
+            && self.next_poll.is_some_and(|at| Instant::now() >= at)
+        {
             self.refresh();
         }
         if self.pending.is_some() || Instant::now() < self.next_try {
@@ -234,10 +255,16 @@ impl Controller {
             .get_mut(index)
             .ok_or_else(|| anyhow::anyhow!("设置项已变化，请刷新。"))?;
         ensure!(f.available, "此设置暂不可用。");
-        let old = std::mem::replace(&mut f.value, value);
+        let mut old = std::mem::replace(&mut f.value, value);
         if let Err(error) = f.encode() {
+            if f.secret {
+                f.value.zeroize();
+            }
             f.value = old;
             return Err(error);
+        }
+        if f.secret {
+            old.zeroize();
         }
         self.confirmation = None;
         self.revision += 1;
@@ -311,6 +338,82 @@ impl Controller {
             .map(|f| (f.key.clone(), f.value.clone()))
             .collect();
         self.refresh();
+    }
+    pub fn select(&mut self, id: &str) -> Result<()> {
+        ensure!(!self.busy(), "正在读取，请稍后。");
+        ensure!(
+            self.page.items.iter().any(|item| item.id == id),
+            "记录已变化，请刷新。"
+        );
+        self.data
+            .insert("__selection".into(), Ok(Value::String(id.into())));
+        self.page = super::page(&self.id, &self.data);
+        self.confirmation = None;
+        self.revision += 1;
+        Ok(())
+    }
+    pub fn back(&mut self) -> bool {
+        if self.data.remove("__selection").is_some() {
+            self.page = super::page(&self.id, &self.data);
+            self.confirmation = None;
+            self.revision += 1;
+            true
+        } else {
+            false
+        }
+    }
+    pub fn stream(&mut self, snapshot: &crate::agent::Snapshot) {
+        if self.resume
+            || self.busy()
+            || self.editing
+            || self.page.dirty()
+            || self.confirmation.is_some()
+            || selected(&self.data).is_some()
+        {
+            return;
+        }
+        let mut changed = false;
+        for read in &self.reads {
+            let (topic, nested) = match read.request.path.as_str() {
+                "/api/network/signal" => ("signal", None),
+                "/api/network/speeds" => ("traffic", None),
+                "/api/battery" => ("battery", None),
+                "/api/device/charger" => ("charger", None),
+                "/api/device/battery-info" => ("battery_info", None),
+                "/api/sim/info" => ("sim", None),
+                "/api/cpu" => ("health", Some("cpu")),
+                "/api/device/thermal" => ("health", Some("thermal")),
+                "/api/network/wan" => ("wan", Some("wan")),
+                "/api/network/wan6" => ("wan", Some("wan6")),
+                "/api/system/top" => ("processes", None),
+                _ => continue,
+            };
+            // An unsupported/newly requested topic must not erase a fresh HTTP
+            // reading before the stream has supplied its first sample.
+            if !snapshot.values.contains_key(topic) && self.fresh() {
+                continue;
+            }
+            let value = snapshot
+                .get(topic)
+                .and_then(|v| {
+                    if let Some(key) = nested {
+                        v.get(key)
+                    } else {
+                        Some(v)
+                    }
+                })
+                .cloned()
+                .ok_or(Error::Unavailable);
+            if self.data.get(&read.key) != Some(&value) {
+                self.data.insert(read.key.clone(), value);
+                changed = true;
+            }
+        }
+        if changed {
+            let next_poll = self.next_poll;
+            self.finish_reads();
+            self.next_poll = next_poll;
+        }
     }
     #[cfg(test)]
     pub fn seed(&mut self, id: &str, settings: Value) {

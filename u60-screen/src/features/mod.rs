@@ -1,6 +1,7 @@
 //! Native feature contracts. Browser fixtures are never request bodies.
 pub mod controller;
 mod settings;
+mod status;
 
 use crate::agent::{Error, Request};
 use anyhow::{Result, ensure};
@@ -229,6 +230,7 @@ impl Field {
     }
 }
 pub struct Item {
+    pub id: String,
     pub title: String,
     pub subtitle: String,
 }
@@ -252,6 +254,7 @@ impl Action {
 }
 #[derive(Default)]
 pub struct Page {
+    pub title: Option<String>,
     pub rows: Vec<(String, String)>,
     pub fields: Vec<Field>,
     pub items: Vec<Item>,
@@ -316,13 +319,43 @@ impl Plan {
     }
 }
 pub fn reads(id: &str) -> Option<Vec<Read>> {
-    settings::reads(id)
+    settings::reads(id).or_else(|| status::reads(id))
 }
 pub fn page(id: &str, readings: &Data) -> Page {
-    settings::page(id, readings)
+    if settings::reads(id).is_some() {
+        settings::page(id, readings)
+    } else {
+        status::page(id, readings)
+    }
 }
 pub fn plan(id: &str, action: &str, page: &Page, readings: &Data) -> Result<Plan> {
-    settings::plan(id, action, page, readings)
+    if settings::reads(id).is_some() {
+        settings::plan(id, action, page, readings)
+    } else {
+        status::plan(id, action, page, readings)
+    }
+}
+pub fn selected(readings: &Data) -> Option<&str> {
+    data(readings, "__selection").as_str()
+}
+pub fn topics(id: &str) -> &'static [&'static str] {
+    match id {
+        "signal-live" | "carriers" => &["signal"],
+        "resources" => &["health"],
+        "battery-details" => &["charger", "battery_info"],
+        "traffic" => &["traffic"],
+        "sim-info" => &["sim"],
+        "wan" => &["wan"],
+        "processes" => &["processes"],
+        _ => &[],
+    }
+}
+pub fn poll_seconds(id: &str) -> Option<u64> {
+    match id {
+        "clients" => Some(10),
+        "resources" | "wan" | "device-info" => Some(30),
+        _ => None,
+    }
 }
 
 /// Run only declared reads, without taking over the display or printing values.
