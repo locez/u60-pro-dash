@@ -26,7 +26,56 @@ fn profile(readings: &Data) -> Option<&Value> {
         .iter()
         .find(|p| p["iccid"] == selected)
 }
+pub fn can_poll(readings: &Data) -> bool {
+    !readings.values().any(|v| {
+        matches!(
+            v,
+            Err(Error::EsimUnavailable | Error::EsimNotConfigured | Error::Unsupported)
+        )
+    })
+}
+fn unavailable(id: &str, readings: &Data) -> Option<Page> {
+    let key = if id == "esim-receipts" {
+        "receipts"
+    } else {
+        "inventory"
+    };
+    let error = readings.get(key)?.as_ref().err()?;
+    // Keep an in-progress download visible even when a separate inventory
+    // read fails. Its own expected-instance checks still govern all actions.
+    if id == "esim-download"
+        && ["running", "confirm", "cancelling"]
+            .contains(&text(&data(readings, "download")["state"]).as_str())
+    {
+        return None;
+    }
+    let content = match error {
+        Error::EsimUnavailable => {
+            "未能读取到可管理的 eUICC 卡片。U60 Pro 没有内置 eSIM，普通运营商 SIM 卡无法下载或管理 eSIM 套餐。"
+        }
+        Error::EsimReloading => {
+            "卡片切换后需要重新加载。请等待 SIM 与蜂窝网络恢复，再刷新配置列表。"
+        }
+        Error::EsimBusy => "卡片正在处理其他请求。请等待当前操作结束，再刷新状态。",
+        Error::EsimNotConfigured => {
+            "后台无法使用当前 eSIM 通信配置。请检查后台的卡槽与调制解调器配置。"
+        }
+        Error::Unsupported => "当前后台没有提供此 eSIM 接口。请使用支持 eSIM 管理的后台版本。",
+        _ => "eSIM 状态读取失败。请检查后台连接，并在卡片就绪后刷新。",
+    };
+    let mut page = Page::default();
+    page.content = content.into();
+    page.note = if *error == Error::EsimUnavailable {
+        "需要支持管理的 eUICC 卡，例如兼容的 9eSIM / 5ber。若已插入此类卡，管理通道也可能暂时不可用；确认卡片就绪后手动刷新。".into()
+    } else {
+        String::new()
+    };
+    Some(page)
+}
 pub fn page(id: &str, readings: &Data) -> Page {
+    if let Some(page) = unavailable(id, readings) {
+        return page;
+    }
     let mut p = Page::default();
     let inventory = data(readings, "inventory");
     match id {
@@ -308,6 +357,35 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn unavailable_card_explains_requirements_without_offering_configuration() {
+        let mut d = Data::from([
+            ("chip".into(), Err(Error::EsimUnavailable)),
+            ("inventory".into(), Err(Error::EsimUnavailable)),
+            ("receipts".into(), Err(Error::EsimUnavailable)),
+            ("switch".into(), Ok(json!({"state":"idle"}))),
+            ("download".into(), Ok(json!({"state":"idle"}))),
+        ]);
+        for id in ["esim-profiles", "esim-download", "esim-receipts"] {
+            let p = page(id, &d);
+            assert!(p.content.contains("普通运营商 SIM"));
+            assert!(p.fields.is_empty() && p.actions.is_empty() && p.items.is_empty());
+        }
+        assert!(!can_poll(&d));
+        d.insert(
+            "download".into(),
+            Ok(json!({"state":"running","step":"connecting"})),
+        );
+        assert!(
+            page("esim-download", &d)
+                .rows
+                .iter()
+                .any(|(_, value)| value == "running")
+        );
+        let d = Data::from([("inventory".into(), Err(Error::EsimReloading))]);
+        assert!(can_poll(&d));
+        assert!(page("esim-profiles", &d).content.contains("重新加载"));
+    }
     #[test]
     fn confirmation_identifies_the_reviewed_download_and_deletion_refuses_active_profile() {
         let d = Data::from([

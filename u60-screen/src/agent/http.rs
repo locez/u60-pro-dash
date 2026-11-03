@@ -15,6 +15,10 @@ pub enum Error {
     Unsupported,
     LocalOnly,
     InvalidResponse,
+    EsimUnavailable,
+    EsimReloading,
+    EsimBusy,
+    EsimNotConfigured,
     Rejected(u16),
     Busy(u64),
 }
@@ -26,6 +30,10 @@ impl Error {
             Self::Unsupported => "当前后台或固件不支持此功能",
             Self::LocalOnly => "请在设备屏幕上运行此检测",
             Self::InvalidResponse => "后台返回了无法识别的数据",
+            Self::EsimUnavailable => "无法访问 eUICC 卡片的管理通道",
+            Self::EsimReloading => "SIM 正在重新加载，请稍后刷新",
+            Self::EsimBusy => "eSIM 卡片正在处理其他操作，请稍后刷新",
+            Self::EsimNotConfigured => "后台的 eSIM 卡槽或通信配置不可用",
             Self::Rejected(_) => "后台拒绝了请求，请检查设置后重试",
             Self::Busy(_) => "后台繁忙，请稍后重试",
         }
@@ -84,7 +92,7 @@ impl Api {
             .send()
             .await
             .map_err(|_| Error::Unavailable)?;
-        let mut data = data(reply).await?;
+        let mut data = data(reply, "/api/auth/login").await?;
         let token = data["token"].take().as_str().unwrap_or("").to_owned();
         if token.len() != 64 || !token.bytes().all(|b| b.is_ascii_hexdigit()) {
             return Err(Error::InvalidResponse);
@@ -111,7 +119,7 @@ impl Api {
         } else {
             request
         };
-        data(request.send().await.map_err(|_| Error::Unavailable)?).await
+        data(request.send().await.map_err(|_| Error::Unavailable)?, path).await
     }
     pub async fn events(&self, token: &str, topics: &[String]) -> Result<Response, Error> {
         if topics.is_empty()
@@ -161,12 +169,35 @@ fn status(response: &Response) -> Result<(), Error> {
         code => Err(Error::Rejected(code)),
     }
 }
-async fn data(mut response: Response) -> Result<Value, Error> {
+fn esim_error(envelope: &Value) -> Option<Error> {
+    let message = envelope["error"]
+        .as_str()
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    match envelope["kind"].as_str() {
+        Some("sim_reloading") => Some(Error::EsimReloading),
+        Some("management_unavailable") => Some(Error::EsimUnavailable),
+        Some("not_configured") => Some(Error::EsimNotConfigured),
+        Some("busy") => Some(Error::EsimBusy),
+        _ if message.contains("sim is still reloading") => Some(Error::EsimReloading),
+        _ if message.contains("euicc_init")
+            || message.contains("open logical channel")
+            || message.contains("simfilenotfound") =>
+        {
+            Some(Error::EsimUnavailable)
+        }
+        _ if message.contains("esim manager busy") => Some(Error::EsimBusy),
+        _ => None,
+    }
+}
+async fn data(mut response: Response, path: &str) -> Result<Value, Error> {
     let status_result = status(&response);
-    // A missing firmware ubus method is a capability failure, not congestion.
-    // Keep its private body out of UI errors and do not retry it as a busy read.
-    let inspect_unsupported = response.status().as_u16() == 503;
-    if !inspect_unsupported {
+    let code = response.status().as_u16();
+    // Translate only known capability/card failures; raw backend errors can
+    // contain credentials or profile identifiers and never reach the screen.
+    let inspect_error =
+        code == 503 || (path.starts_with("/api/esim/") && matches!(code, 409 | 500 | 502));
+    if !inspect_error {
         status_result.clone()?;
     }
     let mut body = Vec::new();
@@ -176,13 +207,20 @@ async fn data(mut response: Response) -> Result<Value, Error> {
         }
         body.extend_from_slice(&chunk);
     }
-    if inspect_unsupported {
+    if inspect_error {
         let envelope = serde_json::from_slice::<Value>(&body).unwrap_or(Value::Null);
+        if path.starts_with("/api/esim/")
+            && let Some(error) = esim_error(&envelope)
+        {
+            return Err(error);
+        }
         let message = envelope["error"]
             .as_str()
             .unwrap_or("")
             .to_ascii_lowercase();
-        if message.contains("method not found") || message.contains("ubus status 3") {
+        if code == 503
+            && (message.contains("method not found") || message.contains("ubus status 3"))
+        {
             return Err(Error::Unsupported);
         }
         status_result?;
@@ -216,6 +254,31 @@ mod tests {
                     r#"{"ok":false,"error":"ubus status 3 (method not found)"}"#,
                 ),
                 (503, r#"{"ok":false,"error":"agent busy, retry"}"#),
+                (
+                    502,
+                    r#"{"ok":false,"kind":"management_unavailable","error":"private card details"}"#,
+                ),
+                (
+                    502,
+                    r#"{"ok":false,"error":"euicc_init: open logical channel failed: QMI error 80 SimFileNotFound"}"#,
+                ),
+                (
+                    409,
+                    r#"{"ok":false,"error":"the SIM is still reloading after the last switch; try again in a moment"}"#,
+                ),
+                (
+                    409,
+                    r#"{"ok":false,"error":"eSIM manager busy; retry shortly"}"#,
+                ),
+                (
+                    503,
+                    r#"{"ok":false,"kind":"not_configured","error":"private configuration"}"#,
+                ),
+                (502, r#"{"ok":false,"error":"private unrelated failure"}"#),
+                (
+                    502,
+                    r#"{"ok":false,"error":"euicc_init: private unrelated failure"}"#,
+                ),
             ] {
                 let (mut socket, _) = listener.accept().unwrap();
                 socket
@@ -274,6 +337,20 @@ mod tests {
                         .await,
                     Err(Error::Busy(3))
                 );
+                for (path, error) in [
+                    ("/api/esim/profiles", Error::EsimUnavailable),
+                    ("/api/esim/chip", Error::EsimUnavailable),
+                    ("/api/esim/chip", Error::EsimReloading),
+                    ("/api/esim/chip", Error::EsimBusy),
+                    ("/api/esim/profiles", Error::EsimNotConfigured),
+                    ("/api/esim/profiles", Error::Rejected(502)),
+                    ("/api/device", Error::Rejected(502)),
+                ] {
+                    assert_eq!(
+                        api.call("test-token", Method::GET, path, None).await,
+                        Err(error)
+                    );
+                }
             });
         server.join().unwrap();
     }

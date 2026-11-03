@@ -164,13 +164,16 @@ impl Controller {
         self.draft.clear();
         super::visibility(&self.id, &mut self.page);
         self.loaded = Some(Instant::now());
-        self.next_poll =
-            super::poll_seconds(&self.id).map(|s| Instant::now() + Duration::from_secs(s));
+        self.next_poll = if self.id.starts_with("esim-") && !super::esim::can_poll(&self.data) {
+            None
+        } else {
+            super::poll_seconds(&self.id).map(|s| Instant::now() + Duration::from_secs(s))
+        };
         let errors = self
             .data
             .values()
             .filter_map(|r| r.as_ref().err().map(Error::message))
-            .collect::<Vec<_>>();
+            .collect::<std::collections::BTreeSet<_>>();
         self.notice = if errors.is_empty() {
             if restored {
                 "状态已重新读取，请检查更改后保存。".into()
@@ -178,7 +181,10 @@ impl Controller {
                 self.outcome.clone().unwrap_or_default()
             }
         } else {
-            format!("部分状态读取失败：{}", errors.join("；"))
+            format!(
+                "部分状态读取失败：{}",
+                errors.into_iter().collect::<Vec<_>>().join("；")
+            )
         };
         self.revision += 1;
     }
