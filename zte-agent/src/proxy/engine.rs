@@ -113,13 +113,23 @@ impl Engine for Mihomo {
         if text.is_empty() || text.len() > CONFIG_LIMIT {
             return Err("Configuration must be 1–512 KiB".into());
         }
-        let yaml: serde_yaml::Value =
-            serde_yaml::from_str(text).map_err(|_| "Invalid YAML configuration")?;
+        let yaml: serde_yaml::Value = serde_yaml::from_str(text).map_err(|error| {
+            error.location().map_or_else(
+                || "Invalid YAML configuration".to_string(),
+                |at| {
+                    format!(
+                        "Invalid YAML configuration at line {}, column {}",
+                        at.line(),
+                        at.column()
+                    )
+                },
+            )
+        })?;
         let source = serde_json::to_value(yaml)
             .map_err(|_| "Configuration must use string keys and plain values")?;
         let object = source
             .as_object()
-            .ok_or("Configuration must be an object")?;
+            .ok_or("Expected a mihomo YAML/JSON configuration. Use a compatible subscription format, not a plain node list or HTML page")?;
         if serde_json::to_vec(&source)
             .map_err(|_| "Invalid configuration")?
             .len()

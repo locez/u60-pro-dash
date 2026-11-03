@@ -26,11 +26,7 @@ impl Service {
     }
     pub fn config(&self) -> Result<Value, String> {
         match self {
-            Self::Mihomo(s) => s.source().and_then(|v| {
-                serde_yaml::to_string(&v)
-                    .map(|config| json!({"config":config}))
-                    .map_err(|_| "Cannot read saved configuration".into())
-            }),
+            Self::Mihomo(s) => s.configuration(),
         }
     }
     pub fn groups(&self) -> Result<Value, String> {

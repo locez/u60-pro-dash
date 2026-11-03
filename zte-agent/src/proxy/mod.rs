@@ -1,5 +1,6 @@
 //! Authenticated proxy service with private configuration and a replaceable
 //! engine adapter. No engine or network is started by constructing the state.
+mod configuration;
 mod engine;
 mod services;
 pub use engine::MihomoSettings as Settings;
@@ -55,9 +56,13 @@ pub fn https_url(text: &str) -> Result<reqwest::Url, String> {
     Ok(u)
 }
 fn download(url: &str, limit: u64) -> Result<Vec<u8>, String> {
+    download_as(url, limit, "u60-pro-dash")
+}
+fn download_as(url: &str, limit: u64, user_agent: &str) -> Result<Vec<u8>, String> {
     let url = https_url(url)?;
     let client = reqwest::blocking::Client::builder()
         .no_proxy()
+        .user_agent(user_agent)
         .redirect(reqwest::redirect::Policy::limited(5))
         .timeout(Duration::from_secs(90))
         .https_only(true)
@@ -191,7 +196,7 @@ impl MihomoService {
     pub fn status(&self) -> Value {
         let s = self.settings.lock().unwrap().clone();
         let r = self.runtime.lock().unwrap();
-        json!({"id":"mihomo","name":"mihomo","adapter":"mihomo","installed":self.root.join("engine").is_file(),"configured":self.root.join("source.json").is_file(),"enabled":s.enabled,"running":r.child.is_some(),"capture":s.capture,"capturing":r.capturing,"mode":s.mode,"local_endpoint":format!("127.0.0.1:{}",s.mixed_port),"mixed_port":s.mixed_port,"ipv6":s.ipv6,"tcp_concurrent":s.tcp_concurrent,"last_error":r.error,"capabilities":{"configuration":true,"groups":true,"hotspot":true,"install":true},"version":fs::read_to_string(self.root.join("version")).ok()})
+        json!({"id":"mihomo","name":"mihomo","adapter":"mihomo","installed":self.root.join("engine").is_file(),"configured":self.root.join("source.json").is_file(),"config_revision":self.configuration_revision().ok().flatten(),"enabled":s.enabled,"running":r.child.is_some(),"capture":s.capture,"capturing":r.capturing,"mode":s.mode,"local_endpoint":format!("127.0.0.1:{}",s.mixed_port),"mixed_port":s.mixed_port,"ipv6":s.ipv6,"tcp_concurrent":s.tcp_concurrent,"last_error":r.error,"capabilities":{"configuration":true,"reload":true,"groups":true,"hotspot":true,"install":true},"version":fs::read_to_string(self.root.join("version")).ok()})
     }
     fn controller(
         &self,
@@ -209,7 +214,11 @@ impl MihomoService {
         let client = reqwest::blocking::Client::builder()
             .no_proxy()
             .redirect(reqwest::redirect::Policy::none())
-            .timeout(Duration::from_secs(8))
+            .timeout(Duration::from_secs(if path == "/configs?force=true" {
+                60
+            } else {
+                8
+            }))
             .build()
             .map_err(|_| "Cannot create local controller client")?;
         let mut request = client
@@ -543,6 +552,9 @@ impl MihomoService {
         self.lease()?;
         let result = self.change_inner(action, body);
         let mut r = self.runtime.lock().unwrap();
+        if matches!(action, "config" | "subscription" | "reload") {
+            r.error = result.as_ref().err().cloned();
+        }
         if r.child.is_none() {
             r.lock = None;
         }
@@ -600,44 +612,33 @@ impl MihomoService {
                 self.save(&s)?;
                 *self.settings.lock().unwrap() = s;
             }
-            "config" | "subscription" => {
-                if self.runtime.lock().unwrap().child.is_some() {
-                    return Err("Stop the service before importing a configuration".into());
-                }
+            "config" | "subscription" | "validate" | "reload" => {
                 let text = if action == "subscription" {
-                    String::from_utf8(download(
+                    String::from_utf8(download_as(
                         body["url"].as_str().ok_or("HTTPS URL required")?,
                         CONFIG_LIMIT as u64,
+                        "mihomo",
                     )?)
                     .map_err(|_| "Configuration must be UTF-8")?
+                } else if action == "reload" {
+                    if self.runtime.lock().unwrap().child.is_none() {
+                        return Err(
+                            "Start this service before reloading its saved configuration".into(),
+                        );
+                    }
+                    serde_json::to_string(&self.source()?)
+                        .map_err(|_| "Cannot read saved configuration")?
                 } else {
                     body["config"]
                         .as_str()
                         .ok_or("Configuration required")?
                         .into()
                 };
-                let s = self.settings.lock().unwrap().clone();
-                let driver = engine::adapter(&s.adapter)?;
-                let source = driver.normalize(&text)?;
-                if !self.root.join("engine").is_file() {
-                    return Err("Install the proxy engine before importing configuration".into());
+                self.apply_configuration(&text, body.get("revision"), action == "validate")?;
+                if action == "validate" {
+                    return Ok(json!({"valid":true,"revision":self.configuration_revision()?}));
                 }
-                let runtime = driver.runtime(&source, &s, "validation-only");
-                let candidate = self.root.join("candidate.json");
-                private_write(&candidate, &serde_json::to_vec(&runtime).unwrap(), 0o600)?;
-                let valid = run_checked(
-                    driver.as_ref(),
-                    &self.root.join("engine"),
-                    &self.root,
-                    &candidate,
-                );
-                let _ = fs::remove_file(candidate);
-                valid?;
-                private_write(
-                    &self.root.join("source.json"),
-                    &serde_json::to_vec(&source).unwrap(),
-                    0o600,
-                )?;
+                self.runtime.lock().unwrap().error = None;
             }
             "install" => {
                 if self.runtime.lock().unwrap().child.is_some() {
@@ -730,7 +731,8 @@ pub fn service_route(
         (Method::Put, "settings")
         | (
             Method::Post,
-            "enable" | "disable" | "restart" | "config" | "subscription" | "install" | "select",
+            "enable" | "disable" | "restart" | "config" | "subscription" | "validate" | "reload"
+            | "install" | "select",
         ) => {
             if !state.auth.has_password() {
                 return (

@@ -475,7 +475,7 @@ fn route_inner(method: &Method, path: &str, state: &AppState, body: &[u8]) -> (u
         (&Method::Put, "/api/proxy/settings") => proxy::change(state, "settings", body),
         (&Method::Post, path) if matches!(path,
             "/api/proxy/enable" | "/api/proxy/disable" | "/api/proxy/restart" |
-            "/api/proxy/config" | "/api/proxy/subscription" | "/api/proxy/install" | "/api/proxy/select"
+            "/api/proxy/config" | "/api/proxy/subscription" | "/api/proxy/validate" | "/api/proxy/reload" | "/api/proxy/install" | "/api/proxy/select"
         ) => proxy::change(state, path.rsplit('/').next().unwrap(), body),
         (&Method::Get, "/api/tailscale/status") => tailscale::status(state),
         // LAN HTTPS (docs/web-ui.md, "LAN HTTPS"): read-only for the apps.

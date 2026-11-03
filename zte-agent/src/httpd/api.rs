@@ -106,7 +106,7 @@ pub async fn api_entry(State(ctx): State<Ctx>, req: Request) -> Response {
             if method == Method::Other {
                 return json_reply(404, &server::error_body("not found"));
             }
-            let private_proxy_config = path.starts_with("/api/proxy/") && path.ends_with("/config");
+            let private_proxy_config = path.starts_with("/api/proxy/");
             let lane = server::lane(method, path);
             let path = path.to_owned();
             let app = Arc::clone(&ctx.app);
