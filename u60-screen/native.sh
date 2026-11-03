@@ -16,6 +16,7 @@ case "$command" in
         exec "$screen_cargo" run --locked --manifest-path u60-screen/Cargo.toml --no-default-features -- --screenshot "${1:?supply an output PNG}" "${@:2}"
         ;;
     test)
+        python3 scripts/i18n/build.py --check
         node u60-screen/scripts/export-catalog.cjs --check
         python3 -m unittest discover -s u60-screen/scripts/tests -v
         exec "$screen_cargo" test --locked --manifest-path u60-screen/Cargo.toml --features device "$@"

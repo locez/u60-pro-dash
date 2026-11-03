@@ -1,5 +1,5 @@
 > **u60-pro-dash fork**：自定义机身小屏与 Tailscale 子网网关。
-> [项目部署](docs/deployment.md) · [小屏预览](u60-screen/README.md) · [网关说明](local-tools/tailscale-gateway/README.md) · [网络服务管理](docs/network-services.md) · [同步上游与二开流程](FORK.md)
+> [项目部署](docs/deployment.md) · [小屏预览](u60-screen/README.md) · [界面语言](docs/languages.md) · [网关说明](local-tools/tailscale-gateway/README.md) · [网络服务管理](docs/network-services.md) · [同步上游与二开流程](FORK.md)
 
 <div align="center">
 

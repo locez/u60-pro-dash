@@ -80,6 +80,7 @@ def elf(path):
         raise Failure("拒绝依赖动态加载器的设备产物。")
 
 def build(args):
+    subprocess.run([sys.executable, str(REPO / "scripts/i18n/build.py"), "--check"], cwd=REPO, check=True)
     env = os.environ.copy()
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip()
     # build.rs watches this variable; Cargo otherwise reuses the old embedded
