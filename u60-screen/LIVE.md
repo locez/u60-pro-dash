@@ -134,3 +134,5 @@ NFC 只读核对：原厂 `zwrt_nfc` 提供 Wi-Fi 相关方法，`zwrt_nfc_wifi_
 45 项 Rust 测试与严格 Clippy 检查通过。后台及实机内核验证边界见 [网络服务管理](../docs/network-services.md)。
 
 本次机身 ARM64/musl 产物：ELF 26,548,200 字节；`size -A` Total 26,514,953；gzip level 9 / mtime 0 为 16,054,696 字节。SHA-256：`2c2ba919b55ba5ac436611d339122c2467786290155a55fd10b638bb2973fae4`。
+
+后续分类整理将 Tailscale 与 WireGuard 统一到「网络 → VPN 与组网」，代理使用「网络 → 代理 → 具体服务」层级。具体内核的配置与代理组独立，支持未来服务共存，不设置全局内核选择器。47 项原生测试、Clippy 与浏览器返回层级检查通过；与后台成对升级后的首帧、实时数据和健康观察通过。版本及构建体积见 [部署记录](../docs/deployment.md#验证范围)。
