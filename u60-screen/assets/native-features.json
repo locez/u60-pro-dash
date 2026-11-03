@@ -4,8 +4,37 @@
     "title": "分享 Wi-Fi",
     "group": "wifi",
     "description": "选择 2.4 GHz、5 GHz 或访客网络，让手机扫码连接。",
-    "guide": ["二维码使用已保存的热点配置，解锁机身后查看。"],
-    "apis": ["GET /api/wifi/status", "GET /api/wifi/guest"]
+    "guide": [
+      "二维码使用已保存的热点配置，解锁机身后查看。"
+    ],
+    "apis": [
+      "GET /api/wifi/status",
+      "GET /api/wifi/guest"
+    ]
+  },
+  {
+    "id": "proxy-service",
+    "title": "代理服务",
+    "group": "routing",
+    "description": "管理代理策略、服务启停与热点流量范围。",
+    "apis": [
+      "GET /api/proxy/status",
+      "PUT /api/proxy/settings",
+      "POST /api/proxy/enable",
+      "POST /api/proxy/disable",
+      "POST /api/proxy/restart"
+    ]
+  },
+  {
+    "id": "proxy-groups",
+    "title": "代理节点",
+    "group": "routing",
+    "description": "查看路由组并切换节点。",
+    "apis": [
+      "GET /api/proxy/status",
+      "GET /api/proxy/groups",
+      "POST /api/proxy/select"
+    ]
   },
   {
     "id": "wireguard",

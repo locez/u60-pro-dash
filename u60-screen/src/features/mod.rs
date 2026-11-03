@@ -6,6 +6,7 @@ mod history;
 mod lists;
 mod messages;
 mod network;
+mod proxy;
 mod radio;
 mod scheduler;
 mod services;
@@ -387,6 +388,7 @@ pub fn reads(id: &str) -> Option<Vec<Read>> {
         .or_else(|| forwarding::reads(id))
         .or_else(|| scheduler::reads(id))
         .or_else(|| wifi_share::reads(id))
+        .or_else(|| proxy::reads(id))
 }
 pub fn page(id: &str, readings: &Data) -> Page {
     let mut result = feature_page(id, readings);
@@ -410,6 +412,9 @@ pub fn page(id: &str, readings: &Data) -> Page {
     result
 }
 fn feature_page(id: &str, readings: &Data) -> Page {
+    if proxy::reads(id).is_some() {
+        return proxy::page(id, readings);
+    }
     if id == "wifi-share" {
         return wifi_share::page(readings);
     }
@@ -472,6 +477,9 @@ pub fn visibility(id: &str, page: &mut Page) {
     }
 }
 pub fn plan(id: &str, action: &str, page: &Page, readings: &Data) -> Result<Plan> {
+    if proxy::reads(id).is_some() {
+        return proxy::plan(id, action, page, readings);
+    }
     if forwarding::reads(id).is_some() {
         return forwarding::plan(id, action, page, readings);
     }
@@ -545,7 +553,8 @@ pub fn poll_seconds(id: &str) -> Option<u64> {
         "esim-download" => Some(3),
         "dns-cache" | "operators" | "neighbors" => Some(5),
         "signal-test" | "speedtest" | "phone" | "stk" => Some(2),
-        "tailscale-service" | "tailscale-version" | "agent-update" | "https" | "usb" => Some(5),
+        "proxy-service" | "proxy-groups" | "tailscale-service" | "tailscale-version"
+        | "agent-update" | "https" | "usb" => Some(5),
         "resources" | "wan" | "device-info" | "wifi-share" => Some(30),
         _ => None,
     }

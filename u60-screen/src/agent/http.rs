@@ -111,6 +111,7 @@ impl Api {
             "/api/update/check" | "/api/update/download" => 360,
             "/api/tailscale/setup" | "/api/tailscale/login-url" => 65,
             "/api/at/send" => 35,
+            "/api/proxy/enable" | "/api/proxy/disable" | "/api/proxy/restart" => 120,
             _ => 30,
         };
         let request = request.timeout(Duration::from_secs(timeout));

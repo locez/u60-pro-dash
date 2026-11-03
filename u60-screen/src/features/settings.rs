@@ -261,6 +261,7 @@ pub fn page(id: &str, readings: &Data) -> Page {
                 Field::text("hostname", "节点名称", &d["hostname"]),
                 Field::boolean("hold_wakelock", "保持设备唤醒", &d["hold_wakelock"]),
                 Field::boolean("tailscale_ssh", "Tailscale SSH", &d["tailscale_ssh"]),
+                Field::boolean("accept_routes", "接收远端子网路由", &d["accept_routes"]),
             ];
             let mut routes = Field::text(
                 "advertise_routes",
@@ -274,7 +275,8 @@ pub fn page(id: &str, readings: &Data) -> Page {
             routes.multiline = true;
             p.fields.push(routes);
             p.note =
-                "发布的路由仍需在 Tailscale 管理端批准。接收其他节点的子网由网关配置管理。".into();
+                "发布的路由仍需在 Tailscale 管理端批准。接收远端子网路由在内核网关模式下生效。"
+                    .into();
         }
         _ => return p,
     }

@@ -359,6 +359,16 @@ mod tests {
         app.feature_data_fixture("tailscale-service",fixture(vec![("status",serde_json::json!({"installed":true,"enabled":true,"enrolled":false,"backend_state":"NeedsLogin","login_url":"https://example.com/authorize/demonstration"}))]));
         assert!(app.ui.get_feature_has_qr());
         save("live-tailscale-qr.png")?;
+        app.feature_data_fixture("proxy-service", fixture(vec![("status",serde_json::json!({"installed":true,"version":"1.0.0","configured":true,"running":true,"capturing":true,"mode":"rule","capture":"hotspot"}))]));
+        assert_eq!(app.ui.get_feature_fields().row_count(), 2);
+        save("proxy-service.png")?;
+        app.feature_data_fixture("proxy-groups", fixture(vec![
+            ("status",serde_json::json!({"running":true})),
+            ("groups",serde_json::json!([{"name":"示例路由组","selected":"示例节点 A","choices":["示例节点 A","示例节点 B"],"selectable":true}])),
+            ("__selection",serde_json::json!("示例路由组")),
+        ]));
+        assert_eq!(app.ui.get_feature_fields().row_count(), 1);
+        save("proxy-groups.png")?;
         app.feature_data_fixture("wifi-share", fixture(vec![
             ("wifi",serde_json::json!({
                 "wifi_onoff":"1","radio2_disabled":"0","radio5_disabled":"0",
