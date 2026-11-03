@@ -18,7 +18,7 @@ export default function APIReferencePage() {
           {totalEndpoints} endpoints across {totalCategories} categories. All
           endpoints are served by zte-agent on{" "}
           <code className="rounded bg-bg-card px-1.5 py-0.5 font-mono text-xs text-accent">
-            http://192.168.0.1:20600
+            http://192.168.0.1:2026
           </code>
         </p>
       </div>

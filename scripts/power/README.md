@@ -4,7 +4,7 @@ Companion to [`docs/research/zte_agent_power_plan_2026-10-17.md`](../../docs/res
 
 | Script | Runs on | Purpose |
 |---|---|---|
-| `router-measure.sh <label> <secs>` | router (BusyBox ash) | Snapshots every agent thread (`/proc/<pid>/task/*/{stat,schedstat,sched,wchan}`), `/proc/stat` fork and context-switch counters and `:20600` sockets at t0 and t1, and records every fork made by an agent thread via ftrace (`sched_process_fork` filtered on `parent_comm == "zte-agent"`, plus `sched_process_exec` to name the child). Output in `/tmp/measure-<label>/`. |
+| `router-measure.sh <label> <secs>` | router (BusyBox ash) | Snapshots every agent thread (`/proc/<pid>/task/*/{stat,schedstat,sched,wchan}`), `/proc/stat` fork and context-switch counters and `:2026` sockets at t0 and t1, and records every fork made by an agent thread via ftrace (`sched_process_fork` filtered on `parent_comm == "zte-agent"`, plus `sched_process_exec` to name the child). Output in `/tmp/measure-<label>/`. |
 | `fetch.sh <label>` | Mac | Copies `/tmp/measure-<label>` from the router and runs `analyze.py` on it. |
 | `analyze.py <dir>` | Mac | Prints agent CPU, reaped-children CPU, per-thread wakeups/s, forks per command, and socket counts for one capture. |
 | `bench-endpoints.sh /api/a /api/b ...` | Mac | For each endpoint: starts a router capture, sends `N` (default 20) requests at 1/s from the Mac with the agent token, then fetches and summarises. Reads the agent password from the router's start script into a shell variable only. |

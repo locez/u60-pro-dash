@@ -1,19 +1,20 @@
 //! Kernel-mode Serve owns sockets separate from the agent HTTP listener.
-use crate::management::{HTTP_PORT, LEGACY_HTTP_PORT, LEGACY_REMOTE_PORT, REMOTE_PORT};
+#[cfg(test)]
+use crate::management::{HTTP_PORT, LEGACY_HTTP_PORT};
+use crate::management::{PORT_LAYOUTS, REMOTE_PORT};
 use serde_json::{json, Value};
 
 pub(super) fn remote_port(http_port: u16) -> u16 {
-    if http_port == LEGACY_HTTP_PORT {
-        LEGACY_REMOTE_PORT
-    } else {
-        REMOTE_PORT
-    }
+    PORT_LAYOUTS
+        .iter()
+        .find_map(|(http, remote)| (*http == http_port).then_some(*remote))
+        .unwrap_or(REMOTE_PORT)
 }
 
 fn owned(handler: &Value) -> bool {
-    [LEGACY_HTTP_PORT, HTTP_PORT]
+    PORT_LAYOUTS
         .iter()
-        .any(|port| handler == &json!({"TCPForward":format!("127.0.0.1:{port}")}))
+        .any(|(port, _)| handler == &json!({"TCPForward":format!("127.0.0.1:{port}")}))
 }
 
 fn commands(config: &Value, http_port: u16) -> Result<Vec<Vec<String>>, String> {
@@ -35,7 +36,10 @@ fn commands(config: &Value, http_port: u16) -> Result<Vec<Vec<String>>, String> 
         }
     }
     let mut result = Vec::new();
-    for port in [LEGACY_HTTP_PORT, LEGACY_REMOTE_PORT, HTTP_PORT, REMOTE_PORT] {
+    for port in PORT_LAYOUTS
+        .into_iter()
+        .flat_map(|(http, remote)| [http, remote])
+    {
         if let Some(handler) = config["TCP"].get(port.to_string()) {
             if owned(handler) && (port != remote || handler != &desired) {
                 result.push(vec!["serve".into(), format!("--tcp={port}"), "off".into()]);
@@ -80,15 +84,15 @@ mod tests {
                     "serve",
                     "--bg",
                     "--yes",
-                    "--tcp=20601",
-                    "tcp://127.0.0.1:20600"
+                    "--tcp=2027",
+                    "tcp://127.0.0.1:2026"
                 ]
             );
         }
-        let current = json!({"TCP":{"20601":{"TCPForward":"127.0.0.1:20600"}}});
+        let current = json!({"TCP":{"2027":{"TCPForward":"127.0.0.1:2026"}}});
         assert!(commands(&current, HTTP_PORT).unwrap().is_empty());
         let restore = commands(&current, LEGACY_HTTP_PORT).unwrap();
-        assert_eq!(restore[0], ["serve", "--tcp=20601", "off"]);
+        assert_eq!(restore[0], ["serve", "--tcp=2027", "off"]);
         assert_eq!(
             restore[1],
             [
@@ -102,14 +106,47 @@ mod tests {
         assert_eq!(commands(&json!({}), HTTP_PORT).unwrap().len(), 1);
     }
     #[test]
+    fn migrates_and_restores_the_previous_five_digit_layout() {
+        let previous =
+            json!({"TCP":{"20601":{"TCPForward":"127.0.0.1:20600"},"8443":{"HTTPS":true}}});
+        assert_eq!(
+            commands(&previous, HTTP_PORT).unwrap(),
+            vec![
+                vec!["serve", "--tcp=20601", "off"],
+                vec![
+                    "serve",
+                    "--bg",
+                    "--yes",
+                    "--tcp=2027",
+                    "tcp://127.0.0.1:2026"
+                ]
+            ]
+        );
+        let current = json!({"TCP":{"2027":{"TCPForward":"127.0.0.1:2026"}}});
+        assert_eq!(
+            commands(&current, 20600).unwrap(),
+            vec![
+                vec!["serve", "--tcp=2027", "off"],
+                vec![
+                    "serve",
+                    "--bg",
+                    "--yes",
+                    "--tcp=20601",
+                    "tcp://127.0.0.1:20600"
+                ]
+            ]
+        );
+        assert_eq!(remote_port(20600), 20601);
+    }
+    #[test]
     fn old_ports_can_belong_to_other_services_but_new_conflicts_are_refused() {
         let unrelated =
             json!({"TCP":{"9090":{"TCPForward":"127.0.0.1:8000"},"9091":{"HTTPS":true}}});
         assert_eq!(commands(&unrelated, HTTP_PORT).unwrap().len(), 1);
         for config in [
-            json!({"TCP":{"20601":{"HTTPS":true},"9091":{"TCPForward":"127.0.0.1:9090"}}}),
-            json!({"TCP":{"20600":{"TCPForward":"127.0.0.1:8000"}}}),
-            json!({"TCP":{"20601":{"TCPForward":"127.0.0.1:20600","TerminateTLS":"example"}}}),
+            json!({"TCP":{"2027":{"HTTPS":true},"9091":{"TCPForward":"127.0.0.1:9090"}}}),
+            json!({"TCP":{"2026":{"TCPForward":"127.0.0.1:8000"}}}),
+            json!({"TCP":{"2027":{"TCPForward":"127.0.0.1:2026","TerminateTLS":"example"}}}),
             json!({"TCP":[]}),
             Value::Null,
         ] {

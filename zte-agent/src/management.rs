@@ -1,20 +1,26 @@
 //! Management endpoints shared by startup, probes, and remote forwarding.
 use std::{collections::BTreeSet, fs, net::SocketAddr, path::Path};
 
-pub const HTTP_PORT: u16 = 20600;
-pub const REMOTE_PORT: u16 = 20601;
+pub const HTTP_PORT: u16 = 2026;
+pub const REMOTE_PORT: u16 = 2027;
 pub const LEGACY_HTTP_PORT: u16 = 9090;
 pub const LEGACY_REMOTE_PORT: u16 = 9091;
-const DEFAULT_BIND: &str = "0.0.0.0:20600";
+pub const PORT_LAYOUTS: [(u16, u16); 3] = [
+    (LEGACY_HTTP_PORT, LEGACY_REMOTE_PORT),
+    (20600, 20601),
+    (HTTP_PORT, REMOTE_PORT),
+];
+const DEFAULT_BIND: &str = "0.0.0.0:2026";
 
 fn effective_bind(value: Option<&str>, paired: bool) -> String {
     let value = value.unwrap_or(DEFAULT_BIND);
-    if paired {
-        match value {
-            "0.0.0.0:9090" => return DEFAULT_BIND.into(),
-            "127.0.0.1:9090" => return "127.0.0.1:20600".into(),
-            _ => {}
-        }
+    if let Some(mut address) = value.parse::<SocketAddr>().ok().filter(|address| {
+        paired
+            && (address.ip().is_unspecified() || address.ip().is_loopback())
+            && PORT_LAYOUTS.iter().any(|(port, _)| *port == address.port())
+    }) {
+        address.set_port(HTTP_PORT);
+        return address.to_string();
     }
     value.into()
 }
@@ -73,9 +79,9 @@ pub fn process_http_port(process: &Path) -> Result<u16, String> {
             ports.extend(socket_ports(&text, &inodes));
         }
     }
-    ports.retain(|port| [HTTP_PORT, LEGACY_HTTP_PORT].contains(port));
+    ports.retain(|port| PORT_LAYOUTS.iter().any(|(http, _)| port == http));
     if ports.len() != 1 {
-        return Err("Expected one agent management listener on port 20600 or legacy 9090".into());
+        return Err("Expected one agent management listener on port 2026, 20600 or 9090".into());
     }
     Ok(*ports.first().unwrap())
 }
@@ -85,22 +91,58 @@ mod tests {
     use super::*;
     #[test]
     fn legacy_environment_is_migrated_only_for_the_paired_service() {
-        assert_eq!(effective_bind(None, false), "0.0.0.0:20600");
-        assert_eq!(effective_bind(Some("0.0.0.0:9090"), true), "0.0.0.0:20600");
+        assert_eq!(effective_bind(None, false), "0.0.0.0:2026");
+        assert_eq!(effective_bind(Some("0.0.0.0:9090"), true), "0.0.0.0:2026");
         assert_eq!(
             effective_bind(Some("127.0.0.1:9090"), true),
-            "127.0.0.1:20600"
+            "127.0.0.1:2026"
         );
-        assert_eq!(effective_bind(Some("0.0.0.0:9090"), false), "0.0.0.0:9090");
+        for legacy in [9090, 20600] {
+            assert_eq!(
+                effective_bind(Some(&format!("0.0.0.0:{legacy}")), true),
+                "0.0.0.0:2026"
+            );
+            assert_eq!(
+                effective_bind(Some(&format!("127.0.0.1:{legacy}")), true),
+                "127.0.0.1:2026"
+            );
+            assert_eq!(
+                effective_bind(Some(&format!("0.0.0.0:{legacy}")), false),
+                format!("0.0.0.0:{legacy}")
+            );
+        }
         assert_eq!(
             effective_bind(Some("127.0.0.1:23000"), false),
             "127.0.0.1:23000"
         );
     }
     #[test]
+    fn discovers_each_supported_generation_before_exporting_or_restoring() {
+        let root = std::env::temp_dir().join(format!("u60-port-discovery-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(root.join("fd")).unwrap();
+        fs::create_dir_all(root.join("net")).unwrap();
+        std::os::unix::fs::symlink("socket:[101]", root.join("fd/8")).unwrap();
+        for (port, _) in PORT_LAYOUTS {
+            fs::write(
+                root.join("net/tcp"),
+                format!("0: 00000000:{port:04X} 00000000:0000 0A 0 0 0 0 0 101\n"),
+            )
+            .unwrap();
+            assert_eq!(process_http_port(&root).unwrap(), port);
+        }
+        fs::write(
+            root.join("net/tcp"),
+            "0: 00000000:07EA 00000000:0000 0A 0 0 0 0 0 999\n",
+        )
+        .unwrap();
+        assert!(process_http_port(&root).is_err());
+        fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
     fn discovery_requires_an_owned_listening_socket() {
         let sockets = BTreeSet::from(["101".into(), "102".into()]);
-        let table = "0: 00000000:5078 00000000:0000 0A 0 0 0 0 0 101\n1: 00000000:2382 00000000:0000 0A 0 0 0 0 0 999\n2: 00000000:2382 00000000:0000 01 0 0 0 0 0 102\n";
+        let table = "0: 00000000:07EA 00000000:0000 0A 0 0 0 0 0 101\n1: 00000000:2382 00000000:0000 0A 0 0 0 0 0 999\n2: 00000000:2382 00000000:0000 01 0 0 0 0 0 102\n";
         assert_eq!(socket_ports(table, &sockets), BTreeSet::from([HTTP_PORT]));
     }
 }

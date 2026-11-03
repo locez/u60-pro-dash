@@ -79,13 +79,15 @@ fn export_environment() -> Result<(), String> {
                 && ![
                     "0.0.0.0:9090",
                     "127.0.0.1:9090",
+                    "0.0.0.0:2026",
+                    "127.0.0.1:2026",
                     "0.0.0.0:20600",
                     "127.0.0.1:20600",
                 ]
                 .contains(&value)
             {
                 return Err(
-                    "Paired deployment requires the agent on port 20600 or legacy 9090".into(),
+                    "Paired deployment requires the agent on port 2026, 20600 or 9090".into(),
                 );
             }
             if let Some(line) = export_line(name, value) {

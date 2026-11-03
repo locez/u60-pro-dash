@@ -73,7 +73,7 @@ if os.path.exists(os.path.join(d, 'trace')):
         cmds[' -> '.join(e if e.startswith('<') else os.path.basename(e) for e in ex)] += 1; by_tid[ptid] += 1
     for c, n in cmds.most_common(): print(f"  {n:5d}  {c}")
     print("forks by thread:", {f"{t} {names.get(t, '')}": n for t, n in by_tid.most_common()})
-tcp_port = '20600' if os.path.exists(os.path.join(d, 't0/tcp20600')) else '9090'
+tcp_port = '2026' if os.path.exists(os.path.join(d, 't0/tcp2026')) else '9090'
 tcp0 = rd(f't0/tcp{tcp_port}').splitlines(); tcp1 = rd(f't1/tcp{tcp_port}').splitlines()
 est = lambda L: sum(1 for l in L if l.split()[2] == '01')
 print(f"\n:{tcp_port} sockets t0={len(tcp0)} (established {est(tcp0)}), t1={len(tcp1)} (established {est(tcp1)})")

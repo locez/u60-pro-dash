@@ -143,7 +143,7 @@ impl Agent {
     pub fn start(config: Config) -> anyhow::Result<Self> {
         anyhow::ensure!(
             !config.local_credentials
-                || config.address == "127.0.0.1:20600".parse::<SocketAddr>()?,
+                || config.address == "127.0.0.1:2026".parse::<SocketAddr>()?,
             "local credentials are restricted to the on-device agent endpoint"
         );
         let api = http::Api::new(config.address)?;

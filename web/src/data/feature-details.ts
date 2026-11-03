@@ -82,7 +82,7 @@ export const featureDetails: FeatureDetail[] = [
     description:
       "Built-in encrypted DNS proxy for all LAN clients.",
     howItWorks:
-      "The agent runs a DoH proxy — LAN clients can use 192.168.0.1:20600 as their DNS resolver. Queries are forwarded over HTTPS to Cloudflare or Google. A response cache speeds up repeat lookups and reduces latency.",
+      "The agent runs a DoH proxy — LAN clients can use 192.168.0.1:2026 as their DNS resolver. Queries are forwarded over HTTPS to Cloudflare or Google. A response cache speeds up repeat lookups and reduces latency.",
   },
   {
     icon: Clock,

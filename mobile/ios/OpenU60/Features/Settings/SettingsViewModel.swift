@@ -98,7 +98,7 @@ final class SettingsViewModel {
     }
 
     private static func agentURL(for ip: String) -> String {
-        "http://\(ip):20600"
+        "http://\(ip):2026"
     }
 
     private static func isValidIPv4(_ value: String) -> Bool {

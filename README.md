@@ -65,7 +65,7 @@ customization, and more.
 
 ### On-Device Agent (`zte-agent`)
 
-A lightweight Rust HTTP server that runs directly on the router (port 20600, on the router's network and, if enabled, your tailnet). It turns ubus calls, AT commands and sysfs reads into a typed REST API for the mobile apps, streams live updates (`GET /api/events`, see [events.md](zte-agent/docs/events.md)), and serves a browser UI at `http://192.168.0.1:20600/` (see [Web UI](#web-ui)).
+A lightweight Rust HTTP server that runs directly on the router (port 2026, on the router's network and, if enabled, your tailnet). It turns ubus calls, AT commands and sysfs reads into a typed REST API for the mobile apps, streams live updates (`GET /api/events`, see [events.md](zte-agent/docs/events.md)), and serves a browser UI at `http://192.168.0.1:2026/` (see [Web UI](#web-ui)).
 
 ```bash
 # Cross-compile for the device
@@ -102,11 +102,11 @@ cargo build --release --target aarch64-unknown-linux-musl -p zte-agent
 
 ### Web UI (built into the agent)
 
-Open `http://192.168.0.1:20600/` on the router's Wi-Fi for a dashboard, connection & signal, and the most-used settings, with nothing to install. See [Web UI](#web-ui).
+Open `http://192.168.0.1:2026/` on the router's Wi-Fi for a dashboard, connection & signal, and the most-used settings, with nothing to install. See [Web UI](#web-ui).
 
 ### Responsive Web Console
 
-Open **`http://192.168.0.1:20600/console/`** on the router’s network. The console is embedded in the agent binary, with no separate frontend server or cloud service. When LAN HTTPS is enabled, use `/console/` on that same HTTPS address. It uses the current agent’s rate-limited bearer sign-in, Host/Origin checks and elapsed-time session expiry; `/` opens this console, and old `/ui/` bookmarks redirect to it. HTTPS and certificate-install controls are in Settings → HTTPS & Install.
+Open **`http://192.168.0.1:2026/console/`** on the router’s network. The console is embedded in the agent binary, with no separate frontend server or cloud service. When LAN HTTPS is enabled, use `/console/` on that same HTTPS address. It uses the current agent’s rate-limited bearer sign-in, Host/Origin checks and elapsed-time session expiry; `/` opens this console, and old `/ui/` bookmarks redirect to it. HTTPS and certificate-install controls are in Settings → HTTPS & Install.
 
 The five sections cover Dashboard, Network, SMS, Tools and Settings. They include LTE/NR carrier aggregation and SA/NSA, WAN IPv4/IPv6, offline statistics, Wi-Fi/mobile/APN settings, connected-device traffic and observed peaks, eSIM management, SMS actions/forwarding, operator scanning, diagnostics, LAN/DHCP, firewall, port forwarding, UPnP, DMZ and QoS. Only fields reported by the firmware are presented as measurements or limits. See the [screenshots](#new-responsive-web-ui) and [developer guide](zte-agent/docs/responsive-console.md).
 
@@ -127,7 +127,7 @@ Native apps that connect directly over WiFi -- no computer needed.
 
 ### New responsive Web UI
 
-The Rust agent serves one responsive browser console at **`http://192.168.0.1:20600/`** (also `/console/`). Old `/ui/` bookmarks open the new console. The console has phone, tablet and desktop layouts, Light/Dark/System themes, streamed SSE updates, animated measurements and smooth page/dialog transitions. Phones keep all five main tabs available in the bottom bar, including short landscape layouts and keyboard changes.
+The Rust agent serves one responsive browser console at **`http://192.168.0.1:2026/`** (also `/console/`). Old `/ui/` bookmarks open the new console. The console has phone, tablet and desktop layouts, Light/Dark/System themes, streamed SSE updates, animated measurements and smooth page/dialog transitions. Phones keep all five main tabs available in the bottom bar, including short landscape layouts and keyboard changes.
 
 **Desktop · Light**
 
@@ -355,13 +355,13 @@ Switching, adding, renaming and deleting require an agent password. In the apps:
 
 1. Connect your phone to the router's WiFi
 2. Open OpenU60 app
-3. Set agent URL: `http://192.168.0.1:20600`
+3. Set agent URL: `http://192.168.0.1:2026`
 4. Enter the agent password you set above
-5. No app? Open http://192.168.0.1:20600/ in a browser instead (see [Web UI](#web-ui)).
+5. No app? Open http://192.168.0.1:2026/ in a browser instead (see [Web UI](#web-ui)).
 
 ## Web UI
 
-Connect to the router’s Wi-Fi or USB network and open **http://192.168.0.1:20600/**. Sign in with the agent password (`ZTE_AGENT_PASSWORD` in its startup script). The same responsive console works on phones, tablets and desktop computers. Old `/ui/` bookmarks redirect to the corresponding console screen; the old page, form and live-stream routes are retired.
+Connect to the router’s Wi-Fi or USB network and open **http://192.168.0.1:2026/**. Sign in with the agent password (`ZTE_AGENT_PASSWORD` in its startup script). The same responsive console works on phones, tablets and desktop computers. Old `/ui/` bookmarks redirect to the corresponding console screen; the old page, form and live-stream routes are retired.
 
 The five sections are Dashboard, Network, SMS, Tools and Settings. They cover live connectivity and carrier aggregation, IPv4/IPv6, connected devices, Wi-Fi/mobile/APN settings, eSIM management, SMS and forwarding, network operators, battery/power details, diagnostics, LAN/DHCP, firewall/DMZ/UPnP, port forwarding, QoS and device controls. Data changes arrive over SSE. JavaScript is required; the console serves its own scripts, styles and fonts without a cloud service.
 
@@ -371,7 +371,7 @@ The sign-in token stays in this tab’s session storage, with an in-memory fallb
 
 Open **Settings → HTTPS & Install** to enable HTTPS, renew its certificate or reset the router’s local certificate authority. The screen shows the router clock, expiry, public certificate fingerprints and HTTPS addresses. Enabling or renewing asks for confirmation; resetting requires typing `RESET` and stops open HTTPS connections. Reopen the HTTP address afterward.
 
-1. Turn on HTTPS. HTTP on port 20600 remains available; HTTPS normally uses port 9443.
+1. Turn on HTTPS. HTTP on port 2026 remains available; HTTPS normally uses port 9443.
 2. Download the public certificate/profile from that screen. Compare its fingerprint with a trusted copy: this screen over HTTPS on a device that already trusts the router, or `sha256sum /data/zte-agent-tls/ca.crt` over SSH. Plain HTTP could be altered by someone on the network.
 3. Follow the platform instructions shown there to trust the router’s authority, then open a listed HTTPS address. Use Safari’s Add to Home Screen/Add to Dock or your browser’s Install option.
 
@@ -379,7 +379,7 @@ The authority is constrained to this router’s LAN address and local name; priv
 
 ### Security
 
-Use HTTPS to encrypt browser traffic. Plain HTTP exposes credentials and bearer tokens to anyone able to observe the LAN. Never forward port 20600 to the internet; use Tailscale for remote access.
+Use HTTPS to encrypt browser traffic. Plain HTTP exposes credentials and bearer tokens to anyone able to observe the LAN. Never forward port 2026 to the internet; use Tailscale for remote access.
 
 The console uses the authenticated JSON API, its Host/Origin checks, rate-limited login and boot-clock token expiry. HTML and scripts are not stored by caches. Legacy cookies do not authenticate API requests, and retired `/ui/` forms cannot change settings. See [SECURITY.md](SECURITY.md) and the [console developer guide](zte-agent/docs/responsive-console.md).
 
@@ -389,7 +389,7 @@ Native apps remain available for features that require the phone, such as iOS Li
 
 ```
 u60-Pro-rs/
-├── zte-agent/                 On-device agent: REST API + browser UI (port 20600)
+├── zte-agent/                 On-device agent: REST API + browser UI (port 2026)
 │   ├── build.rs               Console icons and archived fixture asset preparation
 │   ├── docs/                  esim.md, events.md, live-activity.md, web-ui.md
 │   └── src/

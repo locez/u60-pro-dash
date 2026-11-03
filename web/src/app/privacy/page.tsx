@@ -59,7 +59,7 @@ export default function PrivacyPage() {
           <p>
             All data stays on your local network. The app communicates via HTTP
             with the zte-agent server running on your router at its LAN IP
-            address (typically 192.168.0.1:20600). No data is transmitted to any
+            address (typically 192.168.0.1:2026). No data is transmitted to any
             external server, cloud service, or third party.
           </p>
         </section>

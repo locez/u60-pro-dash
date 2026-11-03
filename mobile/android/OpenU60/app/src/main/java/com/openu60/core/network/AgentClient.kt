@@ -37,7 +37,7 @@ class AgentClient @Inject constructor() {
         .readTimeout(3, TimeUnit.SECONDS)
         .build()
 
-    var baseURL: String = "http://192.168.0.1:20600"
+    var baseURL: String = "http://192.168.0.1:2026"
     var token: String? = null
 
     private val identity = SimIdentityTracker()
