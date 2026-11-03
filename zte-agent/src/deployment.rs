@@ -192,6 +192,51 @@ pub fn health_cli() -> i32 {
     }
 }
 
+fn wait_ready() -> Result<(), String> {
+    let client = local_client()?;
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(30);
+    while std::time::Instant::now() < deadline {
+        match client.get("http://127.0.0.1:9090/api/device").send() {
+            Ok(reply) if reply.status().as_u16() == 401 => {
+                return login(
+                    &client,
+                    &std::env::var("ZTE_AGENT_PASSWORD")
+                        .map_err(|_| "Agent environment missing")?,
+                )
+                .map(|_| ());
+            }
+            Ok(reply) if reply.status().as_u16() != 503 => {
+                return Err(format!(
+                    "Unexpected agent readiness status: {}",
+                    reply.status()
+                ));
+            }
+            _ => std::thread::sleep(std::time::Duration::from_millis(500)),
+        }
+    }
+    Err("Agent HTTP listener did not become ready within 30 seconds".into())
+}
+
+pub fn ready_cli() -> i32 {
+    match wait_ready() {
+        Ok(()) => 0,
+        Err(error) => {
+            eprintln!("{error}");
+            1
+        }
+    }
+}
+
+pub fn network_cli() -> i32 {
+    match crate::tailscale::prepare_management() {
+        Ok(()) => 0,
+        Err(error) => {
+            eprintln!("{error}");
+            1
+        }
+    }
+}
+
 pub fn cli() -> i32 {
     match export_environment() {
         Ok(()) => {

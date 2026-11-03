@@ -75,6 +75,8 @@ int main(int argc,char**argv){
  if(argc>1&&!strcmp(argv[1],"--version")){puts("example 1.0");return 0;}
  if(argc>1&&!strcmp(argv[1],"dash-export-env")){writefile(root,"agent.env","export ZTE_AGENT_PASSWORD='example-only'\n");writefile(root,"health.json","{}");return 0;}
  if(argc>1&&!strcmp(argv[1],"dash-health"))return getenv("TEST_BAD_HEALTH")?1:0;
+ if(argc>1&&!strcmp(argv[1],"dash-wait-ready"))return getenv("TEST_BAD_READY")?1:0;
+ if(argc>1&&!strcmp(argv[1],"dash-prepare-network"))return 0;
  if(argc>1&&!strcmp(argv[1],"--probe-agent"))return getenv("TEST_BAD_PROBE")?1:0;
  int screen=strstr(argv[0],"u60-screen")!=NULL;
  if(screen){if(getenv("TEST_BAD_SCREEN"))return 17;fprintf(stderr,"display: first frame submitted\n");fflush(stderr);FILE*f=fopen(getenv("TEST_LIGHT"),"w");fputs("99\n",f);fclose(f);}
@@ -134,6 +136,16 @@ int main(int argc,char**argv){
         self.wait(lambda:(self.root/'current').exists() and (self.root/'current').read_text().strip()=='none' and not (self.root/'pending').exists())
         self.assertTrue(self.vendor.exists());self.assertEqual(self.light.read_text(),'23\n')
         result=self.manage('restore');self.assertEqual(result.returncode,0);self.assertIn('already selected',result.stdout)
+    def test_failed_http_readiness_and_recovery_are_reported_without_success(self):
+        self.release('bad')
+        result = self.manage('install', 'bad', env={**self.env, 'TEST_BAD_READY': '1'})
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        error = self.root / 'last-error'
+        self.wait(lambda: error.exists() and 'Recovery requires attention' in error.read_text())
+        self.assertFalse((self.root / 'last-result').exists())
+        self.assertTrue(self.vendor.exists())
+        self.assertEqual(self.start.read_bytes(), self.original_start)
+        self.assertEqual(self.light.read_text(), '23\n')
     def test_killed_supervisor_recovers_vendor_and_keeps_admin_agent(self):
         self.release('one');self.manage('install','one');self.installed('one')
         agent_pid=int((self.run/'agent').read_text())

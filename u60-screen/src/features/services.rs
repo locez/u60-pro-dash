@@ -37,6 +37,7 @@ pub fn page(id: &str, readings: &Data) -> Page {
                 ("daemon_running", "后台运行"),
                 ("backend_state", "连接状态"),
                 ("tailscale_ips", "Tailscale 地址"),
+                ("management_port", "远程 Web 端口"),
                 ("health", "健康提示"),
             ] {
                 p.row(l, &d[k]);

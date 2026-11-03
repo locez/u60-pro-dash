@@ -70,6 +70,13 @@ launch() {
 }
 restore_original() {
     [ -s "$ROOT/original/startup.sh" ] && [ -s "$ROOT/original/agent-content" ] || fail 'Original backup is incomplete.'
+    restore_probe=$(value "$ROOT/current")
+    if [ "$restore_probe" = none ]; then restore_probe=$(value "$ROOT/pending"); fi
+    valid_id "$restore_probe" && [ -x "$ROOT/releases/$restore_probe/zte-agent" ] || fail 'Recovery verifier missing.'
+    if ! (. "$ROOT/agent.env"; "$ROOT/releases/$restore_probe/zte-agent" dash-prepare-network) >"$ROOT/original-health.log" 2>&1 9>&-; then
+        echo 'Recovery requires attention: management port preparation failed; inspect original-health.log.' > "$ROOT/last-error"
+        return 1
+    fi
     cp -p "$ROOT/original/startup.sh" "$START.dash-next"
     mv -f "$START.dash-next" "$START"
     rm -f "$LEGACY.dash-next"
@@ -85,6 +92,10 @@ restore_original() {
     rm -f "$ROOT/enabled" "$ROOT/pending"
     sync
     sh "$START" </dev/null >"$ROOT/original-start.log" 2>&1 9>&-
+    if ! (. "$ROOT/agent.env"; "$ROOT/releases/$restore_probe/zte-agent" dash-wait-ready) >>"$ROOT/original-health.log" 2>&1 9>&-; then
+        echo 'Recovery requires attention: original agent did not become ready; inspect original-health.log.' > "$ROOT/last-error"
+        return 1
+    fi
 }
 recover_pending() {
     [ -s "$ROOT/pending" ] || return 0
@@ -172,6 +183,11 @@ status() {
     done
     selected=$(value "$ROOT/current")
     if [ "$selected" != none ] && agent_running "$ROOT/releases/$selected/zte-agent"; then echo 'agent=running'; else echo 'agent=stopped'; fi
+    if [ "$selected" = none ]; then
+        if agent_running "$LEGACY" || { [ -s "$ROOT/original/target" ] && agent_running "$(cat "$ROOT/original/target")"; }; then
+            echo 'original_agent=running'
+        else echo 'original_agent=stopped'; fi
+    fi
     if [ -f "$RUN/ready" ]; then echo 'screen_frame=ready'; else echo 'screen_frame=not_ready'; fi
     if pidof zte_topsw_devui >/dev/null; then echo 'factory_ui=running'; else echo 'factory_ui=stopped'; fi
     if [ -s "$ROOT/last-error" ]; then cat "$ROOT/last-error"; fi

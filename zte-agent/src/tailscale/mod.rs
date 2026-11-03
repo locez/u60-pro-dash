@@ -1,4 +1,5 @@
 pub mod config;
+mod management;
 
 pub use config::TsConfig;
 
@@ -36,6 +37,13 @@ const LEGACY_GATEWAY_SCRIPT: &str = "/data/local/tmp/u60-home-network.sh";
 
 fn gateway_mode() -> bool {
     std::env::var(GATEWAY_ENV).as_deref() == Ok("1")
+}
+
+pub fn prepare_management() -> Result<(), String> {
+    if gateway_mode() && Path::new(SOCK).exists() {
+        management::configure()?;
+    }
+    Ok(())
 }
 
 fn tun_name(gateway: bool) -> &'static str {
@@ -728,7 +736,12 @@ impl TailscaleManager {
             if !self.running.load(Ordering::SeqCst) || self.paused.load(Ordering::SeqCst) {
                 return;
             }
-            if daemon_status(5).is_ok() {
+            // The socket can answer while the backend is still NoState;
+            // applying Serve then fails before persisted identity is loaded.
+            if daemon_status(5).is_ok_and(|status| matches!(
+                status["BackendState"].as_str(),
+                Some("Running" | "NeedsLogin" | "NeedsMachineAuth" | "Stopped")
+            )) {
                 break;
             }
             thread::sleep(Duration::from_secs(1));
@@ -748,7 +761,7 @@ impl TailscaleManager {
             // Native TUN delivers real peer IPs, whereas the agent's browser
             // guards expect remote management to arrive on loopback. Serve's
             // tailnet TCP handler retains that path without weakening them.
-            if let Err(e) = cli(&["serve", "--bg", "--yes", "--tcp=9090", "tcp://127.0.0.1:9090"], 20) {
+            if let Err(e) = management::configure() {
                 eprintln!("[tailscale] gateway management proxy: {e}");
             }
         }
@@ -822,6 +835,7 @@ impl TailscaleManager {
             "hold_wakelock": cfg.hold_wakelock,
             "pinned_version": cfg.pinned_version,
             "gateway_mode": gateway_mode(),
+            "management_port": if gateway_mode() { management::PORT } else { 9090 },
             "accept_routes": cfg.accept_routes,
             "accept_routes_effective": false,
         });

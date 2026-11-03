@@ -82,6 +82,12 @@ fn main() {
     if args.get(1).map(String::as_str) == Some("dash-health") {
         std::process::exit(deployment::health_cli());
     }
+    if args.get(1).map(String::as_str) == Some("dash-wait-ready") {
+        std::process::exit(deployment::ready_cli());
+    }
+    if args.get(1).map(String::as_str) == Some("dash-prepare-network") {
+        std::process::exit(deployment::network_cli());
+    }
     if args.get(1).map(String::as_str) == Some("dash-export-env") {
         std::process::exit(deployment::cli());
     }
@@ -117,6 +123,12 @@ fn main() {
         .and_then(|s| s.parse().ok())
         .unwrap_or(DEFAULT_THREADS);
 
+    // Free the legacy gateway Serve socket before binding the agent. A
+    // surviving tailscaled may otherwise own the same wildcard HTTP port.
+    if let Err(error) = tailscale::prepare_management() {
+        eprintln!("[tailscale] management startup failed: {error}");
+        std::process::exit(1);
+    }
     let state = Arc::new(AppState::new());
 
     // Set password from environment if provided

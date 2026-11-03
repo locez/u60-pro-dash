@@ -230,7 +230,7 @@ def install(connection, args):
     print("文件已传输并校验；开始部署两个程序。30 秒健康观察通过后自动确认。", flush=True)
     operation = f'sh {REMOTE}/manage.sh install {identity}; result=$?; printf "%s\\n" "$result" >{REMOTE}/install.exit.new; mv {REMOTE}/install.exit.new {REMOTE}/install.exit'
     connection.remote(f"rm -f {REMOTE}/install.exit; nohup sh -c {shlex.quote(operation)} >{REMOTE}/install.log 2>&1 </dev/null & sleep 1")
-    deadline = time.monotonic() + 180
+    deadline = time.monotonic() + 240
     while time.monotonic() < deadline:
         time.sleep(3)
         state = connection.remote(f"sh {REMOTE}/manage.sh status; if test -f {REMOTE}/install.exit; then printf 'install_exit='; cat {REMOTE}/install.exit; fi")

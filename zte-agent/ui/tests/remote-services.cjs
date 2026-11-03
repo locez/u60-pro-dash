@@ -3,7 +3,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
 (async()=>{
  const ok=data=>({ok:true,data}),writes=[],streams=new Set(),errors=[];
  const proxy={installed:true,configured:true,enabled:false,running:false,capture:'local',capturing:false,mode:'rule',version:'1.0.0',local_endpoint:'127.0.0.1:7890'};
- const ts={installed:true,enabled:true,enrolled:false,daemon_running:true,backend_state:'NeedsLogin',gateway_mode:true,accept_routes:true,accept_routes_effective:true,hostname:'example-router',advertise_routes:[],hold_wakelock:true,tailscale_ssh:false,client_version:'1.104.4',health:[]};
+ const ts={installed:true,enabled:true,enrolled:false,daemon_running:true,backend_state:'NeedsLogin',gateway_mode:true,management_port:9091,accept_routes:true,accept_routes_effective:true,hostname:'example-router',advertise_routes:[],hold_wakelock:true,tailscale_ssh:false,client_version:'1.104.4',health:[]};
  const groups=[{name:'Primary group',selected:'Example A',choices:['Example A','Example B'],selectable:true,kind:'Selector'},{name:'<img src=x onerror=alert(1)>',selected:'Example A',choices:['Example A'],selectable:false,kind:'URLTest'}];
  const core={device:ok({hostname:'Example router',uptime_secs:100}),wan:ok({up:true}),wan6:ok({up:false}),signal:ok({network_type:'5G'}),modem:ok({operate_mode:'ONLINE'}),battery:ok({capacity:80}),wifi:ok({}),clients:ok({hosts:{}}),speed:ok({rx_speed:0,tx_speed:0})};
  let holdStatus=false,releaseStatus=null;
@@ -57,6 +57,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
    await page.evaluate(t=>{document.documentElement.dataset.theme=t;},theme);await page.setViewportSize({width,height:1000});await page.waitForTimeout(80);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.evaluate(()=>scrollTo(0,0));if(width===1440)await page.screenshot({path:`${images}/proxy-${theme}.png`,fullPage:true});
   }
   await page.evaluate(()=>OpenU60Navigation.go('network/tailscale'));await page.waitForFunction(()=>!document.querySelector('#tailscale-policy button[type=submit]').disabled);
+  assert.match(await page.locator('#tailscale-service').textContent(),/Remote web port.*9091/s);
   await page.getByRole('button',{name:'Authorize this router',exact:true}).click();await confirm('Get authorization link');assert.equal(await page.getByRole('link',{name:'Open authorization page'}).getAttribute('href'),'https://login.tailscale.com/a/example-only');
   await page.locator('#tailscale-routes').fill('192.0.2.0/24, 198.51.100.0/24');await page.locator('#tailscale-accept').selectOption('false');await page.getByRole('button',{name:'Save network settings',exact:true}).click();await confirm('Apply change');assert.deepEqual(writes.at(-1).body.advertise_routes,['192.0.2.0/24','198.51.100.0/24']);assert.equal(writes.at(-1).body.accept_routes,false);
   await page.locator('#tailscale-auth-key').fill('demo-private-auth');await page.getByRole('button',{name:'Enroll router',exact:true}).click();assert.ok(!(await page.locator('.confirm-dialog').textContent()).includes('demo-private-auth'));await confirm('Enroll router');assert.equal(await page.locator('#tailscale-auth-key').inputValue(),'');await page.waitForFunction(()=>document.querySelector('#tailscale-service .service-summary').textContent==='Connected');

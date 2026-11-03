@@ -574,7 +574,12 @@ fn local_password() -> anyhow::Result<Zeroizing<String>> {
     anyhow::bail!("local agent credentials unavailable")
 }
 
-pub fn probe(config: Config) -> anyhow::Result<()> {
+pub fn probe(mut config: Config) -> anyhow::Result<()> {
+    // A deployment replaces the agent instance. Verify fresh authentication
+    // rather than mistaking its old cached session's 401 for a bad password.
+    if config.local_credentials {
+        config.session_file = None;
+    }
     let mut agent = Agent::start(config)?;
     agent.watch(["signal", "traffic", "battery"].map(String::from).to_vec());
     let start = Instant::now();

@@ -128,7 +128,11 @@ export ZTE_OTA_SUPERVISOR="$ROOT/no-agent-only-supervisor"
 agent=$!
 echo "$agent" > "$RUN/agent"
 pulse
-if ! "$RELEASE/u60-screen" --probe-agent --local-agent --prefs "$PREFS" >"$ROOT/probe.log" 2>&1; then
+if ! "$RELEASE/zte-agent" dash-wait-ready >"$ROOT/probe.log" 2>&1; then
+    echo 'The candidate agent HTTP listener or authentication did not become ready.' > "$ROOT/last-error"; exit 1
+fi
+pulse
+if ! "$RELEASE/u60-screen" --probe-agent --local-agent --prefs "$PREFS" >>"$ROOT/probe.log" 2>&1; then
     echo 'The candidate agent failed authenticated live-data verification.' > "$ROOT/last-error"; exit 1
 fi
 pulse

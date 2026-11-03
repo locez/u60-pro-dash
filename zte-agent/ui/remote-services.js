@@ -126,6 +126,7 @@
   const tv=input(update,'tailscale-version','Version',{value:'1.104.4',required:true}),th=input(update,'tailscale-sha256','Package SHA-256',{required:true});tv.defaultValue='1.104.4';th.pattern='[a-fA-F0-9]{64}';tv.pattern='[0-9]+\\.[0-9]+\\.[0-9]+';
   ts.guard(submit(update,'Install version',()=>ts.write('update',{version:tv.value,sha256:th.value},'Install this Tailscale version. Check the service status here until the update completes.',{node:update,label:'Install version'})),d=>!d.updating);
   ts.onDraw=d=>{
+    ts.fact('Remote web port',d.management_port);
     ts.heading(d.updating?'Updating Tailscale':d.backend_state==='Running'?'Connected':d.enabled?(d.backend_state||'Starting'):'Stopped',d.backend_state==='Running'&&!d.updating);
     ts.fact('Installed version',d.client_version||d.pinned_version||(d.installed?'Installed':'Not installed'));ts.fact('Addresses',(d.tailscale_ips||[]).join(' · '));ts.fact('Network name',d.dns_name);ts.fact('Routing mode',d.gateway_mode?'Kernel gateway':'Device access only');ts.fact('Remote route preference',d.accept_routes_effective?'Enabled while running':'Not active');ts.fact('Health',(d.health||[]).join(' · ')||'No reported warning');ts.fact('Latest update',typeof d.last_update==='string'?d.last_update:(d.last_update?JSON.stringify(d.last_update):'No update recorded'));
     if(!tf.dataset.dirty){hostname.value=d.hostname||'';routes.value=(d.advertise_routes||[]).join(', ');accept.value=String(d.accept_routes!==false);ssh.value=String(!!d.tailscale_ssh);wake.value=String(!!d.hold_wakelock);}
