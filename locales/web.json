@@ -1602,13 +1602,6 @@
     "ja": "バッテリーのワットは,測定された電圧 ×電流から計算されます. カーネルドライバの別々の電源読み方は不一致で,以下の報告されたフィールドに保存されます.",
     "ko": "배터리 와트는 측정된 전압 × 전류에서 계산된다. 커널 드라이버의 별도의 전력 판독은 일관성이 없습니다. 그것은 아래 보고된 필드에 보존됩니다."
   },
-  "Bearer {0}": {
-    "en": "Bearer {0}",
-    "zh-Hans": "承载 {0}",
-    "zh-Hant": "承載 {0}",
-    "ja": "ベアラー {0}",
-    "ko": "베어러 {0}"
-  },
   "Before trusting the certificate, compare the SHA-256 fingerprint above with the one shown on your device. For a trusted comparison, use this page over HTTPS on a device that already trusts the router, or compare with sha256sum /data/zte-agent-tls/ca.crt over SSH. Plain HTTP can be altered by someone on the network.": {
     "en": "Before trusting the certificate, compare the SHA-256 fingerprint above with the one shown on your device. For a trusted comparison, use this page over HTTPS on a device that already trusts the router, or compare with sha256sum /data/zte-agent-tls/ca.crt over SSH. Plain HTTP can be altered by someone on the network.",
     "zh-Hans": "在信任证书之前,请比较上面的 SHA-256 指纹与设备上显示的指纹. 对于可靠的比较,请在已信赖路由器的设备上使用HTTPS以上的页面,或者在SSH上使用sha256sum /data/zte-agent-tls/ca.crt进行比较. 在网络上有人可以改变.",
@@ -5489,10 +5482,10 @@
   },
   "Live connection interrupted. Reconnecting automatically…": {
     "en": "Live connection interrupted. Reconnecting automatically…",
-    "zh-Hans": "现场连接中断. 自动重新连接...",
-    "zh-Hant": "現場連線中斷. 自動重新連線...",
-    "ja": "ライブ接続が切断されました 自動的に再接続する...",
-    "ko": "라이브 연결이 끊어졌어요 자동으로 다시 연결..."
+    "zh-Hans": "实时连接已中断，正在自动重连…",
+    "zh-Hant": "即時連線已中斷，正在自動重新連線…",
+    "ja": "リアルタイム接続が切断されました。自動再接続中…",
+    "ko": "실시간 연결이 끊겼습니다. 자동으로 다시 연결하는 중…"
   },
   "Live delivery outcomes. Held messages wait for connectivity and retry automatically.": {
     "en": "Live delivery outcomes. Held messages wait for connectivity and retry automatically.",
@@ -7561,10 +7554,10 @@
   },
   "Profiles have not been read yet.": {
     "en": "Profiles have not been read yet.",
-    "zh-Hans": "目前还没有读过配置文件.",
-    "zh-Hant": "目前還沒有讀過配置檔案.",
-    "ja": "プロフィールはまだ読まれていません",
-    "ko": "프로필은 아직 읽지 않았습니다."
+    "zh-Hans": "尚未读取 eSIM 配置。",
+    "zh-Hant": "尚未讀取 eSIM 設定。",
+    "ja": "eSIM プロファイルは未取得です。",
+    "ko": "eSIM 프로파일을 아직 읽지 않았습니다."
   },
   "Profiles loaded.": {
     "en": "Profiles loaded.",
@@ -12132,10 +12125,10 @@
   },
   "Waiting for eSIM profiles.": {
     "en": "Waiting for eSIM profiles.",
-    "zh-Hans": "在等待配置文件.",
-    "zh-Hant": "在等待配置檔案.",
-    "ja": "eSIM プロフィールを待っています",
-    "ko": "eSIM 프로필을 기다리고 있습니다."
+    "zh-Hans": "等待 eSIM 配置。",
+    "zh-Hant": "等待 eSIM 設定。",
+    "ja": "eSIM プロファイルを待機中。",
+    "ko": "eSIM 프로파일 대기 중."
   },
   "Waiting for eSIM status.": {
     "en": "Waiting for eSIM status.",

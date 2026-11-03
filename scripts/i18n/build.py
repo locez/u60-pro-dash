@@ -20,6 +20,8 @@ def placeholders(text):
 def read(name):
     data = json.loads((ROOT / 'locales' / (name + '.json')).read_text())
     for source, values in data.items():
+        if re.fullmatch(r'(?:Bearer|Basic)\s+\{\d+\}', source):
+            raise SystemExit(f'{name}: HTTP authorization must not be translated: {source!r}')
         for language in LANGUAGES:
             value = values.get(language)
             if not isinstance(value, str) or not value:

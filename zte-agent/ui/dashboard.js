@@ -18,13 +18,15 @@
   text('settings-address', location.origin);
   $('signout').hidden = !token;
 
+  // HTTP authentication is protocol data, independent of the display language.
+  const authHeaders = () => token ? { Authorization: `Bearer ${token}` } : {};
   async function api(path, options = {}) {
     const requestAuthEpoch = authEpoch;
     const {timeoutMs = 8000, ...fetchOptions} = options;
     const response = await fetch(path, {
       ...fetchOptions, cache: 'no-store',
       signal: AbortSignal.timeout(Math.min(Math.max(timeoutMs,1000),600000)),
-      headers: { ...(token ? { Authorization: tr("Bearer {0}", token) } : {}), ...(options.body ? { 'Content-Type': 'application/json' } : {}) }
+      headers: { ...authHeaders(), ...(options.body ? { 'Content-Type': 'application/json' } : {}) }
     });
     if (response.status === 401) {
       const error = new Error(tr('Enter your agent password to continue.'));
@@ -150,7 +152,7 @@
     if (!transportLive) reason = lastReceived ? tr('Router unreachable') : tr('Waiting for router');
     else if (radioMode && radioMode !== 'ONLINE') reason = tr("Radio offline · {0}", radioMode);
     else if (wan?.ok && wan.data?.up === false) reason = tr('Mobile data offline');
-    else if (signal?.ok && OpenU60Cellular.parse(signal.data || {}).mode === 'No service') reason = tr('Cellular service unavailable');
+    else if (signal?.ok && OpenU60Cellular.parse(signal.data || {}).noService) reason = tr('Cellular service unavailable');
     else if (!wan?.ok) reason = tr('Mobile data status unavailable');
     const interrupted = reason && (transportLive || lastReceived !== null);
     if (interrupted && outageStarted === null) { outageStarted = Date.now(); outageCount++; }
@@ -391,7 +393,7 @@
       // Fetch keeps bearer tokens out of URLs while supporting an SSE response body.
       const response = await fetch(`/api/dashboard/events${streamKey}`, {
         cache: 'no-store', signal: connection.signal,
-        headers: { Accept: 'text/event-stream', ...(token ? { Authorization: tr("Bearer {0}", token) } : {}) }
+        headers: { Accept: 'text/event-stream', ...authHeaders() }
       });
       if (session !== epoch) return;
       if (response.status === 401) { lock(); return; }

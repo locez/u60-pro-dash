@@ -24,7 +24,7 @@ bash u60-screen/native.sh snapshot /tmp/u60-ko.png --language ko --page lock
 - `zte-agent/ui/locales.js`：生成的浏览器资源。
 - `u60-screen/translations/*/LC_MESSAGES/u60-screen.po`：生成的 Slint 资源。
 
-新增界面文案时补齐五种语言。Web 使用 `tr('Message {0}', value)`，静态 HTML 使用 `data-i18n`；Rust 使用 `i18n::tr` / `i18n::format`，Slint 使用 `@tr`。占位符参数只能作为字面值插入，不能再递归翻译；API 参数值不能作为翻译键。预览 catalog 的显示文案也需进入屏幕词表。
+新增界面文案时补齐五种语言。Web 使用 `tr('Message {0}', value)`，静态 HTML 使用 `data-i18n`；Rust 使用 `i18n::tr` / `i18n::format`，Slint 使用 `@tr`。占位符参数只能作为字面值插入，不能再递归翻译；API 参数、认证头和其他协议值不能作为翻译键。业务判断使用稳定状态值，不能比较翻译后的显示文字。预览 catalog 的显示文案也需进入屏幕词表。
 
 ```bash
 python3 scripts/i18n/build.py
@@ -43,3 +43,5 @@ bash u60-screen/native.sh test
 2026-11-03：五种语言共 1,909 条 Web 文案、1,584 条屏幕文案通过完整性与占位符检查；屏幕字体覆盖全部译文字符。51 项原生屏幕测试、5 项后台 Web 资源测试、20 项部署脚本测试，以及包含多语言专项的 26 组 Web 回归通过。Chrome 已验证手机和桌面布局、草稿取消、语言持久化与底部导航；日语小屏导航已调整字号，避免截断。
 
 `clients.cjs` 和 `numbers.cjs` 的旧断言仍将概览页读取 eSIM 配置视为额外请求，在语言改动前的 `ff4f6e9` 也能复现。`navigation.cjs` 的 Chrome 部分通过，WebKit 因测试电脑缺少其运行库而未完成。本记录不代表在实体设备上验证了全部语言。
+
+后续修复：认证头的 `Bearer` 曾被误翻译，导致非英语页面无法建立已认证的实时连接或读取设置。现将认证头保持为固定协议值，并从词表移除；无蜂窝服务的状态判断也已独立于显示语言。多语言浏览器测试改为强制密码登录，先复现失败，再验证五种语言的实时数据、设置请求、切换后会话保留和无服务提示；会话、概览、设置控件回归通过。所有写入仅发送到本地测试服务。

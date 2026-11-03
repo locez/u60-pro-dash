@@ -64,7 +64,7 @@
     const nsa = normalized.includes('NSA') || normalized === 'ENDC';
     const sa = !nsa && (normalized === 'SA' || /(?:NR5G|5G|NR)SA/.test(normalized));
     const lteHint = /LTE|4G/.test(normalized);
-    let mode = tr('Not reported'), explanation = '';
+    let mode = tr('Not reported'), explanation = '', noService = false;
     if (sa) { mode = tr('5G SA'); explanation = tr('Standalone NR · LTE is not an anchor in this mode.'); }
     else if (nr.measured && (nsa || lteHint || lte.measured)) {
       mode = tr('5G NSA'); explanation = nsa ? tr('NR with an LTE anchor.') : tr('NSA inferred from the reported LTE and NR measurements.');
@@ -74,12 +74,12 @@
     } else if (nr.measured) {
       mode = tr('5G · mode unreported'); explanation = tr('NR is measured; the modem has not confirmed SA or NSA.');
     } else if (nsa) { mode = tr('5G NSA · no signal'); explanation = tr('Reported access mode; no serving signal is currently measured.'); }
-    else if (/NO.?SERVICE|OFFLINE|DISCONNECTED|SEARCH/.test(normalized)) { mode = tr('No service'); }
+    else if (/NO.?SERVICE|OFFLINE|DISCONNECTED|SEARCH/.test(normalized)) { noService = true; mode = tr('No service'); }
     else if (raw) { mode = raw; }
     lte.inUse = !sa && lte.measured;
     nr.inUse = nr.measured;
     const primary = (nr.inUse ? nr : lte.inUse ? lte : {carriers:[]}).carriers.find(carrier => carrier.rsrp !== null) || null;
-    return {lte, nr, mode, explanation, primary, sa, hasSignal: nr.measured || lte.inUse};
+    return {lte, nr, mode, explanation, primary, sa, noService, hasSignal: nr.measured || lte.inUse};
   }
   const api = {parse};
   if (typeof module === 'object' && module.exports) module.exports = api;
