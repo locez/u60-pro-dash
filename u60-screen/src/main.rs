@@ -360,7 +360,7 @@ mod tests {
         assert!(app.ui.get_feature_has_qr());
         save("live-tailscale-qr.png")?;
         app.feature_data_fixture("proxy-service", fixture(vec![("status",serde_json::json!({"installed":true,"version":"1.0.0","configured":true,"running":true,"capturing":true,"mode":"rule","capture":"hotspot"}))]));
-        assert_eq!(app.ui.get_feature_fields().row_count(), 2);
+        assert_eq!(app.ui.get_feature_fields().row_count(), 0);
         save("proxy-service.png")?;
         app.feature_data_fixture("proxy-groups", fixture(vec![
             ("status",serde_json::json!({"running":true})),

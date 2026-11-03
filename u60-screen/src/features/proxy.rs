@@ -15,6 +15,10 @@ pub fn reads(id: &str) -> Option<Vec<Read>> {
 pub fn page(id: &str, readings: &Data) -> Page {
     let d = data(readings, "status");
     let mut p = Page::default();
+    if d.is_null() {
+        p.note = "代理服务接口不可用，请更新兼容的后台程序后重试。".into();
+        return p;
+    }
     let running = d["running"] == true;
     if id == "proxy-service" {
         p.row(
@@ -51,22 +55,42 @@ pub fn page(id: &str, readings: &Data) -> Page {
         if !d["last_error"].is_null() {
             p.row("运行提示", &d["last_error"]);
         }
-        p.fields.push(Field::choice(
-            "mode",
-            "代理策略",
-            &d["mode"],
-            &[
-                ("rule", "按规则分流"),
-                ("global", "全局选择组"),
-                ("direct", "直接连接"),
-            ],
-        ));
-        p.fields.push(Field::choice(
-            "capture",
-            "流量范围",
-            &d["capture"],
-            &[("local", "仅本机应用"), ("hotspot", "Wi-Fi 热点设备")],
-        ));
+        if running {
+            p.row(
+                "代理策略",
+                &json!(match d["mode"].as_str() {
+                    Some("rule") => "按规则分流",
+                    Some("global") => "全局选择组",
+                    Some("direct") => "直接连接",
+                    _ => "未提供",
+                }),
+            );
+            p.row(
+                "流量范围",
+                &json!(if d["capture"] == "hotspot" {
+                    "Wi-Fi 热点设备"
+                } else {
+                    "仅本机应用"
+                }),
+            );
+        } else {
+            p.fields.push(Field::choice(
+                "mode",
+                "代理策略",
+                &d["mode"],
+                &[
+                    ("rule", "按规则分流"),
+                    ("global", "全局选择组"),
+                    ("direct", "直接连接"),
+                ],
+            ));
+            p.fields.push(Field::choice(
+                "capture",
+                "流量范围",
+                &d["capture"],
+                &[("local", "仅本机应用"), ("hotspot", "Wi-Fi 热点设备")],
+            ));
+        }
         for (action, label, warning, enabled) in [
             (
                 "enable",
@@ -228,7 +252,12 @@ mod tests {
             Ok(json!({"running":true,"mode":"rule","capture":"hotspot"})),
         )]);
         let p = page("proxy-service", &d);
-        assert!(p.fields.iter().all(|f| !f.available));
+        assert!(p.fields.is_empty());
+        assert!(
+            p.rows
+                .iter()
+                .any(|(label, value)| label == "代理策略" && value == "按规则分流")
+        );
         assert!(plan("proxy-service", "settings", &p, &d).is_err());
     }
 }
