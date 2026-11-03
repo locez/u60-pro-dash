@@ -23,6 +23,7 @@ struct Options {
     set_probe_target: Option<String>,
     check_target: Option<std::net::SocketAddr>,
     device: bool,
+    service: bool,
     screenshot: Option<PathBuf>,
     prefs: Option<PathBuf>,
     page: Option<String>,
@@ -50,6 +51,11 @@ fn options() -> Result<Options> {
             "--set-probe-target" => opts.set_probe_target = Some(value()?),
             "--check-target" => opts.check_target = Some(agent::connectivity::target(&value()?)?),
             "--device" => opts.device = true,
+            "--service" => opts.service = true,
+            "--version" => {
+                println!("u60-screen {}", env!("CARGO_PKG_VERSION"));
+                std::process::exit(0);
+            }
             "--screenshot" => opts.screenshot = Some(value()?.into()),
             "--prefs" => opts.prefs = Some(value()?.into()),
             "--page" => opts.page = Some(value()?),
@@ -80,6 +86,7 @@ fn options() -> Result<Options> {
                     --rotate 0|180        Output orientation (device default: 180)\n\
                     --touch-rotate 0|180  Independent input calibration (default: 180)\n\
                     --touch /dev/input/eventN  Override Sitronix auto-detection\n\
+                    --service             Persistent device session; requires project supervisor\n\
                     --seconds 5..600      Device trial deadline\n\n\
                     --agent HOST:PORT     Live agent through a loopback tunnel\n\
                     --demo                Use demonstration data, also on device\n\
@@ -95,6 +102,9 @@ fn options() -> Result<Options> {
             }
             _ => bail!("unknown option {arg}; use --help"),
         }
+    }
+    if opts.service && (!opts.device || opts.seconds.is_some()) {
+        bail!("--service requires --device and cannot set --seconds");
     }
     if opts.device && opts.screenshot.is_some() {
         bail!("--device and --screenshot are mutually exclusive");
@@ -218,7 +228,11 @@ fn main() -> Result<()> {
         return device::run(
             &app,
             software.expect("software platform"),
-            opts.seconds.unwrap_or(90),
+            if opts.service {
+                None
+            } else {
+                Some(opts.seconds.unwrap_or(90))
+            },
             opts.rotate.unwrap_or(true),
             opts.touch_rotate.unwrap_or(true),
             opts.touch.as_deref(),

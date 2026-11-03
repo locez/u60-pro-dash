@@ -15,6 +15,7 @@ mod dashboard;
 mod dashboard_extra;
 mod data_usage;
 mod device_ext;
+mod deployment;
 mod dns_control;
 pub mod doh;
 mod esim;
@@ -77,6 +78,12 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.get(1).map(String::as_str) == Some("--proxy-watchdog") {
         std::process::exit(proxy::watchdog_cli(&args[2..]));
+    }
+    if args.get(1).map(String::as_str) == Some("dash-health") {
+        std::process::exit(deployment::health_cli());
+    }
+    if args.get(1).map(String::as_str) == Some("dash-export-env") {
+        std::process::exit(deployment::cli());
     }
     if args.get(1).map(String::as_str) == Some("--version") {
         println!("zte-agent {}", build_info::display());

@@ -56,19 +56,13 @@ impl Drop for Backlight {
 pub fn run(
     app: &App,
     window: Rc<MinimalSoftwareWindow>,
-    seconds: u64,
+    seconds: Option<u64>,
     rotate: bool,
     touch_rotate: bool,
     touch: Option<&Path>,
 ) -> Result<()> {
-    ensure!(
-        std::env::var("U60_SCREEN_HANDOFF").as_deref() == Ok("guarded"),
-        "use scripts/device-trial.sh; a rollback guard must own the handoff"
-    );
-    ensure!(
-        (5..=600).contains(&seconds),
-        "device trials must last 5..600 seconds"
-    );
+    validate_session(seconds, std::env::var("U60_SCREEN_HANDOFF").ok().as_deref())?;
+    let mut heartbeat = (seconds.is_none()).then(Heartbeat::new);
     let stop = Arc::new(AtomicBool::new(false));
     signal_hook::flag::register(signal_hook::consts::SIGTERM, stop.clone())?;
     signal_hook::flag::register(signal_hook::consts::SIGINT, stop.clone())?;
@@ -82,10 +76,15 @@ pub fn run(
     let mut asleep = false;
     let mut wake_touch = false;
     display.run(&window, rotate, || {
-        if stop.load(Ordering::Relaxed) || start.elapsed() >= Duration::from_secs(seconds) {
+        if stop.load(Ordering::Relaxed)
+            || seconds.is_some_and(|limit| start.elapsed() >= Duration::from_secs(limit))
+        {
             return Ok(false);
         }
         if !first {
+            if let Some(heartbeat) = &mut heartbeat {
+                heartbeat.tick()?;
+            }
             let deadline = slint::platform::duration_until_next_timer_update()
                 .unwrap_or(Duration::from_millis(500));
             // Cap waits for signal/deadline response. No fixed-rate redraw while idle.
@@ -139,6 +138,58 @@ pub fn run(
         Ok(true)
     })?;
     app.ui.hide()?;
-    eprintln!("screen: trial ended normally");
+    eprintln!("screen: session ended normally");
     Ok(())
+}
+
+fn validate_session(seconds: Option<u64>, guard: Option<&str>) -> Result<()> {
+    match seconds {
+        Some(seconds) => ensure!(
+            guard == Some("guarded") && (5..=600).contains(&seconds),
+            "device trials require a recovery guard and 5..600 seconds"
+        ),
+        None => ensure!(
+            guard == Some("service"),
+            "persistent screen requires the project supervisor"
+        ),
+    }
+    Ok(())
+}
+struct Heartbeat {
+    last: Option<Instant>,
+    sequence: u64,
+}
+impl Heartbeat {
+    fn new() -> Self {
+        Self {
+            last: None,
+            sequence: 0,
+        }
+    }
+    fn tick(&mut self) -> Result<()> {
+        if self
+            .last
+            .is_some_and(|t| t.elapsed() < Duration::from_secs(2))
+        {
+            return Ok(());
+        }
+        self.sequence += 1;
+        let root = Path::new("/tmp/u60-dash-run");
+        fs::write(root.join("heartbeat.new"), self.sequence.to_string())
+            .context("screen watchdog heartbeat")?;
+        fs::rename(root.join("heartbeat.new"), root.join("heartbeat"))?;
+        self.last = Some(Instant::now());
+        Ok(())
+    }
+}
+#[cfg(test)]
+mod session_tests {
+    #[test]
+    fn persistent_mode_requires_its_guard_and_trials_remain_bounded() {
+        assert!(super::validate_session(None, Some("service")).is_ok());
+        assert!(super::validate_session(None, Some("guarded")).is_err());
+        assert!(super::validate_session(Some(90), Some("guarded")).is_ok());
+        assert!(super::validate_session(Some(601), Some("guarded")).is_err());
+        assert!(super::validate_session(Some(0), Some("service")).is_err());
+    }
 }

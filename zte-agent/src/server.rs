@@ -247,6 +247,13 @@ pub fn parse_query_usize(query: Option<&str>, key: &str) -> Option<usize> {
 }
 
 fn route_inner(method: &Method, path: &str, state: &AppState, body: &[u8]) -> (u16, Value) {
+    if crate::deployment::paired()
+        && path.starts_with("/api/update/")
+        && !matches!(method, Method::Get)
+    {
+        return (409, json!({"ok":false,"error":"This installation updates agent and screen together. Use bash dash.sh install or rollback."}));
+    }
+
     crate::httpd::gate::debug_assert_may_block();
     if *method != Method::Get {
         crate::httpd::gate::debug_assert_may_change(path);

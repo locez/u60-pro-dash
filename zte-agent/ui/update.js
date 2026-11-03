@@ -23,16 +23,16 @@
   function render(next = status) {
     if (next) status = next;
     if (!status) return;
-    const current = status.current || {}, progress = status.progress || {};
+    const current = status.current || {}, progress = status.progress || {}, managed = status.deployment_mode === 'paired';
     $('update-current-version').textContent = current.version ? `v${current.version}` : 'Unknown';
     $('update-current-commit').textContent = [current.commit,current.target].filter(Boolean).join(' · ') || 'Build details unavailable';
     $('update-channel-state').textContent = status.channel === 'beta' ? 'Beta' : 'Stable';
     $('update-check-time').textContent = status.last_check ? `Last checked ${new Date(status.last_check * 1000).toLocaleString()}` : 'Not checked yet';
     $('update-phase').textContent = status.trial_in_progress ? 'Health trial' : title(status.phase);
-    $('update-guard').textContent = status.bootstrap_ready ? 'A/B recovery ready' : 'Bootstrap required';
-    $('update-slot').textContent = status.active_slot ? `Active slot ${status.active_slot.toUpperCase()} · agent-only restart` : 'Install once over SSH to enable OTA';
+    $('update-guard').textContent = managed ? 'Agent + screen deployment' : status.bootstrap_ready ? 'A/B recovery ready' : 'Bootstrap required';
+    $('update-slot').textContent = managed ? 'Managed by the project deployment script' : status.active_slot ? `Active slot ${status.active_slot.toUpperCase()} · agent-only restart` : 'Install once over SSH to enable OTA';
     const release = status.available, staged = status.staged;
-    $('update-state-detail').textContent = status.last_error || (!status.signing_configured ? 'This development build has no release verification key.' : staged ? `v${staged.version} is verified and staged.` : release ? `v${release.version} is ready to download.` : 'No newer signed release reported.');
+    $('update-state-detail').textContent = (managed ? 'Update both programs together with bash dash.sh install; use bash dash.sh rollback to restore the previous pair.' : status.last_error) || (!status.signing_configured ? 'This development build has no release verification key.' : staged ? `v${staged.version} is verified and staged.` : release ? `v${release.version} is ready to download.` : 'No newer signed release reported.');
     $('update-release').hidden = !release;
     if (release) {
       $('update-available-version').textContent = `v${release.version}${staged?.version === release.version ? ' · STAGED' : ''}`;
@@ -51,12 +51,12 @@
       autoDownload.checked = status.settings?.automatic_downloads === true;
       baseline = currentSettings();
     }
-    fields.disabled = false;
-    save.disabled = busy || currentSettings() === baseline;
-    check.disabled = busy || !status.signing_configured;
-    download.disabled = busy || !release || staged?.version === release.version;
-    install.disabled = busy || !staged || !status.bootstrap_ready || status.trial_in_progress;
-    rollback.disabled = busy || !status.bootstrap_ready || !status.rollback_available || status.trial_in_progress;
+    fields.disabled = managed;
+    save.disabled = managed || busy || currentSettings() === baseline;
+    check.disabled = managed || busy || !status.signing_configured;
+    download.disabled = managed || busy || !release || staged?.version === release.version;
+    install.disabled = managed || busy || !staged || !status.bootstrap_ready || status.trial_in_progress;
+    rollback.disabled = managed || busy || !status.bootstrap_ready || !status.rollback_available || status.trial_in_progress;
   }
   form.addEventListener('input',()=>{ save.disabled = busy || currentSettings() === baseline; });
   form.addEventListener('submit',async event => {
