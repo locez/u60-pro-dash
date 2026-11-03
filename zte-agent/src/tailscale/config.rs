@@ -18,6 +18,8 @@ pub struct TsConfig {
     pub hold_wakelock: bool,
     #[serde(default)]
     pub tailscale_ssh: bool,
+    #[serde(default = "default_true")]
+    pub accept_routes: bool,
     #[serde(default)]
     pub pinned_version: String,
 }
@@ -39,6 +41,7 @@ impl Default for TsConfig {
             advertise_routes: Vec::new(),
             hold_wakelock: true,
             tailscale_ssh: false,
+            accept_routes: true,
             pinned_version: String::new(),
         }
     }
@@ -50,6 +53,7 @@ pub struct TsConfigPatch {
     pub advertise_routes: Option<Vec<String>>,
     pub hold_wakelock: Option<bool>,
     pub tailscale_ssh: Option<bool>,
+    pub accept_routes: Option<bool>,
 }
 
 impl TsConfig {
@@ -72,6 +76,7 @@ impl TsConfig {
         if let Some(v) = patch.hold_wakelock {
             self.hold_wakelock = v;
         }
+        if let Some(v) = patch.accept_routes { self.accept_routes = v; }
         if let Some(v) = patch.tailscale_ssh {
             self.tailscale_ssh = v;
         }

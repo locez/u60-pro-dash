@@ -3265,3 +3265,27 @@ dialog[data-motion="closing"]::backdrop { animation: dialog-scrim-out .12s ease-
   html[data-navigation-motion="true"] .sidebar-toggle svg,
   html[data-navigation-motion="true"] .sidebar * { transition:none!important; }
 }
+
+/* Remote service workspaces share the console's type and colour system. */
+.service-summary{display:flex;align-items:center;gap:12px;margin:24px 0 6px;font-size:1.4rem;letter-spacing:-.035em}
+.service-indicator{width:10px;height:10px;flex:none;border-radius:50%;background:var(--muted)}
+.service-indicator[data-running=true]{background:var(--accent);box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 12%,transparent)}
+.service-form{border-top:1px solid var(--line);padding-top:24px;margin-top:28px}
+.service-form .form-section-title,.service-form>.panel-note,.service-form>.form-actions{grid-column:1/-1}
+.service-form textarea{width:100%;min-height:140px;resize:vertical;font:13px/1.6 var(--mono);box-sizing:border-box}
+.service-form .field:has(textarea){grid-column:1/-1}
+.service-form input,.service-form select,.service-group select{min-width:0;width:100%;box-sizing:border-box}
+.service-groups{display:grid;gap:16px;margin:16px 0 28px}
+.service-group{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:8px 18px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.service-group>.reading-caption{grid-column:1;grid-row:2}
+.service-group>.button{grid-column:2;grid-row:1}
+#proxy-service .settings-facts dd,#tailscale-service .settings-facts dd{overflow-wrap:anywhere}
+@media(max-width:540px){.service-group{grid-template-columns:minmax(0,1fr)}.service-group>.button{grid-column:1;grid-row:3;justify-self:start}}
+.service-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.service-form>.field,.service-group>.field{display:flex;flex-direction:column;gap:8px;min-width:0}
+.service-form .field-help{display:block;font-weight:400;line-height:1.55;color:var(--muted)}
+.service-form input[type=file]{font-weight:400}
+.service-advanced{margin-top:28px;border-top:1px solid var(--line);padding-top:20px}
+.service-advanced>summary{cursor:pointer;font-weight:600;padding:8px 0}
+.service-advanced .service-form:first-of-type{border-top:0;margin-top:8px}
+@media(max-width:700px){.service-form{grid-template-columns:minmax(0,1fr)}}

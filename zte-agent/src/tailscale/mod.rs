@@ -822,6 +822,8 @@ impl TailscaleManager {
             "hold_wakelock": cfg.hold_wakelock,
             "pinned_version": cfg.pinned_version,
             "gateway_mode": gateway_mode(),
+            "accept_routes": cfg.accept_routes,
+            "accept_routes_effective": gateway_mode() && cfg.accept_routes,
         });
 
         if !installed() {
@@ -1096,7 +1098,7 @@ fn pref_args_for_mode(cfg: &TsConfig, verb: &str, gateway: bool) -> Vec<String> 
     let mut args = vec![
         verb.to_string(),
         "--accept-dns=false".to_string(),
-        format!("--accept-routes={gateway}"),
+        format!("--accept-routes={}", gateway && cfg.accept_routes),
         format!("--hostname={}", cfg.hostname),
         format!("--advertise-routes={}", cfg.advertise_routes.join(",")),
         format!("--ssh={}", cfg.tailscale_ssh),
@@ -1648,6 +1650,17 @@ mod tests {
             assert_eq!(flags.iter().any(|f| f == "--reset"), verb == "up");
         }
         assert_eq!(tun_name(true), "tailscale0");
+    }
+
+    #[test]
+    fn remote_route_preference_is_persistent_and_gateway_scoped() {
+        let mut cfg: TsConfig = serde_json::from_str(r#"{"enabled":true}"#).unwrap();
+        assert!(cfg.accept_routes, "older gateway configurations retain route acceptance");
+        cfg.apply_patch(serde_json::from_str(r#"{"accept_routes":false}"#).unwrap()).unwrap();
+        for verb in ["up", "set"] {
+            assert!(pref_args_for_mode(&cfg,verb,true).contains(&"--accept-routes=false".into()));
+        }
+        assert!(!serde_json::from_slice::<TsConfig>(&serde_json::to_vec(&cfg).unwrap()).unwrap().accept_routes);
     }
 
     #[test]
