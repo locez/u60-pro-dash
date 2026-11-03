@@ -140,6 +140,9 @@ msgstr "クリア"
 msgid "演示"
 msgstr "デモ"
 
+msgid "演示运营商"
+msgstr "サンプル通信事業者"
+
 msgid "熄屏"
 msgstr "画面を消灯"
 

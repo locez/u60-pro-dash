@@ -495,6 +495,13 @@ impl State {
             return;
         }
         ui.set_network_online(self.scenario != 2);
+        ui.set_carrier_label(
+            if self.scenario == 2 {
+                crate::i18n::tr("无服务")
+            } else {
+                crate::i18n::tr("演示运营商")
+            }.into(),
+        );
         ui.set_tailnet_online(self.scenario != 2);
         ui.set_battery(if self.scenario == 3 { "14%" } else { "82%" }.into());
         ui.set_battery_level(if self.scenario == 3 { 14 } else { 82 });
@@ -576,6 +583,8 @@ impl State {
             self.live_revision = snapshot.revision;
             let dashboard = crate::agent::model::Dashboard::read(&snapshot);
             ui.set_connection_label(snapshot.status.label().into());
+            ui.set_connection_live(snapshot.status == crate::agent::Status::Live);
+            ui.set_carrier_label(dashboard.carrier.into());
             ui.set_network_mode(dashboard.network.into());
             ui.set_radio_label(dashboard.radio.into());
             ui.set_signal_strength(dashboard.rsrp.into());

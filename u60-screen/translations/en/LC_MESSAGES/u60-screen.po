@@ -140,6 +140,9 @@ msgstr "Clear"
 msgid "演示"
 msgstr "Demo"
 
+msgid "演示运营商"
+msgstr "Example Mobile"
+
 msgid "熄屏"
 msgstr "Screen off"
 

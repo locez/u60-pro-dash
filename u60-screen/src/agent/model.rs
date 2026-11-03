@@ -105,6 +105,7 @@ pub struct Dashboard {
     pub battery_level: i32,
     pub power: Power,
     pub network: String,
+    pub carrier: String,
     pub network_badge: String,
     /// -1 = unavailable, 0 = no service, 1–4 = measured signal strength.
     pub signal_level: i32,
@@ -191,6 +192,16 @@ impl Dashboard {
             battery_level: capacity.map_or(-1, |v| v.round() as i32),
             power: Power::read(battery, charger),
             network_badge: network_badge.into(),
+            carrier: if no_service {
+                crate::i18n::tr("无服务").into()
+            } else {
+                signal["network_provider"]
+                    .as_str()
+                    .map(str::trim)
+                    .filter(|name| !name.is_empty() && !matches!(*name, "—" | "--"))
+                    .unwrap_or(crate::i18n::tr("运营商未提供"))
+                    .into()
+            },
             signal_level,
             online: measured.is_some(),
             rsrp: measured.map(|v| format!("{v:.0}")).unwrap_or("—".into()),
@@ -350,7 +361,7 @@ mod tests {
             ("battery", json!({"capacity":"0"})),
             (
                 "signal",
-                json!({"network_type":"LTE-NSA", "nr5g_rsrp":"-87", "nr5g_action_band":"n78"}),
+                json!({"network_type":"LTE-NSA", "network_provider":"  Example Mobile  ", "nr5g_rsrp":"-87", "nr5g_action_band":"n78"}),
             ),
             (
                 "traffic",
@@ -377,6 +388,10 @@ mod tests {
             ("0%", "10.0", "0.0")
         );
         assert_eq!(model.radio, "5G NSA · n78");
+        assert_eq!(model.carrier, "Example Mobile");
+        state.values.get_mut("signal").unwrap().data["network_type"] = json!("NO_SERVICE");
+        assert_eq!(Dashboard::read(&state).carrier, "无服务");
+        state.values.get_mut("signal").unwrap().data["network_type"] = json!("LTE-NSA");
         state.values.get_mut("signal").unwrap().data["nr5g_rsrp"] = json!(9999);
         assert_eq!(Dashboard::read(&state).rsrp, "—");
         state.values.get_mut("battery").unwrap().failed = true;
@@ -385,5 +400,6 @@ mod tests {
         assert_eq!(Dashboard::read(&state).download, "—");
         state.status = Status::Reconnecting;
         assert_eq!(Dashboard::read(&state).network, "—");
+        assert_eq!(Dashboard::read(&state).carrier, "运营商未提供");
     }
 }

@@ -15,6 +15,7 @@ export component LockScreen inherits Rectangle {
     in property <int> signal-level;
     in property <string> connection-label;
     in property <string> radio-label;
+    in property <string> carrier-label;
     in property <string> signal-strength;
     in property <string> traffic-total;
     in property <bool> network-online;
@@ -34,7 +35,7 @@ export component LockScreen inherits Rectangle {
         power-label: root.power-label;
     }
     Label { x: 14px; y: 32px; height: 18px; text: @tr("NETWORK / 网络状态"); font-size: 12px; color: Palette.muted; }
-    Label { x: 14px; y: 52px; height: 32px; text: @tr("随身网络"); font-size: 22px; font-weight: 650; }
+    Label { x: 14px; y: 52px; width: parent.width - 28px; height: 32px; text: root.carrier-label; font-size: 22px; font-weight: 650; }
     TrafficPanel { x: 12px; y: 92px; width: parent.width - 24px; online: root.network-online; download: root.download; upload: root.upload; network-label: root.radio-label; total: root.traffic-total; }
     HorizontalLayout {
         x: 12px; y: 244px; width: parent.width - 24px; height: 72px; spacing: 10px;

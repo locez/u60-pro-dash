@@ -57,6 +57,8 @@ export component Screen inherits Window {
     callback set-language(string);
     in-out property <bool> demo: true;
     in-out property <string> connection-label: @tr("演示");
+    in-out property <bool> connection-live;
+    in-out property <string> carrier-label: @tr("演示运营商");
     in-out property <string> network-mode: "5G";
     in-out property <string> radio-label: "5G SA · n78";
     in-out property <string> signal-strength: "−86";
@@ -160,7 +162,7 @@ export component Screen inherits Window {
         StatusBar {
             x: 0px; y: 0px; width: parent.width;
             awake: !root.asleep && !root.locked && !root.pin-visible;
-            connection: root.connection-label; network: root.network-badge; signal-level: root.signal-level;
+            connection: root.connection-live ? "" : root.connection-label; network: root.network-badge; signal-level: root.signal-level;
             battery: root.battery; battery-level: root.battery-level;
             charging: root.charging; external-power: root.external-power; bypass-power: root.bypass-power;
             power-label: root.power-label;
@@ -177,7 +179,7 @@ export component Screen inherits Window {
                 VerticalLayout {
                     padding-top: 3px; padding-bottom: 6px; spacing: 2px;
                     Label { text: root.kicker; height: 17px; font-size: 12px; color: Palette.muted; letter-spacing: 0.5px; }
-                    Label { text: root.heading; height: 32px; font-size: 22px; font-weight: 650; }
+                    Label { text: root.view == 0 ? root.carrier-label : root.heading; height: 32px; font-size: 22px; font-weight: 650; }
                 }
             }
         }
@@ -434,7 +436,8 @@ export component Screen inherits Window {
             battery-level: root.battery-level; charging: root.charging;
             external-power: root.external-power; bypass-power: root.bypass-power; power-label: root.power-label;
             network-badge: root.network-badge; signal-level: root.signal-level;
-            connection-label: root.connection-label; radio-label: root.radio-label;
+            connection-label: root.connection-live ? "" : root.connection-label; radio-label: root.radio-label;
+            carrier-label: root.carrier-label;
             signal-strength: root.signal-strength; traffic-total: root.traffic-total;
             download: root.download; upload: root.upload;
             hold-start => { root.hold-start(); }

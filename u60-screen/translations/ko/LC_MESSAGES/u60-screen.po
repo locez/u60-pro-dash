@@ -140,6 +140,9 @@ msgstr "지우기"
 msgid "演示"
 msgstr "데모"
 
+msgid "演示运营商"
+msgstr "예시 통신사"
+
 msgid "熄屏"
 msgstr "화면 끄기"
 
