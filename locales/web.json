@@ -13613,5 +13613,208 @@
     "zh-Hant": "上傳並安裝 {0}？裝置會先驗證安裝包，再替換已安裝的軟體。",
     "ja": "{0} をアップロードしてインストールしますか？ルーターはパッケージを検証してからソフトウェアを置き換えます。",
     "ko": "{0} 파일을 업로드하고 설치할까요? 라우터가 패키지를 검증한 후 설치된 소프트웨어를 교체합니다."
+  },
+  "Apply configuration": {
+    "zh-Hans": "应用配置",
+    "zh-Hant": "套用設定",
+    "en": "Apply configuration",
+    "ja": "設定を適用",
+    "ko": "설정 적용"
+  },
+  "Configuration is valid. No changes have been applied.": {
+    "zh-Hans": "配置校验通过，尚未应用更改。",
+    "zh-Hant": "設定驗證通過，尚未套用變更。",
+    "en": "Configuration is valid. No changes have been applied.",
+    "ja": "設定の検証に成功しました。変更はまだ適用されていません。",
+    "ko": "설정 검증을 통과했습니다. 변경 사항은 아직 적용되지 않았습니다."
+  },
+  "Configuration saved and reloaded.": {
+    "zh-Hans": "配置已保存并重新加载。",
+    "zh-Hant": "設定已儲存並重新載入。",
+    "en": "Configuration saved and reloaded.",
+    "ja": "設定を保存して再読み込みしました。",
+    "ko": "설정을 저장하고 다시 불러왔습니다."
+  },
+  "Configuration saved. You can now start the service.": {
+    "zh-Hans": "配置已保存，现在可以启动服务。",
+    "zh-Hant": "設定已儲存，現在可以啟動服務。",
+    "en": "Configuration saved. You can now start the service.",
+    "ja": "設定を保存しました。サービスを起動できます。",
+    "ko": "설정을 저장했습니다. 이제 서비스를 시작할 수 있습니다."
+  },
+  "Could not confirm the result. The draft is retained; read the current configuration before retrying.": {
+    "zh-Hans": "未能确认操作结果，草稿已保留。重试前请读取当前配置。",
+    "zh-Hant": "無法確認操作結果，草稿已保留。重試前請讀取目前設定。",
+    "en": "Could not confirm the result. The draft is retained; read the current configuration before retrying.",
+    "ja": "結果を確認できません。下書きは保持されています。再試行前に現在の設定を読み込んでください。",
+    "ko": "결과를 확인할 수 없습니다. 초안은 유지됩니다. 다시 시도하기 전에 현재 설정을 불러오세요."
+  },
+  "Current configuration": {
+    "zh-Hans": "当前配置",
+    "zh-Hant": "目前設定",
+    "en": "Current configuration",
+    "ja": "現在の設定",
+    "ko": "현재 설정"
+  },
+  "Current saved configuration loaded.": {
+    "zh-Hans": "已读取当前保存的配置。",
+    "zh-Hant": "已讀取目前儲存的設定。",
+    "en": "Current saved configuration loaded.",
+    "ja": "現在保存されている設定を読み込みました。",
+    "ko": "현재 저장된 설정을 불러왔습니다."
+  },
+  "Fetch, validate and save this subscription. A running service will reload it.": {
+    "zh-Hans": "获取、校验并保存此订阅；正在运行的服务会重新加载配置。",
+    "zh-Hant": "取得、驗證並儲存此訂閱；執行中的服務會重新載入設定。",
+    "en": "Fetch, validate and save this subscription. A running service will reload it.",
+    "ja": "購読設定を取得、検証して保存します。実行中のサービスは設定を再読み込みします。",
+    "ko": "구독 설정을 가져와 검증하고 저장합니다. 실행 중인 서비스는 설정을 다시 불러옵니다."
+  },
+  "File loaded as a draft. Save to apply it.": {
+    "zh-Hans": "文件已载入草稿，保存后才会应用。",
+    "zh-Hant": "檔案已載入草稿，儲存後才會套用。",
+    "en": "File loaded as a draft. Save to apply it.",
+    "ja": "ファイルを下書きとして読み込みました。保存すると適用されます。",
+    "ko": "파일을 초안으로 불러왔습니다. 저장하면 적용됩니다."
+  },
+  "HTTPS subscription for this service. The address is cleared after a confirmed import.": {
+    "zh-Hans": "填写此服务支持的 HTTPS 订阅地址，确认导入成功后清空地址。",
+    "zh-Hant": "填入此服務支援的 HTTPS 訂閱網址，確認匯入成功後清空網址。",
+    "en": "HTTPS subscription for this service. The address is cleared after a confirmed import.",
+    "ja": "このサービスに対応する HTTPS 購読 URL。取り込みを確認した後に URL を消去します。",
+    "ko": "이 서비스가 지원하는 HTTPS 구독 주소입니다. 가져오기를 확인한 후 주소를 지웁니다."
+  },
+  "Import a file or subscription": {
+    "zh-Hans": "导入文件或订阅",
+    "zh-Hant": "匯入檔案或訂閱",
+    "en": "Import a file or subscription",
+    "ja": "ファイルまたは購読設定を取り込む",
+    "ko": "파일 또는 구독 가져오기"
+  },
+  "Import and apply subscription": {
+    "zh-Hans": "导入并应用订阅",
+    "zh-Hant": "匯入並套用訂閱",
+    "en": "Import and apply subscription",
+    "ja": "購読設定を取り込んで適用",
+    "ko": "구독을 가져와 적용"
+  },
+  "Import and save a configuration before starting this service.": {
+    "zh-Hans": "请先导入并保存配置，再启动服务。",
+    "zh-Hant": "請先匯入並儲存設定，再啟動服務。",
+    "en": "Import and save a configuration before starting this service.",
+    "ja": "サービスを起動する前に設定を取り込んで保存してください。",
+    "ko": "서비스를 시작하기 전에 설정을 가져와 저장하세요."
+  },
+  "Install this service before importing its configuration.": {
+    "zh-Hans": "请先安装服务程序，再导入配置。",
+    "zh-Hant": "請先安裝服務程式，再匯入設定。",
+    "en": "Install this service before importing its configuration.",
+    "ja": "設定を取り込む前にサービスをインストールしてください。",
+    "ko": "설정을 가져오기 전에 서비스를 설치하세요."
+  },
+  "No saved configuration. Import a subscription or save a configuration to enable startup.": {
+    "zh-Hans": "尚无已保存的配置。导入订阅或保存配置后才能启动。",
+    "zh-Hant": "尚無已儲存的設定。匯入訂閱或儲存設定後才能啟動。",
+    "en": "No saved configuration. Import a subscription or save a configuration to enable startup.",
+    "ja": "保存済みの設定はありません。購読設定を取り込むか設定を保存すると起動できます。",
+    "ko": "저장된 설정이 없습니다. 구독을 가져오거나 설정을 저장하면 시작할 수 있습니다."
+  },
+  "Open configuration": {
+    "zh-Hans": "打开配置",
+    "zh-Hant": "開啟設定",
+    "en": "Open configuration",
+    "ja": "設定を開く",
+    "ko": "설정 열기"
+  },
+  "Read and edit the saved YAML. Changes are validated before saving; a running service applies them with reload.": {
+    "zh-Hans": "读取并编辑已保存的 YAML。保存前先校验，运行中的服务通过 reload 应用更改。",
+    "zh-Hant": "讀取並編輯已儲存的 YAML。儲存前先驗證，執行中的服務透過 reload 套用變更。",
+    "en": "Read and edit the saved YAML. Changes are validated before saving; a running service applies them with reload.",
+    "ja": "保存済みの YAML を読み込んで編集します。保存前に検証し、実行中のサービスには再読み込みで適用します。",
+    "ko": "저장된 YAML을 불러와 편집합니다. 저장 전에 검증하고 실행 중인 서비스에는 다시 불러오기로 적용합니다."
+  },
+  "Reload": {
+    "zh-Hans": "重新加载",
+    "zh-Hant": "重新載入",
+    "en": "Reload",
+    "ja": "再読み込み",
+    "ko": "다시 불러오기"
+  },
+  "Reload saved configuration": {
+    "zh-Hans": "重新加载已保存配置",
+    "zh-Hant": "重新載入已儲存設定",
+    "en": "Reload saved configuration",
+    "ja": "保存済み設定を再読み込み",
+    "ko": "저장된 설정 다시 불러오기"
+  },
+  "Reload the saved configuration without replacing the draft in this editor.": {
+    "zh-Hans": "重新加载已保存的配置，保留编辑器中的未保存草稿。",
+    "zh-Hant": "重新載入已儲存的設定，保留編輯器中尚未儲存的草稿。",
+    "en": "Reload the saved configuration without replacing the draft in this editor.",
+    "ja": "保存済みの設定を再読み込みします。エディター内の下書きは保持されます。",
+    "ko": "저장된 설정을 다시 불러옵니다. 편집기의 초안은 유지됩니다."
+  },
+  "Save and reload": {
+    "zh-Hans": "保存并重新加载",
+    "zh-Hant": "儲存並重新載入",
+    "en": "Save and reload",
+    "ja": "保存して再読み込み",
+    "ko": "저장 후 다시 불러오기"
+  },
+  "Saved configuration reloaded. Your editor draft is still unsaved.": {
+    "zh-Hans": "已重新加载保存的配置；编辑器中的草稿仍未保存。",
+    "zh-Hant": "已重新載入儲存的設定；編輯器中的草稿仍未儲存。",
+    "en": "Saved configuration reloaded. Your editor draft is still unsaved.",
+    "ja": "保存済みの設定を再読み込みしました。エディター内の下書きは未保存です。",
+    "ko": "저장된 설정을 다시 불러왔습니다. 편집기의 초안은 아직 저장되지 않았습니다."
+  },
+  "The router did not confirm configuration validation.": {
+    "zh-Hans": "设备未确认配置校验通过。",
+    "zh-Hant": "裝置未確認設定驗證通過。",
+    "en": "The router did not confirm configuration validation.",
+    "ja": "ルーターが設定の検証結果を確認しませんでした。",
+    "ko": "장치에서 설정 검증 결과를 확인하지 못했습니다."
+  },
+  "The router did not return a verified saved configuration.": {
+    "zh-Hans": "设备没有返回可确认的已保存配置。",
+    "zh-Hant": "裝置沒有傳回可確認的已儲存設定。",
+    "en": "The router did not return a verified saved configuration.",
+    "ja": "確認可能な保存済み設定が返されませんでした。",
+    "ko": "장치에서 확인 가능한 저장된 설정을 반환하지 않았습니다."
+  },
+  "The saved configuration could not be confirmed. Your draft is retained.": {
+    "zh-Hans": "未能确认配置已保存，草稿已保留。",
+    "zh-Hant": "無法確認設定已儲存，草稿已保留。",
+    "en": "The saved configuration could not be confirmed. Your draft is retained.",
+    "ja": "設定の保存を確認できませんでした。下書きは保持されています。",
+    "ko": "설정 저장을 확인할 수 없습니다. 초안은 유지됩니다."
+  },
+  "Unsaved draft. Save to apply these changes.": {
+    "zh-Hans": "草稿尚未保存，保存后才会应用更改。",
+    "zh-Hant": "草稿尚未儲存，儲存後才會套用變更。",
+    "en": "Unsaved draft. Save to apply these changes.",
+    "ja": "未保存の下書きです。保存すると変更が適用されます。",
+    "ko": "저장하지 않은 초안입니다. 저장하면 변경 사항이 적용됩니다."
+  },
+  "Up to 512 KiB. Edits remain a draft until saved. Leaving this page or locking the console clears the editor.": {
+    "zh-Hans": "最多 512 KiB。编辑内容在保存前仅为草稿，离开此页面或锁定后台会清空编辑器。",
+    "zh-Hant": "最多 512 KiB。編輯內容在儲存前僅為草稿，離開此頁面或鎖定後台會清空編輯器。",
+    "en": "Up to 512 KiB. Edits remain a draft until saved. Leaving this page or locking the console clears the editor.",
+    "ja": "最大 512 KiB。保存するまで変更は下書きです。ページを離れるかコンソールをロックするとエディターを消去します。",
+    "ko": "최대 512 KiB입니다. 저장 전에는 초안으로 유지됩니다. 페이지를 나가거나 콘솔을 잠그면 편집기가 지워집니다."
+  },
+  "Validate and save this draft. A running service will reload it; a stopped service stays stopped.": {
+    "zh-Hans": "校验并保存此草稿。运行中的服务会重新加载，已停止的服务保持停止。",
+    "zh-Hant": "驗證並儲存此草稿。執行中的服務會重新載入，已停止的服務保持停止。",
+    "en": "Validate and save this draft. A running service will reload it; a stopped service stays stopped.",
+    "ja": "下書きを検証して保存します。実行中のサービスは再読み込みし、停止中のサービスは停止したままです。",
+    "ko": "초안을 검증하고 저장합니다. 실행 중인 서비스는 다시 불러오고 중지된 서비스는 그대로 유지됩니다."
+  },
+  "Validate configuration": {
+    "zh-Hans": "校验配置",
+    "zh-Hant": "驗證設定",
+    "en": "Validate configuration",
+    "ja": "設定を検証",
+    "ko": "설정 검증"
   }
 }

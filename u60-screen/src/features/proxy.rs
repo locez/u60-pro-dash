@@ -115,6 +115,12 @@ pub fn page(id: &str, readings: &Data) -> Page {
                 running,
             ),
             (
+                "reload",
+                crate::i18n::tr("重新加载配置"),
+                crate::i18n::tr("校验并重新应用已保存的配置，不重启代理进程。"),
+                running && d["configured"] == true && d["capabilities"]["reload"] == true,
+            ),
+            (
                 "settings",
                 crate::i18n::tr("保存运行模式"),
                 crate::i18n::tr("保存下次启动使用的策略和流量范围。"),
@@ -194,7 +200,7 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
     ensure!(!d.is_null(), "{}", crate::i18n::tr("请先读取代理状态。"));
     let mut plan = if id == "proxy-service" {
         ensure!(
-            ["enable", "disable", "restart", "settings"].contains(&action),
+            ["enable", "disable", "restart", "reload", "settings"].contains(&action),
             "{}",
             crate::i18n::tr("操作不存在。")
         );
@@ -211,10 +217,21 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                 p.changed(&["mode", "capture"])?,
             )
         } else {
+            if action == "reload" {
+                ensure!(
+                    d["running"] == true && d["configured"] == true,
+                    "{}",
+                    crate::i18n::tr("请先启动服务。")
+                );
+            }
             Plan::one(
                 Method::POST,
                 &format!("/api/proxy/mihomo/{action}"),
-                json!({}),
+                if action == "reload" {
+                    json!({"revision":d["config_revision"]})
+                } else {
+                    json!({})
+                },
             )
         }
     } else {
@@ -247,7 +264,14 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
     plan.guards.push(Guard::new(
         Read::get("status", "/api/proxy/mihomo/status"),
         d,
-        &["/id", "/running", "/configured", "/mode", "/capture"],
+        &[
+            "/id",
+            "/running",
+            "/configured",
+            "/config_revision",
+            "/mode",
+            "/capture",
+        ],
     ));
     Ok(plan)
 }
@@ -255,6 +279,26 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn reload_uses_the_saved_revision_and_rejects_a_stopped_service() {
+        let mut d = Data::from([(
+            "status".into(),
+            Ok(
+                json!({"id":"mihomo","running":true,"configured":true,"config_revision":"a".repeat(64),"capabilities":{"reload":true}}),
+            ),
+        )]);
+        let p = page("proxy-service", &d);
+        let operation = plan("proxy-service", "reload", &p, &d).unwrap();
+        assert_eq!(operation.requests[0].path, "/api/proxy/mihomo/reload");
+        assert_eq!(
+            operation.requests[0].body.as_ref().unwrap()["revision"],
+            "a".repeat(64)
+        );
+        d.get_mut("status").unwrap().as_mut().unwrap()["config_revision"] = json!("b".repeat(64));
+        assert!(!operation.guards[0].matches(data(&d, "status")));
+        d.get_mut("status").unwrap().as_mut().unwrap()["running"] = json!(false);
+        assert!(plan("proxy-service", "reload", &p, &d).is_err());
+    }
     #[test]
     fn groups_reject_stale_or_automatic_selections() {
         let mut d = Data::new();

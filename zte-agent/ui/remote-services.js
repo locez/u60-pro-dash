@@ -42,6 +42,7 @@
       catch(error){if(epoch===generation&&!API.locked){caption.textContent=tr("Status unavailable. {0}", error.message);caption.dataset.stale='true';}}
       finally{if(epoch===generation)loading=false;}
     };
+    view.reload=()=>{generation++;loading=false;return view.load();};
     view.write=async(action,body,explanation,{method='POST',node,after,label=tr('Apply change'),destructive=false}={})=>{
       const epoch=generation;if(!snapshot||API.locked||!API.connected||!active(route))return;
       if(!await UI.confirm(title,explanation,{label,destructive}))return;

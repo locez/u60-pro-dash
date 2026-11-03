@@ -112,6 +112,8 @@ impl Api {
             "/api/tailscale/setup" | "/api/tailscale/login-url" => 65,
             "/api/at/send" => 35,
             "/api/proxy/enable" | "/api/proxy/disable" | "/api/proxy/restart" => 120,
+            "/api/proxy/reload" | "/api/proxy/mihomo/enable" | "/api/proxy/mihomo/disable"
+            | "/api/proxy/mihomo/restart" | "/api/proxy/mihomo/reload" => 180,
             _ => 30,
         };
         let request = request.timeout(Duration::from_secs(timeout));

@@ -11191,5 +11191,26 @@
     "en": "Example Mobile",
     "ja": "サンプル通信事業者",
     "ko": "예시 통신사"
+  },
+  "重新加载配置": {
+    "zh-Hans": "重新加载配置",
+    "zh-Hant": "重新載入設定",
+    "en": "Reload configuration",
+    "ja": "設定を再読み込み",
+    "ko": "설정 다시 불러오기"
+  },
+  "校验并重新应用已保存的配置，不重启代理进程。": {
+    "zh-Hans": "校验并重新应用已保存的配置，不重启代理进程。",
+    "zh-Hant": "驗證並重新套用已儲存的設定，不重新啟動代理程序。",
+    "en": "Validate and reapply the saved configuration without restarting the proxy process.",
+    "ja": "保存済みの設定を検証して再適用します。プロキシプロセスは再起動しません。",
+    "ko": "프록시 프로세스를 재시작하지 않고 저장된 설정을 검증하고 다시 적용합니다."
+  },
+  "请先启动服务。": {
+    "zh-Hans": "请先启动服务。",
+    "zh-Hant": "請先啟動服務。",
+    "en": "Start the service first.",
+    "ja": "先にサービスを起動してください。",
+    "ko": "먼저 서비스를 시작하세요."
   }
 }

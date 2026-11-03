@@ -3324,3 +3324,14 @@ html:lang(ko) { --sans: 'Noto Sans KR', 'Noto Sans CJK KR', 'Apple SD Gothic Neo
 .software-installer summary { cursor: pointer; font-weight: 600; }
 .software-installer details .settings-facts dd { overflow-wrap: anywhere; }
 .software-manual .service-form { margin-top: 1rem; }
+.proxy-start-hint { display:flex; align-items:center; flex-wrap:wrap; gap:12px; color:var(--muted); margin-block:16px; }
+.proxy-start-hint:empty { display:none; }
+#proxy-import .proxy-config-actions, #proxy-config-feedback, .proxy-import-options { grid-column:1/-1; }
+#proxy-import .proxy-config-actions { margin-block:0; }
+#proxy-config-feedback { margin:0; }
+.proxy-import-options { border:1px solid var(--line); border-radius:8px; padding:16px; }
+.proxy-import-options summary { cursor:pointer; font-weight:600; }
+.proxy-import-fields { display:grid; gap:16px; padding-top:16px; }
+.proxy-import-fields .field { display:flex; flex-direction:column; gap:8px; }
+.proxy-import-fields > button { justify-self:start; }
+#proxy-config { min-height:260px; }
