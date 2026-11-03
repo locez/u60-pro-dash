@@ -3317,3 +3317,10 @@ html:lang(ko) { --sans: 'Noto Sans KR', 'Noto Sans CJK KR', 'Apple SD Gothic Neo
 
 .topbar .breadcrumb { flex:1 1 0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .topbar-actions { flex:0 0 auto; }
+.software-installer { margin-top: 1.5rem; }
+.software-installer .settings-facts { margin-block: 1rem; }
+.software-progress { display: block; width: 100%; height: .6rem; accent-color: var(--accent); margin-block: 1rem; }
+.software-installer details { border-top: 1px solid var(--line); padding-block: 1rem; }
+.software-installer summary { cursor: pointer; font-weight: 600; }
+.software-installer details .settings-facts dd { overflow-wrap: anywhere; }
+.software-manual .service-form { margin-top: 1rem; }

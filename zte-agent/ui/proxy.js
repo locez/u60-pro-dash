@@ -80,13 +80,12 @@
       }if(!result.length)groups.append(el('p','panel-note',tr('No proxy groups in this configuration.')));
     }catch{if(current())groups.replaceChildren(el('p','panel-note',tr('Proxy groups unavailable. Refresh after startup.')));}
   };
-  const installer=form(installation,'proxy-install',tr('Install / update mihomo'),tr('Static Linux ARM64 executable, optionally gzip compressed. Verify the SHA-256 from the release publisher.'));
-  const binaryURL=input(installer,'proxy-binary-url',tr('Download URL'),{type:'url',required:true}),version=input(installer,'proxy-version',tr('Version'),{required:true}),hash=input(installer,'proxy-sha256',tr('Download SHA-256'),{required:true,help:tr('Checksum of the downloaded file, before decompression.')});hash.pattern='[a-fA-F0-9]{64}';version.pattern='[a-zA-Z0-9._-]{1,32}';
-  proxy.guard(submit(installer,tr('Install mihomo'),()=>proxy.write('install',{url:binaryURL.value,version:version.value,sha256:hash.value},tr('Validate and install this mihomo executable. The saved configuration is retained.'),{node:installer,label:tr('Install mihomo'),after:loadDirectory})),d=>!d.running);
+  const installer=OpenU60Installer(proxy,installation,{service:'mihomo',title:'mihomo',onInstalled:loadDirectory});
   proxy.onDraw=d=>{
+    installer.drawInstalled(d);
     proxy.heading(d.running?(d.capturing?tr('Running · hotspot'):tr('Running · local proxy')):d.enabled?tr('Stopped · attention required'):tr('Stopped'),d.running);
     proxy.fact(tr('Version'),d.installed?(d.version||tr('Installed')):tr('Not installed'));proxy.fact(tr('Configuration'),d.configured?tr('Saved'):tr('Not imported'));proxy.fact(tr('Mode'),({rule:tr('Rule'),global:tr('Global'),direct:tr('Direct')})[d.mode]||d.mode);proxy.fact(tr('Local HTTP / SOCKS'),d.local_endpoint);if(d.last_error)proxy.fact(tr('Last error'),d.last_error);
     if(!pf.dataset.dirty){pm.value=d.mode;pc.value=d.capture;port.value=d.mixed_port||7890;ipv6.value=String(d.ipv6!==false);concurrent.value=String(!!d.tcp_concurrent);}
   };
-  proxy.onClear=()=>{fileEpoch++;config.value='';subURL.value='';upload.value='';groups.replaceChildren();groupDrafts.clear();show('overview');};proxy.track();
+  proxy.onClear=()=>{installer.clear();fileEpoch++;config.value='';subURL.value='';upload.value='';groups.replaceChildren();groupDrafts.clear();show('overview');};proxy.track();
 })();

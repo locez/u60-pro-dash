@@ -13354,5 +13354,264 @@
     "zh-Hant": "{0}{1}{2} Wi-Fi 鏈路速率表示無線連線速率。",
     "ja": "{0}{1}{2} Wi-Fi リンク速度は無線接続の速度を表します。",
     "ko": "{0}{1}{2} Wi-Fi 링크 속도는 무선 연결 속도를 나타냅니다."
+  },
+  "Installation & updates": {
+    "en": "Installation & updates",
+    "zh-Hans": "安装与更新",
+    "zh-Hant": "安裝與更新",
+    "ja": "インストールと更新",
+    "ko": "설치 및 업데이트"
+  },
+  "Automatically selects the official stable Linux ARM64 package for this router and verifies its SHA-256.": {
+    "en": "Automatically selects the official stable Linux ARM64 package for this router and verifies its SHA-256.",
+    "zh-Hans": "自动选择适合本设备的官方稳定版 Linux ARM64 安装包，并验证 SHA-256。",
+    "zh-Hant": "自動選擇適合本裝置的官方穩定版 Linux ARM64 安裝包，並驗證 SHA-256。",
+    "ja": "このルーターに対応する公式安定版 Linux ARM64 パッケージを自動選択し、SHA-256 を検証します。",
+    "ko": "이 라우터에 맞는 공식 안정 버전 Linux ARM64 패키지를 자동으로 선택하고 SHA-256을 검증합니다."
+  },
+  "Check for updates": {
+    "en": "Check for updates",
+    "zh-Hans": "检查更新",
+    "zh-Hant": "檢查更新",
+    "ja": "更新を確認",
+    "ko": "업데이트 확인"
+  },
+  "Checking for updates…": {
+    "en": "Checking for updates…",
+    "zh-Hans": "正在检查更新…",
+    "zh-Hant": "正在檢查更新…",
+    "ja": "更新を確認中…",
+    "ko": "업데이트 확인 중…"
+  },
+  "Checking the official release source…": {
+    "en": "Checking the official release source…",
+    "zh-Hans": "正在查询官方发布源…",
+    "zh-Hant": "正在查詢官方發布來源…",
+    "ja": "公式の配布元を確認中…",
+    "ko": "공식 배포 소스 확인 중…"
+  },
+  "Install release": {
+    "en": "Install release",
+    "zh-Hans": "安装",
+    "zh-Hant": "安裝",
+    "ja": "インストール",
+    "ko": "설치"
+  },
+  "Install / upgrade": {
+    "en": "Install / upgrade",
+    "zh-Hans": "安装／升级",
+    "zh-Hant": "安裝／升級",
+    "ja": "インストール／更新",
+    "ko": "설치 / 업그레이드"
+  },
+  "Package details": {
+    "en": "Package details",
+    "zh-Hans": "安装包详情",
+    "zh-Hant": "安裝包詳細資訊",
+    "ja": "パッケージ詳細",
+    "ko": "패키지 정보"
+  },
+  "Manual installation": {
+    "en": "Manual installation",
+    "zh-Hans": "手动安装",
+    "zh-Hant": "手動安裝",
+    "ja": "手動インストール",
+    "ko": "수동 설치"
+  },
+  "Choose a Linux ARM64 package from your computer. Official filenames include the version; renamed packages need the version below.": {
+    "en": "Choose a Linux ARM64 package from your computer. Official filenames include the version; renamed packages need the version below.",
+    "zh-Hans": "选择电脑上的 Linux ARM64 安装包。官方文件名可自动识别版本；重命名过的文件请在下方填写版本。",
+    "zh-Hant": "選擇電腦上的 Linux ARM64 安裝包。官方檔名可自動識別版本；重新命名的檔案請在下方填寫版本。",
+    "ja": "パソコンから Linux ARM64 パッケージを選択します。公式ファイル名からバージョンを取得します。名前を変更した場合は下に入力してください。",
+    "ko": "컴퓨터에서 Linux ARM64 패키지를 선택하세요. 공식 파일명에서 버전을 자동으로 읽습니다. 이름을 변경한 경우 아래에 버전을 입력하세요."
+  },
+  "Installation package": {
+    "en": "Installation package",
+    "zh-Hans": "安装包文件",
+    "zh-Hant": "安裝包檔案",
+    "ja": "パッケージファイル",
+    "ko": "설치 패키지 파일"
+  },
+  "Optional for official filenames": {
+    "en": "Optional for official filenames",
+    "zh-Hans": "官方文件名可留空",
+    "zh-Hant": "官方檔名可留空",
+    "ja": "公式ファイル名なら省略可",
+    "ko": "공식 파일명이면 생략 가능"
+  },
+  "Package version": {
+    "en": "Package version",
+    "zh-Hans": "安装包版本",
+    "zh-Hant": "安裝包版本",
+    "ja": "パッケージのバージョン",
+    "ko": "패키지 버전"
+  },
+  "Upload and install": {
+    "en": "Upload and install",
+    "zh-Hans": "上传并安装",
+    "zh-Hant": "上傳並安裝",
+    "ja": "アップロードしてインストール",
+    "ko": "업로드 및 설치"
+  },
+  "Use the official tailscale_<version>_arm64.tgz archive. Maximum 120 MiB.": {
+    "en": "Use the official tailscale_<version>_arm64.tgz archive. Maximum 120 MiB.",
+    "zh-Hans": "选择官方 tailscale_<version>_arm64.tgz 压缩包，最大 120 MiB。",
+    "zh-Hant": "選擇官方 tailscale_<version>_arm64.tgz 壓縮包，最大 120 MiB。",
+    "ja": "公式の tailscale_<version>_arm64.tgz を選択してください。最大 120 MiB。",
+    "ko": "공식 tailscale_<version>_arm64.tgz 파일을 선택하세요. 최대 120 MiB."
+  },
+  "Use the Linux ARM64 .gz package or static executable. Maximum 96 MiB.": {
+    "en": "Use the Linux ARM64 .gz package or static executable. Maximum 96 MiB.",
+    "zh-Hans": "选择 Linux ARM64 的 .gz 安装包或静态可执行文件，最大 96 MiB。",
+    "zh-Hant": "選擇 Linux ARM64 的 .gz 安裝包或靜態執行檔，最大 96 MiB。",
+    "ja": "Linux ARM64 の .gz パッケージまたは静的実行ファイルを選択してください。最大 96 MiB。",
+    "ko": "Linux ARM64 .gz 패키지 또는 정적 실행 파일을 선택하세요. 최대 96 MiB."
+  },
+  "Latest stable version": {
+    "en": "Latest stable version",
+    "zh-Hans": "最新稳定版",
+    "zh-Hant": "最新穩定版",
+    "ja": "最新の安定版",
+    "ko": "최신 안정 버전"
+  },
+  "Not checked": {
+    "en": "Not checked",
+    "zh-Hans": "尚未检查",
+    "zh-Hant": "尚未檢查",
+    "ja": "未確認",
+    "ko": "확인 전"
+  },
+  "Platform": {
+    "en": "Platform",
+    "zh-Hans": "适用平台",
+    "zh-Hant": "適用平台",
+    "ja": "対象プラットフォーム",
+    "ko": "대상 플랫폼"
+  },
+  "Update status": {
+    "en": "Update status",
+    "zh-Hans": "更新状态",
+    "zh-Hant": "更新狀態",
+    "ja": "更新状態",
+    "ko": "업데이트 상태"
+  },
+  "Ready to install": {
+    "en": "Ready to install",
+    "zh-Hans": "可安装",
+    "zh-Hant": "可安裝",
+    "ja": "インストール可能",
+    "ko": "설치 가능"
+  },
+  "Up to date": {
+    "en": "Up to date",
+    "zh-Hans": "已是最新版本",
+    "zh-Hant": "已是最新版本",
+    "ja": "最新です",
+    "ko": "최신 버전입니다"
+  },
+  "Installed version is newer than the stable release": {
+    "en": "Installed version is newer than the stable release",
+    "zh-Hans": "已安装版本高于当前稳定版",
+    "zh-Hant": "已安裝版本高於目前穩定版",
+    "ja": "インストール済みバージョンは安定版より新しいです",
+    "ko": "설치된 버전이 안정 버전보다 최신입니다"
+  },
+  "Update available": {
+    "en": "Update available",
+    "zh-Hans": "有可用更新",
+    "zh-Hant": "有可用更新",
+    "ja": "更新があります",
+    "ko": "업데이트가 있습니다"
+  },
+  "Upgrade": {
+    "en": "Upgrade",
+    "zh-Hans": "升级",
+    "zh-Hant": "升級",
+    "ja": "更新",
+    "ko": "업그레이드"
+  },
+  "Filename": {
+    "en": "Filename",
+    "zh-Hans": "文件名",
+    "zh-Hant": "檔名",
+    "ja": "ファイル名",
+    "ko": "파일명"
+  },
+  "Uploading package…": {
+    "en": "Uploading package…",
+    "zh-Hans": "正在上传安装包…",
+    "zh-Hant": "正在上傳安裝包…",
+    "ja": "パッケージをアップロード中…",
+    "ko": "패키지 업로드 중…"
+  },
+  "Preparing installation…": {
+    "en": "Preparing installation…",
+    "zh-Hans": "正在准备安装…",
+    "zh-Hant": "正在準備安裝…",
+    "ja": "インストールを準備中…",
+    "ko": "설치 준비 중…"
+  },
+  "Downloading official package…": {
+    "en": "Downloading official package…",
+    "zh-Hans": "正在下载官方安装包…",
+    "zh-Hant": "正在下載官方安裝包…",
+    "ja": "公式パッケージをダウンロード中…",
+    "ko": "공식 패키지 다운로드 중…"
+  },
+  "Verifying package…": {
+    "en": "Verifying package…",
+    "zh-Hans": "正在校验安装包…",
+    "zh-Hant": "正在校驗安裝包…",
+    "ja": "パッケージを検証中…",
+    "ko": "패키지 검증 중…"
+  },
+  "Installing and checking the service…": {
+    "en": "Installing and checking the service…",
+    "zh-Hans": "正在安装并检查服务…",
+    "zh-Hant": "正在安裝並檢查服務…",
+    "ja": "インストールしてサービスを確認中…",
+    "ko": "설치 및 서비스 확인 중…"
+  },
+  "Installation complete. Current service state has been refreshed.": {
+    "en": "Installation complete. Current service state has been refreshed.",
+    "zh-Hans": "安装完成，已刷新服务状态。",
+    "zh-Hant": "安裝完成，已重新整理服務狀態。",
+    "ja": "インストールが完了し、サービス状態を更新しました。",
+    "ko": "설치가 완료되어 서비스 상태를 새로 고쳤습니다."
+  },
+  "Installation failed. Check the service state and try again.": {
+    "en": "Installation failed. Check the service state and try again.",
+    "zh-Hans": "安装失败，请检查服务状态后重试。",
+    "zh-Hant": "安裝失敗，請檢查服務狀態後重試。",
+    "ja": "インストールに失敗しました。サービス状態を確認して再試行してください。",
+    "ko": "설치에 실패했습니다. 서비스 상태를 확인한 후 다시 시도하세요."
+  },
+  "Official release information refreshed.": {
+    "en": "Official release information refreshed.",
+    "zh-Hans": "已获取官方版本信息。",
+    "zh-Hant": "已取得官方版本資訊。",
+    "ja": "公式バージョン情報を取得しました。",
+    "ko": "공식 버전 정보를 가져왔습니다."
+  },
+  "Install version {0}? The running service may restart briefly. Existing configuration is retained.": {
+    "en": "Install version {0}? The running service may restart briefly. Existing configuration is retained.",
+    "zh-Hans": "安装 {0} 版本？运行中的服务可能短暂重启，现有配置会保留。",
+    "zh-Hant": "安裝 {0} 版本？執行中的服務可能短暫重新啟動，現有設定會保留。",
+    "ja": "バージョン {0} をインストールしますか？サービスが一時的に再起動する場合があります。現在の設定は保持されます。",
+    "ko": "{0} 버전을 설치할까요? 실행 중인 서비스가 잠시 재시작될 수 있습니다. 기존 설정은 유지됩니다."
+  },
+  "This package is empty or exceeds the upload limit.": {
+    "en": "This package is empty or exceeds the upload limit.",
+    "zh-Hans": "安装包为空或超过上传大小限制。",
+    "zh-Hant": "安裝包為空或超過上傳大小限制。",
+    "ja": "パッケージが空か、アップロード上限を超えています。",
+    "ko": "패키지가 비어 있거나 업로드 한도를 초과했습니다."
+  },
+  "Upload and install {0}? The router will validate the package before replacing the installed software.": {
+    "en": "Upload and install {0}? The router will validate the package before replacing the installed software.",
+    "zh-Hans": "上传并安装 {0}？设备会先验证安装包，再替换已安装的软件。",
+    "zh-Hant": "上傳並安裝 {0}？裝置會先驗證安裝包，再替換已安裝的軟體。",
+    "ja": "{0} をアップロードしてインストールしますか？ルーターはパッケージを検証してからソフトウェアを置き換えます。",
+    "ko": "{0} 파일을 업로드하고 설치할까요? 라우터가 패키지를 검증한 후 설치된 소프트웨어를 교체합니다."
   }
 }

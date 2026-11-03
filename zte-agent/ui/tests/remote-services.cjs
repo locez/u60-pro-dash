@@ -1,6 +1,9 @@
 // Private-network and proxy controls use synthetic data; no device is contacted.
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),http=require('node:http'),fs=require('node:fs'),path=require('node:path');
 (async()=>{
+ const uploads={};
+ const software={mihomo:{phase:'idle',busy:false,available:null},tailscale:{phase:'idle',busy:false,available:null}};
+ let releaseFailure=false,chunkFailure=false,loseAcceptance=false,loseOfficialAcceptance=false,holdRelease=false,releaseMetadata=null;
  const ok=data=>({ok:true,data}),writes=[],streams=new Set(),errors=[];
  const proxy={id:'mihomo',name:'mihomo',mixed_port:7890,ipv6:true,tcp_concurrent:false,installed:true,configured:true,enabled:false,running:false,capture:'local',capturing:false,mode:'rule',version:'1.0.0',local_endpoint:'127.0.0.1:7890'};
  const ts={installed:true,enabled:true,enrolled:false,daemon_running:true,backend_state:'NeedsLogin',gateway_mode:true,management_port:9091,accept_routes:true,accept_routes_effective:true,hostname:'example-router',advertise_routes:[],hold_wakelock:true,tailscale_ssh:false,client_version:'1.104.4',health:[]};
@@ -12,6 +15,39 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
   if(req.url.startsWith('/api/dashboard/events')){res.writeHead(200,{'Content-Type':'text/event-stream'});streams.add(res);res.on('close',()=>streams.delete(res));res.write(`event: snapshot\ndata: ${JSON.stringify({readings:core})}\n\n`);return;}
   if(req.url.startsWith('/api/')){
    const send=data=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify(ok(data)));};
+   if(req.url.startsWith('/api/software/')){
+    const [, , ,service,action]=req.url.split('/');
+    const available={version:service==='mihomo'?'1.1.0':'1.104.5',name:service==='mihomo'?'mihomo-linux-arm64-v1.1.0.gz':'tailscale_1.104.5_arm64.tgz',sha256:'a'.repeat(64),architecture:'linux-arm64'};
+    if(req.method==='GET'){
+     if(action==='release'){
+      if(releaseFailure){res.statusCode=503;return res.end(JSON.stringify({ok:false,error:'Official source unavailable in fixture'}));}
+      const checked=()=>{software[service].available=available;send(software[service]);};
+      if(holdRelease){releaseMetadata=checked;return;}checked();return;
+     }
+     return send(software[service]);
+    }
+    let raw='';req.on('data',b=>raw+=b);req.on('end',()=>{
+     const body=JSON.parse(raw);writes.push({url:req.url,body});
+     if(req.url.endsWith('/upload')){uploads[service]={bytes:Buffer.alloc(0),version:'1.2.3',active:true};Object.assign(software[service],{phase:'uploading',busy:true});return send({upload_id:'fixture-upload-'+service,chunk_size:262144});}
+     if(req.url.endsWith('/upload/chunk')){
+      if(chunkFailure){res.statusCode=400;return res.end(JSON.stringify({ok:false,error:'Upload interrupted in fixture'}));}
+      const upload=uploads[service];assert.equal(body.offset,upload.bytes.length);upload.bytes=Buffer.concat([upload.bytes,Buffer.from(body.data,'base64')]);return send({bytes_received:upload.bytes.length});
+     }
+     if(req.url.endsWith('/upload/cancel')){
+      if(!uploads[service]?.active){res.statusCode=400;return res.end(JSON.stringify({ok:false,error:'Upload identifier invalid'}));}
+      uploads[service].active=false;Object.assign(software[service],{phase:'idle',busy:false});return send(software[service]);
+     }
+     if(req.url.endsWith('/upload/install')){
+      if(!uploads[service]?.active){res.statusCode=400;return res.end(JSON.stringify({ok:false,error:'Upload identifier invalid'}));}
+      uploads[service].active=false;Object.assign(software[service],{phase:'preparing',busy:true});
+      setTimeout(()=>{proxy.version=uploads[service].version;Object.assign(software[service],{phase:'succeeded',busy:false});},400);
+      if(loseAcceptance){res.writeHead(200,{'Content-Type':'application/json','Content-Length':2000});res.write('{"ok":true,"data":');setImmediate(()=>res.destroy());return;}return send(software[service]);
+     }
+     if(service==='mihomo')proxy.version=body.version;else ts.client_version=body.version;
+     if(loseOfficialAcceptance){Object.assign(software[service],{phase:'installing',busy:true,available});setTimeout(()=>Object.assign(software[service],{phase:'succeeded',busy:false}),400);res.writeHead(200,{'Content-Type':'application/json','Content-Length':2000});res.write('{"ok":true,"data":');setImmediate(()=>res.destroy());return;}
+     Object.assign(software[service],{phase:'succeeded',busy:false,available});send(software[service]);
+    });return;
+   }
    if(req.method==='GET'){
     if(req.url==='/api/proxy/services')return send({services:[proxy,other]});
     if(req.url==='/api/proxy/mihomo/config')return send({config:'proxies: [{name: Saved, type: socks5, server: example.com, port: 1080}]'});
@@ -55,7 +91,16 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
   await page.getByRole('button',{name:'Save configuration',exact:true}).click();await confirm('Apply change');assert.equal(writes.at(-1).body.config,sample);assert.equal(await page.locator('#proxy-config').inputValue(),'');
   await page.locator('#proxy-source-url').fill('https://example.com/config?token=demo-private');await page.getByRole('button',{name:'Fetch configuration',exact:true}).click();assert.ok(!(await page.locator('.confirm-dialog').textContent()).includes('demo-private'));await confirm('Apply change');assert.equal(await page.locator('#proxy-source-url').inputValue(),'');
   await page.getByRole('tab',{name:'Installation',exact:true}).click();
-  await page.locator('#proxy-binary-url').fill('https://downloads.example.com/engine.gz');await page.locator('#proxy-version').fill('1.1.0');await page.locator('#proxy-sha256').fill('a'.repeat(64));await page.getByRole('button',{name:'Install mihomo',exact:true}).click();await confirm('Install mihomo');assert.equal(writes.at(-1).url,'/api/proxy/mihomo/install');
+  releaseFailure=true;await page.locator('#mihomo-check-update').click();await page.waitForFunction(()=>document.querySelector('#mihomo-installer').textContent.includes('Official source unavailable in fixture'));assert.equal(await page.locator('#mihomo-install-release').isDisabled(),true);releaseFailure=false;
+  const beforeCheck=writes.length;await page.locator('#mihomo-check-update').click();await page.waitForFunction(()=>!document.querySelector('#mihomo-install-release').disabled);assert.equal(writes.length,beforeCheck);await page.locator('#mihomo-install-release').click();await confirm('Install / upgrade');assert.equal(writes.at(-1).url,'/api/software/mihomo/install');assert.equal(writes.at(-1).body.version,'1.1.0');
+  await page.locator('#mihomo-installer .software-manual summary').click();
+  const packageBytes=Buffer.alloc(400000,73);await page.locator('#mihomo-package-file').setInputFiles({name:'mihomo-linux-arm64-v1.2.3.gz',mimeType:'application/gzip',buffer:packageBytes});
+  const beforeUpload=writes.length;await page.locator('#mihomo-upload-install').click();await page.locator('.confirm-dialog').getByRole('button',{name:'Cancel',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('.confirm-dialog').open);assert.equal(writes.length,beforeUpload);
+  chunkFailure=true;await page.locator('#mihomo-upload-install').click();await confirm('Upload and install');assert.match(await page.locator('#mihomo-installer').textContent(),/Upload interrupted in fixture/);assert.equal(proxy.version,'1.1.0');assert.equal(software.mihomo.busy,false);chunkFailure=false;
+  const beforeRetry=writes.length;loseAcceptance=true;await page.locator('#mihomo-upload-install').click();await confirm('Upload and install');
+  await page.waitForFunction(()=>document.querySelector('#mihomo-installer').textContent.includes('1.2.3'));
+  assert.equal(uploads.mihomo.bytes.equals(packageBytes),true);assert.equal(writes.slice(beforeRetry).filter(w=>w.url.endsWith('/upload/chunk')).length,2);assert.equal(writes.slice(beforeRetry).filter(w=>w.url.endsWith('/upload/install')).length,1);loseAcceptance=false;
+  assert.equal(await page.locator('#mihomo-package-file').inputValue(),'');
   await page.getByRole('button',{name:'Start mihomo',exact:true}).click();await confirm('Start mihomo');assert.equal(other.running,true);assert.ok(writes.filter(w=>w.url.startsWith('/api/proxy/')).every(w=>w.url.startsWith('/api/proxy/mihomo/')));await page.getByRole('tab',{name:'Proxy groups',exact:true}).click();await page.getByLabel('Primary group',{exact:true}).waitFor();
   assert.equal(await page.locator('.service-groups img').count(),0);assert.equal(await page.locator('#proxy-policy button[type=submit]').isDisabled(),true);
   await page.getByLabel('Primary group',{exact:true}).selectOption('Example B');await page.locator('#proxy-service').getByRole('button',{name:'Refresh status',exact:true}).click();await page.waitForTimeout(150);assert.equal(await page.getByLabel('Primary group',{exact:true}).inputValue(),'Example B');await page.locator('.service-group').first().getByRole('button',{name:'Use node'}).click();await confirm('Apply change');assert.deepEqual(writes.at(-1),{url:'/api/proxy/mihomo/select',body:{group:'Primary group',choice:'Example B'}});
@@ -72,13 +117,17 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
   await page.locator('#tailscale-auth-key').fill('demo-private-auth');await page.getByRole('button',{name:'Enroll router',exact:true}).click();assert.ok(!(await page.locator('.confirm-dialog').textContent()).includes('demo-private-auth'));await confirm('Enroll router');assert.equal(await page.locator('#tailscale-auth-key').inputValue(),'');await page.waitForFunction(()=>document.querySelector('#tailscale-service .service-summary').textContent==='Connected');
   assert.equal(await page.getByRole('link',{name:'Open authorization page'}).count(),0);
   await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`${images}/tailscale-desktop.png`,fullPage:true});await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:`${images}/tailscale-mobile.png`});
-  assert.equal(await page.locator('#tailscale-version').inputValue(),'1.104.4');await page.locator('#tailscale-sha256').fill('b'.repeat(64));await page.getByRole('button',{name:'Install version',exact:true}).click();await confirm('Install version');assert.equal(writes.at(-1).body.version,'1.104.4');
+  await page.locator('#tailscale-check-update').click();await page.waitForFunction(()=>!document.querySelector('#tailscale-install-release').disabled);loseOfficialAcceptance=true;await page.locator('#tailscale-install-release').click();await confirm('Install / upgrade');assert.equal(writes.at(-1).url,'/api/software/tailscale/install');assert.equal(writes.at(-1).body.version,'1.104.5');await page.waitForFunction(()=>document.querySelector('#tailscale-installer').textContent.includes('Up to date'));loseOfficialAcceptance=false;assert.equal(writes.filter(w=>w.url==='/api/software/tailscale/install').length,1);
+  ts.client_version='1.104.4';await page.locator('#tailscale-service').getByRole('button',{name:'Refresh status',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('#tailscale-install-release').disabled);
+  const beforeStaleInstall=writes.length;await page.locator('#tailscale-install-release').click();await page.evaluate(()=>OpenU60Navigation.go('network/proxy'));await confirm('Install / upgrade');assert.equal(writes.length,beforeStaleInstall);await page.evaluate(()=>OpenU60Navigation.go('network/tailscale'));
   // A pending confirmation is invalidated by leaving the page.
   ts.updating=false;await page.locator('#tailscale-service').getByRole('button',{name:'Refresh status',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('#tailscale-policy button[type=submit]').disabled);
   const before=writes.length;await page.getByRole('button',{name:'Stop Tailscale',exact:true}).click();await page.evaluate(()=>OpenU60Navigation.go('network/proxy'));await confirm('Stop Tailscale');assert.equal(writes.length,before);
   // A late authenticated reply cannot repopulate private state after lock.
   holdStatus=true;await page.locator('#proxy-service').getByRole('button',{name:'Refresh status',exact:true}).click();await page.waitForTimeout(100);
-  await page.getByRole('tab',{name:'Configuration',exact:true}).click();await page.locator('#proxy-config').fill('private draft');await page.locator('#proxy-source-url').fill('private subscription');await page.evaluate(()=>window.dispatchEvent(new Event('dashboard:locked')));releaseStatus?.();await page.waitForTimeout(100);
+  holdRelease=true;await page.getByRole('tab',{name:'Installation',exact:true}).click();await page.locator('#mihomo-check-update').click();await page.waitForTimeout(100);
+  await page.getByRole('tab',{name:'Configuration',exact:true}).click();await page.locator('#proxy-config').fill('private draft');await page.locator('#proxy-source-url').fill('private subscription');await page.evaluate(()=>window.dispatchEvent(new Event('dashboard:locked')));releaseStatus?.();releaseMetadata?.();await page.waitForTimeout(100);
+  assert.match(await page.locator('#mihomo-installer').textContent(),/Not checked/);assert.equal(await page.locator('#mihomo-install-release').isDisabled(),true);
   assert.equal(await page.locator('#proxy-config').inputValue(),'');assert.equal(await page.locator('#proxy-source-url').inputValue(),'');assert.equal(await page.locator('#proxy-service .service-summary').textContent(),'Waiting for status');assert.equal(writes.length,before);assert.deepEqual(errors,[]);
   console.log('remote services: policy, import, installation, node selection, Tailscale, stale-session protection and responsive layouts passed');
  }finally{for(const stream of streams)stream.end();await browser.close();await new Promise(r=>server.close(r));}

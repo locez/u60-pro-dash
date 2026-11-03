@@ -69,6 +69,7 @@
   globalThis.OpenU60Services={input,form,submit,service};
 
   const ts=service('tailscale',tr('Tailscale'),tr('Join your private network and manage remote access and subnet routes.'));
+  const installer=OpenU60Installer(ts,ts.content,{service:'tailscale',title:'Tailscale'});
   const tsReady=d=>d.installed&&!d.updating;
   for(const[action,label,explanation,predicate]of[
     ['enable',tr('Start Tailscale'),tr('Start Tailscale using the saved network identity.'),d=>tsReady(d)&&!d.enabled],
@@ -84,10 +85,8 @@
   const keyForm=form(ts.content,'tailscale-enroll',tr('Enroll with an auth key'),tr('An alternative to browser authorization. The key is submitted once and is cleared from this form afterward.'));
   const key=input(keyForm,'tailscale-auth-key',tr('Tailscale auth key'),{type:'password',required:true});
   ts.guard(submit(keyForm,tr('Enroll router'),()=>ts.write('setup',{auth_key:key.value},tr('Join the network associated with this auth key.'),{node:keyForm,label:tr('Enroll router')})),d=>tsReady(d)&&d.backend_state!=='Running');
-  const update=form(ts.content,'tailscale-update',tr('Install or update Tailscale'),tr('Download the official ARM64 package after verifying its SHA-256. Updating can interrupt remote access.'));
-  const tv=input(update,'tailscale-version',tr('Version'),{value:'1.104.4',required:true}),th=input(update,'tailscale-sha256',tr('Package SHA-256'),{required:true});tv.defaultValue='1.104.4';th.pattern='[a-fA-F0-9]{64}';tv.pattern='[0-9]+\\.[0-9]+\\.[0-9]+';
-  ts.guard(submit(update,tr('Install version'),()=>ts.write('update',{version:tv.value,sha256:th.value},tr('Install this Tailscale version. Check the service status here until the update completes.'),{node:update,label:tr('Install version')})),d=>!d.updating);
   ts.onDraw=d=>{
+    installer.drawInstalled(d);
     ts.fact(tr('Remote web port'),d.management_port);
     ts.heading(d.updating?tr('Updating Tailscale'):d.backend_state==='Running'?tr('Connected'):d.enabled?(d.backend_state||tr('Starting')):tr('Stopped'),d.backend_state==='Running'&&!d.updating);
     ts.fact(tr('Installed version'),d.client_version||d.pinned_version||(d.installed?tr('Installed'):tr('Not installed')));ts.fact(tr('Addresses'),(d.tailscale_ips||[]).join(' · '));ts.fact(tr('Network name'),d.dns_name);ts.fact(tr('Routing mode'),d.gateway_mode?tr('Kernel gateway'):tr('Device access only'));ts.fact(tr('Remote route preference'),d.accept_routes_effective?tr('Enabled while running'):tr('Not active'));ts.fact(tr('Health'),(d.health||[]).join(' · ')||tr('No reported warning'));ts.fact(tr('Latest update'),typeof d.last_update==='string'?d.last_update:(d.last_update?JSON.stringify(d.last_update):tr('No update recorded')));
@@ -95,5 +94,5 @@
     authorize.hidden=d.backend_state==='Running';keyForm.hidden=d.backend_state==='Running';
     if(d.login_url)authURL(d.login_url);if(d.backend_state==='Running')authURL(null);
   };
-  ts.onClear=()=>{key.value='';authURL(null);};ts.track();
+  ts.onClear=()=>{installer.clear();key.value='';authURL(null);};ts.track();
 })();

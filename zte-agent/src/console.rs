@@ -329,6 +329,10 @@ fn asset(path: &str) -> Option<(&'static str, &'static str)> {
             "text/javascript; charset=utf-8",
             include_str!("../ui/remote-services.js"),
         )),
+        "/console/a/software.js" => Some((
+            "text/javascript; charset=utf-8",
+            include_str!("../ui/software.js"),
+        )),
         "/console/a/wireguard.js" => Some((
             "text/javascript; charset=utf-8",
             include_str!("../ui/wireguard.js"),
