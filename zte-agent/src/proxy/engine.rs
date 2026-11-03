@@ -183,7 +183,7 @@ impl Engine for Compatible {
         v["ipv6"] = json!(true);
         v["profile"] = json!({"store-selected":true,"store-fake-ip":false});
         v["tun"] = json!({"enable":settings.capture=="hotspot","device":"u60proxy0","stack":"gvisor","auto-route":false,"auto-redirect":false,"auto-detect-interface":true,"strict-route":false,"mtu":1400,"dns-hijack":["any:53","tcp://any:53"]});
-        v["dns"] = json!({"enable":true,"listen":if settings.capture=="hotspot" {"[::]:1053"}else{"127.0.0.1:1053"},"ipv6":true,"enhanced-mode":"redir-host","use-hosts":true,"default-nameserver":["1.1.1.1","8.8.8.8"],"nameserver":["https://cloudflare-dns.com/dns-query","https://dns.google/dns-query"],"proxy-server-nameserver":["1.1.1.1","8.8.8.8"]});
+        v["dns"] = json!({"enable":true,"listen":if settings.capture=="hotspot" {"[::]:1053"}else{"127.0.0.1:1053"},"ipv6":true,"enhanced-mode":"redir-host","use-hosts":true,"default-nameserver":["1.1.1.1","8.8.8.8"],"nameserver":["https://cloudflare-dns.com/dns-query","https://dns.google/dns-query"],"proxy-server-nameserver":["1.1.1.1","8.8.8.8"],"nameserver-policy":{"+.home.arpa":["udp://127.0.0.1:53"],"+.lan":["udp://127.0.0.1:53"]}});
         v
     }
     fn groups(&self, value: &Value) -> Value {
@@ -210,6 +210,11 @@ mod tests {
         assert_eq!(runtime["external-controller"], "127.0.0.1:19092");
         assert_eq!(runtime["tun"]["auto-route"], false);
         assert_eq!(runtime["secret"], "private-controller");
+        assert_eq!(
+            runtime["dns"]["nameserver-policy"]["+.home.arpa"][0],
+            "udp://127.0.0.1:53"
+        );
+        assert_eq!(runtime["dns"]["listen"], "127.0.0.1:1053");
         assert_eq!(
             runtime["proxy-providers"]["remote"]["path"],
             "./providers/proxy-providers-0.yaml"
