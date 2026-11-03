@@ -32,6 +32,7 @@ mod modem_ext;
 mod network_ext;
 mod oos_policy;
 mod ota;
+mod proxy;
 mod qrtr_uim;
 mod router;
 mod scheduler;
@@ -74,6 +75,9 @@ const DEFAULT_THREADS: usize = 4;
 fn main() {
     // Diagnostics: `zte-agent esim-native chip info` runs one native eSIM command and exits.
     let args: Vec<String> = std::env::args().collect();
+    if args.get(1).map(String::as_str) == Some("--proxy-watchdog") {
+        std::process::exit(proxy::watchdog_cli(&args[2..]));
+    }
     if args.get(1).map(String::as_str) == Some("--version") {
         println!("zte-agent {}", build_info::display());
         return;
@@ -162,6 +166,7 @@ fn main() {
         .charge_limit
         .start(charger_rx, Arc::clone(&state.cache));
     state.sms_forward.start(sms_rx, service_rx, wan_status_rx);
+    state.proxy.auto_start();
     state.tailscale.auto_start();
     state.tailscale.start_wan_watch(ts_wan_rx);
     state.ttl.start(ttl_wan_rx);

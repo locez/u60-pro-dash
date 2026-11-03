@@ -18,6 +18,7 @@ use crate::modem_ext;
 use crate::network_ext;
 use crate::oos_policy;
 use crate::ota;
+use crate::proxy;
 use crate::router;
 use crate::sim;
 use crate::sms;
@@ -154,7 +155,7 @@ pub fn precheck(req: &ReqInfo, env: &PreEnv) -> Pre {
         return refuse(403, "agent password required");
     }
     Pre::Dispatch {
-        body_limit: if live_activity { LIVE_ACTIVITY_BODY_MAX } else { API_BODY_MAX },
+        body_limit: if req.path == "/api/proxy/config" { 4 * 1024 * 1024 } else if live_activity { LIVE_ACTIVITY_BODY_MAX } else { API_BODY_MAX },
     }
 }
 
@@ -205,7 +206,7 @@ pub fn lane(method: Method, path: &str) -> Lane {
         | (Post, "/api/esim/download/confirm" | "/api/esim/download/cancel")
         | (Get, "/api/tailscale/status")
         | (Get, "/api/stk/menu" | "/api/stk/session") => false,
-        (_, p) if p.starts_with("/api/esim/") || p.starts_with("/api/tailscale/") || p.starts_with("/api/https/") => true,
+        (_, p) if p.starts_with("/api/proxy/") || p.starts_with("/api/esim/") || p.starts_with("/api/tailscale/") || p.starts_with("/api/https/") => true,
         (Put | Post, p) if p.starts_with("/api/vpn/wireguard") => true,
         (_, p) if p.starts_with("/api/ussd/") || p.starts_with("/api/stk/") => true,
         (Post, p) if p.starts_with("/api/sim/") || p.starts_with("/api/cell/") => true,
@@ -455,6 +456,13 @@ fn route_inner(method: &Method, path: &str, state: &AppState, body: &[u8]) -> (u
         (&Method::Get, "/api/doh/cache") => doh_cache_list(state),
         (&Method::Post, "/api/doh/cache/clear") => doh_cache_clear(state),
         // Tailscale remote management
+        (&Method::Get, "/api/proxy/status") => proxy::status(state),
+        (&Method::Get, "/api/proxy/groups") => proxy::groups(state),
+        (&Method::Put, "/api/proxy/settings") => proxy::change(state, "settings", body),
+        (&Method::Post, path) if matches!(path,
+            "/api/proxy/enable" | "/api/proxy/disable" | "/api/proxy/restart" |
+            "/api/proxy/config" | "/api/proxy/subscription" | "/api/proxy/install" | "/api/proxy/select"
+        ) => proxy::change(state, path.rsplit('/').next().unwrap(), body),
         (&Method::Get, "/api/tailscale/status") => tailscale::status(state),
         // LAN HTTPS (docs/web-ui.md, "LAN HTTPS"): read-only for the apps.
         (&Method::Get, "/api/https") => state.tls.status_json(),

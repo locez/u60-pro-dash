@@ -145,6 +145,9 @@ fn validate_job(
     if action.path.starts_with("/api/scheduler/") {
         return Err("cannot schedule scheduler endpoints".into());
     }
+    if action.path.starts_with("/api/proxy/") {
+        return Err("proxy changes require interactive confirmation".into());
+    }
     if action.path.starts_with("/api/auth/") {
         return Err("cannot schedule auth endpoints".into());
     }
