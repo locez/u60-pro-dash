@@ -70,7 +70,7 @@ async fn turn_on_from_settings_once() {
         "its LAN address and u60.home.arpa",
         "never for other websites",
         "It could not be checked over the internet",
-        "Plain http on port 9090 keeps working",
+        "Plain http on port 20600 keeps working",
         "name=\"confirm\" value=\"1\"",
         ">Turn On HTTPS</button>",
     ] {

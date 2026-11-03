@@ -29,6 +29,7 @@ mod httpd;
 mod key_log;
 mod lan_test;
 mod live_activity;
+mod management;
 mod modem_ext;
 mod network_ext;
 mod oos_policy;
@@ -69,7 +70,6 @@ use std::sync::Arc;
 use event_bus::EventBus;
 use handlers::AppState;
 
-const DEFAULT_BIND: &str = "0.0.0.0:9090";
 // General-lane permits: API calls that may block at once (slow calls such as
 // Tailscale setup have their own 2-permit lane, `httpd::SLOW_PERMITS`).
 const DEFAULT_THREADS: usize = 4;
@@ -118,7 +118,7 @@ fn main() {
         std::process::exit(wireguard::cli_smoke());
     }
 
-    let bind = std::env::var("ZTE_AGENT_BIND").unwrap_or_else(|_| DEFAULT_BIND.to_string());
+    let bind = management::bind();
     let threads: usize = std::env::var("ZTE_AGENT_THREADS")
         .ok()
         .and_then(|s| s.parse().ok())

@@ -160,7 +160,7 @@ fn main() -> Result<()> {
         .then(|| agent::Config {
             address: opts
                 .agent
-                .unwrap_or_else(|| "127.0.0.1:9090".parse().unwrap()),
+                .unwrap_or_else(|| "127.0.0.1:20600".parse().unwrap()),
             session_file: opts.prefs.as_ref().map(|p| {
                 p.with_file_name(".screen-private")
                     .join("agent-session.private.json")

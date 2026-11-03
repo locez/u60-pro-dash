@@ -46,12 +46,12 @@ bash u60-screen/native.sh snapshot /tmp/u60.png --light --page tailscale-network
 
 ### 后台连接
 
-机身程序仅向 `127.0.0.1:9090` 登录。它从运行中的 `/data/zte-agent`（兼容 `/data/local/tmp/zte-agent`）root 进程读取已有的密码环境变量，通过正常登录取得独立 bearer token；不会更改 agent 密码，也不会绕过认证。密码不进入参数、日志或第二份配置文件。会话 token 单独保存在 `.screen-private/agent-session.private.json`，目录 0700、文件 0600；过期后重新登录。
+机身程序仅向 `127.0.0.1:20600` 登录。它从运行中的 `/data/zte-agent`（兼容 `/data/local/tmp/zte-agent`）root 进程读取已有的密码环境变量，通过正常登录取得独立 bearer token；不会更改 agent 密码，也不会绕过认证。密码不进入参数、日志或第二份配置文件。会话 token 单独保存在 `.screen-private/agent-session.private.json`，目录 0700、文件 0600；过期后重新登录。
 
 桌面连接需要先建立 ADB/SSH 本地隧道，例如：
 
 ```bash
-adb forward tcp:19090 tcp:9090
+adb forward tcp:19090 tcp:20600
 bash u60-screen/native.sh preview --agent 127.0.0.1:19090
 ```
 

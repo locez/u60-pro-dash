@@ -181,9 +181,9 @@ pub fn serve(bind: &str, threads: usize, state: Arc<AppState>) {
 }
 
 /// The plain-http listener's port (`ZTE_AGENT_BIND`), set once it is bound.
-static HTTP_PORT: std::sync::atomic::AtomicU16 = std::sync::atomic::AtomicU16::new(9090);
+static HTTP_PORT: std::sync::atomic::AtomicU16 = std::sync::atomic::AtomicU16::new(crate::management::HTTP_PORT);
 
-/// The port the plain-http UI and API answer on (9090 unless
+/// The port the plain-http UI and API answer on (20600 unless
 /// `ZTE_AGENT_BIND` says otherwise), for texts that name it.
 pub fn http_port() -> u16 {
     HTTP_PORT.load(std::sync::atomic::Ordering::Relaxed)

@@ -48,7 +48,16 @@ impl Default for MihomoSettings {
 impl MihomoSettings {
     pub(super) fn validate(&self) -> Result<(), String> {
         adapter(&self.adapter)?;
-        if self.mixed_port < 1024 || [1053, 9090, 9091, 9443, 19092].contains(&self.mixed_port) {
+        if self.mixed_port < 1024
+            || [
+                1053,
+                9443,
+                19092,
+                crate::management::HTTP_PORT,
+                crate::management::REMOTE_PORT,
+            ]
+            .contains(&self.mixed_port)
+        {
             return Err(
                 "Choose an unused local proxy port above 1023, excluding router management ports"
                     .into(),

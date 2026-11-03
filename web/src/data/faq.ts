@@ -37,7 +37,7 @@ export const faqData: FAQItem[] = [
   {
     question: "Does the agent need internet access?",
     answer:
-      "No. The agent runs entirely on the LAN (port 9090). It never makes outbound connections. The mobile apps connect directly to the agent over WiFi.",
+      "No. The agent runs entirely on the LAN (port 20600). It never makes outbound connections. The mobile apps connect directly to the agent over WiFi.",
   },
   {
     question: "What about the mobile apps?",

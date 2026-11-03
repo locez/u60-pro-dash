@@ -40,8 +40,12 @@ fn gateway_mode() -> bool {
 }
 
 pub fn prepare_management() -> Result<(), String> {
+    prepare_management_for(crate::management::local_address()?.port())
+}
+
+pub(crate) fn prepare_management_for(http_port: u16) -> Result<(), String> {
     if gateway_mode() && Path::new(SOCK).exists() {
-        management::configure()?;
+        management::configure(http_port)?;
     }
     Ok(())
 }
@@ -761,7 +765,7 @@ impl TailscaleManager {
             // Native TUN delivers real peer IPs, whereas the agent's browser
             // guards expect remote management to arrive on loopback. Serve's
             // tailnet TCP handler retains that path without weakening them.
-            if let Err(e) = management::configure() {
+            if let Err(e) = management::configure(crate::httpd::http_port()) {
                 eprintln!("[tailscale] gateway management proxy: {e}");
             }
         }
@@ -835,7 +839,7 @@ impl TailscaleManager {
             "hold_wakelock": cfg.hold_wakelock,
             "pinned_version": cfg.pinned_version,
             "gateway_mode": gateway_mode(),
-            "management_port": if gateway_mode() { management::PORT } else { 9090 },
+            "management_port": if gateway_mode() { management::remote_port(crate::httpd::http_port()) } else { crate::httpd::http_port() },
             "accept_routes": cfg.accept_routes,
             "accept_routes_effective": false,
         });

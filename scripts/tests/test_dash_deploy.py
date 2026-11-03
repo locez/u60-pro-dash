@@ -73,7 +73,7 @@ static void writefile(const char *dir,const char *name,const char *s){char p[512
 int main(int argc,char**argv){
  char root[512];snprintf(root,sizeof root,"%s",getenv("TEST_ROOT"));
  if(argc>1&&!strcmp(argv[1],"--version")){puts("example 1.0");return 0;}
- if(argc>1&&!strcmp(argv[1],"dash-export-env")){writefile(root,"agent.env","export ZTE_AGENT_PASSWORD='example-only'\n");writefile(root,"health.json","{}");return 0;}
+ if(argc>1&&!strcmp(argv[1],"dash-export-env")){if(getenv("TEST_LEGACY_EXPORT")&&strstr(argv[0],"/one/"))return 1;writefile(root,"agent.env","export ZTE_AGENT_PASSWORD='example-only'\n");writefile(root,"health.json","{}");return 0;}
  if(argc>1&&!strcmp(argv[1],"dash-health"))return getenv("TEST_BAD_HEALTH")?1:0;
  if(argc>1&&!strcmp(argv[1],"dash-wait-ready"))return getenv("TEST_BAD_READY")?1:0;
  if(argc>1&&!strcmp(argv[1],"dash-prepare-network"))return 0;
@@ -216,7 +216,13 @@ int main(int argc,char**argv){
         self.assertEqual(self.start.read_bytes(), self.original_start)
         self.assertFalse((self.root / 'pending').exists())
 
-    def replace_manager(self):
+    def test_rollback_uses_current_exporter_when_the_candidate_only_knows_the_old_port(self):
+        self.release('one');self.manage('install','one');self.installed('one')
+        self.release('two');self.manage('install','two');self.installed('two')
+        result=self.manage('rollback',env={**self.env,'TEST_LEGACY_EXPORT':'1'})
+        self.assertEqual(result.returncode,0,result.stdout+result.stderr);self.installed('one')
+
+    def replace_manager(self, compatible=False):
         candidate = self.root / 'new-manager.sh'
         candidate.write_text('#!/bin/sh\n# replacement test\n')
         fixture = self
@@ -232,9 +238,36 @@ int main(int argc,char**argv){
                 )
                 return DEPLOY.decode(result)
 
-        DEPLOY.replace_inactive_manager(LocalConnection(), str(candidate))
+        if compatible:
+            expected=hashlib.sha256(self.manager.read_bytes()).hexdigest()
+            previous=DEPLOY.COMPATIBLE_MANAGERS
+            try:
+                DEPLOY.COMPATIBLE_MANAGERS={expected}
+                DEPLOY.replace_compatible_manager(LocalConnection(),str(candidate),expected)
+            finally:
+                DEPLOY.COMPATIBLE_MANAGERS=previous
+        else:
+            DEPLOY.replace_inactive_manager(LocalConnection(), str(candidate))
         self.assertEqual(self.manager.read_bytes(), candidate.read_bytes())
         self.assertEqual(self.manager.stat().st_mode & 0o777, 0o700)
+
+    def test_compatible_manager_upgrade_keeps_the_running_pair_and_a_backup(self):
+        self.release('one');self.manage('install','one');self.installed('one')
+        previous=self.manager.read_bytes();agent=(self.run/'agent').read_text()
+        self.replace_manager(compatible=True)
+        self.assertEqual((self.root/'manage.sh.previous').read_bytes(),previous)
+        self.assertEqual((self.run/'agent').read_text(),agent)
+        self.assertEqual((self.root/'current').read_text().strip(),'one')
+
+    def test_compatible_manager_upgrade_refuses_a_trial_and_a_busy_lock(self):
+        original=self.manager.read_bytes()
+        (self.root/'pending').write_text('candidate\nprevious\n')
+        with self.assertRaises(DEPLOY.Failure): self.replace_manager(compatible=True)
+        (self.root/'pending').unlink()
+        with (self.root/'operation.lock').open('w') as lock:
+            fcntl.flock(lock,fcntl.LOCK_EX)
+            with self.assertRaises(DEPLOY.Failure): self.replace_manager(compatible=True)
+        self.assertEqual(self.manager.read_bytes(),original)
 
     def test_failed_first_install_manager_can_be_replaced_without_restore(self):
         self.assertFalse((self.root / 'current').exists())

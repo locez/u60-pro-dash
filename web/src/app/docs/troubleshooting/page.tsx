@@ -54,7 +54,7 @@ export default function TroubleshootingPage() {
           Agent Not Responding After Deploy
         </h2>
         <p className="mb-3 text-sm text-text-dim">
-          If the agent isn&apos;t reachable at port 9090:
+          If the agent isn&apos;t reachable at port 20600:
         </p>
         <ul className="list-inside list-disc space-y-1 text-sm text-text-dim">
           <li>Wait 5-10 seconds and try again</li>
@@ -86,7 +86,7 @@ ssh -p 2222 root@192.168.0.1 'sh /data/local/tmp/start_zte_agent.sh'`}
           The zte-agent sends no CORS headers, and it refuses requests from
           other websites that change settings, so a page on another site
           cannot use the API from your browser. Use the native apps, or the
-          agent&apos;s own web UI at http://192.168.0.1:9090/.
+          agent&apos;s own web UI at http://192.168.0.1:20600/.
         </p>
       </section>
     </div>

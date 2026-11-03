@@ -63,6 +63,6 @@ $SSH "sh $STARTUP_SCRIPT"
 # 6. Verify
 echo "Verifying..."
 sleep 2
-TOKEN=$(curl -sf http://$DEVICE:9090/api/auth/login -H 'Content-Type: application/json' -d "{\"password\":\"$PASSWORD\"}" | python3 -c 'import sys,json; print(json.load(sys.stdin)["data"]["token"])')
-curl -sf http://$DEVICE:9090/api/device -H "Authorization: Bearer $TOKEN" > /dev/null
+TOKEN=$(curl -sf http://$DEVICE:20600/api/auth/login -H 'Content-Type: application/json' -d "{\"password\":\"$PASSWORD\"}" | python3 -c 'import sys,json; print(json.load(sys.stdin)["data"]["token"])')
+curl -sf http://$DEVICE:20600/api/device -H "Authorization: Bearer $TOKEN" > /dev/null
 echo "Deploy successful!"

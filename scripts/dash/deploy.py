@@ -19,6 +19,9 @@ REMOTE = "/data/u60-dash"
 TARGET = "aarch64-unknown-linux-musl"
 FILES = ("zte-agent", "u60-screen", "service.sh", "manage.sh")
 MARKER = "__U60_DASH_RC__"
+# Audited predecessor: same release/lock/recovery protocol; only the exporter
+# fallback changes. Unknown or locally modified managers still require restore.
+COMPATIBLE_MANAGERS = {"e8e7bc1d9c6167686b6f0f4669eae81e903d3f1fe7dec73ac14923ab1694299d"}
 
 class Failure(RuntimeError):
     pass
@@ -202,16 +205,38 @@ chmod 700 {REMOTE}/manage.sh.new
 mv -f {REMOTE}/manage.sh.new {REMOTE}/manage.sh
 """)
 
+def replace_compatible_manager(connection, source, expected):
+    if expected not in COMPATIBLE_MANAGERS:
+        raise Failure("部署管理器不在已验证的兼容版本中。")
+    connection.remote(f"""
+set -eu
+exec 9>{REMOTE}/operation.lock
+flock -n 9 || {{ echo 'Deployment operation is active.'; exit 1; }}
+test ! -e {REMOTE}/pending || {{ echo 'Wait for the active deployment trial.'; exit 1; }}
+actual=$(sha256sum {REMOTE}/manage.sh); actual=${{actual%% *}}
+test "$actual" = {shlex.quote(expected)} || {{ echo 'Deployment manager changed; retry after checking its version.'; exit 1; }}
+sh -n {shlex.quote(source)}
+cp -p {REMOTE}/manage.sh {REMOTE}/manage.sh.previous
+cp {shlex.quote(source)} {REMOTE}/manage.sh.new
+chmod 700 {REMOTE}/manage.sh.new
+sync
+mv -f {REMOTE}/manage.sh.new {REMOTE}/manage.sh
+""")
+
 def install(connection, args):
     root, identity = package(args)
     check(connection)
     connection.remote(f"umask 077; mkdir -p {REMOTE}/releases; chmod 700 {REMOTE} {REMOTE}/releases")
     existing = connection.remote(f"if test -s {REMOTE}/manage.sh; then sha256sum {REMOTE}/manage.sh; fi")
+    compatible = None
     if existing and existing.split()[0] != digest(root / "manage.sh"):
         inactive = connection.remote(f"if {inactive_manager_condition()}; then echo restored; else echo active; fi")
-        if inactive != "restored":
+        if inactive != "restored" and existing.split()[0] in COMPATIBLE_MANAGERS:
+            compatible = existing.split()[0]
+        elif inactive != "restored":
             raise Failure("设备部署管理器版本不同；请先运行 bash dash.sh restore，再安装新版本。原备份不会被覆盖。")
-        existing = ""
+        else:
+            existing = ""
     destination = f"{REMOTE}/releases/{identity}"
     present = connection.remote(f"if test -d {destination}; then echo yes; else echo no; fi")
     if present == "no":
@@ -226,7 +251,9 @@ def install(connection, args):
                 connection.remote(f"rm -rf {staging}")
             except (Failure, OSError, subprocess.SubprocessError):
                 print("未能清理未激活的上传目录：" + staging, file=sys.stderr)
-    if not existing:
+    if compatible:
+        replace_compatible_manager(connection, destination + "/manage.sh", compatible)
+    elif not existing:
         replace_inactive_manager(connection, destination + "/manage.sh")
     print("文件已传输并校验；开始部署两个程序。30 秒健康观察通过后自动确认。", flush=True)
     operation = f'sh {REMOTE}/manage.sh install {identity}; result=$?; printf "%s\\n" "$result" >{REMOTE}/install.exit.new; mv {REMOTE}/install.exit.new {REMOTE}/install.exit'

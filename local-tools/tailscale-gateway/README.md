@@ -66,6 +66,6 @@ agent 优先调用 `/data/local/tmp/tailscale-gateway.sh`；新脚本不存在�
 
 ## agent 行为与验证范围
 
-`ZTE_AGENT_TAILSCALE_GATEWAY=1` 启用 `tailscale0`、接收子网路由，并在启动或恢复连接时应用专用规则。`--netfilter-mode=off` 保留固件的蜂窝防火墙。未开启该选项时维持上游默认行为。Tailscale Serve 将 tailnet TCP 9090 代理到本机 9090，沿用后台认证。
+`ZTE_AGENT_TAILSCALE_GATEWAY=1` 启用 `tailscale0`、接收子网路由，并在启动或恢复连接时应用专用规则。`--netfilter-mode=off` 保留固件的蜂窝防火墙。未开启该选项时维持上游默认行为。Tailscale Serve 将 tailnet TCP 20601 代理到本机 20600，沿用后台认证。
 
 旧版固定网段工具曾在 U60 Pro B31、Tailscale 1.104.4 上验证热点客户端访问、转发计数和 tailscaled 重启恢复。新版配置化规则已通过无设备参与的测试：多个 CIDR、非 `/24` LAN、重复应用、定向删除、旧标签迁移、非法或重叠网段拒绝；部署器仍检查 Tailscale 1.104.4。新版部署和整机重启恢复尚需单独实机验证。

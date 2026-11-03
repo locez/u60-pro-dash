@@ -32,7 +32,6 @@ fn export_environment() -> Result<(), String> {
         .filter_map(|p| fs::canonicalize(p).ok())
         .collect::<Vec<_>>();
     let mut found = Vec::new();
-    let mut credential = String::new();
     for process in fs::read_dir("/proc")
         .map_err(|_| "Cannot inspect processes")?
         .flatten()
@@ -64,6 +63,7 @@ fn export_environment() -> Result<(), String> {
             .map_err(|_| "Cannot read local agent environment")?;
         let mut output = String::from("# Private on-device agent environment. Do not publish.\n");
         let mut password = false;
+        let mut credential = String::new();
         for entry in raw.split(|b| *b == 0) {
             let Ok(entry) = std::str::from_utf8(entry) else {
                 continue;
@@ -75,15 +75,29 @@ fn export_environment() -> Result<(), String> {
                 password = !value.is_empty();
                 credential = value.into();
             }
-            if name == "ZTE_AGENT_BIND" && value != "0.0.0.0:9090" && value != "127.0.0.1:9090" {
-                return Err("Paired deployment requires the existing agent on port 9090".into());
+            if name == "ZTE_AGENT_BIND"
+                && ![
+                    "0.0.0.0:9090",
+                    "127.0.0.1:9090",
+                    "0.0.0.0:20600",
+                    "127.0.0.1:20600",
+                ]
+                .contains(&value)
+            {
+                return Err(
+                    "Paired deployment requires the agent on port 20600 or legacy 9090".into(),
+                );
             }
             if let Some(line) = export_line(name, value) {
                 output.push_str(&line);
             }
         }
         if password {
-            found.push(output);
+            found.push((
+                output,
+                credential,
+                crate::management::process_http_port(&path)?,
+            ));
         }
     }
     if found.len() != 1 {
@@ -96,10 +110,12 @@ fn export_environment() -> Result<(), String> {
         return Err("Deployment directory must be root-owned and private".into());
     }
     let client = local_client()?;
-    let token = login(&client, &credential)?;
-    let tailscale = read_status(&client, &token, "/api/tailscale/status")?;
-    let proxy =
-        read_status(&client, &token, "/api/proxy/status").unwrap_or(serde_json::Value::Null);
+    let (environment, credential, port) = &found[0];
+    let address = format!("127.0.0.1:{port}");
+    let token = login(&client, &address, credential)?;
+    let tailscale = read_status(&client, &address, &token, "/api/tailscale/status")?;
+    let proxy = read_status(&client, &address, &token, "/api/proxy/status")
+        .unwrap_or(serde_json::Value::Null);
     let required = serde_json::json!({"tailscale":tailscale["healthy"]==true,"gateway":tailscale["gateway_mode"]==true,"proxy":proxy["running"]==true});
     crate::ota::storage::atomic_write(
         &root.join("health.json"),
@@ -107,7 +123,21 @@ fn export_environment() -> Result<(), String> {
         0o600,
     )
     .map_err(|_| "Cannot save required service health")?;
-    crate::ota::storage::atomic_write(&root.join("agent.env"), found[0].as_bytes(), 0o600)
+    // Preserve the original deployment's port independently of later upgrades.
+    // Installations made before this marker existed used the legacy default.
+    let original_port = root.join("original/management-port");
+    if !original_port.exists() {
+        let first =
+            fs::read_to_string(root.join("current")).map_or(true, |value| value.trim() == "none");
+        let original = if first {
+            *port
+        } else {
+            crate::management::LEGACY_HTTP_PORT
+        };
+        crate::ota::storage::atomic_write(&original_port, original.to_string().as_bytes(), 0o600)
+            .map_err(|_| "Cannot preserve original management port")?;
+    }
+    crate::ota::storage::atomic_write(&root.join("agent.env"), environment.as_bytes(), 0o600)
         .map_err(|_| "Cannot preserve agent environment")?;
     Ok(())
 }
@@ -121,9 +151,13 @@ fn local_client() -> Result<reqwest::blocking::Client, String> {
         .build()
         .map_err(|_| "Cannot build local health client".into())
 }
-fn login(client: &reqwest::blocking::Client, password: &str) -> Result<String, String> {
+fn login(
+    client: &reqwest::blocking::Client,
+    address: &str,
+    password: &str,
+) -> Result<String, String> {
     let value: serde_json::Value = client
-        .post("http://127.0.0.1:9090/api/auth/login")
+        .post(format!("http://{address}/api/auth/login"))
         .json(&serde_json::json!({"password":password}))
         .send()
         .and_then(reqwest::blocking::Response::error_for_status)
@@ -137,11 +171,12 @@ fn login(client: &reqwest::blocking::Client, password: &str) -> Result<String, S
 }
 fn read_status(
     client: &reqwest::blocking::Client,
+    address: &str,
     token: &str,
     path: &str,
 ) -> Result<serde_json::Value, String> {
     let mut reply = client
-        .get(format!("http://127.0.0.1:9090{path}"))
+        .get(format!("http://{address}{path}"))
         .bearer_auth(token)
         .send()
         .and_then(reqwest::blocking::Response::error_for_status)
@@ -166,17 +201,19 @@ fn health() -> Result<(), String> {
     )
     .map_err(|_| "Invalid deployment baseline")?;
     let client = local_client()?;
+    let address = crate::management::local_address()?.to_string();
     let token = login(
         &client,
+        &address,
         &std::env::var("ZTE_AGENT_PASSWORD").map_err(|_| "Agent environment missing")?,
     )?;
-    let ts = read_status(&client, &token, "/api/tailscale/status")?;
+    let ts = read_status(&client, &address, &token, "/api/tailscale/status")?;
     if required["tailscale"] == true
         && (ts["healthy"] != true || required["gateway"] != ts["gateway_mode"])
     {
         return Err("Waiting for existing Tailscale connectivity and mode".into());
     }
-    let proxy = read_status(&client, &token, "/api/proxy/status")?;
+    let proxy = read_status(&client, &address, &token, "/api/proxy/status")?;
     if required["proxy"] == true && proxy["running"] != true {
         return Err("Waiting for existing proxy service".into());
     }
@@ -194,12 +231,18 @@ pub fn health_cli() -> i32 {
 
 fn wait_ready() -> Result<(), String> {
     let client = local_client()?;
+    let address = if paired() {
+        crate::management::local_address()?.to_string()
+    } else {
+        format!("127.0.0.1:{}", original_port()?)
+    };
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(30);
     while std::time::Instant::now() < deadline {
-        match client.get("http://127.0.0.1:9090/api/device").send() {
+        match client.get(format!("http://{address}/api/device")).send() {
             Ok(reply) if reply.status().as_u16() == 401 => {
                 return login(
                     &client,
+                    &address,
                     &std::env::var("ZTE_AGENT_PASSWORD")
                         .map_err(|_| "Agent environment missing")?,
                 )
@@ -228,12 +271,33 @@ pub fn ready_cli() -> i32 {
 }
 
 pub fn network_cli() -> i32 {
-    match crate::tailscale::prepare_management() {
+    match original_port().and_then(crate::tailscale::prepare_management_for) {
         Ok(()) => 0,
         Err(error) => {
             eprintln!("{error}");
             1
         }
+    }
+}
+
+fn original_port() -> Result<u16, String> {
+    match fs::read_to_string("/data/u60-dash/original/management-port") {
+        Ok(value) => value
+            .trim()
+            .parse::<u16>()
+            .ok()
+            .filter(|p| {
+                [
+                    crate::management::HTTP_PORT,
+                    crate::management::LEGACY_HTTP_PORT,
+                ]
+                .contains(p)
+            })
+            .ok_or_else(|| "Invalid original management port".into()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            Ok(crate::management::LEGACY_HTTP_PORT)
+        }
+        Err(_) => Err("Cannot read original management port".into()),
     }
 }
 

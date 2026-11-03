@@ -810,14 +810,7 @@ fn wait_for_exit(pid: u32, timeout: Duration) -> bool {
 }
 
 fn bind_address() -> SocketAddr {
-    let mut address: SocketAddr = std::env::var("ZTE_AGENT_BIND")
-        .ok()
-        .and_then(|value| value.parse().ok())
-        .unwrap_or_else(|| "127.0.0.1:9090".parse().expect("static socket address"));
-    if address.ip().is_unspecified() {
-        address.set_ip(std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST));
-    }
-    address
+    crate::management::local_address().expect("agent bind address was validated at startup")
 }
 
 pub fn unix_now() -> u64 {

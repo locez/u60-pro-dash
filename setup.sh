@@ -30,7 +30,7 @@ if [[ "$AGENT_PASSWORD" == *$'\n'* || "$AGENT_PASSWORD" == *$'\r'* ]]; then
 fi
 
 GATEWAY=192.168.0.1
-AGENT_PORT=9090
+AGENT_PORT=20600
 SSH_PORT=2222
 TARGET=aarch64-unknown-linux-musl
 BINARY=target/$TARGET/release/zte-agent

@@ -147,7 +147,12 @@ install_candidate() {
     fi
     [ ! -s "$ROOT/pending" ] || fail 'A paired trial is active.'
     prepare_original
-    "$release/zte-agent" dash-export-env
+    if ! "$release/zte-agent" dash-export-env; then
+        # An older candidate may only know the old HTTP port. The currently
+        # running release can export its own credentials and health baseline.
+        [ "$previous" != none ] && [ -x "$ROOT/releases/$previous/zte-agent" ] || fail 'Cannot read the existing agent environment.'
+        "$ROOT/releases/$previous/zte-agent" dash-export-env
+    fi
     [ -s "$ROOT/agent.env" ] || fail 'Private agent environment missing.'
     # The pending marker and boot wrapper are durable before any process is stopped.
     atomic "$ROOT/pending" "$candidate

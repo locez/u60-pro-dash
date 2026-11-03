@@ -69,7 +69,7 @@ anything on an existing modem automatically.
 
 All routes require the existing agent bearer authentication. The current agent
 API is HTTP on local Wi-Fi: use a trusted LAN or an encrypted tunnel for tokens.
-Do not expose port 9090 publicly.
+Do not expose port 20600 publicly.
 
 - `GET /api/live-activity`: enabled/registered state, expiry, send interval,
   last APNs acceptance time, and a sanitized error. No token or private key returned.
