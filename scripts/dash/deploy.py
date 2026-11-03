@@ -81,6 +81,10 @@ def elf(path):
 
 def build(args):
     env = os.environ.copy()
+    revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip()
+    # build.rs watches this variable; Cargo otherwise reuses the old embedded
+    # commit when only Git refs changed since the previous build.
+    env["ZTE_AGENT_COMMIT"] = revision
     root = Path(env.get("U60_BUILD_ROOT", Path.home() / ".local/share/u60-build"))
     toolchain = root / "rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin"
     cargo = env.get("CARGO") or (str(toolchain / "cargo") if (toolchain / "cargo").is_file() else shutil.which("cargo"))
@@ -113,7 +117,8 @@ def build(args):
         shutil.copyfile(REPO / "scripts/dash" / name, destination / name)
     hashes = {name: digest(destination / name) for name in FILES}
     pair_id = hashlib.sha256(json.dumps(hashes, sort_keys=True).encode()).hexdigest()[:20]
-    revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip()
+    if subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip() != revision:
+        raise Failure("构建期间 Git 版本发生变化；请重新构建以保证版本信息一致。")
     dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=REPO, text=True).strip())
     manifest = {"format": 1, "id": pair_id, "source_commit": revision, "source_dirty": dirty, "sha256": hashes}
     (destination / "release.json").write_text(json.dumps(manifest, indent=2) + "\n")
