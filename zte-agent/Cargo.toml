@@ -43,6 +43,7 @@ tower = { version = "0.5", default-features = false, features = ["util"] }
 # the identity fallback for the embedded .gz assets (decoder already linked via ureq).
 maud = "0.27"
 flate2 = "1"
+tar = { version = "0.4", default-features = false }
 # Web UI: the Share Wi-Fi join QR code, drawn as inline SVG (MIT, no dependencies).
 qrcodegen = "1.8"
 # Web UI, eSIM › Add eSIM: the QR code in an uploaded photo, read on the router

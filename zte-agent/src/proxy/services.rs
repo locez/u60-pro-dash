@@ -56,7 +56,7 @@ impl ProxyServices {
     pub(super) fn get(&self, id: &str) -> Option<&Service> {
         self.services.get(id)
     }
-    pub(super) fn legacy(&self) -> &Arc<MihomoService> {
+    pub(crate) fn legacy(&self) -> &Arc<MihomoService> {
         match self.get("mihomo").unwrap() {
             Service::Mihomo(service) => service,
         }

@@ -38,6 +38,7 @@ mod qrtr_uim;
 mod router;
 mod scheduler;
 mod server;
+mod software;
 mod sim;
 mod sim_identity;
 mod sms;

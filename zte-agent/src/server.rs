@@ -125,6 +125,9 @@ pub fn precheck(req: &ReqInfo, env: &PreEnv) -> Pre {
     if guard::api_mutation_refused(req.method, &req.headers) {
         return refuse(403, "cross-origin request refused");
     }
+    if req.path.starts_with("/api/software/") && req.method != Method::Get && !has_password {
+        return refuse(403, "agent password required");
+    }
     match (req.method, req.path) {
         (Method::Post, "/api/auth/login") => return Pre::Login,
         // Answered here, without a hand-off, so the RTT measurement stays honest.
@@ -155,7 +158,7 @@ pub fn precheck(req: &ReqInfo, env: &PreEnv) -> Pre {
         return refuse(403, "agent password required");
     }
     Pre::Dispatch {
-        body_limit: if req.path == "/api/proxy/config" || req.path == "/api/proxy/mihomo/config" { 4 * 1024 * 1024 } else if live_activity { LIVE_ACTIVITY_BODY_MAX } else { API_BODY_MAX },
+        body_limit: if matches!(req.path, "/api/software/mihomo/upload/chunk" | "/api/software/tailscale/upload/chunk") { crate::software::UPLOAD_BODY_MAX } else if req.path == "/api/proxy/config" || req.path == "/api/proxy/mihomo/config" { 4 * 1024 * 1024 } else if live_activity { LIVE_ACTIVITY_BODY_MAX } else { API_BODY_MAX },
     }
 }
 
@@ -200,6 +203,7 @@ pub fn encode((status, body): (u16, Value)) -> Encoded {
 pub fn lane(method: Method, path: &str) -> Lane {
     use Method::{Delete, Get, Post, Put};
     let slow = match (method, path) {
+        (Get, p) if p.starts_with("/api/software/") && p.ends_with("/release") => true,
         (Get, "/api/network/client-details") => true,
         (Get, "/api/esim/switch")
         | (Get | Delete, "/api/esim/download")
@@ -464,6 +468,7 @@ fn route_inner(method: &Method, path: &str, state: &AppState, body: &[u8]) -> (u
         (&Method::Post, "/api/doh/cache/clear") => doh_cache_clear(state),
         // Independent proxy services; old routes remain aliases for the original service.
         (&Method::Get, "/api/proxy/services") => proxy::services(state),
+        (method, path) if path.starts_with("/api/software/") => crate::software::route(state, method, path, body),
         (method, path) if path.strip_prefix("/api/proxy/").is_some_and(|p| p.contains('/')) => proxy::service_route(state, method, path, body),
         (&Method::Get, "/api/proxy/status") => proxy::status(state),
         (&Method::Get, "/api/proxy/groups") => proxy::groups(state),
@@ -541,7 +546,7 @@ fn doh_cache_clear(state: &AppState) -> (u16, Value) {
 
 pub fn route(method: &Method, path: &str, state: &AppState, body: &[u8]) -> (u16, Value) {
     let reply = route_inner(method,path,state,body);
-    if reply.0 < 300 && matches!(method,Method::Put|Method::Post|Method::Delete) && path != "/api/auth/login" {
+    if reply.0 < 300 && matches!(method,Method::Put|Method::Post|Method::Delete) && path != "/api/auth/login" && !path.starts_with("/api/software/") {
         state.dashboard.request_refresh();
     }
     reply
@@ -618,6 +623,26 @@ mod tests {
     }
 
     const DISPATCH: Pre = Pre::Dispatch { body_limit: API_BODY_MAX };
+
+    #[test]
+    fn software_uploads_require_auth_and_use_a_bounded_chunk_body() {
+        let h = host("192.168.0.1:9090");
+        let open = AuthState::new();
+        let auth = with_password();
+        let token = auth.login(PW, Kind::Bearer, peer(1), &[]).unwrap();
+        let t = Some(token.token.expose());
+        for service in ["mihomo", "tailscale"] {
+            let chunk = format!("/api/software/{service}/upload/chunk");
+            assert_eq!(run(&open, &info(Method::Post, &chunk, None, None, h)), reply(403, "agent password required"));
+            assert_eq!(run(&auth, &info(Method::Post, &chunk, None, None, h)), reply(401, "unauthorized"));
+            assert_eq!(run(&auth, &info(Method::Post, &chunk, None, t, h)), Pre::Dispatch { body_limit: crate::software::UPLOAD_BODY_MAX });
+            let cross = ReqHeaders { origin: Some("http://evil.com"), ..h };
+            assert_eq!(run(&auth, &info(Method::Post, &chunk, None, t, cross)), reply(403, "cross-origin request refused"));
+            let install = format!("/api/software/{service}/install");
+            assert_eq!(run(&auth, &info(Method::Post, &install, None, t, h)), DISPATCH);
+        }
+        assert_eq!(run(&auth, &info(Method::Post, "/api/software/unknown/upload/chunk", None, t, h)), DISPATCH);
+    }
 
     #[test]
     fn precheck_with_password() {

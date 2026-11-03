@@ -1482,9 +1482,47 @@ pub fn update(state: &AppState, body: &[u8]) -> (u16, Value) {
 }
 
 fn run_update(mgr: &Arc<TailscaleManager>, version: &str, sha256: &str) -> Result<(), String> {
+    run_update_from(mgr, version, sha256, None)
+}
+
+pub(crate) fn install_package(
+    mgr: &Arc<TailscaleManager>,
+    package: &Path,
+    version: &str,
+) -> Result<(), String> {
+    let sha256 = sha256_file(package.to_str().ok_or("Invalid package path")?)?;
+    if mgr
+        .updating
+        .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+        .is_err()
+    {
+        return Err("Tailscale update already in progress".into());
+    }
+    struct UpdateGuard<'a>(&'a TailscaleManager);
+    impl Drop for UpdateGuard<'_> {
+        fn drop(&mut self) {
+            self.0.updating.store(false, Ordering::SeqCst);
+            self.0.refresh_status();
+        }
+    }
+    let _guard = UpdateGuard(mgr);
+    mgr.refresh_status();
+    let result = run_update_from(mgr, version, &sha256, Some(package));
+    *mgr.last_update.lock().unwrap() = Some(
+        json!({"version":version,"ok":result.is_ok(),"error":result.as_ref().err(),"finished_at":unix_now()}),
+    );
+    result
+}
+
+fn run_update_from(
+    mgr: &Arc<TailscaleManager>,
+    version: &str,
+    sha256: &str,
+    package: Option<&Path>,
+) -> Result<(), String> {
     let tgz_path = "/tmp/tailscale-update.tgz";
     let extract_dir = "/tmp/tailscale-update";
-    let result = run_update_inner(mgr, version, sha256, tgz_path, extract_dir);
+    let result = run_update_inner(mgr, version, sha256, tgz_path, extract_dir, package);
     // Never leak tmpfs space, whatever the exit path
     let _ = std::fs::remove_file(tgz_path);
     let _ = std::fs::remove_dir_all(extract_dir);
@@ -1500,21 +1538,30 @@ fn run_update_inner(
     sha256: &str,
     tgz_path: &str,
     extract_dir: &str,
+    package: Option<&Path>,
 ) -> Result<(), String> {
     use std::os::unix::fs::PermissionsExt;
 
     let url = format!("https://pkgs.tailscale.com/stable/tailscale_{version}_arm64.tgz");
 
     // 1. Download (streamed to tmpfs, 120 MB cap)
-    let agent: ureq::Agent = ureq::Agent::config_builder()
-        .timeout_global(Some(Duration::from_secs(600)))
-        .build()
-        .into();
-    let resp = agent.get(&url).call().map_err(|e| format!("download {url}: {e}"))?;
-    let mut reader = resp.into_body().into_reader().take(120 * 1024 * 1024);
-    let mut out = std::fs::File::create(tgz_path).map_err(|e| format!("create {tgz_path}: {e}"))?;
-    std::io::copy(&mut reader, &mut out).map_err(|e| format!("download stream: {e}"))?;
-    drop(out);
+    if let Some(package) = package {
+        std::fs::copy(package, tgz_path).map_err(|_| "Cannot stage uploaded package")?;
+    } else {
+        let agent: ureq::Agent = ureq::Agent::config_builder()
+            .timeout_global(Some(Duration::from_secs(600)))
+            .build()
+            .into();
+        let resp = agent
+            .get(&url)
+            .call()
+            .map_err(|e| format!("download {url}: {e}"))?;
+        let mut reader = resp.into_body().into_reader().take(120 * 1024 * 1024);
+        let mut out =
+            std::fs::File::create(tgz_path).map_err(|e| format!("create {tgz_path}: {e}"))?;
+        std::io::copy(&mut reader, &mut out).map_err(|e| format!("download stream: {e}"))?;
+        drop(out);
+    }
 
     // 2. Verify sha256
     let actual = sha256_file(tgz_path)?;
@@ -1522,16 +1569,11 @@ fn run_update_inner(
         return Err(format!("sha256 mismatch: expected {sha256}, got {actual}"));
     }
 
-    // 3. Extract via busybox tar
+    // 3. Extract only bounded, regular ARM64 binaries; never follow archive links.
     let _ = std::fs::remove_dir_all(extract_dir);
     std::fs::create_dir_all(extract_dir).map_err(|e| format!("mkdir {extract_dir}: {e}"))?;
-    let mut tar = Command::new("tar");
-    tar.args(["-xzf", tgz_path, "-C", extract_dir]);
-    let out = run_with_timeout(tar, 120)?;
-    if !out.status.success() {
-        return Err(format!("tar extract failed: {}", String::from_utf8_lossy(&out.stderr)));
-    }
-    let src_dir = format!("{extract_dir}/tailscale_{version}_arm64");
+    crate::software::extract_tailscale(Path::new(tgz_path), version, Path::new(extract_dir))?;
+    let src_dir = extract_dir;
 
     // 4. Stage new binaries next to the current ones (same filesystem for
     //    atomic rename) and smoke-test before touching the live install.
@@ -1551,6 +1593,13 @@ fn run_update_inner(
     let smoke_out = run_with_timeout(smoke, 15)?;
     if !smoke_out.status.success() {
         return Err("staged tailscaled failed --version smoke test".into());
+    }
+    if String::from_utf8_lossy(&smoke_out.stdout)
+        .split_whitespace()
+        .next()
+        != Some(version)
+    {
+        return Err("The package executable version does not match the selected version".into());
     }
 
     // 5. Quiesce the supervisor — a real handshake, not a best-effort wait:

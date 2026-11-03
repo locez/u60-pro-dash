@@ -25,7 +25,7 @@ use std::{
 };
 
 pub const CONFIG_LIMIT: usize = 512 * 1024;
-const BINARY_LIMIT: u64 = 96 * 1024 * 1024;
+pub(crate) const BINARY_LIMIT: u64 = 96 * 1024 * 1024;
 struct Runtime {
     owner: Option<std::os::unix::net::UnixStream>,
     child: Option<Child>,
@@ -116,7 +116,7 @@ fn run_checked(
         }
     }
 }
-fn elf(bytes: &[u8]) -> bool {
+pub(crate) fn elf(bytes: &[u8]) -> bool {
     if bytes.len() < 64
         || &bytes[..4] != b"\x7fELF"
         || bytes[4] != 2
@@ -398,6 +398,142 @@ impl MihomoService {
                 }
             });
     }
+    pub(crate) fn install_package(
+        self: &Arc<Self>,
+        package: &Path,
+        version: &str,
+    ) -> Result<(), String> {
+        let _op = self
+            .operation
+            .try_lock()
+            .map_err(|_| "Another proxy operation is running")?;
+        self.prepare()?;
+        self.lease()?;
+        let result = (|| {
+            let mut bytes = Vec::new();
+            File::open(package)
+                .map_err(|_| "Cannot open engine package")?
+                .take(BINARY_LIMIT + 1)
+                .read_to_end(&mut bytes)
+                .map_err(|_| "Cannot read engine package")?;
+            if bytes.len() as u64 > BINARY_LIMIT {
+                return Err("Engine package exceeds size limit".into());
+            }
+            self.install_bytes(&bytes, version, true)
+        })();
+        let mut r = self.runtime.lock().unwrap();
+        if r.child.is_none() {
+            r.lock = None;
+        }
+        result
+    }
+    fn install_bytes(
+        self: &Arc<Self>,
+        bytes: &[u8],
+        version: &str,
+        restart: bool,
+    ) -> Result<(), String> {
+        let was_running = self.runtime.lock().unwrap().child.is_some();
+        if was_running && !restart {
+            return Err("Stop the service before updating its engine".into());
+        }
+        let binary = if bytes.starts_with(&[0x1f, 0x8b]) {
+            let mut out = Vec::new();
+            flate2::read::GzDecoder::new(bytes)
+                .take(BINARY_LIMIT + 1)
+                .read_to_end(&mut out)
+                .map_err(|_| "Invalid compressed engine")?;
+            out
+        } else {
+            bytes.to_vec()
+        };
+        if binary.len() as u64 > BINARY_LIMIT || !elf(&binary) {
+            return Err("Engine must be a static Linux ARM64 executable".into());
+        }
+        let staged = self.root.join("engine.new");
+        private_write(&staged, &binary, 0o700)?;
+        let validation = self.root.join("install-check.json");
+        let result = (|| {
+            let settings = self.settings.lock().unwrap().clone();
+            let driver = engine::adapter(&settings.adapter)?;
+            let config = if self.root.join("source.json").exists() {
+                driver.runtime(&self.source()?, &settings, "installation-check")
+            } else {
+                json!({"mode":"direct","mixed-port":0,"proxies":[],"rules":["MATCH,DIRECT"]})
+            };
+            private_write(&validation, &serde_json::to_vec(&config).unwrap(), 0o600)?;
+            run_checked(driver.as_ref(), &staged, &self.root, &validation)?;
+            // Keep the inter-process lease through stop, replacement and rollback.
+            let lease = self
+                .runtime
+                .lock()
+                .unwrap()
+                .lock
+                .as_ref()
+                .ok_or("Service lease missing")?
+                .try_clone()
+                .map_err(|_| "Cannot retain service lease")?;
+            let retain = || -> Result<(), String> {
+                self.runtime.lock().unwrap().lock = Some(
+                    lease
+                        .try_clone()
+                        .map_err(|_| "Cannot retain service lease")?,
+                );
+                Ok(())
+            };
+            let current = self.root.join("engine");
+            let backup = self.root.join("engine.prev");
+            let had_binary = current.is_file();
+            let old_version = fs::read(self.root.join("version")).ok();
+            if was_running {
+                self.stop();
+                retain()?;
+            }
+            if had_binary && fs::rename(&current, &backup).is_err() {
+                if was_running {
+                    let _ = self.start();
+                }
+                return Err("Cannot back up installed engine".into());
+            }
+            let activation = (|| {
+                fs::rename(&staged, &current).map_err(|_| "Cannot activate installed engine")?;
+                private_write(&self.root.join("version"), version.as_bytes(), 0o600)?;
+                if was_running {
+                    self.start()?;
+                }
+                Ok::<(), String>(())
+            })();
+            if let Err(error) = activation {
+                self.stop();
+                retain()?;
+                if had_binary {
+                    fs::rename(&backup, &current)
+                        .map_err(|_| "Engine activation failed and backup could not be restored")?;
+                } else {
+                    let _ = fs::remove_file(&current);
+                }
+                if let Some(version) = old_version {
+                    private_write(&self.root.join("version"), &version, 0o600)?;
+                } else {
+                    let _ = fs::remove_file(self.root.join("version"));
+                }
+                if was_running && self.start().is_err() {
+                    return Err(
+                        "Update failed; the previous engine was restored but could not restart"
+                            .into(),
+                    );
+                }
+                return Err(format!(
+                    "Update failed; previous installation restored: {error}"
+                ));
+            }
+            let _ = fs::remove_file(backup);
+            Ok(())
+        })();
+        let _ = fs::remove_file(validation);
+        let _ = fs::remove_file(staged);
+        result
+    }
     fn change(self: &Arc<Self>, action: &str, body: &Value) -> Result<Value, String> {
         let _op = self
             .operation
@@ -527,37 +663,7 @@ impl MihomoService {
                 if format!("{:x}", Sha256::digest(&bytes)) != sha.to_ascii_lowercase() {
                     return Err("Downloaded engine checksum does not match".into());
                 }
-                let binary = if bytes.starts_with(&[0x1f, 0x8b]) {
-                    let mut out = Vec::new();
-                    flate2::read::GzDecoder::new(&bytes[..])
-                        .take(BINARY_LIMIT + 1)
-                        .read_to_end(&mut out)
-                        .map_err(|_| "Invalid compressed engine")?;
-                    out
-                } else {
-                    bytes
-                };
-                if binary.len() as u64 > BINARY_LIMIT || !elf(&binary) {
-                    return Err("Engine must be a static Linux ARM64 executable".into());
-                }
-                let staged = self.root.join("engine.new");
-                private_write(&staged, &binary, 0o700)?;
-                let validation = self.root.join("install-check.json");
-                private_write(&validation,b"{\"mode\":\"direct\",\"mixed-port\":0,\"proxies\":[],\"rules\":[\"MATCH,DIRECT\"]}",0o600)?;
-                let result = run_checked(
-                    engine::adapter(&self.settings.lock().unwrap().adapter)?.as_ref(),
-                    &staged,
-                    &self.root,
-                    &validation,
-                );
-                let _ = fs::remove_file(validation);
-                if let Err(e) = result {
-                    let _ = fs::remove_file(staged);
-                    return Err(e);
-                }
-                fs::rename(staged, self.root.join("engine"))
-                    .map_err(|_| "Cannot activate installed engine")?;
-                private_write(&self.root.join("version"), version.as_bytes(), 0o600)?;
+                self.install_bytes(&bytes, version, false)?;
             }
             "select" => {
                 let group = body["group"].as_str().ok_or("Group required")?;
@@ -667,6 +773,54 @@ pub fn change(state: &AppState, action: &str, body: &[u8]) -> (u16, Value) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn rejected_package_preserves_installation_configuration_and_releases_lease() {
+        let root =
+            std::env::temp_dir().join(format!("u60-package-rejection-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        let service = Arc::new(MihomoService::at(root.clone()));
+        service.prepare().unwrap();
+        for (name, bytes) in [
+            ("engine", "previous executable"),
+            ("version", "1.2.3"),
+            (
+                "source.json",
+                "{\"proxies\":[],\"rules\":[\"MATCH,DIRECT\"]}",
+            ),
+        ] {
+            private_write(&root.join(name), bytes.as_bytes(), 0o600).unwrap();
+        }
+        // Rejection at architecture validation and at the executable smoke test
+        // must both happen before touching the previous installation.
+        let mut malformed = vec![0u8; 120];
+        malformed[..4].copy_from_slice(b"\x7fELF");
+        malformed[4] = 2;
+        malformed[5] = 1;
+        malformed[18..20].copy_from_slice(&183u16.to_le_bytes());
+        malformed[32..40].copy_from_slice(&64u64.to_le_bytes());
+        malformed[54..56].copy_from_slice(&56u16.to_le_bytes());
+        malformed[56..58].copy_from_slice(&1u16.to_le_bytes());
+        for bytes in [b"not an executable".as_slice(), &malformed] {
+            private_write(&root.join("package"), bytes, 0o600).unwrap();
+            assert!(service
+                .install_package(&root.join("package"), "1.2.4")
+                .is_err());
+            assert_eq!(
+                fs::read(root.join("engine")).unwrap(),
+                b"previous executable"
+            );
+            assert_eq!(fs::read(root.join("version")).unwrap(), b"1.2.3");
+            assert_eq!(service.source().unwrap()["rules"][0], "MATCH,DIRECT");
+            assert!(!root.join("engine.new").exists());
+            assert!(!root.join("install-check.json").exists());
+            assert!(!root.join("engine.prev").exists());
+            assert!(service.runtime.lock().unwrap().lock.is_none());
+            let next_owner = MihomoService::at(root.clone());
+            next_owner.lease().unwrap();
+        }
+        fs::remove_dir_all(root).unwrap();
+    }
+
     /// Optional device/engine contract check. The executable may be a wrapper
     /// that forwards the fixed validation arguments to a connected test device.
     #[test]
