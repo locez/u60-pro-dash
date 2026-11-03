@@ -3335,3 +3335,5 @@ html:lang(ko) { --sans: 'Noto Sans KR', 'Noto Sans CJK KR', 'Apple SD Gothic Neo
 .proxy-import-fields .field { display:flex; flex-direction:column; gap:8px; }
 .proxy-import-fields > button { justify-self:start; }
 #proxy-config { min-height:260px; }
+
+.proxy-log-output{max-height:32rem;min-height:12rem;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface-soft);border:1px solid var(--line);border-radius:8px;padding:1rem;font-family:var(--mono);font-size:.8rem;line-height:1.6}.proxy-pane .form-actions>.field:has(input[type=checkbox]){display:flex;align-items:center;gap:.5rem}.proxy-pane .form-actions input[type=checkbox]{width:auto}

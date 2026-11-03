@@ -6,20 +6,20 @@
   function compare(a,b){const x=versions(a),y=versions(b);if(!x||!y)return null;for(let i=0;i<3;i++)if(x[i]!==y[i])return x[i]<y[i]?-1:1;return 0;}
   function base64(bytes){let text='';for(let n=0;n<bytes.length;n+=8192)text+=String.fromCharCode(...bytes.subarray(n,n+8192));return btoa(text);}
   globalThis.OpenU60Installer=function(view,parent,{service,title,onInstalled=()=>{}}){
-    const endpoint=`/api/software/${service}`, route=view.route;
+    const endpoint=`/api/software/${service}`, route=view.route, web=service==='metacubexd';
     const panel=el('section','software-installer');panel.id=`${service}-installer`;
     const heading=el('h3','form-section-title',tr('Installation & updates'));
-    const description=el('p','panel-note',tr('Automatically selects the official stable Linux ARM64 package for this router and verifies its SHA-256.'));
+    const description=el('p','panel-note',web?tr('Installs the official static dashboard separately from the proxy engine and verifies its SHA-256.'):tr('Automatically selects the official stable Linux ARM64 package for this router and verifies its SHA-256.'));
     const facts=el('dl','settings-facts'),actions=el('div','form-actions diagnostic-actions'),feedback=UI.status(panel),progress=el('progress','software-progress');progress.hidden=true;
     const check=button(tr('Check for updates'),checkRelease),install=button(tr('Install release'),installRelease,'primary');check.id=`${service}-check-update`;install.id=`${service}-install-release`;actions.append(check,install);
     const details=el('details','software-details'),summary=el('summary','',tr('Package details')),metadata=el('dl','settings-facts');details.append(summary,metadata);
     const manual=el('details','software-manual'),manualSummary=el('summary','',tr('Manual installation'));
     const fileForm=el('form','settings-form service-form');fileForm.id=`${service}-package-upload`;
-    fileForm.append(el('p','panel-note',tr('Choose a Linux ARM64 package from your computer. Official filenames include the version; renamed packages need the version below.')));
-    const label=el('label','field'),file=el('input');file.type='file';file.id=`${service}-package-file`;file.accept=service==='tailscale'?'.tgz':'.gz,.bin,application/octet-stream,application/x-executable';label.append(el('span','field-label',tr('Installation package')),file);
+    fileForm.append(el('p','panel-note',web?tr('Choose the official compressed-dist.tgz static dashboard archive. The version label is optional.'):tr('Choose a Linux ARM64 package from your computer. Official filenames include the version; renamed packages need the version below.')));
+    const label=el('label','field'),file=el('input');file.type='file';file.id=`${service}-package-file`;file.accept=web?'.tgz,.tar.gz':service==='tailscale'?'.tgz':'.gz,.bin,application/octet-stream,application/x-executable';label.append(el('span','field-label',tr('Installation package')),file);
     const versionLabel=el('label','field'),version=el('input');version.type='text';version.id=`${service}-package-version`;version.placeholder=tr('Optional for official filenames');version.autocomplete='off';version.pattern='v?[0-9]+\\.[0-9]+\\.[0-9]+';versionLabel.append(el('span','field-label',tr('Package version')),version);
     const upload=button(tr('Upload and install'),uploadPackage,'primary');upload.id=`${service}-upload-install`;
-    fileForm.append(label,versionLabel,el('p','field-help',service==='tailscale'?tr('Use the official tailscale_<version>_arm64.tgz archive. Maximum 120 MiB.'):tr('Use the Linux ARM64 .gz package or static executable. Maximum 96 MiB.')),upload);
+    fileForm.append(label,versionLabel,el('p','field-help',web?tr('Use the static web archive, not a desktop application. Maximum 120 MiB.'):service==='tailscale'?tr('Use the official tailscale_<version>_arm64.tgz archive. Maximum 120 MiB.'):tr('Use the Linux ARM64 .gz package or static executable. Maximum 96 MiB.')),upload);
     fileForm.addEventListener('submit',e=>e.preventDefault());manual.append(manualSummary,fileForm);
     panel.replaceChildren(heading,description,facts,actions,progress,feedback,details,manual);parent.append(panel);
     let generation=0, readEpoch=0, state=null, installed=null, loading=false, checking=false, loaded=false, uploading=false, uploadId=null, phase=null;
@@ -31,7 +31,7 @@
       const available=state?.available,order=compare(currentVersion(),available?.version),busy=!!state?.busy||uploading||!!installed?.updating;
       facts.replaceChildren();fact(facts,tr('Installed version'),!installed?tr('Waiting for status'):installed.installed?(currentVersion()||tr('Not reported')):tr('Not installed'));
       fact(facts,tr('Latest stable version'),available?.version||tr('Not checked'));
-      fact(facts,tr('Platform'),'Linux ARM64');
+      fact(facts,tr('Platform'),web?tr('Static web files'):'Linux ARM64');
       if(available){fact(facts,tr('Update status'),!installed?.installed?tr('Ready to install'):order===0?tr('Up to date'):order===1?tr('Installed version is newer than the stable release'):tr('Update available'));}
       check.textContent=checking?tr('Checking for updates…'):tr('Check for updates');check.disabled=!active()||busy||checking||UI.saving;
       install.textContent=installed?.installed?tr('Upgrade'):tr('Install release');
@@ -63,7 +63,7 @@
     }
     async function installRelease(){
       const epoch=generation,release=state?.available;if(!active()||!release||state.busy)return;
-      if(!await UI.confirm(title,tr('Install version {0}? The running service may restart briefly. Existing configuration is retained.',release.version),{label:tr('Install / upgrade')}))return;
+      if(!await UI.confirm(title,web?tr('Install dashboard version {0}? Reload the dashboard after updating. The proxy service keeps running.',release.version):tr('Install version {0}? The running service may restart briefly. Existing configuration is retained.',release.version),{label:tr('Install / upgrade')}))return;
       if(!current(epoch))return;
       readEpoch++;
       await UI.mutate(feedback,async live=>{
@@ -85,7 +85,7 @@
     async function cancelUpload(id){if(id&&!API.locked){try{await UI.request(`${endpoint}/upload/cancel`,UI.json('POST',{upload_id:id}));}catch{}}}
     async function uploadPackage(){
       const selected=file.files[0],epoch=generation;if(!active()||!selected||state?.busy||!fileForm.reportValidity())return;
-      const limit=(service==='tailscale'?120:96)*1024*1024;
+      const limit=(web||service==='tailscale'?120:96)*1024*1024;
       if(!selected.size||selected.size>limit){UI.say(feedback,tr('This package is empty or exceeds the upload limit.'),true);return;}
       if(!await UI.confirm(title,tr('Upload and install {0}? The router will validate the package before replacing the installed software.',selected.name),{label:tr('Upload and install')}))return;
       if(!current(epoch))return;

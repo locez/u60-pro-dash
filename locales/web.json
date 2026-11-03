@@ -2374,8 +2374,8 @@
   },
   "Concurrent TCP connections": {
     "en": "Concurrent TCP connections",
-    "zh-Hans": "同时连接 TCP",
-    "zh-Hant": "同時連線 TCP",
+    "zh-Hans": "TCP 并发连接",
+    "zh-Hant": "TCP 並行連線",
     "ja": "同期接続 TCP",
     "ko": "동시 TCP 연결"
   },
@@ -6035,8 +6035,8 @@
   },
   "Mixed HTTP / SOCKS port": {
     "en": "Mixed HTTP / SOCKS port",
-    "zh-Hans": "混合的 HTTP / SOCKS端口",
-    "zh-Hant": "混合的 HTTP / SOCKS埠",
+    "zh-Hans": "HTTP / SOCKS 共用端口",
+    "zh-Hant": "HTTP / SOCKS 共用連接埠",
     "ja": "混合型 HTTP / SOCKSポート",
     "ko": "혼합 HTTP / SOCKS 포트"
   },
@@ -9136,8 +9136,8 @@
   },
   "Save runtime settings": {
     "en": "Save runtime settings",
-    "zh-Hans": "保存运行时间设置",
-    "zh-Hant": "儲存執行時間設定",
+    "zh-Hans": "保存运行设置",
+    "zh-Hant": "儲存執行設定",
     "ja": "実行時間の設定を保存する",
     "ko": "실행 시간 설정을 저장"
   },
@@ -13956,5 +13956,159 @@
     "zh-Hant": "正在準備規則資料庫並驗證設定…",
     "ja": "ルールデータの準備と設定の検証中…",
     "ko": "규칙 데이터 준비 및 설정 검증 중…"
+  },
+  "These settings override the corresponding YAML fields. Saving while running restarts this service briefly; a failed change attempts to restore the previous settings.": {
+    "en": "These settings override the corresponding YAML fields. Saving while running restarts this service briefly; a failed change attempts to restore the previous settings.",
+    "zh-Hans": "这些设置会覆盖 YAML 中的对应字段。运行中保存会短暂重启本服务；应用失败会尝试恢复原设置。",
+    "zh-Hant": "這些設定會覆蓋 YAML 中的對應欄位。執行中儲存會短暫重新啟動本服務；套用失敗會嘗試還原原設定。",
+    "ja": "YAML の対応項目を上書きします。実行中の保存ではサービスを再起動し、失敗時は以前の設定への復元を試みます。",
+    "ko": "YAML의 해당 항목을 덮어씁니다. 실행 중 저장하면 서비스를 잠시 재시작하며, 실패하면 이전 설정으로 복구를 시도합니다."
+  },
+  "Apply these runtime settings and restart this service? Existing proxy connections will close.": {
+    "en": "Apply these runtime settings and restart this service? Existing proxy connections will close.",
+    "zh-Hans": "应用运行设置并重启本服务？现有代理连接会中断。",
+    "zh-Hant": "套用執行設定並重新啟動本服務？現有代理連線會中斷。",
+    "ja": "設定を適用してサービスを再起動しますか？現在のプロキシ接続は切断されます。",
+    "ko": "설정을 적용하고 서비스를 재시작할까요? 현재 프록시 연결이 끊어집니다."
+  },
+  "Save and restart": {
+    "en": "Save and restart",
+    "zh-Hans": "保存并重启",
+    "zh-Hant": "儲存並重新啟動",
+    "ja": "保存して再起動",
+    "ko": "저장 후 재시작"
+  },
+  "Logs": {
+    "en": "Logs",
+    "zh-Hans": "日志",
+    "zh-Hant": "日誌",
+    "ja": "ログ",
+    "ko": "로그"
+  },
+  "Refresh logs automatically": {
+    "en": "Refresh logs automatically",
+    "zh-Hans": "自动刷新日志",
+    "zh-Hant": "自動重新整理日誌",
+    "ja": "ログを自動更新",
+    "ko": "로그 자동 새로고침"
+  },
+  "No logs yet. Start or restart the service to collect new logs.": {
+    "en": "No logs yet. Start or restart the service to collect new logs.",
+    "zh-Hans": "暂无日志。启动或重启服务后开始记录。",
+    "zh-Hant": "暫無日誌。啟動或重新啟動服務後開始記錄。",
+    "ja": "ログはまだありません。サービスを起動または再起動すると記録されます。",
+    "ko": "아직 로그가 없습니다. 서비스를 시작하거나 재시작하면 기록됩니다."
+  },
+  "Showing the most recent logs. Older entries have been omitted.": {
+    "en": "Showing the most recent logs. Older entries have been omitted.",
+    "zh-Hans": "仅显示最近的日志，更早的内容已省略。",
+    "zh-Hant": "僅顯示最近的日誌，更早的內容已省略。",
+    "ja": "最新のログを表示しています。古い項目は省略されています。",
+    "ko": "최근 로그만 표시합니다. 이전 항목은 생략되었습니다."
+  },
+  "Recent startup and runtime logs.": {
+    "en": "Recent startup and runtime logs.",
+    "zh-Hans": "最近的启动与运行日志。",
+    "zh-Hant": "最近的啟動與執行日誌。",
+    "ja": "最近の起動・実行ログ。",
+    "ko": "최근 시작 및 실행 로그입니다."
+  },
+  "Refresh logs": {
+    "en": "Refresh logs",
+    "zh-Hans": "刷新日志",
+    "zh-Hant": "重新整理日誌",
+    "ja": "ログを更新",
+    "ko": "로그 새로고침"
+  },
+  "Clear logs": {
+    "en": "Clear logs",
+    "zh-Hans": "清空日志",
+    "zh-Hant": "清除日誌",
+    "ja": "ログを消去",
+    "ko": "로그 지우기"
+  },
+  "Delete the retained logs for this service?": {
+    "en": "Delete the retained logs for this service?",
+    "zh-Hans": "清空本服务已保留的日志？",
+    "zh-Hant": "清除本服務已保留的日誌？",
+    "ja": "このサービスの保存済みログを消去しますか？",
+    "ko": "이 서비스에 저장된 로그를 지울까요?"
+  },
+  "Logs are rotated automatically. Saved configuration credentials and URL parameters are removed from captured output.": {
+    "en": "Logs are rotated automatically. Saved configuration credentials and URL parameters are removed from captured output.",
+    "zh-Hans": "日志自动轮换，记录时会过滤配置凭据和 URL 中的参数。",
+    "zh-Hant": "日誌自動輪替，記錄時會過濾設定憑證和 URL 中的參數。",
+    "ja": "ログは自動でローテーションされます。設定の認証情報と URL パラメータは記録から除去されます。",
+    "ko": "로그는 자동으로 순환 보관됩니다. 설정의 인증 정보와 URL 매개변수는 기록에서 제거됩니다."
+  },
+  "Installs the official static dashboard separately from the proxy engine and verifies its SHA-256.": {
+    "en": "Installs the official static dashboard separately from the proxy engine and verifies its SHA-256.",
+    "zh-Hans": "独立安装官方静态面板，并验证 SHA-256。",
+    "zh-Hant": "獨立安裝官方靜態面板，並驗證 SHA-256。",
+    "ja": "公式の静的ダッシュボードを個別にインストールし、SHA-256 を検証します。",
+    "ko": "공식 정적 대시보드를 별도로 설치하고 SHA-256을 검증합니다."
+  },
+  "Choose the official compressed-dist.tgz static dashboard archive. The version label is optional.": {
+    "en": "Choose the official compressed-dist.tgz static dashboard archive. The version label is optional.",
+    "zh-Hans": "选择官方 compressed-dist.tgz 静态面板包，版本号可选。",
+    "zh-Hant": "選擇官方 compressed-dist.tgz 靜態面板套件，版本號可選。",
+    "ja": "公式の compressed-dist.tgz を選択してください。バージョン名は省略できます。",
+    "ko": "공식 compressed-dist.tgz 정적 대시보드 파일을 선택하세요. 버전은 선택 사항입니다."
+  },
+  "Use the static web archive, not a desktop application. Maximum 120 MiB.": {
+    "en": "Use the static web archive, not a desktop application. Maximum 120 MiB.",
+    "zh-Hans": "请上传静态网页包，最大 120 MiB。桌面应用安装包不适用。",
+    "zh-Hant": "請上傳靜態網頁套件，最大 120 MiB。桌面應用程式安裝套件不適用。",
+    "ja": "静的 Web アーカイブを使用してください。最大 120 MiB。デスクトップアプリは使用できません。",
+    "ko": "최대 120 MiB의 정적 웹 압축 파일을 사용하세요. 데스크톱 앱 설치 파일은 지원하지 않습니다."
+  },
+  "Static web files": {
+    "en": "Static web files",
+    "zh-Hans": "静态网页",
+    "zh-Hant": "靜態網頁",
+    "ja": "静的 Web ファイル",
+    "ko": "정적 웹 파일"
+  },
+  "Install dashboard version {0}? Reload the dashboard after updating. The proxy service keeps running.": {
+    "en": "Install dashboard version {0}? Reload the dashboard after updating. The proxy service keeps running.",
+    "zh-Hans": "安装面板 {0} 版？更新后请刷新面板，代理服务将继续运行。",
+    "zh-Hant": "安裝面板 {0} 版？更新後請重新整理面板，代理服務將繼續執行。",
+    "ja": "ダッシュボード {0} をインストールしますか？更新後に再読み込みしてください。プロキシサービスは継続します。",
+    "ko": "대시보드 {0} 버전을 설치할까요? 업데이트 후 새로고침하세요. 프록시 서비스는 계속 실행됩니다."
+  },
+  "MetaCubeXD is a separate static dashboard. Install it here, then open it with an automatic connection to this service through the existing management address.": {
+    "en": "MetaCubeXD is a separate static dashboard. Install it here, then open it with an automatic connection to this service through the existing management address.",
+    "zh-Hans": "MetaCubeXD 是独立的静态面板。在这里安装后点击打开，会通过当前管理地址自动连接本服务。",
+    "zh-Hant": "MetaCubeXD 是獨立的靜態面板。在這裡安裝後點擊開啟，會透過目前管理位址自動連線至本服務。",
+    "ja": "MetaCubeXD は独立した静的ダッシュボードです。ここでインストールして開くと、現在の管理アドレス経由で自動接続します。",
+    "ko": "MetaCubeXD는 별도의 정적 대시보드입니다. 여기서 설치한 후 열면 현재 관리 주소를 통해 이 서비스에 자동으로 연결됩니다."
+  },
+  "Use the dashboard for proxy groups, connections, rules and live logs. Runtime configuration, restart and engine updates remain in this console.": {
+    "en": "Use the dashboard for proxy groups, connections, rules and live logs. Runtime configuration, restart and engine updates remain in this console.",
+    "zh-Hans": "面板用于查看和管理代理组、连接、规则与实时日志。运行配置、服务重启和内核升级请在本管理页操作。",
+    "zh-Hant": "面板用於檢視和管理代理群組、連線、規則與即時日誌。執行設定、服務重新啟動和核心升級請在本管理頁操作。",
+    "ja": "ダッシュボードでプロキシグループ、接続、ルール、ライブログを管理できます。実行設定、再起動、コア更新はこのコンソールで操作してください。",
+    "ko": "대시보드에서 프록시 그룹, 연결, 규칙과 실시간 로그를 관리하세요. 실행 설정, 재시작 및 코어 업데이트는 이 콘솔에서 수행합니다."
+  },
+  "Open MetaCubeXD": {
+    "en": "Open MetaCubeXD",
+    "zh-Hans": "打开 MetaCubeXD",
+    "zh-Hant": "開啟 MetaCubeXD",
+    "ja": "MetaCubeXD を開く",
+    "ko": "MetaCubeXD 열기"
+  },
+  "Invalid dashboard connection details.": {
+    "en": "Invalid dashboard connection details.",
+    "zh-Hans": "面板连接信息无效。",
+    "zh-Hant": "面板連線資訊無效。",
+    "ja": "ダッシュボードの接続情報が無効です。",
+    "ko": "대시보드 연결 정보가 잘못되었습니다."
+  },
+  "Dashboard connection prepared. Reopen it here after a service restart or session expiry.": {
+    "en": "Dashboard connection prepared. Reopen it here after a service restart or session expiry.",
+    "zh-Hans": "面板连接已准备好。服务重启或会话过期后，请从这里重新打开。",
+    "zh-Hant": "面板連線已準備好。服務重新啟動或工作階段到期後，請從這裡重新開啟。",
+    "ja": "接続を準備しました。サービスの再起動やセッションの期限切れ後は、ここから開き直してください。",
+    "ko": "대시보드 연결이 준비되었습니다. 서비스 재시작 또는 세션 만료 후 여기서 다시 여세요."
   }
 }

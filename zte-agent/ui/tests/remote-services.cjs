@@ -2,7 +2,7 @@
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),http=require('node:http'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 (async()=>{
  const uploads={};
- const software={mihomo:{phase:'idle',busy:false,available:null},tailscale:{phase:'idle',busy:false,available:null}};
+ const software={metacubexd:{phase:'idle',busy:false,available:null},mihomo:{phase:'idle',busy:false,available:null},tailscale:{phase:'idle',busy:false,available:null}};
  for(const kind of ['geoip','geosite','mmdb','asn'])software['mihomo-'+kind]={phase:'idle',busy:false};
  let releaseFailure=false,chunkFailure=false,loseAcceptance=false,loseOfficialAcceptance=false,holdRelease=false,releaseMetadata=null;
  const ok=data=>({ok:true,data}),writes=[],streams=new Set(),errors=[];
@@ -11,7 +11,8 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
  const groups=[{name:'Primary group',selected:'Example A',choices:['Example A','Example B'],selectable:true,kind:'Selector'},{name:'<img src=x onerror=alert(1)>',selected:'Example A',choices:['Example A'],selectable:false,kind:'URLTest'}];
  const core={device:ok({hostname:'Example router',uptime_secs:100}),wan:ok({up:true}),wan6:ok({up:false}),signal:ok({network_type:'5G'}),modem:ok({operate_mode:'ONLINE'}),battery:ok({capacity:80}),wifi:ok({}),clients:ok({hosts:{}}),speed:ok({rx_speed:0,tx_speed:0})};
  let holdStatus=false,releaseStatus=null,holdConfig=false,releaseConfig=null;
- let savedConfig='',ignoreSave=false,rejectConfig=false,reloads=0;
+ let savedConfig='',ignoreSave=false,rejectConfig=false,reloads=0,rejectSettings=false,logText='Fixture startup failure <img src=x onerror=alert(1)>',holdLogs=false,releaseLogs=null;
+ const panel={installed:false,version:null};
  const setConfig=text=>{savedConfig=text;proxy.configured=true;proxy.config_revision=crypto.createHash('sha256').update(text).digest('hex');};
  const other={id:'fixture-service',name:'Fixture service',running:true,installed:true,local_endpoint:'127.0.0.1:7899'};
  const server=http.createServer((req,res)=>{
@@ -20,7 +21,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
    const send=data=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify(ok(data)));};
    if(req.url.startsWith('/api/software/')){
     const [, , ,service,action]=req.url.split('/');
-    const available={version:service==='mihomo'?'1.1.0':'1.104.5',name:service==='mihomo'?'mihomo-linux-arm64-v1.1.0.gz':'tailscale_1.104.5_arm64.tgz',sha256:'a'.repeat(64),architecture:'linux-arm64'};
+    const available=service==='metacubexd'?{version:'1.200.0',name:'compressed-dist.tgz',sha256:'b'.repeat(64),architecture:'web'}:{version:service==='mihomo'?'1.1.0':'1.104.5',name:service==='mihomo'?'mihomo-linux-arm64-v1.1.0.gz':'tailscale_1.104.5_arm64.tgz',sha256:'a'.repeat(64),architecture:'linux-arm64'};
     if(req.method==='GET'){
      if(action==='release'){
       if(releaseFailure){res.statusCode=503;return res.end(JSON.stringify({ok:false,error:'Official source unavailable in fixture'}));}
@@ -46,12 +47,14 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
       setTimeout(()=>{if(service==='mihomo')proxy.version=uploads[service].version;Object.assign(software[service],{phase:'succeeded',busy:false});},400);
       if(loseAcceptance){res.writeHead(200,{'Content-Type':'application/json','Content-Length':2000});res.write('{"ok":true,"data":');setImmediate(()=>res.destroy());return;}return send(software[service]);
      }
-     if(service==='mihomo')proxy.version=body.version;else ts.client_version=body.version;
+     if(service==='mihomo')proxy.version=body.version;else if(service==='metacubexd')Object.assign(panel,{installed:true,version:body.version});else ts.client_version=body.version;
      if(loseOfficialAcceptance){Object.assign(software[service],{phase:'installing',busy:true,available});setTimeout(()=>Object.assign(software[service],{phase:'succeeded',busy:false}),400);res.writeHead(200,{'Content-Type':'application/json','Content-Length':2000});res.write('{"ok":true,"data":');setImmediate(()=>res.destroy());return;}
      Object.assign(software[service],{phase:'succeeded',busy:false,available});send(software[service]);
     });return;
    }
    if(req.method==='GET'){
+    if(req.url==='/api/proxy/mihomo/panel')return send({...panel,running:proxy.running});
+    if(req.url==='/api/proxy/mihomo/logs'){const read=()=>send({text:logText,truncated:false});if(holdLogs){releaseLogs=read;return;}return read();}
     if(req.url==='/api/proxy/services')return send({services:[proxy,other]});
     if(req.url==='/api/proxy/mihomo/config'){const read=()=>send({config:savedConfig,configured:proxy.configured,revision:proxy.config_revision});if(holdConfig){releaseConfig=read;return;}return read();}
     if(req.url==='/api/proxy/mihomo/status'){if(holdStatus){releaseStatus=()=>send(proxy);return;}return send(proxy);}
@@ -70,7 +73,9 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
      else if(!ignoreSave)setConfig(body.config||'proxies: [{name: Subscribed, type: socks5, server: example.com, port: 1080}]');
      return send(proxy);
     }
-    if(req.url==='/api/proxy/mihomo/settings')Object.assign(proxy,body);
+    if(req.url==='/api/proxy/mihomo/panel-session')return send({path:'/proxy-panel/mihomo/',endpoint:'/proxy-panel/mihomo/api',token:'a'.repeat(64)});
+    if(req.url==='/api/proxy/mihomo/logs/clear'){logText='';return send({text:'',truncated:false});}
+    if(req.url==='/api/proxy/mihomo/settings'){if(rejectSettings){res.statusCode=400;return res.end(JSON.stringify({ok:false,error:'Fixture settings rejected; previous service restored'}));}Object.assign(proxy,body);}
     if(req.url==='/api/proxy/mihomo/install')proxy.version=body.version;
     if(req.url==='/api/proxy/mihomo/enable')Object.assign(proxy,{enabled:true,running:true,capturing:proxy.capture==='hotspot'});
     if(req.url==='/api/proxy/mihomo/disable')Object.assign(proxy,{enabled:false,running:false,capturing:false});
@@ -83,6 +88,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
     send(req.url.startsWith('/api/proxy/')?proxy:ts);
    });return;
   }
+  if(req.url==='/proxy-panel/mihomo/'){res.setHeader('Content-Type','text/html');return res.end('<html><body>Fixture dashboard</body></html>');}
   const name=req.url==='/'?'index.html':/^\/console\/a\/[\w.-]+$/.test(req.url)?req.url.split('/').pop():null;
   const file=name&&path.join(__dirname,'..',name);if(!file||!fs.existsSync(file)){res.writeHead(404);return res.end();}res.setHeader('Content-Type',name.endsWith('.js')?'text/javascript':name.endsWith('.css')?'text/css':'text/html');res.end(fs.readFileSync(file));
  });
@@ -138,9 +144,30 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
   setConfig(sample+'\n# changed elsewhere');await page.getByRole('button',{name:'Save and reload',exact:true}).click();await confirm('Apply configuration');assert.match(await page.locator('#proxy-config-feedback').textContent(),/Configuration changed/);assert.equal(await page.locator('#proxy-config').inputValue(),'private unsaved draft');
   await page.getByRole('button',{name:'Load saved configuration',exact:true}).click();await confirm('Discard and read');await page.waitForFunction(()=>document.querySelector('#proxy-config').value.includes('changed elsewhere'));
   await page.getByRole('tab',{name:'Proxy groups',exact:true}).click();await page.getByLabel('Primary group',{exact:true}).waitFor();
-  assert.equal(await page.locator('.service-groups img').count(),0);assert.equal(await page.locator('#proxy-policy button[type=submit]').isDisabled(),true);
+  assert.equal(await page.locator('.service-groups img').count(),0);assert.equal(await page.locator('#proxy-policy button[type=submit]').isDisabled(),false);
   await page.getByLabel('Primary group',{exact:true}).selectOption('Example B');await page.locator('#proxy-service').getByRole('button',{name:'Refresh status',exact:true}).click();await page.waitForTimeout(150);assert.equal(await page.getByLabel('Primary group',{exact:true}).inputValue(),'Example B');await page.locator('.service-group').first().getByRole('button',{name:'Use node'}).click();await confirm('Apply change');assert.deepEqual(writes.at(-1),{url:'/api/proxy/mihomo/select',body:{group:'Primary group',choice:'Example B'}});
   groups[1].name='Automatic group';await page.locator('#proxy-service').getByRole('button',{name:'Refresh status',exact:true}).click();await page.getByLabel('Automatic group',{exact:true}).waitFor();
+  await page.getByRole('tab',{name:'Overview',exact:true}).click();
+  await page.locator('#proxy-concurrent').selectOption('true');
+  rejectSettings=true;await page.getByRole('button',{name:'Save and restart',exact:true}).click();await confirm('Save and restart');
+  assert.match(await page.locator('#proxy-service > .action-status').textContent(),/Fixture settings rejected/);
+  assert.doesNotMatch(await page.locator('#proxy-service > .action-status').textContent(),/could not be confirmed/);
+  assert.equal(await page.locator('#proxy-concurrent').inputValue(),'true');assert.equal(proxy.running,true);rejectSettings=false;
+  await page.getByRole('button',{name:'Save and restart',exact:true}).click();await confirm('Save and restart');
+  assert.equal(writes.at(-1).body.restart,true);assert.equal(proxy.tcp_concurrent,true);assert.equal(other.running,true);
+  await page.getByRole('tab',{name:'Logs',exact:true}).click();await page.waitForFunction(()=>document.querySelector('#proxy-log-output').textContent.includes('Fixture startup failure'));
+  assert.equal(await page.locator('#proxy-log-output img').count(),0);
+  await page.getByRole('button',{name:'Clear logs',exact:true}).click();await confirm('Clear logs');assert.equal(logText,'');
+  await page.getByRole('tab',{name:'MetaCubeXD',exact:true}).click();assert.equal(await page.locator('#proxy-open-dashboard').isDisabled(),true);
+  const tsVersion=ts.client_version;await page.locator('#metacubexd-check-update').click();await page.waitForFunction(()=>!document.querySelector('#metacubexd-install-release').disabled);
+  await page.locator('#metacubexd-install-release').click();await confirm('Install / upgrade');await page.waitForFunction(()=>!document.querySelector('#proxy-open-dashboard').disabled);
+  assert.equal(ts.client_version,tsVersion);assert.equal(proxy.running,true);
+  await page.evaluate(()=>sessionStorage.setItem('openu60.session','fixture-parent-session'));
+  const popupReady=page.waitForEvent('popup');await page.locator('#proxy-open-dashboard').click();const popup=await popupReady;
+  await popup.waitForURL('**/proxy-panel/mihomo/#/setup?**');await popup.waitForLoadState();
+  assert.equal(await popup.evaluate(()=>sessionStorage.getItem('openu60.session')),null);
+  assert.equal(await page.evaluate(()=>sessionStorage.getItem('openu60.session')),'fixture-parent-session');
+  assert.equal(new URLSearchParams(new URL(popup.url()).hash.split('?')[1]).get('hostname'),`127.0.0.1:${server.address().port}/proxy-panel/mihomo/api`);await popup.close();
   await page.getByRole('tab',{name:'Configuration',exact:true}).click();
   assert.ok(await page.locator('#proxy-save-config').evaluate(button=>button.getBoundingClientRect().top<document.querySelector('#proxy-config').getBoundingClientRect().top));
   // No proxy-page screenshots: branding is deliberately excluded from published assets.
@@ -162,12 +189,13 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
   ts.updating=false;await page.locator('#tailscale-service').getByRole('button',{name:'Refresh status',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('#tailscale-policy button[type=submit]').disabled);
   const before=writes.length;await page.getByRole('button',{name:'Stop Tailscale',exact:true}).click();await page.evaluate(()=>OpenU60Navigation.go('network/proxy'));await confirm('Stop Tailscale');assert.equal(writes.length,before);
   // A late authenticated reply cannot repopulate private state after lock.
+  holdLogs=true;await page.getByRole('tab',{name:'Logs',exact:true}).click();await page.waitForTimeout(100);
   holdStatus=true;await page.locator('#proxy-service').getByRole('button',{name:'Refresh status',exact:true}).click();await page.waitForTimeout(100);
   holdRelease=true;await page.getByRole('tab',{name:'Installation',exact:true}).click();await page.locator('#mihomo-check-update').click();await page.waitForTimeout(100);
-  holdConfig=true;await page.getByRole('tab',{name:'Configuration',exact:true}).click();await page.waitForTimeout(100);await page.locator('.proxy-import-options summary').click();await page.locator('#proxy-config').fill('private draft');await page.locator('#proxy-source-url').fill('private subscription');await page.evaluate(()=>window.dispatchEvent(new Event('dashboard:locked')));releaseStatus?.();releaseMetadata?.();releaseConfig?.();await page.waitForTimeout(100);
+  holdConfig=true;await page.getByRole('tab',{name:'Configuration',exact:true}).click();await page.waitForTimeout(100);await page.locator('.proxy-import-options summary').click();await page.locator('#proxy-config').fill('private draft');await page.locator('#proxy-source-url').fill('private subscription');await page.evaluate(()=>window.dispatchEvent(new Event('dashboard:locked')));releaseStatus?.();releaseMetadata?.();releaseConfig?.();releaseLogs?.();await page.waitForTimeout(100);
   assert.match(await page.locator('#mihomo-installer').textContent(),/Not checked/);assert.equal(await page.locator('#mihomo-install-release').isDisabled(),true);
   assert.equal(await page.locator('#proxy-config').inputValue(),'');assert.equal(await page.locator('#proxy-source-url').inputValue(),'');assert.equal(await page.locator('#proxy-service .service-summary').textContent(),'Waiting for status');assert.equal(writes.length,before);assert.deepEqual(errors,[]);
-  holdStatus=false;holdConfig=false;holdRelease=false;
+  holdStatus=false;holdConfig=false;holdRelease=false;holdLogs=false;assert.equal(await page.locator('#proxy-log-output').textContent(),'');
   for(const language of ['zh-Hans','zh-Hant','ja','ko']){
    await page.locator('.topbar [data-language]').selectOption(language);await page.waitForFunction(expected=>document.documentElement.lang===expected&&OpenU60Console.connected,language);
    await page.locator('#proxy-tab-configuration').click();await page.waitForFunction(()=>document.querySelector('#proxy-config').value.includes('changed elsewhere'));
@@ -175,6 +203,6 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
    assert.equal(writes.at(-1).url,'/api/proxy/mihomo/config');assert.equal(writes.at(-1).body.config,draft);assert.equal(savedConfig,draft);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   }
   assert.deepEqual(errors,[]);
-  console.log('remote services: policy, import, installation, node selection, Tailscale, stale-session protection and responsive layouts passed');
+  console.log('remote services: policy restart, retained logs, dashboard session, import, installation, node selection, Tailscale, stale-session protection and responsive layouts passed');
  }finally{for(const stream of streams)stream.end();await browser.close();await new Promise(r=>server.close(r));}
 })().catch(e=>{console.error(e);process.exitCode=1;});

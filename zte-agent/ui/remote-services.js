@@ -48,7 +48,9 @@
       if(!await UI.confirm(title,explanation,{label,destructive}))return;
       if(epoch!==generation||API.locked||!API.connected||!active(route))return;
       await UI.mutate(feedback,async live=>{
-        const result=await UI.request(`/api/${endpoint}/${action}`,{...UI.json(method,body),timeoutMs:endpoint==='proxy/mihomo'?600000:150000});
+        let result;
+        try{result=await UI.request(`/api/${endpoint}/${action}`,{...UI.json(method,body),timeoutMs:endpoint==='proxy/mihomo'?600000:150000});}
+        catch(error){if(live()&&epoch===generation&&active(route)){generation++;loading=false;await view.load();}throw error;}
         if(!live()||epoch!==generation||!active(route))return;
         if(node){node.reset();delete node.dataset.dirty;}
         after?.(result);UI.say(feedback,tr('Request accepted. Reading current state…'));
