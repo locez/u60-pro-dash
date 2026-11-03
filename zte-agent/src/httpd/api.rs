@@ -106,15 +106,20 @@ pub async fn api_entry(State(ctx): State<Ctx>, req: Request) -> Response {
             if method == Method::Other {
                 return json_reply(404, &server::error_body("not found"));
             }
+            let private_proxy_config = path.starts_with("/api/proxy/") && path.ends_with("/config");
             let lane = server::lane(method, path);
             let path = path.to_owned();
             let app = Arc::clone(&ctx.app);
             // Serialising (and dropping the Value) also happens on the pool.
-            gated(
+            let mut response = gated(
                 ctx.gate
                     .run(lane, move || server::encode(server::route(&method, &path, &app, &body)))
                     .await,
-            )
+            );
+            if private_proxy_config {
+                response.headers_mut().insert(axum::http::header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
+            }
+            response
         }
     }
 }

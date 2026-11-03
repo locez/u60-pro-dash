@@ -1,12 +1,14 @@
 //! Authenticated proxy service with private configuration and a replaceable
 //! engine adapter. No engine or network is started by constructing the state.
 mod engine;
+mod services;
+pub use engine::MihomoSettings as Settings;
+pub use services::ProxyServices;
 mod network;
 mod supervisor;
 pub use supervisor::cli as watchdog_cli;
 
 use crate::handlers::AppState;
-use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::{
@@ -24,36 +26,6 @@ use std::{
 
 pub const CONFIG_LIMIT: usize = 512 * 1024;
 const BINARY_LIMIT: u64 = 96 * 1024 * 1024;
-#[derive(Clone, Serialize, Deserialize)]
-#[serde(default, deny_unknown_fields)]
-pub struct Settings {
-    pub adapter: String,
-    pub mode: String,
-    pub capture: String,
-    pub enabled: bool,
-}
-impl Default for Settings {
-    fn default() -> Self {
-        Self {
-            adapter: "compatible-v1".into(),
-            mode: "rule".into(),
-            capture: "local".into(),
-            enabled: false,
-        }
-    }
-}
-impl Settings {
-    fn validate(&self) -> Result<(), String> {
-        engine::adapter(&self.adapter)?;
-        if !["rule", "global", "direct"].contains(&self.mode.as_str()) {
-            return Err("Choose rule, global or direct mode".into());
-        }
-        if !["local", "hotspot"].contains(&self.capture.as_str()) {
-            return Err("Choose local or hotspot traffic".into());
-        }
-        Ok(())
-    }
-}
 struct Runtime {
     owner: Option<std::os::unix::net::UnixStream>,
     child: Option<Child>,
@@ -62,7 +34,7 @@ struct Runtime {
     capturing: bool,
     error: Option<String>,
 }
-pub struct ProxyManager {
+pub struct MihomoService {
     root: PathBuf,
     settings: Mutex<Settings>,
     runtime: Mutex<Runtime>,
@@ -166,11 +138,11 @@ fn elf(bytes: &[u8]) -> bool {
                 .is_some_and(|b| u32::from_le_bytes(b.try_into().unwrap()) != 3)
         })
 }
-impl ProxyManager {
+impl MihomoService {
     pub fn new() -> Self {
         Self::at(PathBuf::from("/data/u60-proxy"))
     }
-    fn at(root: PathBuf) -> Self {
+    pub(super) fn at(root: PathBuf) -> Self {
         let settings = fs::read(root.join("settings.json"))
             .ok()
             .and_then(|b| serde_json::from_slice::<Settings>(&b).ok())
@@ -219,7 +191,7 @@ impl ProxyManager {
     pub fn status(&self) -> Value {
         let s = self.settings.lock().unwrap().clone();
         let r = self.runtime.lock().unwrap();
-        json!({"adapter":s.adapter,"installed":self.root.join("engine").is_file(),"configured":self.root.join("source.json").is_file(),"enabled":s.enabled,"running":r.child.is_some(),"capture":s.capture,"capturing":r.capturing,"mode":s.mode,"local_endpoint":"127.0.0.1:7890","last_error":r.error,"capabilities":{"configuration":true,"groups":true,"hotspot":true,"install":true},"version":fs::read_to_string(self.root.join("version")).ok()})
+        json!({"id":"mihomo","name":"mihomo","adapter":"mihomo","installed":self.root.join("engine").is_file(),"configured":self.root.join("source.json").is_file(),"enabled":s.enabled,"running":r.child.is_some(),"capture":s.capture,"capturing":r.capturing,"mode":s.mode,"local_endpoint":format!("127.0.0.1:{}",s.mixed_port),"mixed_port":s.mixed_port,"ipv6":s.ipv6,"tcp_concurrent":s.tcp_concurrent,"last_error":r.error,"capabilities":{"configuration":true,"groups":true,"hotspot":true,"install":true},"version":fs::read_to_string(self.root.join("version")).ok()})
     }
     fn controller(
         &self,
@@ -309,6 +281,7 @@ impl ProxyManager {
     }
     fn start_inner(self: &Arc<Self>) -> Result<(), String> {
         let settings = self.settings.lock().unwrap().clone();
+        engine::check_listeners(&settings)?;
         let source = self.source()?;
         let driver = engine::adapter(&settings.adapter)?;
         let mut random = [0u8; 32];
@@ -464,15 +437,29 @@ impl ProxyManager {
                     return Err("Stop the service before changing its routing settings".into());
                 }
                 let mut s = self.settings.lock().unwrap().clone();
-                for (key, target) in [
-                    ("mode", &mut s.mode),
-                    ("capture", &mut s.capture),
-                    ("adapter", &mut s.adapter),
-                ] {
+                for (key, target) in [("mode", &mut s.mode), ("capture", &mut s.capture)] {
                     if let Some(v) = body.get(key) {
                         *target = v.as_str().ok_or("Invalid proxy setting")?.into();
                     }
                 }
+                if let Some(id) = body.get("adapter") {
+                    if !matches!(id.as_str(), Some("mihomo" | "compatible-v1")) {
+                        return Err("Manage each proxy service separately; an engine cannot be switched here".into());
+                    }
+                }
+                if let Some(v) = body.get("mixed_port") {
+                    s.mixed_port = v
+                        .as_u64()
+                        .and_then(|n| u16::try_from(n).ok())
+                        .ok_or("Invalid mixed port")?;
+                }
+                if let Some(v) = body.get("ipv6") {
+                    s.ipv6 = v.as_bool().ok_or("Invalid IPv6 setting")?;
+                }
+                if let Some(v) = body.get("tcp_concurrent") {
+                    s.tcp_concurrent = v.as_bool().ok_or("Invalid TCP setting")?;
+                }
+                s.adapter = "mihomo".into();
                 s.validate()?;
                 self.save(&s)?;
                 *self.settings.lock().unwrap() = s;
@@ -599,16 +586,64 @@ impl ProxyManager {
     }
 }
 pub fn status(state: &AppState) -> (u16, Value) {
-    (200, json!({"ok":true,"data":state.proxy.status()}))
+    (200, json!({"ok":true,"data":state.proxy.legacy().status()}))
 }
 pub fn groups(state: &AppState) -> (u16, Value) {
-    let m = &state.proxy;
+    let m = state.proxy.legacy();
     let result = engine::adapter(&m.settings.lock().unwrap().adapter).and_then(|d| {
         m.controller(reqwest::Method::GET, d.groups_path(), None)
             .map(|v| d.groups(&v))
     });
     reply(result)
 }
+pub fn service_route(
+    state: &AppState,
+    method: &crate::server::Method,
+    path: &str,
+    body: &[u8],
+) -> (u16, Value) {
+    use crate::server::Method;
+    let Some((id, action)) = path
+        .strip_prefix("/api/proxy/")
+        .and_then(|p| p.split_once('/'))
+    else {
+        return (404, json!({"ok":false,"error":"Unknown proxy service"}));
+    };
+    let Some(service) = state.proxy.get(id) else {
+        return (404, json!({"ok":false,"error":"Unknown proxy service"}));
+    };
+    match (method, action) {
+        (Method::Get, "status") => reply(Ok(service.status())),
+        (Method::Get, "groups") => reply(service.groups()),
+        (Method::Get, "config") => {
+            if !state.auth.has_password() {
+                return (403, json!({"ok":false,"error":"Agent password required"}));
+            }
+            reply(service.config())
+        }
+        (Method::Put, "settings")
+        | (
+            Method::Post,
+            "enable" | "disable" | "restart" | "config" | "subscription" | "install" | "select",
+        ) => {
+            if !state.auth.has_password() {
+                return (
+                    403,
+                    json!({"ok":false,"error":"Set an agent password before managing a proxy"}),
+                );
+            }
+            match serde_json::from_slice::<Value>(body) {
+                Ok(v) if v.is_object() => reply(service.change(action, &v)),
+                _ => (400, json!({"ok":false,"error":"JSON object required"})),
+            }
+        }
+        _ => (404, json!({"ok":false,"error":"Unknown proxy operation"})),
+    }
+}
+pub fn services(state: &AppState) -> (u16, Value) {
+    reply(Ok(state.proxy.status()))
+}
+
 fn reply(result: Result<Value, String>) -> (u16, Value) {
     match result {
         Ok(v) => (200, json!({"ok":true,"data":v})),
@@ -626,7 +661,7 @@ pub fn change(state: &AppState, action: &str, body: &[u8]) -> (u16, Value) {
         Ok(v) if v.is_object() => v,
         _ => return (400, json!({"ok":false,"error":"JSON object required"})),
     };
-    reply(state.proxy.change(action, &parsed))
+    reply(state.proxy.legacy().change(action, &parsed))
 }
 
 #[cfg(test)]
@@ -681,7 +716,7 @@ mod tests {
     }
     #[test]
     fn status_never_includes_saved_configuration_or_controller_secret() {
-        let m = ProxyManager::at(PathBuf::from("/nonexistent/u60-proxy-test"));
+        let m = MihomoService::at(PathBuf::from("/nonexistent/u60-proxy-test"));
         m.runtime.lock().unwrap().secret = "private-test-credential".into();
         let s = m.status();
         assert_eq!(s["running"], false);

@@ -155,7 +155,7 @@ pub fn precheck(req: &ReqInfo, env: &PreEnv) -> Pre {
         return refuse(403, "agent password required");
     }
     Pre::Dispatch {
-        body_limit: if req.path == "/api/proxy/config" { 4 * 1024 * 1024 } else if live_activity { LIVE_ACTIVITY_BODY_MAX } else { API_BODY_MAX },
+        body_limit: if req.path == "/api/proxy/config" || req.path == "/api/proxy/mihomo/config" { 4 * 1024 * 1024 } else if live_activity { LIVE_ACTIVITY_BODY_MAX } else { API_BODY_MAX },
     }
 }
 
@@ -462,7 +462,9 @@ fn route_inner(method: &Method, path: &str, state: &AppState, body: &[u8]) -> (u
         (&Method::Post, "/api/doh/disable") => doh_disable(state),
         (&Method::Get, "/api/doh/cache") => doh_cache_list(state),
         (&Method::Post, "/api/doh/cache/clear") => doh_cache_clear(state),
-        // Tailscale remote management
+        // Independent proxy services; old routes remain aliases for the original service.
+        (&Method::Get, "/api/proxy/services") => proxy::services(state),
+        (method, path) if path.strip_prefix("/api/proxy/").is_some_and(|p| p.contains('/')) => proxy::service_route(state, method, path, body),
         (&Method::Get, "/api/proxy/status") => proxy::status(state),
         (&Method::Get, "/api/proxy/groups") => proxy::groups(state),
         (&Method::Put, "/api/proxy/settings") => proxy::change(state, "settings", body),
@@ -629,6 +631,8 @@ mod tests {
         assert_eq!(run(&auth, &info(Method::Get, "/api/device", None, Some("nope"), h)), reply(401, "unauthorized"));
         assert_eq!(run(&auth, &info(Method::Get, "/api/lan/ping", None, None, h)), reply(401, "unauthorized"));
         assert_eq!(run(&auth, &info(Method::Get, "/api/device", None, t, h)), DISPATCH);
+        assert_eq!(run(&auth, &info(Method::Get, "/api/proxy/mihomo/config", None, None, h)), reply(401, "unauthorized"));
+        assert_eq!(run(&auth, &info(Method::Post, "/api/proxy/mihomo/config", None, t, h)), Pre::Dispatch { body_limit: 4 * 1024 * 1024 });
         // With a password the apps' Host is not checked (they may use any name; browsers: below).
         assert_eq!(run(&auth, &info(Method::Get, "/api/device", None, t, host("evil.com"))), DISPATCH);
         assert_eq!(run(&auth, &info(Method::Get, "/api/device", None, t, ReqHeaders::default())), DISPATCH);

@@ -1,6 +1,8 @@
 //! The replaceable configuration/controller adapter. Lifecycle and network
 //! ownership stay in the service, not in a particular engine implementation.
-use super::{Settings, CONFIG_LIMIT};
+use super::CONFIG_LIMIT;
+use serde::{Deserialize, Serialize};
+type Settings = MihomoSettings;
 use serde_json::{json, Value};
 
 pub trait Engine: Send + Sync {
@@ -19,15 +21,69 @@ pub trait Engine: Send + Sync {
     fn groups(&self, value: &Value) -> Value;
 }
 
-pub struct Compatible;
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct MihomoSettings {
+    pub adapter: String,
+    pub mode: String,
+    pub mixed_port: u16,
+    pub ipv6: bool,
+    pub tcp_concurrent: bool,
+    pub capture: String,
+    pub enabled: bool,
+}
+impl Default for MihomoSettings {
+    fn default() -> Self {
+        Self {
+            adapter: "mihomo".into(),
+            mode: "rule".into(),
+            mixed_port: 7890,
+            ipv6: true,
+            tcp_concurrent: false,
+            capture: "local".into(),
+            enabled: false,
+        }
+    }
+}
+impl MihomoSettings {
+    pub(super) fn validate(&self) -> Result<(), String> {
+        adapter(&self.adapter)?;
+        if self.mixed_port < 1024 || [1053, 9090, 9091, 9443, 19092].contains(&self.mixed_port) {
+            return Err(
+                "Choose an unused local proxy port above 1023, excluding router management ports"
+                    .into(),
+            );
+        }
+        if !["rule", "global", "direct"].contains(&self.mode.as_str()) {
+            return Err("Choose rule, global or direct mode".into());
+        }
+        if !["local", "hotspot"].contains(&self.capture.as_str()) {
+            return Err("Choose local or hotspot traffic".into());
+        }
+        Ok(())
+    }
+}
+
+pub(super) fn check_listeners(settings: &Settings) -> Result<(), String> {
+    // Check the real resources, never stop another proxy or use a global service lock.
+    let mut tcp = Vec::new();
+    for port in [settings.mixed_port, 19092, 1053] {
+        tcp.push(std::net::TcpListener::bind(("127.0.0.1", port)).map_err(|_| format!("Port {port} is already in use; change this service's port or resolve the conflict"))?);
+    }
+    let _dns = std::net::UdpSocket::bind(("127.0.0.1", 1053))
+        .map_err(|_| "DNS port 1053 is already in use")?;
+    Ok(())
+}
+
+pub struct Mihomo;
 pub fn adapter(id: &str) -> Result<Box<dyn Engine>, String> {
     match id {
-        "compatible-v1" => Ok(Box::new(Compatible)),
+        "mihomo" | "compatible-v1" => Ok(Box::new(Mihomo)),
         _ => Err("Unsupported proxy adapter".into()),
     }
 }
 
-impl Engine for Compatible {
+impl Engine for Mihomo {
     fn command(
         &self,
         binary: &std::path::Path,
@@ -71,20 +127,52 @@ impl Engine for Compatible {
         {
             return Err("Expanded configuration exceeds 512 KiB".into());
         }
-        // Only routing data crosses the boundary. The service owns all ports,
-        // controller credentials, TUN settings and writable provider paths.
-        let mut clean = json!({});
+        // Native engine configuration stays native. Only device-owned sockets,
+        // routing and filesystem integration are overridden by the runtime.
+        let mut clean = source.clone();
         for key in [
-            "proxies",
-            "proxy-groups",
-            "proxy-providers",
-            "rule-providers",
-            "rules",
-            "hosts",
+            "port",
+            "socks-port",
+            "redir-port",
+            "tproxy-port",
+            "listeners",
+            "external-controller",
+            "external-controller-tls",
+            "external-controller-unix",
+            "external-controller-pipe",
+            "external-ui",
+            "external-ui-url",
+            "external-ui-name",
+            "secret",
+            "authentication",
+            "allow-lan",
+            "bind-address",
+            "interface-name",
+            "routing-mark",
+            "tunnels",
+            "tun",
+            "experimental",
+            "tls",
+            "external-controller-cors",
         ] {
-            if let Some(v) = object.get(key) {
-                clean[key] = v.clone();
+            clean.as_object_mut().unwrap().remove(key);
+        }
+        if object.contains_key("script") {
+            return Err("Script execution is not supported on this router".into());
+        }
+        // Preserve user DNS choices while the device owns listening and private-domain routing.
+        if let Some(dns) = clean.get_mut("dns").and_then(Value::as_object_mut) {
+            for key in ["listen", "enable", "use-system-hosts"] {
+                dns.remove(key);
             }
+            dns.insert("use-system-hosts".into(), json!(false));
+        }
+        if clean.get("dns").is_some_and(|v| !v.is_object())
+            || clean["dns"]
+                .get("nameserver-policy")
+                .is_some_and(|v| !v.is_object())
+        {
+            return Err("DNS configuration must be a mapping".into());
         }
         for key in ["proxies", "proxy-groups", "rules"] {
             if !clean[key].is_null() && !clean[key].is_array() {
@@ -168,22 +256,61 @@ impl Engine for Compatible {
             }
             Ok(())
         }
+        for key in ["mode", "mixed-port", "ipv6", "tcp-concurrent"] {
+            clean.as_object_mut().unwrap().remove(key);
+        }
         check(&clean, 0)?;
         Ok(clean)
     }
     fn runtime(&self, source: &Value, settings: &Settings, secret: &str) -> Value {
         let mut v = source.clone();
         v["mode"] = json!(settings.mode);
-        v["mixed-port"] = json!(7890);
+        v["mixed-port"] = json!(settings.mixed_port);
         v["bind-address"] = json!("127.0.0.1");
         v["allow-lan"] = json!(false);
         v["external-controller"] = json!("127.0.0.1:19092");
         v["secret"] = json!(secret);
-        v["log-level"] = json!("silent");
-        v["ipv6"] = json!(true);
-        v["profile"] = json!({"store-selected":true,"store-fake-ip":false});
+        if v.get("log-level").is_none() {
+            v["log-level"] = json!("silent");
+        }
+        v["ipv6"] = json!(settings.ipv6);
+        v["tcp-concurrent"] = json!(settings.tcp_concurrent);
+        if v.get("profile").is_none() {
+            v["profile"] = json!({"store-selected":true,"store-fake-ip":false});
+        }
         v["tun"] = json!({"enable":settings.capture=="hotspot","device":"u60proxy0","stack":"gvisor","auto-route":false,"auto-redirect":false,"auto-detect-interface":true,"strict-route":false,"mtu":1400,"dns-hijack":["any:53","tcp://any:53"]});
-        v["dns"] = json!({"enable":true,"listen":if settings.capture=="hotspot" {"[::]:1053"}else{"127.0.0.1:1053"},"ipv6":true,"enhanced-mode":"redir-host","use-hosts":true,"default-nameserver":["1.1.1.1","8.8.8.8"],"nameserver":["https://cloudflare-dns.com/dns-query","https://dns.google/dns-query"],"proxy-server-nameserver":["1.1.1.1","8.8.8.8"],"nameserver-policy":{"+.home.arpa":["udp://127.0.0.1:53"],"+.lan":["udp://127.0.0.1:53"]}});
+        let dns = v
+            .as_object_mut()
+            .unwrap()
+            .entry("dns")
+            .or_insert_with(|| json!({}));
+        let dns = dns.as_object_mut().unwrap();
+        dns.insert("enable".into(), json!(true));
+        dns.insert(
+            "listen".into(),
+            json!(if settings.capture == "hotspot" {
+                "[::]:1053"
+            } else {
+                "127.0.0.1:1053"
+            }),
+        );
+        dns.entry("ipv6").or_insert(json!(settings.ipv6));
+        dns.entry("enhanced-mode").or_insert(json!("redir-host"));
+        dns.entry("use-hosts").or_insert(json!(true));
+        dns.entry("default-nameserver")
+            .or_insert(json!(["1.1.1.1", "8.8.8.8"]));
+        dns.entry("nameserver").or_insert(json!([
+            "https://cloudflare-dns.com/dns-query",
+            "https://dns.google/dns-query"
+        ]));
+        dns.entry("proxy-server-nameserver")
+            .or_insert(json!(["1.1.1.1", "8.8.8.8"]));
+        let policy = dns.entry("nameserver-policy").or_insert(json!({}));
+        if let Some(policy) = policy.as_object_mut() {
+            policy.insert("+.home.arpa".into(), json!(["udp://127.0.0.1:53"]));
+            policy.insert("+.lan".into(), json!(["udp://127.0.0.1:53"]));
+        }
+
         v
     }
     fn groups(&self, value: &Value) -> Value {
@@ -204,7 +331,7 @@ mod tests {
     use super::*;
     #[test]
     fn imported_configuration_cannot_own_listeners_routes_or_paths() {
-        let a = Compatible;
+        let a = Mihomo;
         let source=a.normalize("proxies: [{name: Example, type: socks5, server: example.com, port: 1080}]\nexternal-controller: 0.0.0.0:9090\nsecret: unsafe\ntun: {auto-route: true}\nproxy-providers: {remote: {type: http, url: 'https://example.com/config', path: /etc/passwd}}\n").unwrap();
         let runtime = a.runtime(&source, &Settings::default(), "private-controller");
         assert_eq!(runtime["external-controller"], "127.0.0.1:19092");
@@ -228,5 +355,23 @@ mod tests {
             )
             .is_err());
         assert!(adapter("unknown").is_err());
+    }
+    #[test]
+    fn preserves_native_dns_sniffer_and_protocol_options() {
+        let a = Mihomo;
+        let source = a.normalize("proxies: [{name: Example, type: socks5, server: example.com, port: 1080}]\ndns: {nameserver: ['https://resolver.example/dns-query'], enhanced-mode: fake-ip, fake-ip-filter: ['*.example']}\nsniffer: {enable: true, sniff: {TLS: {ports: [443]}}}\nunified-delay: true\n").unwrap();
+        let runtime = a.runtime(&source, &Settings::default(), "private");
+        assert_eq!(runtime["dns"]["nameserver"], source["dns"]["nameserver"]);
+        assert_eq!(runtime["dns"]["enhanced-mode"], "fake-ip");
+        assert_eq!(runtime["sniffer"], source["sniffer"]);
+        assert_eq!(runtime["unified-delay"], true);
+    }
+    #[test]
+    fn legacy_adapter_settings_load_without_disabling_service() {
+        let s: Settings =
+            serde_json::from_value(json!({"adapter":"compatible-v1","enabled":true})).unwrap();
+        assert!(s.validate().is_ok());
+        assert!(s.enabled);
+        assert_eq!(s.mixed_port, 7890);
     }
 }
