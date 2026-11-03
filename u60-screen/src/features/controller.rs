@@ -111,7 +111,8 @@ impl Controller {
         self.cancel();
         self.resume = true;
         if writing {
-            self.outcome = Some("操作结果未确认。请刷新状态后再决定是否重试。".into());
+            self.outcome =
+                Some(crate::i18n::tr("操作结果未确认。请刷新状态后再决定是否重试。").into());
             self.notice = self.outcome.clone().unwrap_or_default();
         }
     }
@@ -133,7 +134,7 @@ impl Controller {
         self.loaded = None;
         self.confirmation = None;
         self.page = super::page(&self.id, &self.data);
-        self.notice = "正在读取设备…".into();
+        self.notice = crate::i18n::tr("正在读取设备…").into();
         self.resume = false;
         for read in &self.reads {
             self.queue
@@ -176,14 +177,18 @@ impl Controller {
             .collect::<std::collections::BTreeSet<_>>();
         self.notice = if errors.is_empty() {
             if restored {
-                "状态已重新读取，请检查更改后保存。".into()
+                crate::i18n::tr("状态已重新读取，请检查更改后保存。").into()
             } else {
                 self.outcome.clone().unwrap_or_default()
             }
         } else {
-            format!(
-                "部分状态读取失败：{}",
-                errors.into_iter().collect::<Vec<_>>().join("；")
+            crate::i18n::format(
+                "部分状态读取失败：{0}",
+                &[errors
+                    .into_iter()
+                    .collect::<Vec<_>>()
+                    .join("；")
+                    .to_string()],
             )
         };
         self.revision += 1;
@@ -192,7 +197,7 @@ impl Controller {
         if !active || !authenticated {
             self.suspend();
             if !authenticated {
-                self.notice = "请先在「设备 → 后台连接」登录。".into();
+                self.notice = crate::i18n::tr("请先在「设备 → 后台连接」登录。").into();
             }
             return;
         }
@@ -236,8 +241,12 @@ impl Controller {
                 self.queue.clear();
                 self.guards.clear();
                 self.writes = 0;
-                self.outcome =
-                    Some("提交前核对失败或状态已变化，已取消全部写入。请重新检查并填写。".into());
+                self.outcome = Some(
+                    crate::i18n::tr(
+                        "提交前核对失败或状态已变化，已取消全部写入。请重新检查并填写。",
+                    )
+                    .into(),
+                );
                 self.refresh();
                 return true;
             }
@@ -274,9 +283,10 @@ impl Controller {
                                 .map(|f| (f.key.clone(), f.value.clone()))
                                 .collect();
                         }
-                        self.outcome = Some("请求已接受；请核对下方设备实际状态。".into());
+                        self.outcome =
+                            Some(crate::i18n::tr("请求已接受；请核对下方设备实际状态。").into());
                         self.refresh();
-                        self.notice = "请求已接受，正在读取实际结果…".into();
+                        self.notice = crate::i18n::tr("请求已接受，正在读取实际结果…").into();
                     }
                 }
                 Err(error) => {
@@ -284,10 +294,9 @@ impl Controller {
                     self.writes = 0;
                     self.confirmation = None;
                     self.guards.clear();
-                    self.outcome = Some(format!(
-                        "{}。已完成 {} 项；结果以刷新后的设备状态为准。",
-                        error.message(),
-                        self.completed
+                    self.outcome = Some(crate::i18n::format(
+                        "{0}。已完成 {1} 项；结果以刷新后的设备状态为准。",
+                        &[error.message().to_string(), format!("{}", self.completed)],
                     ));
                     self.refresh();
                     self.notice = self.outcome.clone().unwrap_or_default();
@@ -298,13 +307,17 @@ impl Controller {
         true
     }
     pub fn edit(&mut self, index: usize, value: String) -> Result<()> {
-        ensure!(!self.busy(), "正在处理请求，请稍后。 ");
+        ensure!(
+            !self.busy(),
+            "{}",
+            crate::i18n::tr("正在处理请求，请稍后。 ")
+        );
         let f = self
             .page
             .fields
             .get_mut(index)
-            .ok_or_else(|| anyhow::anyhow!("设置项已变化，请刷新。"))?;
-        ensure!(f.available, "此设置暂不可用。");
+            .ok_or_else(|| anyhow::anyhow!("{}", crate::i18n::tr("设置项已变化，请刷新。")))?;
+        ensure!(f.available, "{}", crate::i18n::tr("此设置暂不可用。"));
         let mut old = std::mem::replace(&mut f.value, value);
         if let Err(error) = f.encode() {
             if f.secret {
@@ -322,17 +335,24 @@ impl Controller {
         Ok(())
     }
     pub fn prepare(&mut self, index: usize) -> Result<()> {
-        ensure!(!self.busy(), "正在处理请求，请稍后。");
+        ensure!(
+            !self.busy(),
+            "{}",
+            crate::i18n::tr("正在处理请求，请稍后。")
+        );
         if !self.fresh() {
             self.refresh_preserving_draft();
-            anyhow::bail!("状态已过期，正在重新读取。更改已保留，请检查后再次保存。");
+            anyhow::bail!(
+                "{}",
+                crate::i18n::tr("状态已过期，正在重新读取。更改已保留，请检查后再次保存。")
+            );
         }
         let action = self
             .page
             .actions
             .get(index)
-            .ok_or_else(|| anyhow::anyhow!("操作已变化，请刷新。"))?;
-        ensure!(action.enabled, "此操作当前不可用。");
+            .ok_or_else(|| anyhow::anyhow!("{}", crate::i18n::tr("操作已变化，请刷新。")))?;
+        ensure!(action.enabled, "{}", crate::i18n::tr("此操作当前不可用。"));
         if action.id == "clear-local" && ["history", "at-terminal"].contains(&self.id.as_str()) {
             if self.id == "history" {
                 self.history.clear();
@@ -342,7 +362,11 @@ impl Controller {
             return Ok(());
         }
         let mut plan = super::plan(&self.id, &action.id, &self.page, &self.data)?;
-        ensure!(!plan.requests.is_empty(), "没有需要保存的更改。");
+        ensure!(
+            !plan.requests.is_empty(),
+            "{}",
+            crate::i18n::tr("没有需要保存的更改。")
+        );
         let changes = self
             .page
             .fields
@@ -369,17 +393,19 @@ impl Controller {
     pub fn confirm(&mut self, phrase: &str) -> Result<()> {
         ensure!(
             self.fresh() && !self.busy(),
-            "状态已变化或过期，请重新检查。"
+            "{}",
+            crate::i18n::tr("状态已变化或过期，请重新检查。")
         );
         let plan = self
             .confirmation
             .as_ref()
-            .ok_or_else(|| anyhow::anyhow!("确认已失效。"))?;
+            .ok_or_else(|| anyhow::anyhow!("{}", crate::i18n::tr("确认已失效。")))?;
         ensure!(
             plan.phrase
                 .as_ref()
                 .is_none_or(|expected| expected == phrase),
-            "确认文字不匹配。"
+            "{}",
+            crate::i18n::tr("确认文字不匹配。")
         );
         let plan = self.confirmation.take().unwrap();
         self.writes = plan.requests.len();
@@ -395,7 +421,7 @@ impl Controller {
         for request in plan.requests {
             self.queue.push_back((None, request));
         }
-        self.notice = "正在提交，请等待实际结果…".into();
+        self.notice = crate::i18n::tr("正在提交，请等待实际结果…").into();
         self.revision += 1;
         Ok(())
     }
@@ -417,14 +443,16 @@ impl Controller {
         self.refresh();
     }
     pub fn select(&mut self, id: &str) -> Result<()> {
-        ensure!(!self.busy(), "正在读取，请稍后。");
+        ensure!(!self.busy(), "{}", crate::i18n::tr("正在读取，请稍后。"));
         ensure!(
             !self.page.dirty(),
-            "请先保存当前更改，或返回后重新打开页面放弃草稿。"
+            "{}",
+            crate::i18n::tr("请先保存当前更改，或返回后重新打开页面放弃草稿。")
         );
         ensure!(
             self.page.items.iter().any(|item| item.id == id),
-            "记录已变化，请刷新。"
+            "{}",
+            crate::i18n::tr("记录已变化，请刷新。")
         );
         self.data
             .insert("__selection".into(), Ok(Value::String(id.into())));

@@ -74,17 +74,17 @@ impl Network {
     }
     pub fn label(&self) -> &'static str {
         match self.status().and_then(|v| v["state"].as_str()) {
-            Some("healthy") => "已连接",
-            Some("not_installed") => "尚未安装",
-            Some("disabled" | "paused") => "已停止",
-            Some("needs_login" | "awaiting_setup") => "需要登录 Tailscale",
-            Some("pending_approval") => "等待设备批准",
-            Some(_) => "正在连接",
+            Some("healthy") => crate::i18n::tr("已连接"),
+            Some("not_installed") => crate::i18n::tr("尚未安装"),
+            Some("disabled" | "paused") => crate::i18n::tr("已停止"),
+            Some("needs_login" | "awaiting_setup") => crate::i18n::tr("需要登录 Tailscale"),
+            Some("pending_approval") => crate::i18n::tr("等待设备批准"),
+            Some(_) => crate::i18n::tr("正在连接"),
             None => {
                 if self.status_error.is_some() {
-                    "状态查询失败"
+                    crate::i18n::tr("状态查询失败")
                 } else {
-                    "等待查询状态"
+                    crate::i18n::tr("等待查询状态")
                 }
             }
         }
@@ -124,11 +124,11 @@ impl Network {
         let mut rows = vec![("Tailscale".into(), self.label().into())];
         if let Some(status) = self.status() {
             rows.push((
-                "网关模式".into(),
+                crate::i18n::tr("网关模式").into(),
                 if status["gateway_mode"] == true {
-                    "已开启"
+                    crate::i18n::tr("已开启")
                 } else {
-                    "未开启"
+                    crate::i18n::tr("未开启")
                 }
                 .into(),
             ));
@@ -139,57 +139,60 @@ impl Network {
             .filter(|(at, _)| at.elapsed() < Duration::from_secs(60) && self.online());
         if let Some((at, result)) = probe {
             rows.push((
-                "目标路径".into(),
+                crate::i18n::tr("目标路径").into(),
                 match result["routed"].as_bool() {
-                    Some(true) => "经由 Tailscale",
-                    Some(false) => "未使用 Tailscale",
-                    None => "无法读取路由",
+                    Some(true) => crate::i18n::tr("经由 Tailscale"),
+                    Some(false) => crate::i18n::tr("未使用 Tailscale"),
+                    None => crate::i18n::tr("无法读取路由"),
                 }
                 .into(),
             ));
             rows.push((
-                "目标 TCP 服务".into(),
+                crate::i18n::tr("目标 TCP 服务").into(),
                 if result["reachable"] == true {
-                    format!("可连接 · {} ms", result["latency_ms"].as_u64().unwrap_or(0))
+                    crate::i18n::format(
+                        "可连接 · {0} ms",
+                        &[format!("{}", result["latency_ms"].as_u64().unwrap_or(0))],
+                    )
                 } else if result["routed"] != true {
-                    "未检测".into()
+                    crate::i18n::tr("未检测").into()
                 } else if result["refused"] == true {
-                    "端口拒绝连接".into()
+                    crate::i18n::tr("端口拒绝连接").into()
                 } else if result.get("error").is_some() {
-                    "无法执行检测".into()
+                    crate::i18n::tr("无法执行检测").into()
                 } else {
-                    "未能连接".into()
+                    crate::i18n::tr("未能连接").into()
                 },
             ));
             rows.push((
-                "热点转发规则".into(),
+                crate::i18n::tr("热点转发规则").into(),
                 if result["gateway_rules_present"] == true {
-                    "已配置"
+                    crate::i18n::tr("已配置")
                 } else {
-                    "未确认"
+                    crate::i18n::tr("未确认")
                 }
                 .into(),
             ));
             rows.push((
-                "检测时间".into(),
-                format!("{} 秒前", at.elapsed().as_secs()),
+                crate::i18n::tr("检测时间").into(),
+                crate::i18n::format("{0} 秒前", &[format!("{}", at.elapsed().as_secs())]),
             ));
         } else {
             let message = if target.is_empty() {
-                "尚未设置目标"
+                crate::i18n::tr("尚未设置目标")
             } else if let Some(error) = &self.probe_error {
                 error.message()
             } else if self.pending.is_some() {
-                "正在检测"
+                crate::i18n::tr("正在检测")
             } else if !self.online() {
-                "等待 Tailscale 连接"
+                crate::i18n::tr("等待 Tailscale 连接")
             } else {
-                "尚未验证或结果已过期"
+                crate::i18n::tr("尚未验证或结果已过期")
             };
-            rows.push(("连通性检测".into(), message.into()));
+            rows.push((crate::i18n::tr("连通性检测").into(), message.into()));
         }
         if let Some(error) = &self.status_error {
-            rows.push(("连接提示".into(), error.message().into()));
+            rows.push((crate::i18n::tr("连接提示").into(), error.message().into()));
         }
         rows
     }

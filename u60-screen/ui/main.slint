@@ -2,6 +2,7 @@ import { Palette, Label, TapButton, MenuRow, Stat, Brightness, TrafficPanel } fr
 import { LockScreen, PinPad } from "lock.slint";
 import { TextEditor } from "editor.slint";
 import "../assets/U60Sans.ttf";
+import "../assets/U60Hangul.ttf";
 export { Palette }
 export struct MenuEntry { id: string, title: string, subtitle: string, tag: string }
 export struct Reading { label: string, value: string }
@@ -10,14 +11,14 @@ export struct FeatureInput { index: int, title: string, subtitle: string, tag: s
 
 export component Screen inherits Window {
     width: 320px; height: 480px;
-    title: "U60 · 原生屏幕预览";
-    default-font-family: "U60 Sans";
+    title: @tr("U60 · 原生屏幕预览");
+    default-font-family: root.language == "ko" ? "U60 Hangul" : "U60 Sans";
     default-font-size: 14px;
     background: Palette.bg;
     in-out property <int> tab: 0;
     // 0 overview, 1 menu, 2 detail, 3 appearance, 4 Tailscale network.
     in-out property <int> view: 0;
-    in-out property <string> heading: "随身网络";
+    in-out property <string> heading: @tr("随身网络");
     in-out property <string> kicker: "01 / OVERVIEW";
     in-out property <bool> can-back: false;
     in-out property <[MenuEntry]> entries;
@@ -49,16 +50,18 @@ export component Screen inherits Window {
     in-out property <string> note;
     in-out property <bool> asleep: false;
     in-out property <int> brightness: 70;
-    in-out property <string> sleep-label: "60 秒";
+    in-out property <string> sleep-label: @tr("60 秒");
     in-out property <string> accent-hex: "#2563eb";
+    in-out property <string> language: "zh-Hans";
+    callback set-language(string);
     in-out property <bool> demo: true;
-    in-out property <string> connection-label: "演示";
+    in-out property <string> connection-label: @tr("演示");
     in-out property <string> network-mode: "5G";
     in-out property <string> radio-label: "5G SA · n78";
     in-out property <string> signal-strength: "−86";
     in-out property <string> client-count: "3";
     in-out property <string> traffic-total: "2.38 GB";
-    in-out property <string> tailnet-status: "已连接";
+    in-out property <string> tailnet-status: @tr("已连接");
     in-out property <[Reading]> tailnet-readings;
     in-out property <string> probe-target;
     in-out property <string> probe-note;
@@ -185,11 +188,11 @@ export component Screen inherits Window {
                 }
                 if root.view == 0: HorizontalLayout {
                     spacing: 10px;
-                    Stat { label: "信号强度"; value: root.signal-strength; unit: "dBm"; clicked => { root.open("signal-live"); } }
-                    Stat { label: "连接设备"; value: root.client-count; unit: "台设备"; clicked => { root.open("clients"); } }
+                    Stat { label: @tr("信号强度"); value: root.signal-strength; unit: "dBm"; clicked => { root.open("signal-live"); } }
+                    Stat { label: @tr("连接设备"); value: root.client-count; unit: @tr("台设备"); clicked => { root.open("clients"); } }
                 }
                 if root.view == 0: MenuRow {
-                    title: "分享 Wi-Fi"; subtitle: "扫码连接热点，无需输入密码"; tag: "扫码";
+                    title: @tr("分享 Wi-Fi"); subtitle: @tr("扫码连接热点，无需输入密码"); tag: @tr("扫码");
                     clicked => { root.open("wifi-share"); }
                 }
                 if root.view == 0: Rectangle {
@@ -199,7 +202,7 @@ export component Screen inherits Window {
                         VerticalLayout {
                             Label { text: "TAILSCALE"; height: 16px; font-size: 12px; color: Palette.muted; }
                             Label { text: root.tailnet-status; height: 24px; font-size: 17px; font-weight: 600; color: root.tailnet-online ? Palette.good : Palette.warning; }
-                            Label { text: "子网路由与连通性检测"; height: 18px; font-size: 13px; color: Palette.muted; }
+                            Label { text: @tr("子网路由与连通性检测"); height: 18px; font-size: 13px; color: Palette.muted; }
                         }
                         Label { text: "↗"; font-size: 24px; vertical-alignment: center; color: Palette.accent-ink; width: 24px; }
                     }
@@ -226,13 +229,28 @@ export component Screen inherits Window {
                 }
                 if root.view == 3: VerticalLayout {
                     spacing: 12px;
-                    Label { text: "界面主题"; color: Palette.muted; font-size: 12px; }
+                    Label { text: "Language / 语言"; color: Palette.muted; font-size: 12px; }
+                    HorizontalLayout {
+                        spacing: 8px;
+                        for language in [{code: "zh-Hans", name: "简体中文"}, {code: "zh-Hant", name: "繁體中文"}]: TapButton {
+                            text: language.name; selected: root.language == language.code;
+                            clicked => { root.set-language(language.code); }
+                        }
+                    }
+                    HorizontalLayout {
+                        spacing: 8px;
+                        for language in [{code: "en", name: "English"}, {code: "ja", name: "日本語"}, {code: "ko", name: "한국어"}]: TapButton {
+                            text: language.name; selected: root.language == language.code;
+                            clicked => { root.set-language(language.code); }
+                        }
+                    }
+                    Label { text: @tr("界面主题"); color: Palette.muted; font-size: 12px; }
                     HorizontalLayout {
                         spacing: 10px;
-                        TapButton { text: "浅色"; selected: !Palette.dark; clicked => { root.theme(false); } }
-                        TapButton { text: "深色"; selected: Palette.dark; clicked => { root.theme(true); } }
+                        TapButton { text: @tr("浅色"); selected: !Palette.dark; clicked => { root.theme(false); } }
+                        TapButton { text: @tr("深色"); selected: Palette.dark; clicked => { root.theme(true); } }
                     }
-                    Label { text: "强调色"; color: Palette.muted; font-size: 12px; }
+                    Label { text: @tr("强调色"); color: Palette.muted; font-size: 12px; }
                     HorizontalLayout {
                         spacing: 5px;
                         for swatch in [
@@ -245,12 +263,12 @@ export component Screen inherits Window {
                             TouchArea { clicked => { root.accent(swatch.hex); } }
                         }
                     }
-                    MenuRow { title: "自定义颜色"; subtitle: root.accent-hex; clicked => { root.edit("accent"); } }
-                    Label { text: "屏幕亮度  " + root.brightness + "%"; color: Palette.muted; font-size: 12px; }
+                    MenuRow { title: @tr("自定义颜色"); subtitle: root.accent-hex; clicked => { root.edit("accent"); } }
+                    Label { text: @tr("屏幕亮度  ") + root.brightness + "%"; color: Palette.muted; font-size: 12px; }
                     Brightness { value: root.brightness; changed(value) => { root.set-brightness(value); } }
-                    MenuRow { title: "自动熄屏"; subtitle: root.sleep-label; clicked => { root.cycle-sleep(); } }
-                    TapButton { text: "熄屏"; clicked => { root.power(); } }
-                    Label { text: "明暗、配色与亮度即时生效。"; color: Palette.muted; font-size: 12px; }
+                    MenuRow { title: @tr("自动熄屏"); subtitle: root.sleep-label; clicked => { root.cycle-sleep(); } }
+                    TapButton { text: @tr("熄屏"); clicked => { root.power(); } }
+                    Label { text: @tr("明暗、配色与亮度即时生效。"); color: Palette.muted; font-size: 12px; }
                 }
                 if root.view == 4: VerticalLayout {
                     spacing: 10px;
@@ -258,12 +276,12 @@ export component Screen inherits Window {
                         height: 108px; background: Palette.surface; border-radius: 12px;
                         VerticalLayout {
                             padding: 16px; spacing: 8px;
-                            Label { text: "U60   →   Tailscale   →   目标"; font-size: 13px; color: Palette.accent-ink; }
+                            Label { text: @tr("U60   →   Tailscale   →   目标"); font-size: 13px; color: Palette.accent-ink; }
                             Label { text: root.tailnet-status; font-size: 20px; font-weight: 600; }
-                            Label { text: "子网路由与连通性检测"; font-size: 12px; color: Palette.muted; }
+                            Label { text: @tr("子网路由与连通性检测"); font-size: 12px; color: Palette.muted; }
                         }
                     }
-                    if !root.demo: MenuRow { title: "检测目标"; subtitle: root.probe-target == "" ? "设置目标 IP 和端口" : root.probe-target; clicked => { root.edit("probe-target"); } }
+                    if !root.demo: MenuRow { title: @tr("检测目标"); subtitle: root.probe-target == "" ? @tr("设置目标 IP 和端口") : root.probe-target; clicked => { root.edit("probe-target"); } }
                     for row in root.tailnet-readings: Rectangle {
                         min-height: 64px; background: Palette.surface; border-radius: 8px;
                         VerticalLayout {
@@ -272,25 +290,25 @@ export component Screen inherits Window {
                             Label { text: row.value; wrap: word-wrap; overflow: clip; }
                         }
                     }
-                    if root.demo: TapButton { text: "切换演示场景"; clicked => { root.scenario(); } }
-                    if !root.demo: TapButton { text: "刷新连接状态"; clicked => { root.refresh(); } }
-                    Label { text: root.demo ? "当前读数为演示数据。" : root.probe-note; color: Palette.muted; font-size: 13px; wrap: word-wrap; }
+                    if root.demo: TapButton { text: @tr("切换演示场景"); clicked => { root.scenario(); } }
+                    if !root.demo: TapButton { text: @tr("刷新连接状态"); clicked => { root.refresh(); } }
+                    Label { text: root.demo ? @tr("当前读数为演示数据。") : root.probe-note; color: Palette.muted; font-size: 13px; wrap: word-wrap; }
                 }
                 if root.view == 6: VerticalLayout {
                     spacing: 12px;
-                    Label { text: "后台连接 · " + root.connection-label; font-size: 18px; }
-                    Label { text: "机身屏幕使用本机后台账号连接。也可以输入后台密码重新登录。"; color: Palette.muted; wrap: word-wrap; }
-                    TapButton { text: "输入密码登录"; selected: true; clicked => { root.edit("agent-login"); } }
-                    TapButton { text: "重新连接"; clicked => { root.refresh(); } }
-                    TapButton { text: "断开并清除本地会话"; clicked => { root.agent-forget(); } }
+                    Label { text: @tr("后台连接 · ") + root.connection-label; font-size: 18px; }
+                    Label { text: @tr("机身屏幕使用本机后台账号连接。也可以输入后台密码重新登录。"); color: Palette.muted; wrap: word-wrap; }
+                    TapButton { text: @tr("输入密码登录"); selected: true; clicked => { root.edit("agent-login"); } }
+                    TapButton { text: @tr("重新连接"); clicked => { root.refresh(); } }
+                    TapButton { text: @tr("断开并清除本地会话"); clicked => { root.agent-forget(); } }
                 }
                 if root.view == 5: VerticalLayout {
                     spacing: 12px;
-                    MenuRow { title: "密码解锁"; subtitle: root.pin-enabled ? "已开启 · 6–12 位数字密码" : "未开启 · 仅长按解锁"; clicked => { root.pin-setup(false); } }
-                    TapButton { text: root.pin-enabled ? "修改解锁密码" : "设置解锁密码"; clicked => { root.pin-setup(false); } }
-                    if root.pin-enabled: TapButton { text: "关闭密码解锁"; clicked => { root.pin-setup(true); } }
-                    TapButton { text: "立即锁屏"; clicked => { root.lock-now(); } }
-                    Label { text: "启动与熄屏后自动锁定。开启密码后，更改或关闭密码需要先验证当前密码。"; font-size: 14px; color: Palette.muted; wrap: word-wrap; }
+                    MenuRow { title: @tr("密码解锁"); subtitle: root.pin-enabled ? @tr("已开启 · 6–12 位数字密码") : @tr("未开启 · 仅长按解锁"); clicked => { root.pin-setup(false); } }
+                    TapButton { text: root.pin-enabled ? @tr("修改解锁密码") : @tr("设置解锁密码"); clicked => { root.pin-setup(false); } }
+                    if root.pin-enabled: TapButton { text: @tr("关闭密码解锁"); clicked => { root.pin-setup(true); } }
+                    TapButton { text: @tr("立即锁屏"); clicked => { root.lock-now(); } }
+                    Label { text: @tr("启动与熄屏后自动锁定。开启密码后，更改或关闭密码需要先验证当前密码。"); font-size: 14px; color: Palette.muted; wrap: word-wrap; }
                     if root.pin-message != "": Label { text: root.pin-message; color: Palette.good; wrap: word-wrap; }
                 }
                 if root.view == 7: VerticalLayout {
@@ -324,7 +342,7 @@ export component Screen inherits Window {
                         text: action.label; interactive: action.enabled && !root.feature-busy;
                         clicked => { root.feature-action(index); }
                     }
-                    TapButton { text: root.feature-busy ? "正在处理…" : "刷新状态"; interactive: !root.feature-busy; clicked => { root.feature-refresh(); } }
+                    TapButton { text: root.feature-busy ? @tr("正在处理…") : @tr("刷新状态"); interactive: !root.feature-busy; clicked => { root.feature-refresh(); } }
                     if root.note != "": Label { text: root.note; font-size: 13px; color: Palette.muted; wrap: word-wrap; overflow: clip; }
                 }
             }
@@ -333,7 +351,7 @@ export component Screen inherits Window {
             y: 424px; height: 56px; width: parent.width; background: Palette.surface;
             Rectangle { x: 0px; y: 0px; height: 1px; width: parent.width; background: Palette.line; }
             HorizontalLayout {
-                for name[index] in ["概览", "网络", "应用", "设备"]: Rectangle {
+                for name[index] in [@tr("概览"), @tr("网络"), @tr("应用"), @tr("设备")]: Rectangle {
                     width: 80px;
                     VerticalLayout {
                         padding-top: 8px; padding-bottom: 8px; spacing: 2px;
@@ -356,12 +374,12 @@ export component Screen inherits Window {
                     for choice[index] in root.choices: MenuRow { title: choice.title; subtitle: choice.subtitle; tag: choice.tag; clicked => { root.choose(index); } }
                 }
             }
-            TapButton { x: 12px; y: 424px; width: 296px; height: 44px; text: "取消"; clicked => { root.choice-cancel(); } }
+            TapButton { x: 12px; y: 424px; width: 296px; height: 44px; text: @tr("取消"); clicked => { root.choice-cancel(); } }
         }
         if root.confirm-visible: Rectangle {
             width: parent.width; height: parent.height; background: Palette.bg;
             TouchArea { }
-            Label { x: 12px; y: 12px; width: 296px; height: 36px; text: "确认操作"; font-size: 22px; font-weight: 650; }
+            Label { x: 12px; y: 12px; width: 296px; height: 36px; text: @tr("确认操作"); font-size: 22px; font-weight: 650; }
             Flickable {
                 x: 12px; y: 58px; width: 296px; height: root.confirm-phrase == "" ? 348px : 280px;
                 content-width: self.width; content-height: confirmation-text.height;
@@ -369,13 +387,13 @@ export component Screen inherits Window {
             }
             if root.confirm-phrase != "": MenuRow {
                 x: 12px; y: 342px; width: 296px;
-                title: "输入 " + root.confirm-phrase + " 确认"; subtitle: root.confirm-word;
+                title: @tr("输入 ") + root.confirm-phrase + @tr(" 确认"); subtitle: root.confirm-word;
                 clicked => { root.edit("confirmation"); }
             }
             HorizontalLayout {
                 x: 12px; y: 424px; width: 296px; height: 44px; spacing: 8px;
-                TapButton { text: "取消"; clicked => { root.confirm-cancel(); } }
-                TapButton { text: "确认执行"; selected: true; interactive: root.confirm-word == root.confirm-phrase; clicked => { root.confirm-accept(); } }
+                TapButton { text: @tr("取消"); clicked => { root.confirm-cancel(); } }
+                TapButton { text: @tr("确认执行"); selected: true; interactive: root.confirm-word == root.confirm-phrase; clicked => { root.confirm-accept(); } }
             }
         }
         if root.message != "": Rectangle {
@@ -386,9 +404,9 @@ export component Screen inherits Window {
                 background: Palette.surface; border-radius: 12px;
                 VerticalLayout {
                     padding: 18px; spacing: 16px;
-                    Label { text: "提示"; font-size: 20px; font-weight: 600; }
+                    Label { text: @tr("提示"); font-size: 20px; font-weight: 600; }
                     Label { text: root.message; wrap: word-wrap; overflow: clip; }
-                    TapButton { text: "知道了"; selected: true; clicked => { root.message = ""; } }
+                    TapButton { text: @tr("知道了"); selected: true; clicked => { root.message = ""; } }
                 }
             }
         }

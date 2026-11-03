@@ -23,11 +23,11 @@ impl History {
         ) {
             return false;
         }
-        let mut values = vec![("后台连接", s.status.label().to_string())];
+        let mut values = vec![(crate::i18n::tr("后台连接"), s.status.label().to_string())];
         if let Some(signal) = s.get("signal")
             && let Some(kind) = signal["network_type"].as_str().filter(|s| !s.is_empty())
         {
-            values.push(("蜂窝网络类型", kind.into()));
+            values.push((crate::i18n::tr("蜂窝网络类型"), kind.into()));
         }
         let mut changed = false;
         for (k, v) in values {
@@ -37,7 +37,14 @@ impl History {
             let prior = self.last.insert(k, v.clone());
             let seconds = self.start.elapsed().as_secs();
             self.entries.push_front((
-                format!("运行 {}分{:02}秒 · {k}", seconds / 60, seconds % 60),
+                crate::i18n::format(
+                    "运行 {0}分{1}秒 · {2}",
+                    &[
+                        format!("{}", seconds / 60),
+                        format!("{:02}", seconds % 60),
+                        k.to_string(),
+                    ],
+                ),
                 prior.map(|old| format!("{old} → {v}")).unwrap_or(v),
             ));
             self.entries.truncate(100);
@@ -57,9 +64,12 @@ pub fn page(d: &Data) -> Page {
     if let Some(entries) = data(d, "__history").as_array() {
         p.rows = entries.iter().map(|e| (text(&e[0]), text(&e[1]))).collect();
     }
-    p.note="记录本次屏幕程序运行期间观察到的变化，最多保留 100 条。熄屏时暂停订阅，唤醒后记录当前状态；后台连接中断并不等于蜂窝网络断开。重启屏幕程序会清空记录。".into();
-    p.actions
-        .push(Action::new("clear-local", "清空本次记录", ""));
+    p.note=crate::i18n::tr("记录本次屏幕程序运行期间观察到的变化，最多保留 100 条。熄屏时暂停订阅，唤醒后记录当前状态；后台连接中断并不等于蜂窝网络断开。重启屏幕程序会清空记录。").into();
+    p.actions.push(Action::new(
+        "clear-local",
+        crate::i18n::tr("清空本次记录"),
+        "",
+    ));
     p
 }
 #[cfg(test)]

@@ -51,12 +51,16 @@ pub fn page(id: &str, readings: &Data) -> Page {
             };
             p.fields.push(Field::choice(
                 "wifi_onoff",
-                "Wi-Fi 总开关",
+                crate::i18n::tr("Wi-Fi 总开关"),
                 &d["wifi_onoff"],
                 ON,
             ));
-            p.fields
-                .push(Field::choice(radio, "此频段热点", &d[radio], DISABLED));
+            p.fields.push(Field::choice(
+                radio,
+                crate::i18n::tr("此频段热点"),
+                &d[radio],
+                DISABLED,
+            ));
             p.fields.push(Field::choice(
                 "wifi6_switch",
                 "Wi-Fi 6",
@@ -64,21 +68,22 @@ pub fn page(id: &str, readings: &Data) -> Page {
                 ON,
             ));
             for (key, label) in [
-                ("ssid", "网络名称"),
-                ("encryption", "安全方式"),
-                ("key", "新密码"),
-                ("channel", "信道"),
-                ("htmode", "带宽"),
-                ("txpower", "发射功率 %"),
-                ("hidden", "隐藏网络名称"),
+                ("ssid", crate::i18n::tr("网络名称")),
+                ("encryption", crate::i18n::tr("安全方式")),
+                ("key", crate::i18n::tr("新密码")),
+                ("channel", crate::i18n::tr("信道")),
+                ("htmode", crate::i18n::tr("带宽")),
+                ("txpower", crate::i18n::tr("发射功率 %")),
+                ("hidden", crate::i18n::tr("隐藏网络名称")),
             ] {
+                let setting = key;
                 let key = format!("{key}_{band}");
-                let field = match label {
-                    "安全方式" => Field::choice(&key, label, &d[&key], ENC),
-                    "新密码" => Field::password(&key, label, d.is_object()),
-                    "隐藏网络名称" => Field::choice(&key, label, &d[&key], ON),
-                    "发射功率 %" => Field::number(&key, label, &d[&key], 1, 100),
-                    "带宽" => Field::choice(
+                let field = match setting {
+                    "encryption" => Field::choice(&key, label, &d[&key], ENC),
+                    "key" => Field::password(&key, label, d.is_object()),
+                    "hidden" => Field::choice(&key, label, &d[&key], ON),
+                    "txpower" => Field::number(&key, label, &d[&key], 1, 100),
+                    "htmode" => Field::choice(
                         &key,
                         label,
                         &d[&key],
@@ -94,7 +99,7 @@ pub fn page(id: &str, readings: &Data) -> Page {
                             ]
                         },
                     ),
-                    "信道" => {
+                    "channel" => {
                         let channels = if band == "2g" {
                             vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
                         } else {
@@ -108,7 +113,12 @@ pub fn page(id: &str, readings: &Data) -> Page {
                         } else {
                             d[&key].clone()
                         };
-                        let mut field = Field::choice(&key, label, &current, &[("auto", "自动")]);
+                        let mut field = Field::choice(
+                            &key,
+                            label,
+                            &current,
+                            &[("auto", crate::i18n::tr("自动"))],
+                        );
                         for channel in channels {
                             let value = channel.to_string();
                             if !field.choices.iter().any(|c| c.value == value) {
@@ -129,19 +139,22 @@ pub fn page(id: &str, readings: &Data) -> Page {
                 };
                 p.fields.push(field);
             }
-            p.row("实际信道", &d[format!("actual_channel_{band}")]);
-            p.row("连接数量", &d[format!("clients_{band}")]);
-            p.note = "只保存修改过的字段。密码留空保留现有密码。".into();
+            p.row(
+                crate::i18n::tr("实际信道"),
+                &d[format!("actual_channel_{band}")],
+            );
+            p.row(crate::i18n::tr("连接数量"), &d[format!("clients_{band}")]);
+            p.note = crate::i18n::tr("只保存修改过的字段。密码留空保留现有密码。").into();
         }
         "guest" => {
             for (key, label) in [
-                ("disabled_2g", "2.4 GHz 访客网络"),
-                ("disabled_5g", "5 GHz 访客网络"),
-                ("ssid", "网络名称"),
-                ("encryption", "安全方式"),
-                ("key", "新密码"),
-                ("hidden", "隐藏名称"),
-                ("isolate", "隔离访客"),
+                ("disabled_2g", crate::i18n::tr("2.4 GHz 访客网络")),
+                ("disabled_5g", crate::i18n::tr("5 GHz 访客网络")),
+                ("ssid", crate::i18n::tr("网络名称")),
+                ("encryption", crate::i18n::tr("安全方式")),
+                ("key", crate::i18n::tr("新密码")),
+                ("hidden", crate::i18n::tr("隐藏名称")),
+                ("isolate", crate::i18n::tr("隔离访客")),
             ] {
                 let wire = format!("guest_{key}");
                 p.fields.push(match key {
@@ -159,62 +172,88 @@ pub fn page(id: &str, readings: &Data) -> Page {
             }
             p.fields.push(Field::choice(
                 "guest_active_time",
-                "访客访问时限",
+                crate::i18n::tr("访客访问时限"),
                 &d["guest_active_time"],
                 &[
-                    ("0", "不限时"),
-                    ("30", "30 分钟"),
-                    ("60", "1 小时"),
-                    ("120", "2 小时"),
-                    ("240", "4 小时"),
-                    ("480", "8 小时"),
-                    ("720", "12 小时"),
-                    ("1440", "24 小时"),
+                    ("0", crate::i18n::tr("不限时")),
+                    ("30", crate::i18n::tr("30 分钟")),
+                    ("60", crate::i18n::tr("1 小时")),
+                    ("120", crate::i18n::tr("2 小时")),
+                    ("240", crate::i18n::tr("4 小时")),
+                    ("480", crate::i18n::tr("8 小时")),
+                    ("720", crate::i18n::tr("12 小时")),
+                    ("1440", crate::i18n::tr("24 小时")),
                 ],
             ));
-            p.row("剩余访问时间 / 秒", &d["remaining_seconds"]);
+            p.row(
+                crate::i18n::tr("剩余访问时间 / 秒"),
+                &d["remaining_seconds"],
+            );
         }
         "charge" => {
             p.fields = vec![
                 Field::boolean(
                     "charge_limit_enabled",
-                    "限制充电上限",
+                    crate::i18n::tr("限制充电上限"),
                     &d["charge_limit_enabled"],
                 ),
                 Field::number(
                     "charge_limit",
-                    "停止充电电量 %",
+                    crate::i18n::tr("停止充电电量 %"),
                     &d["charge_limit"],
                     50,
                     100,
                 ),
-                Field::number("hysteresis", "恢复充电回差 %", &d["hysteresis"], 1, 20),
-                Field::boolean("charging_stopped", "手动暂停充电", &d["charging_stopped"]),
+                Field::number(
+                    "hysteresis",
+                    crate::i18n::tr("恢复充电回差 %"),
+                    &d["hysteresis"],
+                    1,
+                    20,
+                ),
+                Field::boolean(
+                    "charging_stopped",
+                    crate::i18n::tr("手动暂停充电"),
+                    &d["charging_stopped"],
+                ),
             ];
-            p.row("当前电量 %", &d["capacity"]);
-            p.row("电池状态", &d["battery_status"]);
-            p.note = "充电回差用于避免频繁启停；手动暂停会覆盖自动充电策略。".into();
+            p.row(crate::i18n::tr("当前电量 %"), &d["capacity"]);
+            p.row(crate::i18n::tr("电池状态"), &d["battery_status"]);
+            p.note =
+                crate::i18n::tr("充电回差用于避免频繁启停；手动暂停会覆盖自动充电策略。").into();
         }
         "power-save" => p.fields.push(Field::choice(
             "power_saver_mode",
-            "省电模式",
+            crate::i18n::tr("省电模式"),
             &d["power_saver_mode"],
             ON,
         )),
-        "fast-boot" => p
-            .fields
-            .push(Field::choice("fast_boot", "快速启动", &d["fast_boot"], ON)),
+        "fast-boot" => p.fields.push(Field::choice(
+            "fast_boot",
+            crate::i18n::tr("快速启动"),
+            &d["fast_boot"],
+            ON,
+        )),
         "auto-sleep" => {
-            p.fields
-                .push(Field::boolean("enabled", "整机自动休眠", &d["enabled"]));
-            let mut f = Field::number("timeout", "无客户端等待时间 / 分钟", &d["timeout"], 1, 1440);
+            p.fields.push(Field::boolean(
+                "enabled",
+                crate::i18n::tr("整机自动休眠"),
+                &d["enabled"],
+            ));
+            let mut f = Field::number(
+                "timeout",
+                crate::i18n::tr("无客户端等待时间 / 分钟"),
+                &d["timeout"],
+                1,
+                1440,
+            );
             f.wire = Wire::String;
             p.fields.push(f);
-            p.row("休眠状态", &d["status"]);
+            p.row(crate::i18n::tr("休眠状态"), &d["status"]);
         }
         "ttl" => {
             p.fields = vec![
-                Field::boolean("enabled", "自定义跳数", &d["enabled"]),
+                Field::boolean("enabled", crate::i18n::tr("自定义跳数"), &d["enabled"]),
                 Field::number("ipv4_ttl", "IPv4 TTL", &d["ipv4_ttl"], 1, 255),
                 Field::number(
                     "ipv6_hop_limit",
@@ -224,48 +263,66 @@ pub fn page(id: &str, readings: &Data) -> Page {
                     255,
                 ),
             ];
-            p.row("规则是否生效", &d["active"]);
-            p.note = "仅作用于蜂窝软件转发路径，硬件加速流量可能绕过。".into();
+            p.row(crate::i18n::tr("规则是否生效"), &d["active"]);
+            p.note = crate::i18n::tr("仅作用于蜂窝软件转发路径，硬件加速流量可能绕过。").into();
         }
         "oos" => {
             p.fields = vec![
-                Field::boolean("enabled", "无服务省电", &d["enabled"]),
-                Field::number("grace_min", "等待时间 / 分钟", &d["grace_min"], 1, 240),
+                Field::boolean("enabled", crate::i18n::tr("无服务省电"), &d["enabled"]),
+                Field::number(
+                    "grace_min",
+                    crate::i18n::tr("等待时间 / 分钟"),
+                    &d["grace_min"],
+                    1,
+                    240,
+                ),
                 Field::number(
                     "probe_every_min",
-                    "搜索间隔 / 分钟",
+                    crate::i18n::tr("搜索间隔 / 分钟"),
                     &d["probe_every_min"],
                     1,
                     240,
                 ),
                 Field::number(
                     "probe_window_min",
-                    "搜索窗口 / 分钟",
+                    crate::i18n::tr("搜索窗口 / 分钟"),
                     &d["probe_window_min"],
                     1,
                     30,
                 ),
             ];
-            p.row("策略状态", &d["status"]["state"]);
+            p.row(crate::i18n::tr("策略状态"), &d["status"]["state"]);
         }
         "watchdog" => {
             p.fields = vec![
-                Field::boolean("enabled", "断网自动恢复", &d["enabled"]),
-                Field::boolean("allow_reboot", "允许最终重启恢复", &d["allow_reboot"]),
+                Field::boolean("enabled", crate::i18n::tr("断网自动恢复"), &d["enabled"]),
+                Field::boolean(
+                    "allow_reboot",
+                    crate::i18n::tr("允许最终重启恢复"),
+                    &d["allow_reboot"],
+                ),
             ];
-            p.row("探测来源", &d["status"]["probe_source"]);
-            p.row("恢复状态", &d["status"]["state"]);
+            p.row(crate::i18n::tr("探测来源"), &d["status"]["probe_source"]);
+            p.row(crate::i18n::tr("恢复状态"), &d["status"]["state"]);
         }
         "tailscale-config" => {
             p.fields = vec![
-                Field::text("hostname", "节点名称", &d["hostname"]),
-                Field::boolean("hold_wakelock", "保持设备唤醒", &d["hold_wakelock"]),
+                Field::text("hostname", crate::i18n::tr("节点名称"), &d["hostname"]),
+                Field::boolean(
+                    "hold_wakelock",
+                    crate::i18n::tr("保持设备唤醒"),
+                    &d["hold_wakelock"],
+                ),
                 Field::boolean("tailscale_ssh", "Tailscale SSH", &d["tailscale_ssh"]),
-                Field::boolean("accept_routes", "接收远端子网路由", &d["accept_routes"]),
+                Field::boolean(
+                    "accept_routes",
+                    crate::i18n::tr("接收远端子网路由"),
+                    &d["accept_routes"],
+                ),
             ];
             let mut routes = Field::text(
                 "advertise_routes",
-                "此设备发布的子网",
+                crate::i18n::tr("此设备发布的子网"),
                 &d["advertise_routes"]
                     .as_array()
                     .map(|v| json!(v.iter().map(text).collect::<Vec<_>>().join(",")))
@@ -274,35 +331,37 @@ pub fn page(id: &str, readings: &Data) -> Page {
             routes.wire = Wire::Strings;
             routes.multiline = true;
             p.fields.push(routes);
-            p.note =
-                "发布的路由仍需在 Tailscale 管理端批准。接收远端子网路由在内核网关模式下生效。"
-                    .into();
+            p.note = crate::i18n::tr(
+                "发布的路由仍需在 Tailscale 管理端批准。接收远端子网路由在内核网关模式下生效。",
+            )
+            .into();
         }
         _ => return p,
     }
     let warning = match id {
         "wifi2" | "wifi5" | "guest" => {
-            "应用后热点可能重启，已连接设备需要重新连接。开放网络不要求密码。"
+            crate::i18n::tr("应用后热点可能重启，已连接设备需要重新连接。开放网络不要求密码。")
         }
-        "auto-sleep" => "没有热点客户端时可能进入整机休眠，需要机身电源键唤醒。",
-        "watchdog" => "更改会影响断网恢复；允许重启时设备可能自动重启。",
-        "tailscale-config" => "会调整此节点的远程连接设置，可能影响现有连接。",
-        _ => "将保存这些设置到设备。",
+        "auto-sleep" => crate::i18n::tr("没有热点客户端时可能进入整机休眠，需要机身电源键唤醒。"),
+        "watchdog" => crate::i18n::tr("更改会影响断网恢复；允许重启时设备可能自动重启。"),
+        "tailscale-config" => crate::i18n::tr("会调整此节点的远程连接设置，可能影响现有连接。"),
+        _ => crate::i18n::tr("将保存这些设置到设备。"),
     };
-    let mut action = Action::new("save", "保存设置", warning);
+    let mut action = Action::new("save", crate::i18n::tr("保存设置"), warning);
     action.enabled = d.is_object();
     p.actions.push(action);
     p
 }
 pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
-    ensure!(action == "save", "未知操作。");
+    ensure!(action == "save", "{}", crate::i18n::tr("未知操作。"));
     let d = data(readings, "settings");
-    ensure!(d.is_object(), "请先读取设备设置。");
+    ensure!(d.is_object(), "{}", crate::i18n::tr("请先读取设备设置。"));
     let keys = p.fields.iter().map(|f| f.key.as_str()).collect::<Vec<_>>();
     let mut body = p.changed(&keys)?;
     ensure!(
         body.as_object().is_some_and(|o| !o.is_empty()),
-        "没有需要保存的更改。"
+        "{}",
+        crate::i18n::tr("没有需要保存的更改。")
     );
     let path = match id {
         "wifi2" | "wifi5" | "guest" => {
@@ -325,7 +384,8 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                     ensure!(
                         !v.contains(['\'', '"', ';', '$', '`', '\\', '|', '<', '>', '&'])
                             && !v.chars().any(char::is_control),
-                        "设备无法保存输入中的特殊字符，请修改网络名称或密码。"
+                        "{}",
+                        crate::i18n::tr("设备无法保存输入中的特殊字符，请修改网络名称或密码。")
                     );
                 }
             }
@@ -338,7 +398,10 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                         || (!encryption.contains("sae")
                             && password.len() == 64
                             && password.bytes().all(|c| c.is_ascii_hexdigit())),
-                    "密码需要 8–63 个可打印字符；非 WPA3 也可使用 64 位 HEX 密钥。"
+                    "{}",
+                    crate::i18n::tr(
+                        "密码需要 8–63 个可打印字符；非 WPA3 也可使用 64 位 HEX 密钥。"
+                    )
                 );
             }
             let stored = if id == "guest" { &d["key"] } else { &d[&key] };
@@ -346,7 +409,8 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                 encryption == "none"
                     || !password.is_empty()
                     || stored.as_str().is_some_and(|s| !s.is_empty()),
-                "加密网络需要密码。"
+                "{}",
+                crate::i18n::tr("加密网络需要密码。")
             );
             if id == "wifi5" && (p.field("channel_5g")?.dirty() || p.field("htmode_5g")?.dirty()) {
                 let ch = p.field("channel_5g")?.value.parse::<u32>().unwrap_or(0);
@@ -356,7 +420,8 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                         || ch >= 149 && width == "EHT160"
                         || (132..149).contains(&ch)
                             && ["EHT80", "EHT160"].contains(&width.as_str())),
-                    "所选信道不支持该带宽。"
+                    "{}",
+                    crate::i18n::tr("所选信道不支持该带宽。")
                 );
             }
             if id == "guest" {
@@ -376,13 +441,15 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                         route
                             .as_str()
                             .is_some_and(|s| s.parse::<ipnet::IpNet>().is_ok()),
-                        "子网需使用 CIDR，例如 10.20.0.0/24。"
+                        "{}",
+                        crate::i18n::tr("子网需使用 CIDR，例如 10.20.0.0/24。")
                     );
                 }
             }
             "/api/tailscale/config"
         }
-        _ => endpoint(id).ok_or_else(|| anyhow::anyhow!("此设置尚不可用。"))?,
+        _ => endpoint(id)
+            .ok_or_else(|| anyhow::anyhow!("{}", crate::i18n::tr("此设置尚不可用。")))?,
     };
     Ok(Plan::one(Method::PUT, path, body))
 }

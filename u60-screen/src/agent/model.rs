@@ -11,7 +11,12 @@ pub fn text(value: &Value) -> String {
     match value {
         Value::String(s) if !s.is_empty() => s.clone(),
         Value::Number(n) => n.to_string(),
-        Value::Bool(b) => if *b { "开启" } else { "关闭" }.into(),
+        Value::Bool(b) => if *b {
+            crate::i18n::tr("开启")
+        } else {
+            crate::i18n::tr("关闭")
+        }
+        .into(),
         _ => "—".into(),
     }
 }
@@ -48,8 +53,8 @@ impl Dashboard {
             "SA" | "NR5G-SA" | "5G_SA" => "5G SA",
             "ENDC" | "LTE-NSA" | "NSA" => "5G NSA",
             "LTE" => "4G",
-            "NO_SERVICE" => "无服务",
-            "LIMITED_SERVICE_LTE" | "LIMITED_SERVICE_SA" => "有限服务",
+            "NO_SERVICE" => crate::i18n::tr("无服务"),
+            "LIMITED_SERVICE_LTE" | "LIMITED_SERVICE_SA" => crate::i18n::tr("有限服务"),
             "" => "—",
             other => other,
         }

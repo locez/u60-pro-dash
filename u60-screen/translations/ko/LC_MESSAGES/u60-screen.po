@@ -1,0 +1,213 @@
+# Generated from locales/screen.json; do not edit.
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\nLanguage: ko\nPlural-Forms: nplurals=1; plural=0;\n"
+
+msgid " · 已锁定"
+msgstr " · 잠김"
+
+msgid " 确认"
+msgstr " 확인"
+
+msgid " 秒后可以重试"
+msgstr "초 후 다시 시도 가능"
+
+msgid "60 秒"
+msgstr "60초"
+
+msgid "NETWORK / 网络状态"
+msgstr "네트워크 상태"
+
+msgid "U60   →   Tailscale   →   目标"
+msgstr "U60 → Tailscale → 목표"
+
+msgid "U60 · 原生屏幕预览"
+msgstr "U60 · 화면 미리보기"
+
+msgid "信号强度"
+msgstr "신호 강도"
+
+msgid "修改解锁密码"
+msgstr "잠금 해제 PIN 변경"
+
+msgid "关闭密码解锁"
+msgstr "PIN 잠금 해제"
+
+msgid "分享 Wi-Fi"
+msgstr "Wi-Fi 공유"
+
+msgid "切换演示场景"
+msgstr "시범 시나리오 전환"
+
+msgid "删除"
+msgstr "삭제"
+
+msgid "刷新状态"
+msgstr "상태 새로 고침"
+
+msgid "刷新连接状态"
+msgstr "연결 상태를 업데이트"
+
+msgid "剩余电量"
+msgstr "배터리 잔량"
+
+msgid "取消"
+msgstr "취소"
+
+msgid "台设备"
+msgstr "기기"
+
+msgid "后台连接 · "
+msgstr "관리 서비스 · "
+
+msgid "启动与熄屏后自动锁定。开启密码后，更改或关闭密码需要先验证当前密码。"
+msgstr "시동과 스크린을 통해 자동으로 잠겨집니다. 비밀번호를 여는 후 암호를 변경하거나 종료하는 것은 현재 비밀번호를 확인해야 합니다."
+
+msgid "处理中"
+msgstr "처리 중"
+
+msgid "子网路由与连通性检测"
+msgstr "서브넷 연결 검사"
+
+msgid "完成"
+msgstr "완료"
+
+msgid "密码解锁"
+msgstr "PIN 잠금 해제"
+
+msgid "屏幕亮度  "
+msgstr "화면 밝기  "
+
+msgid "已开启 · 6–12 位数字密码"
+msgstr "활성화됨 · 숫자 6~12자리 PIN"
+
+msgid "已连接"
+msgstr "연결됨"
+
+msgid "应用"
+msgstr "앱"
+
+msgid "强调色"
+msgstr "강조 색상"
+
+msgid "当前读数为演示数据。"
+msgstr "이 자료는 디모 데이터입니다."
+
+msgid "扫码"
+msgstr "QR 코드를 스캔"
+
+msgid "扫码连接热点，无需输入密码"
+msgstr "비밀번호를 입력하지 않고 스카드 연결 핫포트"
+
+msgid "换行"
+msgstr "줄 바꿈"
+
+msgid "提示"
+msgstr "안내"
+
+msgid "断开并清除本地会话"
+msgstr "로컬 세션을 해제하고 클리어"
+
+msgid "明暗、配色与亮度即时生效。"
+msgstr "테마, 색상, 밝기가 즉시 적용됩니다."
+
+msgid "未开启 · 仅长按解锁"
+msgstr "열리지 않은 · 잠금 잠금"
+
+msgid "本次 "
+msgstr "이번 연결 "
+
+msgid "机身屏幕使用本机后台账号连接。也可以输入后台密码重新登录。"
+msgstr "인체 스크린은 본인의 백업 계정을 사용하여 연결됩니다. 또한 백업 암호를 입력하여 다시 로그인할 수 있습니다."
+
+msgid "松开继续"
+msgstr "손을 떼면 계속"
+
+msgid "查看设置与操作需要密码"
+msgstr "설정 및 작업에 PIN 필요"
+
+msgid "检测目标"
+msgstr "연결 검사 대상"
+
+msgid "概览"
+msgstr "개요"
+
+msgid "正在处理…"
+msgstr "일하는 것..."
+
+msgid "浅色"
+msgstr "라이트"
+
+msgid "深色"
+msgstr "다크"
+
+msgid "清空"
+msgstr "지우기"
+
+msgid "演示"
+msgstr "데모"
+
+msgid "熄屏"
+msgstr "화면 끄기"
+
+msgid "界面主题"
+msgstr "테마"
+
+msgid "知道了"
+msgstr "알았어"
+
+msgid "确认"
+msgstr "확인"
+
+msgid "确认执行"
+msgstr "작업 확인"
+
+msgid "确认操作"
+msgstr "작업 확인"
+
+msgid "空格"
+msgstr "공백"
+
+msgid "立即锁屏"
+msgstr "이제 잠겨"
+
+msgid "网络"
+msgstr "네트워크"
+
+msgid "自动熄屏"
+msgstr "자동 화면 끄기"
+
+msgid "自定义颜色"
+msgstr "사용자 지정 색상"
+
+msgid "设备"
+msgstr "장치"
+
+msgid "设置目标 IP 和端口"
+msgstr "IP 및 포트를 설정"
+
+msgid "设置解锁密码"
+msgstr "잠금 해제 PIN 설정"
+
+msgid "输入 "
+msgstr "입력"
+
+msgid "输入密码登录"
+msgstr "비밀번호로 로그인"
+
+msgid "连接设备"
+msgstr "연결된 장치"
+
+msgid "退格"
+msgstr "삭제"
+
+msgid "重新连接"
+msgstr "다시 연결"
+
+msgid "长按 1 秒，松开后解锁"
+msgstr "1초간 누른 후 손 떼기"
+
+msgid "长按解锁"
+msgstr "길게 눌러 잠금 해제"
+
+msgid "随身网络"
+msgstr "모바일 라우터"

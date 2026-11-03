@@ -15,11 +15,13 @@ pub fn target(text: &str) -> anyhow::Result<SocketAddr> {
             && !address.ip().is_unspecified()
             && !address.ip().is_multicast()
             && address.port() != 0,
-        "请输入目标 IP 和端口，例如 10.20.0.10:443 或 [fd7a::10]:443"
+        "{}",
+        crate::i18n::tr("请输入目标 IP 和端口，例如 10.20.0.10:443 或 [fd7a::10]:443")
     );
     anyhow::ensure!(
         !matches!(address.ip(), std::net::IpAddr::V4(ip) if ip.is_broadcast()),
-        "不支持广播地址"
+        "{}",
+        crate::i18n::tr("不支持广播地址")
     );
     Ok(address)
 }

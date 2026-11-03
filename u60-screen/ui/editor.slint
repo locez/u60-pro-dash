@@ -56,15 +56,15 @@ export component TextEditor inherits Rectangle {
             spacing: 5px; height: 44px;
             TapButton { text: root.layout == 0 ? "123" : root.layout == 1 ? "#+=" : "ABC"; clicked => { root.layout = mod(root.layout + 1, 3); root.activity(); } }
             TapButton { text: "Aa"; clicked => { root.upper = !root.upper; root.layout = 0; root.activity(); } }
-            TapButton { text: "空格"; clicked => { input.focus(); root.key(" "); } }
-            if root.multiline: TapButton { text: "换行"; clicked => { input.focus(); root.key(Key.Return); } }
-            TapButton { text: "退格"; clicked => { input.focus(); root.key(Key.Backspace); } }
+            TapButton { text: @tr("空格"); clicked => { input.focus(); root.key(" "); } }
+            if root.multiline: TapButton { text: @tr("换行"); clicked => { input.focus(); root.key(Key.Return); } }
+            TapButton { text: @tr("退格"); clicked => { input.focus(); root.key(Key.Backspace); } }
         }
         HorizontalLayout {
             spacing: 8px; height: 44px;
-            TapButton { text: "取消"; clicked => { root.cancel(); } }
-            TapButton { text: "清空"; clicked => { root.value = ""; input.focus(); root.activity(); } }
-            TapButton { text: "完成"; selected: true; clicked => { root.submit(); } }
+            TapButton { text: @tr("取消"); clicked => { root.cancel(); } }
+            TapButton { text: @tr("清空"); clicked => { root.value = ""; input.focus(); root.activity(); } }
+            TapButton { text: @tr("完成"); selected: true; clicked => { root.submit(); } }
         }
     }
 }

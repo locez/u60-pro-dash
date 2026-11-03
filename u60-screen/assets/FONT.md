@@ -17,3 +17,16 @@ python3 u60-screen/scripts/subset-font.py /path/to/NotoSansSC\[wght\].ttf
 默认保留上游全部字符，支持真实中文短信、SSID 和设备名称。它仍然不是覆盖所有语言与彩色 emoji 的通用字库。`--ui-only` 可生成仅包含 `ui/*.slint`、`src/**/*.rs`、`assets/*.json` 和 ASCII 的预览子集；该模式不能用于正式机身构建。完整字库约 18 MB，增加静态产物体积以换取动态内容的文字覆盖。
 
 Slint 软件渲染默认不启用 hinting，并按 1/4 像素放置水平字形。本程序的 [可选渲染补丁](../vendor/README.md) 启用 hinting，并将字形起点取整到像素；颜色与 RGB565 帧缓冲保持正常输出，不对画面整体锐化。
+
+## 韩文字形
+
+`U60Hangul.ttf` 补充完整现代韩文音节、Jamo、ASCII 与常用标点，保留可变字重。韩语界面优先使用此字体，其他文字由已嵌入的 U60 Sans 回退显示。约 4.5 MB；正式构建不依赖系统字体。
+
+- 源：[google/fonts, ofl/notosanskr](https://github.com/google/fonts/tree/a85815a42757630ce188fdad368c2dfc444d4773/ofl/notosanskr)
+- 源文件：`NotoSansKR[wght].ttf`
+- 源 SHA-256：`194018e6b2b293a7964f037b25c0249ce1418bc9ab3c971060a03aa57861e252`
+- 同样遵循 [OFL 1.1](OFL.txt)，版权保留在字体中，修改后更名为 U60 Hangul。
+
+```bash
+python3 u60-screen/scripts/hangul-font.py /path/to/NotoSansKR\[wght\].ttf
+```

@@ -211,7 +211,7 @@ impl ScreenLock {
         }
         if self.enabled() {
             self.mode = Mode::Unlock;
-            self.message = "请输入解锁密码".into();
+            self.message = crate::i18n::tr("请输入解锁密码").into();
         } else {
             self.locked = false;
         }
@@ -222,7 +222,7 @@ impl ScreenLock {
         }
         self.cancel();
         if self.path.is_none() {
-            self.message = "请通过预览脚本启动，以保存密码设置。".into();
+            self.message = crate::i18n::tr("请通过预览脚本启动，以保存密码设置。").into();
             return;
         }
         self.mode = if !self.enabled() {
@@ -233,9 +233,9 @@ impl ScreenLock {
             Mode::Change
         };
         self.message = if self.mode == Mode::New {
-            "设置 6–12 位数字密码"
+            crate::i18n::tr("设置 6–12 位数字密码")
         } else {
-            "先输入当前密码"
+            crate::i18n::tr("先输入当前密码")
         }
         .into();
     }
@@ -259,7 +259,7 @@ impl ScreenLock {
             return;
         }
         if !(6..=12).contains(&self.input.len()) {
-            self.message = "请输入 6–12 位数字".into();
+            self.message = crate::i18n::tr("请输入 6–12 位数字").into();
             return;
         }
         let pin = std::mem::replace(&mut self.input, Zeroizing::new(String::new()));
@@ -267,24 +267,25 @@ impl ScreenLock {
             Mode::New => {
                 self.first = pin;
                 self.mode = Mode::Confirm;
-                self.message = "再次输入，确认新密码".into();
+                self.message = crate::i18n::tr("再次输入，确认新密码").into();
             }
             Mode::Confirm => {
                 if *pin != *self.first {
                     self.first.zeroize();
                     self.mode = Mode::New;
-                    self.message = "两次不一致，请重新设置".into();
+                    self.message = crate::i18n::tr("两次不一致，请重新设置").into();
                     return;
                 }
                 self.first.zeroize();
                 self.spawn(move || {
                     let mut salt = [0u8; 16];
-                    getrandom::getrandom(&mut salt).map_err(|_| "无法生成密码盐".to_string())?;
-                    let salt =
-                        SaltString::encode_b64(&salt).map_err(|_| "密码盐生成失败".to_string())?;
+                    getrandom::getrandom(&mut salt)
+                        .map_err(|_| crate::i18n::tr("无法生成密码盐").to_string())?;
+                    let salt = SaltString::encode_b64(&salt)
+                        .map_err(|_| crate::i18n::tr("密码盐生成失败").to_string())?;
                     let hash = kdf()
                         .hash_password(pin.as_bytes(), &salt)
-                        .map_err(|_| "密码处理失败".to_string())?
+                        .map_err(|_| crate::i18n::tr("密码处理失败").to_string())?
                         .to_string();
                     Ok(Work::Hash(hash))
                 });
@@ -296,12 +297,12 @@ impl ScreenLock {
                 let mut stored = self.stored.clone();
                 stored.attempts = stored.attempts.saturating_add(1).min(20);
                 if self.commit(stored).is_err() {
-                    self.message = "无法保存验证状态，保持锁定".into();
+                    self.message = crate::i18n::tr("无法保存验证状态，保持锁定").into();
                     return;
                 }
                 self.spawn(move || {
-                    let hash =
-                        PasswordHash::new(&hash).map_err(|_| "密码校验配置损坏".to_string())?;
+                    let hash = PasswordHash::new(&hash)
+                        .map_err(|_| crate::i18n::tr("密码校验配置损坏").to_string())?;
                     let ok = kdf().verify_password(pin.as_bytes(), &hash).is_ok();
                     Ok(Work::Verify(ok, mode))
                 });
@@ -310,7 +311,7 @@ impl ScreenLock {
         }
     }
     fn spawn(&mut self, job: impl FnOnce() -> Result<Work, String> + Send + 'static) {
-        self.message = "正在验证…".into();
+        self.message = crate::i18n::tr("正在验证…").into();
         let (tx, rx) = mpsc::channel();
         self.work = Some(rx);
         std::thread::spawn(move || {
@@ -320,7 +321,9 @@ impl ScreenLock {
     pub fn poll(&mut self) {
         let result = match self.work.as_ref().map(|r| r.try_recv()) {
             Some(Ok(value)) => value,
-            Some(Err(mpsc::TryRecvError::Disconnected)) => Err("验证任务中断，请重试".into()),
+            Some(Err(mpsc::TryRecvError::Disconnected)) => {
+                Err(crate::i18n::tr("验证任务中断，请重试").into())
+            }
             _ => return,
         };
         self.work = None;
@@ -341,16 +344,16 @@ impl ScreenLock {
                     })
                     .is_err()
                 {
-                    self.message = "密码未能保存，请重试".into();
+                    self.message = crate::i18n::tr("密码未能保存，请重试").into();
                     return;
                 }
                 self.mode = Mode::Hold;
-                self.message = "密码解锁已开启".into();
+                self.message = crate::i18n::tr("密码解锁已开启").into();
                 self.until = None;
             }
             Work::Verify(false, _) => {
                 self.until = Some(Instant::now() + delay(self.stored.attempts));
-                self.message = "密码不正确，请重试".into();
+                self.message = crate::i18n::tr("密码不正确，请重试").into();
             }
             Work::Verify(true, mode) => {
                 let mut stored = self.stored.clone();
@@ -359,7 +362,7 @@ impl ScreenLock {
                     stored.hash = None;
                 }
                 if self.commit(stored).is_err() {
-                    self.message = "无法保存验证结果，保持锁定".into();
+                    self.message = crate::i18n::tr("无法保存验证结果，保持锁定").into();
                     return;
                 }
                 self.until = None;
@@ -369,10 +372,10 @@ impl ScreenLock {
                     self.message.clear();
                 } else if mode == Mode::Change {
                     self.mode = Mode::New;
-                    self.message = "设置新的 6–12 位数字密码".into();
+                    self.message = crate::i18n::tr("设置新的 6–12 位数字密码").into();
                 } else {
                     self.mode = Mode::Hold;
-                    self.message = "密码解锁已关闭".into();
+                    self.message = crate::i18n::tr("密码解锁已关闭").into();
                 }
             }
         }

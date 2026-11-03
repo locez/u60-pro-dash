@@ -44,10 +44,15 @@ pub fn flag(value: &Value) -> Option<bool> {
 }
 pub fn shown(value: &Value) -> String {
     match value {
-        Value::Null => "未提供".into(),
-        Value::Bool(v) => if *v { "开启" } else { "关闭" }.into(),
+        Value::Null => crate::i18n::tr("未提供").into(),
+        Value::Bool(v) => if *v {
+            crate::i18n::tr("开启")
+        } else {
+            crate::i18n::tr("关闭")
+        }
+        .into(),
         Value::Array(v) => v.iter().map(shown).collect::<Vec<_>>().join("、"),
-        Value::String(v) if v.is_empty() => "未设置".into(),
+        Value::String(v) if v.is_empty() => crate::i18n::tr("未设置").into(),
         _ => text(value),
     }
 }
@@ -101,7 +106,7 @@ impl Field {
     pub fn text(key: &str, label: &str, value: &Value) -> Self {
         Self {
             key: key.into(),
-            label: label.into(),
+            label: crate::i18n::tr(label).into(),
             value: text(value),
             original: text(value),
             choices: vec![],
@@ -130,11 +135,11 @@ impl Field {
         f.choices = vec![
             Choice {
                 value: "false".into(),
-                label: "关闭".into(),
+                label: crate::i18n::tr("关闭").into(),
             },
             Choice {
                 value: "true".into(),
-                label: "开启".into(),
+                label: crate::i18n::tr("开启").into(),
             },
         ];
         f
@@ -145,7 +150,7 @@ impl Field {
             .iter()
             .map(|(v, l)| Choice {
                 value: (*v).into(),
-                label: (*l).into(),
+                label: crate::i18n::tr(l).into(),
             })
             .collect();
         if f.available && !f.choices.iter().any(|c| c.value == f.value) {
@@ -153,7 +158,7 @@ impl Field {
                 0,
                 Choice {
                     value: f.value.clone(),
-                    label: format!("当前：{}", shown(value)),
+                    label: crate::i18n::format("当前：{0}", &[shown(value).to_string()]),
                 },
             );
         }
@@ -172,13 +177,13 @@ impl Field {
     }
     pub fn display(&self) -> String {
         if !self.available {
-            return "当前不可用".into();
+            return crate::i18n::tr("当前不可用").into();
         }
         if self.secret {
             return if self.value.is_empty() {
-                "留空保持不变"
+                crate::i18n::tr("留空保持不变")
             } else {
-                "已填写"
+                crate::i18n::tr("已填写")
             }
             .into();
         }
@@ -188,43 +193,56 @@ impl Field {
             .map(|c| c.label.clone())
             .unwrap_or_else(|| {
                 if self.value.is_empty() {
-                    "未填写".into()
+                    crate::i18n::tr("未填写").into()
                 } else {
                     self.value.clone()
                 }
             })
     }
     pub fn encode(&self) -> Result<Value> {
-        ensure!(self.available, "{}尚不可用，请先刷新。", self.label);
+        ensure!(
+            self.available,
+            "{}",
+            crate::i18n::format("{0}尚不可用，请先刷新。", std::slice::from_ref(&self.label))
+        );
         ensure!(
             !self.required || !self.value.trim().is_empty(),
-            "请填写{}。",
-            self.label
+            "{}",
+            crate::i18n::format("请填写{0}。", std::slice::from_ref(&self.label))
         );
         ensure!(
             self.value.len() <= self.max,
-            "{}不能超过 {} 字节。",
-            self.label,
-            self.max
+            "{}",
+            crate::i18n::format(
+                "{0}不能超过 {1} 字节。",
+                &[self.label.to_string(), format!("{}", self.max)]
+            )
         );
         if !self.choices.is_empty() {
             ensure!(
                 self.choices.iter().any(|c| c.value == self.value),
-                "请选择有效的{}。",
-                self.label
+                "{}",
+                crate::i18n::format("请选择有效的{0}。", std::slice::from_ref(&self.label))
             );
         }
         if let Some((min, max)) = self.range {
-            let n = self
-                .value
-                .parse::<i64>()
-                .map_err(|_| anyhow::anyhow!("{}必须为整数。", self.label))?;
+            let n = self.value.parse::<i64>().map_err(|_| {
+                anyhow::anyhow!(
+                    "{}",
+                    crate::i18n::format("{0}必须为整数。", std::slice::from_ref(&self.label))
+                )
+            })?;
             ensure!(
                 (min..=max).contains(&n),
-                "{}必须为 {}–{}。",
-                self.label,
-                min,
-                max
+                "{}",
+                crate::i18n::format(
+                    "{0}必须为 {1}–{2}。",
+                    &[
+                        self.label.to_string(),
+                        format!("{}", min),
+                        format!("{}", max)
+                    ]
+                )
             );
         }
         Ok(match self.wire {
@@ -258,8 +276,8 @@ impl Action {
     pub fn new(id: &str, label: &str, warning: &str) -> Self {
         Self {
             id: id.into(),
-            label: label.into(),
-            warning: warning.into(),
+            label: crate::i18n::tr(label).into(),
+            warning: crate::i18n::tr(warning).into(),
             enabled: true,
             phrase: None,
         }
@@ -292,13 +310,14 @@ impl Drop for Page {
 }
 impl Page {
     pub fn row(&mut self, label: &str, value: &Value) {
-        self.rows.push((label.into(), shown(value)));
+        self.rows
+            .push((crate::i18n::tr(label).into(), shown(value)));
     }
     pub fn field(&self, key: &str) -> Result<&Field> {
         self.fields
             .iter()
             .find(|f| f.key == key)
-            .ok_or_else(|| anyhow::anyhow!("缺少设置字段，请刷新。"))
+            .ok_or_else(|| anyhow::anyhow!("{}", crate::i18n::tr("缺少设置字段，请刷新。")))
     }
     pub fn value(&self, key: &str) -> Result<Value> {
         self.field(key)?.encode()

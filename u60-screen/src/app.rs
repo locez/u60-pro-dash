@@ -60,9 +60,27 @@ impl Catalog {
         0
     }
     pub fn load() -> Result<Self> {
-        Ok(serde_json::from_str(include_str!(
-            "../assets/catalog.json"
-        ))?)
+        let mut catalog: Value = serde_json::from_str(include_str!("../assets/catalog.json"))?;
+        // The catalog is authored preview copy, never live router data.
+        fn localize(value: &mut Value) {
+            match value {
+                Value::String(text) => *text = crate::i18n::tr(text).into(),
+                Value::Array(items) => items.iter_mut().for_each(localize),
+                Value::Object(items) => {
+                    for (key, value) in items {
+                        if !matches!(
+                            key.as_str(),
+                            "id" | "root" | "group" | "type" | "tone" | "method" | "endpoint"
+                        ) {
+                            localize(value);
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+        localize(&mut catalog);
+        Ok(serde_json::from_value(catalog)?)
     }
 }
 
@@ -122,9 +140,14 @@ fn reading(label: &str, value: &str) -> Reading {
 fn display(value: &Value) -> String {
     match value {
         Value::Null => "—".into(),
-        Value::String(s) if s.is_empty() => "未填写".into(),
+        Value::String(s) if s.is_empty() => crate::i18n::tr("未填写").into(),
         Value::String(s) => s.clone(),
-        Value::Bool(b) => if *b { "开启" } else { "关闭" }.into(),
+        Value::Bool(b) => if *b {
+            crate::i18n::tr("开启")
+        } else {
+            crate::i18n::tr("关闭")
+        }
+        .into(),
         Value::Array(a) => a.iter().map(display).collect::<Vec<_>>().join("、"),
         v => v.to_string(),
     }
@@ -153,44 +176,49 @@ impl State {
         let mut tab = ui.get_tab();
         match id {
             "account" if self.agent.is_some() => {
-                title = "后台连接".into();
+                title = crate::i18n::tr("后台连接").into();
                 view = 6;
                 tab = 3;
             }
             "overview" => {
-                title = "随身网络".to_string();
+                title = crate::i18n::tr("随身网络").to_string();
                 view = 0;
                 tab = 0;
             }
             "network-menu" | "apps" | "device-settings" => {
                 let (t, label) = match id {
-                    "network-menu" => (1, "网络"),
-                    "apps" => (2, "应用"),
-                    _ => (3, "设备"),
+                    "network-menu" => (1, crate::i18n::tr("网络")),
+                    "apps" => (2, crate::i18n::tr("应用")),
+                    _ => (3, crate::i18n::tr("设备")),
                 };
                 tab = t;
                 title = label.into();
                 if tab == 3 {
                     if self.agent.is_some() {
-                        entries.push(entry("account", "后台连接", "连接状态与登录", ""));
+                        entries.push(entry(
+                            "account",
+                            crate::i18n::tr("后台连接"),
+                            crate::i18n::tr("连接状态与登录"),
+                            "",
+                        ));
                     }
                     entries.push(entry(
                         "screen-lock",
-                        "锁屏与密码",
-                        "长按解锁与可选密码保护",
+                        crate::i18n::tr("锁屏与密码"),
+                        crate::i18n::tr("长按解锁与可选密码保护"),
                         "",
                     ));
                     entries.push(entry(
                         "screen-prefs",
-                        "屏幕与外观",
-                        "明暗、配色、亮度与熄屏",
+                        crate::i18n::tr("屏幕与外观"),
+                        crate::i18n::tr("明暗、配色、亮度与熄屏"),
                         "",
                     ));
                     if self.agent.is_none() {
                         entries.push(entry(
                             "demo-scenario",
-                            "演示场景",
-                            "正常、目标离线、无网络、低电量",
+                            crate::i18n::tr("演示场景"),
+                            crate::i18n::tr("正常、目标离线、无网络、低电量"),
                             "",
                         ));
                     }
@@ -214,28 +242,40 @@ impl State {
                 }
             }
             "screen-lock" => {
-                title = "锁屏与密码".into();
+                title = crate::i18n::tr("锁屏与密码").into();
                 view = 5;
                 tab = 3;
             }
             "screen-prefs" => {
-                title = "屏幕与外观".into();
+                title = crate::i18n::tr("屏幕与外观").into();
                 view = 3;
                 tab = 3;
             }
             "tailscale-network" => {
-                title = "Tailscale 网络".into();
+                title = crate::i18n::tr("Tailscale 网络").into();
                 view = 4;
                 tab = self.catalog.tab_for("vpn-services");
                 self.network.refresh();
             }
             "demo-scenario" => {
-                title = "演示场景".into();
+                title = crate::i18n::tr("演示场景").into();
                 for (index, (name, subtitle)) in [
-                    ("正常连接", "蜂窝与远端子网均可用"),
-                    ("子网路由节点离线", "Tailscale 在线，远端网络不可达"),
-                    ("蜂窝断开", "Tailscale 连接等待网络"),
-                    ("低电量", "电量 14%，网络正常"),
+                    (
+                        crate::i18n::tr("正常连接"),
+                        crate::i18n::tr("蜂窝与远端子网均可用"),
+                    ),
+                    (
+                        crate::i18n::tr("子网路由节点离线"),
+                        crate::i18n::tr("Tailscale 在线，远端网络不可达"),
+                    ),
+                    (
+                        crate::i18n::tr("蜂窝断开"),
+                        crate::i18n::tr("Tailscale 连接等待网络"),
+                    ),
+                    (
+                        crate::i18n::tr("低电量"),
+                        crate::i18n::tr("电量 14%，网络正常"),
+                    ),
                 ]
                 .iter()
                 .enumerate()
@@ -265,7 +305,7 @@ impl State {
                                 &f.id,
                                 &f.title,
                                 if f.description.is_empty() {
-                                    "查看功能"
+                                    crate::i18n::tr("查看功能")
                                 } else {
                                     &f.description
                                 },
@@ -310,7 +350,7 @@ impl State {
                     }
                     for field in &f.fields {
                         let value = if text(field, "type") == "password" {
-                            "未显示".into()
+                            crate::i18n::tr("未显示").into()
                         } else {
                             display(&field["value"])
                         };
@@ -332,7 +372,7 @@ impl State {
                         if !note.is_empty() {
                             note.push_str("\n\n");
                         }
-                        note.push_str("当前展示演示配置。设备读写尚未接入。完整表单交互可在浏览器原型中体验。");
+                        note.push_str(crate::i18n::tr("当前展示演示配置。设备读写尚未接入。完整表单交互可在浏览器原型中体验。"));
                     }
                     if self.agent.is_some() {
                         readings.clear();
@@ -343,7 +383,7 @@ impl State {
                             self.feature_revision = u64::MAX;
                             note.clear();
                         } else {
-                            note = "正在接入此功能，当前尚不能操作。".into();
+                            note = crate::i18n::tr("正在接入此功能，当前尚不能操作。").into();
                         }
                     }
                 } else {
@@ -377,6 +417,7 @@ impl State {
     }
 
     fn apply_preferences(&self, ui: &Screen) {
+        ui.set_language(self.prefs.language.code().into());
         let rgb = parse_color(&self.prefs.accent).expect("validated preferences");
         let ink = readable_accent(rgb, self.prefs.dark);
         let palette = ui.global::<Palette>();
@@ -389,9 +430,9 @@ impl State {
         ui.set_probe_target(self.prefs.probe_target.clone().into());
         ui.set_brightness(self.prefs.brightness.into());
         ui.set_sleep_label(if self.prefs.sleep_seconds == 0 {
-            "从不".into()
+            crate::i18n::tr("从不").into()
         } else {
-            format!("{} 秒", self.prefs.sleep_seconds).into()
+            crate::i18n::format("{0} 秒", &[format!("{}", self.prefs.sleep_seconds)]).into()
         });
     }
 
@@ -416,11 +457,11 @@ impl State {
         ui.set_pin_busy(s.busy());
         ui.set_pin_title(
             match s.mode {
-                Mode::Unlock => "解锁屏幕",
-                Mode::New | Mode::Confirm => "设置解锁密码",
-                Mode::Change => "修改解锁密码",
-                Mode::Disable => "关闭密码解锁",
-                Mode::Hold => "屏幕锁",
+                Mode::Unlock => crate::i18n::tr("解锁屏幕"),
+                Mode::New | Mode::Confirm => crate::i18n::tr("设置解锁密码"),
+                Mode::Change => crate::i18n::tr("修改解锁密码"),
+                Mode::Disable => crate::i18n::tr("关闭密码解锁"),
+                Mode::Hold => crate::i18n::tr("屏幕锁"),
             }
             .into(),
         );
@@ -446,7 +487,7 @@ impl State {
             && let Err(error) = self.prefs.save(path)
         {
             eprintln!("preferences: {error:#}");
-            ui.set_message("设置已生效，但未能保存到偏好文件。".into());
+            ui.set_message(crate::i18n::tr("设置已生效，但未能保存到偏好文件。").into());
         }
     }
     fn apply_scenario(&self, ui: &Screen) {
@@ -459,10 +500,17 @@ impl State {
         ui.set_download(if self.scenario == 2 { "—" } else { "128.6" }.into());
         ui.set_upload(if self.scenario == 2 { "—" } else { "16.4" }.into());
         ui.set_signal_strength(if self.scenario == 2 { "—" } else { "−86" }.into());
-        ui.set_network_mode(if self.scenario == 2 { "离线" } else { "5G" }.into());
+        ui.set_network_mode(
+            if self.scenario == 2 {
+                crate::i18n::tr("离线")
+            } else {
+                "5G"
+            }
+            .into(),
+        );
         ui.set_radio_label(
             if self.scenario == 2 {
-                "等待蜂窝网络"
+                crate::i18n::tr("等待蜂窝网络")
             } else {
                 "5G SA · n78"
             }
@@ -470,9 +518,9 @@ impl State {
         );
         ui.set_tailnet_status(
             if self.scenario == 2 {
-                "等待网络"
+                crate::i18n::tr("等待网络")
             } else {
-                "已连接"
+                crate::i18n::tr("已连接")
             }
             .into(),
         );
@@ -480,17 +528,17 @@ impl State {
             reading(
                 "Tailscale",
                 if self.scenario == 2 {
-                    "等待网络"
+                    crate::i18n::tr("等待网络")
                 } else {
-                    "已连接"
+                    crate::i18n::tr("已连接")
                 },
             ),
             reading(
-                "远端子网",
+                crate::i18n::tr("远端子网"),
                 if self.scenario == 0 || self.scenario == 3 {
-                    "演示：已验证可达"
+                    crate::i18n::tr("演示：已验证可达")
                 } else {
-                    "演示：不可达"
+                    crate::i18n::tr("演示：不可达")
                 },
             ),
         ]));
@@ -600,7 +648,7 @@ impl State {
                 rows.into_iter().map(|(k, v)| reading(&k, &v)).collect(),
             ));
         }
-        ui.set_probe_note("仅在此页亮屏解锁时检测，每 30 秒更新，结果有效期 60 秒。TCP 检测从 U60 发起；热点客户端仍需实际访问验证。".into());
+        ui.set_probe_note(crate::i18n::tr("仅在此页亮屏解锁时检测，每 30 秒更新，结果有效期 60 秒。TCP 检测从 U60 发起；热点客户端仍需实际访问验证。").into());
     }
 
     fn render_features(&mut self, ui: &Screen) {
@@ -641,7 +689,12 @@ impl State {
                     index: i as i32,
                     title: f.label.clone().into(),
                     subtitle: f.display().into(),
-                    tag: if f.dirty() { "已改" } else { "" }.into(),
+                    tag: if f.dirty() {
+                        crate::i18n::tr("已改")
+                    } else {
+                        ""
+                    }
+                    .into(),
                 })
                 .collect(),
         ));
@@ -677,7 +730,7 @@ impl State {
             return;
         };
         if !field.available {
-            ui.set_message("此设置当前不可用，请先刷新。".into());
+            ui.set_message(crate::i18n::tr("此设置当前不可用，请先刷新。").into());
             return;
         }
         if !field.choices.is_empty() {
@@ -704,9 +757,9 @@ impl State {
             ui.set_editor_title(field.label.clone().into());
             ui.set_editor_hint(
                 if field.secret {
-                    "输入新值；留空保持不变。"
+                    crate::i18n::tr("输入新值；留空保持不变。")
                 } else {
-                    "修改后点完成，再在页面中保存。"
+                    crate::i18n::tr("修改后点完成，再在页面中保存。")
                 }
                 .into(),
             );
@@ -730,32 +783,32 @@ impl State {
         let (purpose, title, hint, value, secret, layout) = match kind {
             "confirmation" => (
                 Editor::Confirmation,
-                "确认操作",
-                "输入页面提示的确认文字。",
+                crate::i18n::tr("确认操作"),
+                crate::i18n::tr("输入页面提示的确认文字。"),
                 String::new(),
                 false,
                 0,
             ),
             "agent-login" => (
                 Editor::AgentLogin,
-                "后台密码",
-                "输入已有的后台密码。",
+                crate::i18n::tr("后台密码"),
+                crate::i18n::tr("输入已有的后台密码。"),
                 String::new(),
                 true,
                 0,
             ),
             "probe-target" => (
                 Editor::ProbeTarget,
-                "检测目标",
-                "IP:端口 或 [IPv6]:端口；留空关闭检测。",
+                crate::i18n::tr("检测目标"),
+                crate::i18n::tr("IP:端口 或 [IPv6]:端口；留空关闭检测。"),
                 self.prefs.probe_target.clone(),
                 false,
                 1,
             ),
             "accent" => (
                 Editor::Accent,
-                "自定义颜色",
-                "输入六位 HEX 颜色，例如 #2563EB。",
+                crate::i18n::tr("自定义颜色"),
+                crate::i18n::tr("输入六位 HEX 颜色，例如 #2563EB。"),
                 self.prefs.accent.clone(),
                 false,
                 1,
@@ -780,7 +833,9 @@ impl State {
         match self.editor {
             Some(Editor::AgentLogin) => {
                 if value.is_empty() || value.len() > 1024 {
-                    ui.set_editor_error("密码不能为空，长度不能超过 1024 字节。".into());
+                    ui.set_editor_error(
+                        crate::i18n::tr("密码不能为空，长度不能超过 1024 字节。").into(),
+                    );
                     return;
                 }
                 if let Some(agent) = &self.agent
@@ -793,7 +848,9 @@ impl State {
             Some(Editor::ProbeTarget) => {
                 let target = value.trim();
                 if !target.is_empty() && crate::agent::connectivity::target(target).is_err() {
-                    ui.set_editor_error("请输入有效目标，例如 10.20.0.10:443。".into());
+                    ui.set_editor_error(
+                        crate::i18n::tr("请输入有效目标，例如 10.20.0.10:443。").into(),
+                    );
                     return;
                 }
                 self.prefs.probe_target = target.into();
@@ -802,7 +859,9 @@ impl State {
             }
             Some(Editor::Accent) => {
                 if parse_color(value.trim()).is_err() {
-                    ui.set_editor_error("请输入六位 HEX 颜色，例如 #2563EB。".into());
+                    ui.set_editor_error(
+                        crate::i18n::tr("请输入六位 HEX 颜色，例如 #2563EB。").into(),
+                    );
                     return;
                 }
                 self.prefs.accent = value.trim().into();
@@ -817,7 +876,7 @@ impl State {
             }
             Some(Editor::Confirmation) => {
                 if value.as_str() != ui.get_confirm_phrase().as_str() {
-                    ui.set_editor_error("确认文字不匹配。".into());
+                    ui.set_editor_error(crate::i18n::tr("确认文字不匹配。").into());
                     return;
                 }
                 ui.set_confirm_word(value.to_string().into());
@@ -831,7 +890,9 @@ impl State {
 
 impl App {
     pub fn new(prefs: Preferences, prefs_path: Option<PathBuf>) -> Result<Self> {
+        crate::i18n::select(prefs.language);
         let ui = Screen::new()?;
+        slint::select_bundled_translation(prefs.language.code())?;
         let state = Rc::new(RefCell::new(State {
             agent: None,
             live_revision: u64::MAX,
@@ -939,7 +1000,10 @@ impl App {
         });
         bind!(on_action, |_s, u, _index| {
             u.set_message(
-                "这项业务操作尚未接入设备。当前仅预览页面，不会更改网络或发送指令。".into(),
+                crate::i18n::tr(
+                    "这项业务操作尚未接入设备。当前仅预览页面，不会更改网络或发送指令。",
+                )
+                .into(),
             );
         });
         bind!(on_refresh, |s, _u| {
@@ -1049,13 +1113,39 @@ impl App {
             s.prefs.dark = dark;
             s.persist(&u);
         });
+        bind!(on_set_language, |s, u, code| {
+            let Some(locale) = crate::i18n::Locale::parse(&code) else {
+                return;
+            };
+            if locale == s.prefs.language {
+                return;
+            }
+            if let Err(error) = slint::select_bundled_translation(locale.code()) {
+                u.set_message(error.to_string().into());
+                return;
+            }
+            crate::i18n::select(locale);
+            s.prefs.language = locale;
+            s.catalog = Catalog::load().expect("validated embedded catalog");
+            s.persist(&u);
+            s.live_revision = u64::MAX;
+            s.feature_revision = u64::MAX;
+            s.network.refresh();
+            if s.agent.is_none() {
+                s.apply_scenario(&u);
+            }
+            let page = s.page.clone();
+            let _ = s.show(&u, &page, false);
+        });
         bind!(on_accent, |s, u, color| {
             match parse_color(&color) {
                 Ok(_) => {
                     s.prefs.accent = color.to_string();
                     s.persist(&u);
                 }
-                Err(_) => u.set_message("请输入六位十六进制颜色，例如 #2563EB。".into()),
+                Err(_) => {
+                    u.set_message(crate::i18n::tr("请输入六位十六进制颜色，例如 #2563EB。").into())
+                }
             }
         });
         bind!(on_set_brightness, |s, u, value| {
@@ -1166,7 +1256,8 @@ impl App {
         state.agent = Some(crate::agent::Agent::start(config)?);
         self.ui.set_demo(false);
         self.ui.set_tailnet_online(false);
-        self.ui.set_tailnet_status("等待查询连接状态".into());
+        self.ui
+            .set_tailnet_status(crate::i18n::tr("等待查询连接状态").into());
         self.ui.set_tailnet_readings(model(vec![]));
         state.update_agent(&self.ui);
         Ok(())

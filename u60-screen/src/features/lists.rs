@@ -40,7 +40,11 @@ fn rule<'a>(d: &'a Value, id: &str) -> Result<&'a Value> {
         .filter(|(i, v)| rule_id(v, *i) == id)
         .map(|(_, v)| v)
         .collect::<Vec<_>>();
-    ensure!(found.len() == 1, "记录已变化或标识重复，请刷新。");
+    ensure!(
+        found.len() == 1,
+        "{}",
+        crate::i18n::tr("记录已变化或标识重复，请刷新。")
+    );
     Ok(found[0])
 }
 fn required(key: &str, label: &str, value: &Value, max: usize) -> Field {
@@ -55,7 +59,7 @@ fn new_item(p: &mut Page, label: &str) {
         Item {
             id: "new".into(),
             title: label.into(),
-            subtitle: "填写后确认保存".into(),
+            subtitle: crate::i18n::tr("填写后确认保存").into(),
         },
     );
 }
@@ -69,43 +73,54 @@ pub fn page(id: &str, readings: &Data) -> Page {
             if let Some(id) = selected {
                 let found = profiles.iter().find(|v| text(&v["profileId"]) == id);
                 if id != "new" && found.is_none() {
-                    p.note = "配置已不存在，请返回列表刷新。".into();
+                    p.note = crate::i18n::tr("配置已不存在，请返回列表刷新。").into();
                     return p;
                 }
                 let defaults =
                     json!({"profilename":"","wanapn":"","pdpType":3,"pppAuthMode":0,"username":""});
                 let v = found.unwrap_or(&defaults);
                 p.title = Some(if id == "new" {
-                    "新增 APN".into()
+                    crate::i18n::tr("新增 APN").into()
                 } else {
                     shown(&v["profilename"])
                 });
                 p.fields = vec![
-                    required("profilename", "配置名称", &v["profilename"], 128),
+                    required(
+                        "profilename",
+                        crate::i18n::tr("配置名称"),
+                        &v["profilename"],
+                        128,
+                    ),
                     required("wanapn", "APN", &v["wanapn"], 128),
                     Field::choice(
                         "pdpType",
-                        "IP 类型",
+                        crate::i18n::tr("IP 类型"),
                         &v["pdpType"],
                         &[("1", "IPv4"), ("2", "IPv6"), ("3", "IPv4 + IPv6")],
                     ),
                     Field::choice(
                         "pppAuthMode",
-                        "认证方式",
+                        crate::i18n::tr("认证方式"),
                         &v["pppAuthMode"],
-                        &[("0", "无"), ("1", "PAP"), ("2", "CHAP")],
+                        &[("0", crate::i18n::tr("无")), ("1", "PAP"), ("2", "CHAP")],
                     ),
-                    Field::text("username", "用户名", &json!(text(&v["username"]))),
-                    Field::password("password", "新密码", true),
+                    Field::text(
+                        "username",
+                        crate::i18n::tr("用户名"),
+                        &json!(text(&v["username"])),
+                    ),
+                    Field::password("password", crate::i18n::tr("新密码"), true),
                 ];
-                p.actions.push(Action::new("save", "保存 APN", CUT));
+                p.actions
+                    .push(Action::new("save", crate::i18n::tr("保存 APN"), CUT));
                 if found.is_some() {
-                    p.row("当前启用", &v["isEnable"]);
-                    p.actions.push(Action::new("activate", "启用此配置", CUT));
+                    p.row(crate::i18n::tr("当前启用"), &v["isEnable"]);
+                    p.actions
+                        .push(Action::new("activate", crate::i18n::tr("启用此配置"), CUT));
                     let mut a = Action::new(
                         "delete",
-                        "删除此配置",
-                        "永久删除此 APN 配置。当前启用的配置不能删除。",
+                        crate::i18n::tr("删除此配置"),
+                        crate::i18n::tr("永久删除此 APN 配置。当前启用的配置不能删除。"),
                     );
                     a.enabled = flag(&v["isEnable"]) == Some(false);
                     p.actions.push(a);
@@ -116,11 +131,15 @@ pub fn page(id: &str, readings: &Data) -> Page {
             } else {
                 p.fields.push(Field::choice(
                     "apn_mode",
-                    "APN 选择",
+                    crate::i18n::tr("APN 选择"),
                     &data(readings, "mode")["apn_mode"],
-                    &[("0", "运营商自动配置"), ("1", "手动配置")],
+                    &[
+                        ("0", crate::i18n::tr("运营商自动配置")),
+                        ("1", crate::i18n::tr("手动配置")),
+                    ],
                 ));
-                p.actions.push(Action::new("mode", "保存选择方式", CUT));
+                p.actions
+                    .push(Action::new("mode", crate::i18n::tr("保存选择方式"), CUT));
                 p.items = profiles
                     .iter()
                     .filter_map(|v| {
@@ -132,28 +151,29 @@ pub fn page(id: &str, readings: &Data) -> Page {
                                 "{} · {}",
                                 shown(&v["wanapn"]),
                                 if flag(&v["isEnable"]) == Some(true) {
-                                    "已启用"
+                                    crate::i18n::tr("已启用")
                                 } else {
-                                    "未启用"
+                                    crate::i18n::tr("未启用")
                                 }
                             ),
                         })
                     })
                     .collect();
                 if d["apnListArray"].is_array() {
-                    new_item(&mut p, "新增 APN");
+                    new_item(&mut p, crate::i18n::tr("新增 APN"));
                 }
                 if let Some(list) = data(readings, "automatic")["apnListArray"].as_array() {
                     for v in list {
                         p.rows.push((
-                            "运营商配置".into(),
+                            crate::i18n::tr("运营商配置").into(),
                             format!("{} · {}", shown(&v["profilename"]), shown(&v["wanapn"])),
                         ));
                     }
                 }
-                p.note =
-                    "编辑手动配置时密码留空保留原值。选择手动模式后，启用指定配置才用于蜂窝连接。"
-                        .into();
+                p.note = crate::i18n::tr(
+                    "编辑手动配置时密码留空保留原值。选择手动模式后，启用指定配置才用于蜂窝连接。",
+                )
+                .into();
             }
         }
         "ports" | "domain" => {
@@ -163,83 +183,105 @@ pub fn page(id: &str, readings: &Data) -> Page {
             if let Some(selected) = selected {
                 p.title = Some(if selected == "new" {
                     if is_port {
-                        "新增端口转发"
+                        crate::i18n::tr("新增端口转发")
                     } else {
-                        "新增域名过滤"
+                        crate::i18n::tr("新增域名过滤")
                     }
                     .into()
                 } else {
                     if is_port {
-                        "转发规则"
+                        crate::i18n::tr("转发规则")
                     } else {
-                        "域名过滤"
+                        crate::i18n::tr("域名过滤")
                     }
                     .into()
                 });
                 if selected == "new" {
                     if is_port {
                         p.fields = vec![
-                            required("name", "规则名称", &json!(""), 64),
+                            required("name", crate::i18n::tr("规则名称"), &json!(""), 64),
                             Field::choice(
                                 "protocol",
-                                "协议",
+                                crate::i18n::tr("协议"),
                                 &json!("tcp"),
                                 &[("tcp", "TCP"), ("udp", "UDP"), ("tcp+udp", "TCP + UDP")],
                             ),
-                            Field::number("wan_port", "外部端口", &json!(""), 1, 65535),
-                            required("lan_ip", "目标 IPv4", &json!(""), 15),
-                            Field::number("lan_port", "内部端口", &json!(""), 1, 65535),
-                            bit("enabled", "启用规则", &json!("1")),
+                            Field::number(
+                                "wan_port",
+                                crate::i18n::tr("外部端口"),
+                                &json!(""),
+                                1,
+                                65535,
+                            ),
+                            required("lan_ip", crate::i18n::tr("目标 IPv4"), &json!(""), 15),
+                            Field::number(
+                                "lan_port",
+                                crate::i18n::tr("内部端口"),
+                                &json!(""),
+                                1,
+                                65535,
+                            ),
+                            bit("enabled", crate::i18n::tr("启用规则"), &json!("1")),
                         ];
                     } else {
-                        p.fields.push(required("domain", "域名", &json!(""), 253));
+                        p.fields
+                            .push(required("domain", crate::i18n::tr("域名"), &json!(""), 253));
                     }
                     p.actions.push(Action::new(
                         "add",
-                        "添加规则",
+                        crate::i18n::tr("添加规则"),
                         if is_port {
-                            "把入站端口映射至指定局域网设备。目标应启用自己的防火墙。"
+                            crate::i18n::tr(
+                                "把入站端口映射至指定局域网设备。目标应启用自己的防火墙。",
+                            )
                         } else {
-                            "阻止此域名访问；可能影响依赖它的服务。"
+                            crate::i18n::tr("阻止此域名访问；可能影响依赖它的服务。")
                         },
                     ));
                 } else if let Ok(v) = rule(d, selected) {
                     if is_port {
                         for (keys, label) in [
-                            (&["name", "comment"][..], "名称"),
-                            (&["protocol", "proto"], "协议"),
-                            (&["wan_port", "src_dport"], "外部端口"),
-                            (&["lan_ip", "dest_ip"], "目标 IP"),
-                            (&["lan_port", "dest_port"], "内部端口"),
+                            (&["name", "comment"][..], crate::i18n::tr("名称")),
+                            (&["protocol", "proto"], crate::i18n::tr("协议")),
+                            (&["wan_port", "src_dport"], crate::i18n::tr("外部端口")),
+                            (&["lan_ip", "dest_ip"], crate::i18n::tr("目标 IP")),
+                            (&["lan_port", "dest_port"], crate::i18n::tr("内部端口")),
                         ] {
                             p.row(label, first(v, keys));
                         }
                     } else {
-                        p.row("域名", first(v, &["domain", "fqdn"]));
+                        p.row(crate::i18n::tr("域名"), first(v, &["domain", "fqdn"]));
                     }
                     p.actions.push(Action::new(
                         "delete",
-                        "删除规则",
-                        "永久移除此规则。提交前会再次核对规则列表，列表变化时取消操作。",
+                        crate::i18n::tr("删除规则"),
+                        crate::i18n::tr(
+                            "永久移除此规则。提交前会再次核对规则列表，列表变化时取消操作。",
+                        ),
                     ));
-                    p.note = "修改已有规则时，请删除后按新参数重新添加。".into();
+                    p.note = crate::i18n::tr("修改已有规则时，请删除后按新参数重新添加。").into();
                 } else {
-                    p.note = "记录已变化，请返回列表刷新。".into();
+                    p.note = crate::i18n::tr("记录已变化，请返回列表刷新。").into();
                 }
             } else {
                 if is_port {
                     p.fields.push(bit(
                         "enabled",
-                        "端口转发服务",
+                        crate::i18n::tr("端口转发服务"),
                         first(
                             data(readings, "firewall"),
                             &["port_forward_switch", "portforward_enable"],
                         ),
                     ));
                 } else {
-                    p.fields.push(bit("enabled", "域名过滤服务", &d["enable"]));
+                    p.fields.push(bit(
+                        "enabled",
+                        crate::i18n::tr("域名过滤服务"),
+                        &d["enable"],
+                    ));
                 }
-                p.actions.push(Action::new("switch", "保存服务开关", CUT));
+                p.actions
+                    .push(Action::new("switch", crate::i18n::tr("保存服务开关"), CUT));
                 p.items = entries
                     .iter()
                     .enumerate()
@@ -262,33 +304,41 @@ pub fn page(id: &str, readings: &Data) -> Page {
                                 shown(first(v, &["lan_port", "dest_port"]))
                             )
                         } else {
-                            "点按查看和删除".into()
+                            crate::i18n::tr("点按查看和删除").into()
                         },
                     })
                     .collect();
                 if d["rule_list"].is_array() {
-                    new_item(&mut p, "添加规则");
+                    new_item(&mut p, crate::i18n::tr("添加规则"));
                 }
             }
         }
         "operators" => {
             let list = operators(data(readings, "operators"));
-            p.row("扫描状态", &data(readings, "scan")["m_netselect_status"]);
             p.row(
-                "注册结果",
+                crate::i18n::tr("扫描状态"),
+                &data(readings, "scan")["m_netselect_status"],
+            );
+            p.row(
+                crate::i18n::tr("注册结果"),
                 &data(readings, "registration")["m_netselect_result"],
             );
-            p.row("选择方式", &data(readings, "signal")["net_select_mode"]);
+            p.row(
+                crate::i18n::tr("选择方式"),
+                &data(readings, "signal")["net_select_mode"],
+            );
             if let Some(id) = selected {
                 if let Some(v) = list.iter().find(|v| v.id == id) {
                     p.title = Some(v.name.clone());
-                    p.row("网络 PLMN", &json!(v.plmn));
-                    p.row("接入制式", &json!(v.rat));
-                    p.row("可用状态", &json!(v.status));
+                    p.row(crate::i18n::tr("网络 PLMN"), &json!(v.plmn));
+                    p.row(crate::i18n::tr("接入制式"), &json!(v.rat));
+                    p.row(crate::i18n::tr("可用状态"), &json!(v.status));
                     let mut a = Action::new(
                         "register",
-                        "注册此网络",
-                        "切换运营商可能中断网络，漫游可能产生费用。需要 SIM 与套餐允许注册该网络。",
+                        crate::i18n::tr("注册此网络"),
+                        crate::i18n::tr(
+                            "切换运营商可能中断网络，漫游可能产生费用。需要 SIM 与套餐允许注册该网络。",
+                        ),
                     );
                     a.enabled = v.allowed();
                     p.actions.push(a);
@@ -304,13 +354,18 @@ pub fn page(id: &str, readings: &Data) -> Page {
                     .collect();
                 p.actions.push(Action::new(
                     "scan",
-                    "扫描运营商",
-                    "扫描可能持续数分钟，其间蜂窝数据可能中断。离开页面不会停止设备扫描。",
+                    crate::i18n::tr("扫描运营商"),
+                    crate::i18n::tr(
+                        "扫描可能持续数分钟，其间蜂窝数据可能中断。离开页面不会停止设备扫描。",
+                    ),
                 ));
-                p.actions.push(Action::new("auto", "自动选择运营商", CUT));
+                p.actions
+                    .push(Action::new("auto", crate::i18n::tr("自动选择运营商"), CUT));
             }
-            p.note =
-                "列表可能包含固件缓存。注册请求被接受不等于蜂窝已联网；请核对实时网络状态。".into();
+            p.note = crate::i18n::tr(
+                "列表可能包含固件缓存。注册请求被接受不等于蜂窝已联网；请核对实时网络状态。",
+            )
+            .into();
         }
         _ => {}
     }
@@ -328,13 +383,22 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                 ));
             }
             let d = data(readings, "profiles");
-            ensure!(d["apnListArray"].is_array(), "无法读取 APN 列表。");
-            let selected = selected.ok_or_else(|| anyhow::anyhow!("请先选择配置。"))?;
+            ensure!(
+                d["apnListArray"].is_array(),
+                "{}",
+                crate::i18n::tr("无法读取 APN 列表。")
+            );
+            let selected =
+                selected.ok_or_else(|| anyhow::anyhow!("{}", crate::i18n::tr("请先选择配置。")))?;
             let found = array(d, "apnListArray")
                 .iter()
                 .filter(|v| text(&v["profileId"]) == selected)
                 .collect::<Vec<_>>();
-            ensure!(selected == "new" || found.len() == 1, "配置标识已变化。");
+            ensure!(
+                selected == "new" || found.len() == 1,
+                "{}",
+                crate::i18n::tr("配置标识已变化。")
+            );
             let existing = found.first().copied();
             match action {
                 "save" => {
@@ -353,7 +417,8 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                             .iter()
                             .any(|v| text(&v["profileId"]) != selected
                                 && v["profilename"] == body["profilename"]),
-                        "配置名称已存在。"
+                        "{}",
+                        crate::i18n::tr("配置名称已存在。")
                     );
                     let password = p.value("password")?;
                     body["password"] = if text(&password).is_empty() {
@@ -362,7 +427,11 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                         password
                     };
                     if let Some(v) = existing {
-                        ensure!(!body["password"].is_null(), "原密码不可读，请填写新密码。");
+                        ensure!(
+                            !body["password"].is_null(),
+                            "{}",
+                            crate::i18n::tr("原密码不可读，请填写新密码。")
+                        );
                         body["profileId"] = v["profileId"].clone();
                     }
                     Plan::one(
@@ -376,11 +445,14 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                     )
                 }
                 "activate" | "delete" => {
-                    let v = existing.ok_or_else(|| anyhow::anyhow!("请选择已有配置。"))?;
+                    let v = existing.ok_or_else(|| {
+                        anyhow::anyhow!("{}", crate::i18n::tr("请选择已有配置。"))
+                    })?;
                     if action == "delete" {
                         ensure!(
                             flag(&v["isEnable"]) == Some(false),
-                            "不能删除当前启用或状态未知的配置。"
+                            "{}",
+                            crate::i18n::tr("不能删除当前启用或状态未知的配置。")
                         );
                     }
                     Plan::one(
@@ -389,7 +461,7 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                         json!({"profileId":v["profileId"]}),
                     )
                 }
-                _ => anyhow::bail!("操作不存在。"),
+                _ => anyhow::bail!("{}", crate::i18n::tr("操作不存在。")),
             }
         }
         "ports" | "domain" => {
@@ -414,14 +486,19 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                     });
                 }
                 "add" => {
-                    ensure!(d["rule_list"].is_array(), "无法读取规则列表。");
+                    ensure!(
+                        d["rule_list"].is_array(),
+                        "{}",
+                        crate::i18n::tr("无法读取规则列表。")
+                    );
                     let body = if port {
                         port_body(p, data(readings, "lan"), array(d, "rule_list"))?
                     } else {
                         let domain = text(&p.value("domain")?).trim().to_ascii_lowercase();
                         ensure!(
                             super::network::domain(&domain),
-                            "请输入有效域名，例如 ads.example.com。"
+                            "{}",
+                            crate::i18n::tr("请输入有效域名，例如 ads.example.com。")
                         );
                         ensure!(
                             !array(d, "rule_list").iter().any(|v| text(first(
@@ -429,14 +506,16 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                                 &["domain", "fqdn"]
                             ))
                             .eq_ignore_ascii_case(&domain)),
-                            "此域名已存在。"
+                            "{}",
+                            crate::i18n::tr("此域名已存在。")
                         );
                         json!({"action":"add","domain":domain,"fqdn":domain,"enabled":"1","enable":1})
                     };
                     Plan::one(if port { Method::POST } else { Method::PUT }, api, body)
                 }
                 "delete" => {
-                    let id = selected.ok_or_else(|| anyhow::anyhow!("请先选择规则。"))?;
+                    let id = selected
+                        .ok_or_else(|| anyhow::anyhow!("{}", crate::i18n::tr("请先选择规则。")))?;
                     rule(d, id)?;
                     let mut body = json!({"action":"delete","id":id,"section_id":[id]});
                     if port {
@@ -444,7 +523,7 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                     }
                     Plan::one(if port { Method::POST } else { Method::PUT }, api, body)
                 }
-                _ => anyhow::bail!("操作不存在。"),
+                _ => anyhow::bail!("{}", crate::i18n::tr("操作不存在。")),
             }
         }
         "operators" => match action {
@@ -457,7 +536,8 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                 let s = text(&data(readings, "scan")["m_netselect_status"]).to_lowercase();
                 ensure!(
                     !["scanning", "running", "in_progress", "1"].contains(&s.as_str()),
-                    "扫描仍在运行。"
+                    "{}",
+                    crate::i18n::tr("扫描仍在运行。")
                 );
                 Plan::one(Method::POST, "/api/modem/scan", json!({}))
             }
@@ -466,17 +546,17 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                 let v = list
                     .iter()
                     .find(|v| Some(v.id.as_str()) == selected)
-                    .ok_or_else(|| anyhow::anyhow!("网络已不在列表中。"))?;
-                ensure!(v.allowed(), "此运营商不可选择。");
+                    .ok_or_else(|| anyhow::anyhow!("{}", crate::i18n::tr("网络已不在列表中。")))?;
+                ensure!(v.allowed(), "{}", crate::i18n::tr("此运营商不可选择。"));
                 Plan::one(
                     Method::POST,
                     "/api/modem/register",
                     json!({"m_mcc_mnc":v.plmn,"m_rat":v.rat}),
                 )
             }
-            _ => anyhow::bail!("操作不存在。"),
+            _ => anyhow::bail!("{}", crate::i18n::tr("操作不存在。")),
         },
-        _ => anyhow::bail!("操作不存在。"),
+        _ => anyhow::bail!("{}", crate::i18n::tr("操作不存在。")),
     };
     let guard = match id {
         "apn" => Some(("profiles", "/api/router/apn/profiles", "/apnListArray")),
@@ -509,7 +589,8 @@ fn port_body(p: &Page, lan: &Value, existing: &[Value]) -> Result<Value> {
         !name
             .chars()
             .any(|c| c.is_control() || "'\";$`\\|<>&".contains(c)),
-        "规则名称包含固件不能存储的字符。"
+        "{}",
+        crate::i18n::tr("规则名称包含固件不能存储的字符。")
     );
     lan_host(&text(&b["lan_ip"]), lan)?;
     let external = b["wan_port"].as_u64().unwrap();
@@ -523,7 +604,8 @@ fn port_body(p: &Page, lan: &Value, existing: &[Value]) -> Result<Value> {
         let z = range.next().and_then(|s| s.parse::<u64>().ok()).or(a);
         ensure!(
             !same || !a.zip(z).is_some_and(|(a, z)| (a..=z).contains(&external)),
-            "此外部端口与已有协议规则冲突。"
+            "{}",
+            crate::i18n::tr("此外部端口与已有协议规则冲突。")
         );
     }
     b["wan_port"] = json!(text(&b["wan_port"]));

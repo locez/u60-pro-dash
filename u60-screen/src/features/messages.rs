@@ -72,18 +72,19 @@ fn credential(key: &str, label: &str, max: usize) -> Field {
     f
 }
 fn composer(p: &mut Page, number: &str) {
-    let mut recipient = Field::text("number", "收件号码", &json!(number));
+    let mut recipient = Field::text("number", crate::i18n::tr("收件号码"), &json!(number));
     recipient.required = true;
     recipient.max = 32;
-    let mut message = Field::text("message", "短信内容", &json!(""));
+    let mut message = Field::text("message", crate::i18n::tr("短信内容"), &json!(""));
     message.multiline = true;
     message.required = true;
     message.max = 6120;
     p.fields = vec![recipient, message];
-    p.actions.push(Action::new("send","发送短信","将向所填号码发送此短信，可能产生套餐费用。长短信可能拆分多条计费。请求已接受不代表已送达，超时后请查看已发消息再决定是否重试。"));
-    p.note =
-        "机身软键盘当前支持 ASCII 输入。中文短信可在配套管理后台编写，本屏可完整阅读中文内容。"
-            .into();
+    p.actions.push(Action::new("send",crate::i18n::tr("发送短信"),crate::i18n::tr("将向所填号码发送此短信，可能产生套餐费用。长短信可能拆分多条计费。请求已接受不代表已送达，超时后请查看已发消息再决定是否重试。")));
+    p.note = crate::i18n::tr(
+        "机身软键盘当前支持 ASCII 输入。中文短信可在配套管理后台编写，本屏可完整阅读中文内容。",
+    )
+    .into();
 }
 pub fn page(id: &str, readings: &Data) -> Page {
     let mut p = Page::default();
@@ -96,48 +97,48 @@ pub fn page(id: &str, readings: &Data) -> Page {
                 let selected = reply.unwrap_or(selected);
                 if let Some(message) = messages.iter().find(|v| text(&v["id"]) == selected) {
                     p.title = Some(if reply.is_some() {
-                        "回复短信".into()
+                        crate::i18n::tr("回复短信").into()
                     } else {
                         shown(&message["number"])
                     });
                     if reply.is_some() {
                         composer(&mut p, &text(&message["number"]));
                     } else {
-                        p.row("号码", &message["number"]);
-                        p.row("时间", &message["date"]);
-                        p.row("存储", &message["mem_store"]);
+                        p.row(crate::i18n::tr("号码"), &message["number"]);
+                        p.row(crate::i18n::tr("时间"), &message["date"]);
+                        p.row(crate::i18n::tr("存储"), &message["mem_store"]);
                         p.content = content(&text(&message["content"]));
                         if p.content.is_empty() {
-                            p.content = "（空短信）".into();
+                            p.content = crate::i18n::tr("（空短信）").into();
                         }
                         p.items.push(Item {
                             id: format!("reply:{selected}"),
-                            title: "回复此号码".into(),
-                            subtitle: "填写后确认发送".into(),
+                            title: crate::i18n::tr("回复此号码").into(),
+                            subtitle: crate::i18n::tr("填写后确认发送").into(),
                         });
                         let tag = text(&message["tag"]);
                         if ["0", "1"].contains(&tag.as_str()) {
                             p.actions.push(Action::new(
                                 if tag == "1" { "read" } else { "unread" },
                                 if tag == "1" {
-                                    "标记已读"
+                                    crate::i18n::tr("标记已读")
                                 } else {
-                                    "标记未读"
+                                    crate::i18n::tr("标记未读")
                                 },
-                                "只改变此短信的阅读标记。",
+                                crate::i18n::tr("只改变此短信的阅读标记。"),
                             ));
                         }
                         p.actions.push(Action::new(
                             "delete",
-                            "删除此短信",
-                            "从设备或 SIM 中永久删除这条短信，无法撤销。",
+                            crate::i18n::tr("删除此短信"),
+                            crate::i18n::tr("从设备或 SIM 中永久删除这条短信，无法撤销。"),
                         ));
                     }
                 } else {
-                    p.note = "短信已不存在，请返回列表刷新。".into();
+                    p.note = crate::i18n::tr("短信已不存在，请返回列表刷新。").into();
                 }
             } else {
-                p.row("已读取短信", &json!(messages.len()));
+                p.row(crate::i18n::tr("已读取短信"), &json!(messages.len()));
                 p.items = messages
                     .iter()
                     .map(|v| Item {
@@ -150,8 +151,10 @@ pub fn page(id: &str, readings: &Data) -> Page {
                         subtitle: content(&text(&v["content"])).chars().take(80).collect(),
                     })
                     .collect();
-                p.note =
-                    "分别读取设备与 SIM 最近 500 条，按短信 ID 去重。点开不会自动标记已读。".into();
+                p.note = crate::i18n::tr(
+                    "分别读取设备与 SIM 最近 500 条，按短信 ID 去重。点开不会自动标记已读。",
+                )
+                .into();
             }
         }
         "sms-compose" => composer(&mut p, ""),
@@ -159,59 +162,70 @@ pub fn page(id: &str, readings: &Data) -> Page {
             let s = state(sim);
             let count = tries(readings, id);
             let puk = id == "sim-verify" && s == "wait puk";
-            p.row("SIM 状态", &json!(s));
+            p.row(crate::i18n::tr("SIM 状态"), &json!(s));
             p.row(
-                "剩余尝试次数",
+                crate::i18n::tr("剩余尝试次数"),
                 &count.map(Value::from).unwrap_or(Value::Null),
             );
             match id {
                 "sim-verify" if puk => {
                     p.fields = vec![
-                        credential("puk", "PUK（8 位数字）", 8),
-                        credential("new_pin", "新 PIN（4–8 位）", 8),
-                        credential("repeat_pin", "再次输入新 PIN", 8),
+                        credential("puk", crate::i18n::tr("PUK（8 位数字）"), 8),
+                        credential("new_pin", crate::i18n::tr("新 PIN（4–8 位）"), 8),
+                        credential("repeat_pin", crate::i18n::tr("再次输入新 PIN"), 8),
                     ];
                 }
-                "sim-verify" => p.fields.push(credential("pin", "SIM PIN（4–8 位）", 8)),
+                "sim-verify" => {
+                    p.fields
+                        .push(credential("pin", crate::i18n::tr("SIM PIN（4–8 位）"), 8))
+                }
                 "sim-pin" => {
                     p.fields = vec![
                         {
-                            let mut field =
-                                Field::boolean("enabled", "开机要求 SIM PIN", &sim["pin_status"]);
+                            let mut field = Field::boolean(
+                                "enabled",
+                                crate::i18n::tr("开机要求 SIM PIN"),
+                                &sim["pin_status"],
+                            );
                             if !field.available {
                                 field.available = true;
                                 field.required = true;
                                 field.value.clear();
                                 field.original.clear();
-                                field.label = "目标 PIN 保护状态（当前状态未知）".into();
+                                field.label =
+                                    crate::i18n::tr("目标 PIN 保护状态（当前状态未知）").into();
                             }
                             field
                         },
-                        credential("pin", "当前 SIM PIN", 8),
+                        credential("pin", crate::i18n::tr("当前 SIM PIN"), 8),
                     ];
                 }
                 "sim-change-pin" => {
                     p.fields = vec![
-                        credential("pin", "当前 SIM PIN", 8),
-                        credential("new_pin", "新 PIN（4–8 位）", 8),
-                        credential("repeat_pin", "再次输入新 PIN", 8),
+                        credential("pin", crate::i18n::tr("当前 SIM PIN"), 8),
+                        credential("new_pin", crate::i18n::tr("新 PIN（4–8 位）"), 8),
+                        credential("repeat_pin", crate::i18n::tr("再次输入新 PIN"), 8),
                     ];
                 }
-                _ => p.fields.push(credential("nck", "运营商网络解锁码", 16)),
+                _ => p
+                    .fields
+                    .push(credential("nck", crate::i18n::tr("运营商网络解锁码"), 16)),
             }
             let mut action = Action::new(
                 "apply",
                 if puk {
-                    "使用 PUK 解锁"
+                    crate::i18n::tr("使用 PUK 解锁")
                 } else {
-                    "确认提交"
+                    crate::i18n::tr("确认提交")
                 },
                 if puk {
-                    "错误 PUK 会扣除次数，用尽后 SIM 永久失效。"
+                    crate::i18n::tr("错误 PUK 会扣除次数，用尽后 SIM 永久失效。")
                 } else if id == "sim-network-unlock" {
-                    "错误解锁码会扣除次数，可能造成永久网络锁定。"
+                    crate::i18n::tr("错误解锁码会扣除次数，可能造成永久网络锁定。")
                 } else {
-                    "错误 PIN 会扣除次数，用尽后需要 PUK。SIM PIN 与本屏锁屏密码是两个独立的密码。"
+                    crate::i18n::tr(
+                        "错误 PIN 会扣除次数，用尽后需要 PUK。SIM PIN 与本屏锁屏密码是两个独立的密码。",
+                    )
                 },
             );
             action.enabled = count.is_some_and(|n| n > 0)
@@ -221,11 +235,12 @@ pub fn page(id: &str, readings: &Data) -> Page {
                     _ => s == "sim ready",
                 };
             if count == Some(1) {
-                action.warning = format!("这是最后一次尝试。{}", action.warning);
+                action.warning =
+                    crate::i18n::format("这是最后一次尝试。{0}", &[action.warning.to_string()]);
                 action.phrase = Some("LAST".into());
             }
             p.actions.push(action);
-            p.note="仅向设备提交你输入的凭证。剩余次数未知或为零时禁用；提交前重新核对 SIM 身份、状态和次数，失败后清空输入并重新读取。".into();
+            p.note=crate::i18n::tr("仅向设备提交你输入的凭证。剩余次数未知或为零时禁用；提交前重新核对 SIM 身份、状态和次数，失败后清空输入并重新读取。").into();
         }
         _ => {}
     }
@@ -242,20 +257,26 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
         ));
     }
     if id == "sms-inbox" {
-        let selected = selected(readings).ok_or_else(|| anyhow::anyhow!("请选择短信。"))?;
-        ensure!(digits(selected, 1, 20), "短信标识无效。");
+        let selected = selected(readings)
+            .ok_or_else(|| anyhow::anyhow!("{}", crate::i18n::tr("请选择短信。")))?;
+        ensure!(
+            digits(selected, 1, 20),
+            "{}",
+            crate::i18n::tr("短信标识无效。")
+        );
         ensure!(
             messages(readings)
                 .iter()
                 .any(|v| text(&v["id"]) == selected),
-            "短信已变化。"
+            "{}",
+            crate::i18n::tr("短信已变化。")
         );
         let body = match action {
             "delete" => json!({"id":format!("{selected};")}),
             "read" | "unread" => {
                 json!({"id":format!("{selected};"),"tag":if action=="read"{0}else{1}})
             }
-            _ => anyhow::bail!("操作不存在。"),
+            _ => anyhow::bail!("{}", crate::i18n::tr("操作不存在。")),
         };
         let mut plan = Plan::one(
             Method::POST,
@@ -281,45 +302,63 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
         }
         return Ok(plan);
     }
-    ensure!(action == "apply", "操作不存在。");
+    ensure!(action == "apply", "{}", crate::i18n::tr("操作不存在。"));
     let sim = data(readings, "sim");
     let s = state(sim);
     ensure!(
         tries(readings, id).is_some_and(|n| n > 0),
-        "无法确认剩余尝试次数，不能提交。"
+        "{}",
+        crate::i18n::tr("无法确认剩余尝试次数，不能提交。")
     );
     let pin = |key: &str| -> Result<String> {
         let s = text(&p.value(key)?);
-        ensure!(digits(&s, 4, 8), "PIN 必须为 4–8 位数字。");
+        ensure!(
+            digits(&s, 4, 8),
+            "{}",
+            crate::i18n::tr("PIN 必须为 4–8 位数字。")
+        );
         Ok(s)
     };
     let next = || -> Result<String> {
         let a = pin("new_pin")?;
-        ensure!(a == pin("repeat_pin")?, "两次新 PIN 不一致。");
+        ensure!(
+            a == pin("repeat_pin")?,
+            "{}",
+            crate::i18n::tr("两次新 PIN 不一致。")
+        );
         Ok(a)
     };
     let (path, body) = match id {
         "sim-verify" if s == "wait puk" => {
             let puk = text(&p.value("puk")?);
-            ensure!(digits(&puk, 8, 8), "PUK 必须为 8 位数字。");
+            ensure!(
+                digits(&puk, 8, 8),
+                "{}",
+                crate::i18n::tr("PUK 必须为 8 位数字。")
+            );
             (
                 "/api/sim/pin/verify",
                 json!({"pin_num":next()?,"puk_num":puk,"pin_encode_flag":"0"}),
             )
         }
         "sim-verify" => {
-            ensure!(s == "wait pin", "SIM 当前不需要 PIN 解锁。");
+            ensure!(
+                s == "wait pin",
+                "{}",
+                crate::i18n::tr("SIM 当前不需要 PIN 解锁。")
+            );
             (
                 "/api/sim/pin/verify",
                 json!({"pin_num":pin("pin")?,"puk_num":"","pin_encode_flag":"0"}),
             )
         }
         "sim-pin" => {
-            ensure!(s == "sim ready", "请先解锁 SIM。");
+            ensure!(s == "sim ready", "{}", crate::i18n::tr("请先解锁 SIM。"));
             let enabled = p.value("enabled")?;
             ensure!(
                 flag(&sim["pin_status"]) != enabled.as_bool(),
-                "PIN 保护设置没有改变。"
+                "{}",
+                crate::i18n::tr("PIN 保护设置没有改变。")
             );
             (
                 "/api/sim/pin/mode",
@@ -327,7 +366,7 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
             )
         }
         "sim-change-pin" => {
-            ensure!(s == "sim ready", "请先解锁 SIM。");
+            ensure!(s == "sim ready", "{}", crate::i18n::tr("请先解锁 SIM。"));
             (
                 "/api/sim/pin/change",
                 json!({"pin_num":pin("pin")?,"new_pin_num":next()?,"pin_encode_flag":"0"}),
@@ -335,10 +374,14 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
         }
         "sim-network-unlock" => {
             let nck = text(&p.value("nck")?);
-            ensure!(digits(&nck, 1, 16), "解锁码需为最多 16 位数字。");
+            ensure!(
+                digits(&nck, 1, 16),
+                "{}",
+                crate::i18n::tr("解锁码需为最多 16 位数字。")
+            );
             ("/api/sim/unlock", json!({"nck":nck}))
         }
-        _ => anyhow::bail!("操作不存在。"),
+        _ => anyhow::bail!("{}", crate::i18n::tr("操作不存在。")),
     };
     let mut plan = Plan::one(Method::POST, path, body);
     plan.guards.push(Guard::new(
@@ -372,7 +415,8 @@ pub fn recipient(value: &str) -> Result<String> {
         .collect::<String>();
     ensure!(
         digits(number.strip_prefix('+').unwrap_or(&number), 1, 20),
-        "请输入有效电话号码，可包含开头的国际区号 +。"
+        "{}",
+        crate::i18n::tr("请输入有效电话号码，可包含开头的国际区号 +。")
     );
     Ok(number)
 }
@@ -398,7 +442,8 @@ pub fn content(raw: &str) -> String {
 fn send_body(number: &str, message: &str, time: &str) -> Result<Value> {
     ensure!(
         !message.trim().is_empty() && message.encode_utf16().count() <= 1530,
-        "短信不能为空，最多 1530 个 UTF-16 字符单位。"
+        "{}",
+        crate::i18n::tr("短信不能为空，最多 1530 个 UTF-16 字符单位。")
     );
     const GSM: &str = "@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà^{}\\[~]|€";
     Ok(

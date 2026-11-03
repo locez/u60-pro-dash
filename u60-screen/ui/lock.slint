@@ -23,22 +23,22 @@ export component LockScreen inherits Rectangle {
         HorizontalLayout {
             padding-left: 14px; padding-right: 14px;
             Label { text: "U60"; font-size: 12px; vertical-alignment: center; }
-            Label { text: root.connection-label + " · 已锁定"; font-size: 12px; color: Palette.warning; vertical-alignment: center; horizontal-alignment: center; }
+            Label { text: root.connection-label + @tr(" · 已锁定"); font-size: 12px; color: Palette.warning; vertical-alignment: center; horizontal-alignment: center; }
             Label { text: root.battery; font-size: 12px; vertical-alignment: center; horizontal-alignment: right; }
         }
     }
-    Label { x: 14px; y: 32px; height: 18px; text: "NETWORK / 网络状态"; font-size: 12px; color: Palette.muted; }
-    Label { x: 14px; y: 52px; height: 32px; text: "随身网络"; font-size: 22px; font-weight: 650; }
+    Label { x: 14px; y: 32px; height: 18px; text: @tr("NETWORK / 网络状态"); font-size: 12px; color: Palette.muted; }
+    Label { x: 14px; y: 52px; height: 32px; text: @tr("随身网络"); font-size: 22px; font-weight: 650; }
     TrafficPanel { x: 12px; y: 92px; width: parent.width - 24px; online: root.network-online; download: root.download; upload: root.upload; network-label: root.radio-label; total: root.traffic-total; }
     HorizontalLayout {
         x: 12px; y: 244px; width: parent.width - 24px; height: 72px; spacing: 10px;
-        Stat { label: "信号强度"; value: root.signal-strength; unit: "dBm"; }
-        Stat { label: "剩余电量"; value: root.battery; unit: ""; }
+        Stat { label: @tr("信号强度"); value: root.signal-strength; unit: "dBm"; }
+        Stat { label: @tr("剩余电量"); value: root.battery; unit: ""; }
     }
     Rectangle {
         x: 36px; y: 350px; width: 248px; height: 60px;
         background: Palette.surface; border-radius: 10px; border-width: 1px; border-color: Palette.line;
-        Label { text: root.progress >= 1 ? "松开继续" : "长按解锁"; font-size: 17px; font-weight: 600; }
+        Label { text: root.progress >= 1 ? @tr("松开继续") : @tr("长按解锁"); font-size: 17px; font-weight: 600; }
         Rectangle { x: 4px; y: 54px; height: 3px; width: 240px * root.progress; background: Palette.accent; }
         hold := TouchArea {
             pointer-event(event) => {
@@ -51,7 +51,7 @@ export component LockScreen inherits Rectangle {
         }
         Timer { interval: 50ms; running: hold.pressed && root.awake; triggered => { root.hold-tick(); } }
     }
-    Label { x: 16px; y: 432px; width: parent.width - 32px; height: 24px; text: root.pin-enabled ? "查看设置与操作需要密码" : "长按 1 秒，松开后解锁"; font-size: 14px; color: Palette.muted; horizontal-alignment: center; }
+    Label { x: 16px; y: 432px; width: parent.width - 32px; height: 24px; text: root.pin-enabled ? @tr("查看设置与操作需要密码") : @tr("长按 1 秒，松开后解锁"); font-size: 14px; color: Palette.muted; horizontal-alignment: center; }
 }
 
 export component PinPad inherits Rectangle {
@@ -67,7 +67,7 @@ export component PinPad inherits Rectangle {
     background: Palette.bg;
     TouchArea { }
     Label { x: 16px; y: 30px; width: parent.width - 32px; height: 36px; text: root.title; font-size: 22px; font-weight: 600; horizontal-alignment: center; }
-    Label { x: 20px; y: 76px; width: parent.width - 40px; height: 44px; text: root.remaining > 0 ? root.remaining + " 秒后可以重试" : root.message; font-size: 14px; color: Palette.muted; horizontal-alignment: center; wrap: word-wrap; }
+    Label { x: 20px; y: 76px; width: parent.width - 40px; height: 44px; text: root.remaining > 0 ? root.remaining + @tr(" 秒后可以重试") : root.message; font-size: 14px; color: Palette.muted; horizontal-alignment: center; wrap: word-wrap; }
     Label { x: 16px; y: 126px; width: parent.width - 32px; height: 36px; text: root.masked == "" ? "—" : root.masked; font-size: 21px; color: Palette.accent-ink; horizontal-alignment: center; letter-spacing: 2px; }
     for digit in [1,2,3,4,5,6,7,8,9]: TapButton {
         x: 16px + mod(digit - 1, 3) * 100px;
@@ -76,8 +76,8 @@ export component PinPad inherits Rectangle {
         interactive: !root.busy && root.remaining == 0;
         clicked => { root.digit(digit); }
     }
-    TapButton { x: 16px; y: 354px; width: 88px; height: 50px; text: "删除"; interactive: !root.busy; clicked => { root.backspace(); } }
+    TapButton { x: 16px; y: 354px; width: 88px; height: 50px; text: @tr("删除"); interactive: !root.busy; clicked => { root.backspace(); } }
     TapButton { x: 116px; y: 354px; width: 88px; height: 50px; text: "0"; text-size: 24px; interactive: !root.busy && root.remaining == 0; clicked => { root.digit(0); } }
-    TapButton { x: 216px; y: 354px; width: 88px; height: 50px; text: root.busy ? "处理中" : "确认"; selected: true; interactive: !root.busy && root.remaining == 0; clicked => { root.submit(); } }
-    TapButton { x: 16px; y: 424px; width: 288px; height: 44px; text: "取消"; clicked => { root.cancel(); } }
+    TapButton { x: 216px; y: 354px; width: 88px; height: 50px; text: root.busy ? @tr("处理中") : @tr("确认"); selected: true; interactive: !root.busy && root.remaining == 0; clicked => { root.submit(); } }
+    TapButton { x: 16px; y: 424px; width: 288px; height: 44px; text: @tr("取消"); clicked => { root.cancel(); } }
 }

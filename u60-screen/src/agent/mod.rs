@@ -41,13 +41,13 @@ pub enum Status {
 impl Status {
     pub fn label(self) -> &'static str {
         match self {
-            Self::Connecting => "连接中",
-            Self::Live => "实时",
-            Self::Reconnecting => "连接中断",
-            Self::Sleeping => "已休眠",
-            Self::Login => "请登录",
-            Self::Unsupported => "版本不支持",
-            Self::Paused => "已暂停",
+            Self::Connecting => crate::i18n::tr("连接中"),
+            Self::Live => crate::i18n::tr("实时"),
+            Self::Reconnecting => crate::i18n::tr("连接中断"),
+            Self::Sleeping => crate::i18n::tr("已休眠"),
+            Self::Login => crate::i18n::tr("请登录"),
+            Self::Unsupported => crate::i18n::tr("版本不支持"),
+            Self::Paused => crate::i18n::tr("已暂停"),
         }
     }
 }

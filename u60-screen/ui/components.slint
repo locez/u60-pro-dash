@@ -114,6 +114,6 @@ export component TrafficPanel inherits Rectangle {
     Label { x: 226px; y: 68px; text: "Mbps ↓"; font-size: 12px; color: Palette.muted; }
     Rectangle { x: 14px; y: 103px; width: parent.width - 28px; height: 1px; background: Palette.line; }
     Label { x: 14px; y: 115px; text: "↑ " + root.upload + " Mbps"; font-size: 13px; }
-    Label { x: 175px; y: 115px; text: "本次 " + root.total; font-size: 12px; color: Palette.muted; }
+    Label { x: 175px; y: 115px; text: @tr("本次 ") + root.total; font-size: 12px; color: Palette.muted; }
     TouchArea { enabled: root.interactive; clicked => { root.clicked(); } }
 }

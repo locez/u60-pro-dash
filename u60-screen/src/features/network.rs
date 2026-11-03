@@ -40,7 +40,15 @@ pub fn bit(key: &str, label: &str, value: &Value) -> Field {
     let normalized = flag(value)
         .map(|b| json!(if b { "1" } else { "0" }))
         .unwrap_or(Value::Null);
-    Field::choice(key, label, &normalized, &[("0", "关闭"), ("1", "开启")])
+    Field::choice(
+        key,
+        label,
+        &normalized,
+        &[
+            ("0", crate::i18n::tr("关闭")),
+            ("1", crate::i18n::tr("开启")),
+        ],
+    )
 }
 pub fn page(id: &str, readings: &Data) -> Page {
     let mut p = Page::default();
@@ -48,58 +56,83 @@ pub fn page(id: &str, readings: &Data) -> Page {
     match id {
         "lan" => {
             p.fields = vec![
-                Field::text("lan_ipaddr", "网关 IPv4", &d["lan_ipaddr"]),
-                Field::text("lan_netmask", "子网掩码", &d["lan_netmask"]),
-                bit("dhcp_enable", "DHCP 服务", &d["dhcp_enable"]),
-                Field::text("dhcp_start", "地址池起始地址", &pool_start(d)),
-                Field::text("dhcp_end", "地址池结束地址", &d["dhcp_end"]),
+                Field::text("lan_ipaddr", crate::i18n::tr("网关 IPv4"), &d["lan_ipaddr"]),
+                Field::text(
+                    "lan_netmask",
+                    crate::i18n::tr("子网掩码"),
+                    &d["lan_netmask"],
+                ),
+                bit(
+                    "dhcp_enable",
+                    crate::i18n::tr("DHCP 服务"),
+                    &d["dhcp_enable"],
+                ),
+                Field::text(
+                    "dhcp_start",
+                    crate::i18n::tr("地址池起始地址"),
+                    &pool_start(d),
+                ),
+                Field::text(
+                    "dhcp_end",
+                    crate::i18n::tr("地址池结束地址"),
+                    &d["dhcp_end"],
+                ),
                 Field::text(
                     "dhcp_lease_time",
-                    "租期（秒 / m / h / d）",
+                    crate::i18n::tr("租期（秒 / m / h / d）"),
                     &d["dhcp_lease_time"],
                 ),
             ];
-            p.note="地址池填写完整 IPv4 地址。租期支持 3600、30m、12h、1d。更换网关后，客户端需要重新获取地址。".into();
+            p.note=crate::i18n::tr("地址池填写完整 IPv4 地址。租期支持 3600、30m、12h、1d。更换网关后，客户端需要重新获取地址。").into();
         }
         "mobile-data" => {
             for (key, label) in [
-                ("enable", "蜂窝数据"),
-                ("roam_enable", "数据漫游"),
-                ("connect_mode", "自动连接"),
+                ("enable", crate::i18n::tr("蜂窝数据")),
+                ("roam_enable", crate::i18n::tr("数据漫游")),
+                ("connect_mode", crate::i18n::tr("自动连接")),
             ] {
                 p.fields.push(bit(key, label, &d[key]));
             }
-            p.row("连接状态", &d["connect_status"]);
-            p.row("射频模式", &data(readings, "modem")["operate_mode"]);
+            p.row(crate::i18n::tr("连接状态"), &d["connect_status"]);
+            p.row(
+                crate::i18n::tr("射频模式"),
+                &data(readings, "modem")["operate_mode"],
+            );
             p.actions.push(Action::new(
                 "airplane",
-                "进入飞行模式",
-                "关闭蜂窝数据、通话和短信，Wi-Fi 可继续使用。",
+                crate::i18n::tr("进入飞行模式"),
+                crate::i18n::tr("关闭蜂窝数据、通话和短信，Wi-Fi 可继续使用。"),
             ));
             p.actions.push(Action::new(
                 "online",
-                "恢复蜂窝联网",
-                "请求恢复射频和蜂窝联网，注册网络可能需要一段时间。",
+                crate::i18n::tr("恢复蜂窝联网"),
+                crate::i18n::tr("请求恢复射频和蜂窝联网，注册网络可能需要一段时间。"),
             ));
-            p.note = "数据漫游可能产生运营商费用。首次开启漫游时需同时开启蜂窝数据。".into();
+            p.note =
+                crate::i18n::tr("数据漫游可能产生运营商费用。首次开启漫游时需同时开启蜂窝数据。")
+                    .into();
         }
         "network-mode" => p.fields.push(Field::choice(
             "net_select",
-            "首选网络",
+            crate::i18n::tr("首选网络"),
             &d["net_select"],
             &[
-                ("WL_AND_5G", "自动 5G / 4G / 3G"),
+                ("WL_AND_5G", crate::i18n::tr("自动 5G / 4G / 3G")),
                 ("LTE_AND_5G", "5G NSA（LTE + NR）"),
-                ("Only_5G", "仅 5G SA"),
-                ("Only_LTE", "仅 4G LTE"),
+                ("Only_5G", crate::i18n::tr("仅 5G SA")),
+                ("Only_LTE", crate::i18n::tr("仅 4G LTE")),
                 ("WCDMA_AND_LTE", "4G / 3G"),
-                ("Only_WCDMA", "仅 3G"),
+                ("Only_WCDMA", crate::i18n::tr("仅 3G")),
             ],
         )),
         "usage" => {
-            for (key, label) in [("day", "今日"), ("month", "本月"), ("total", "累计")] {
+            for (key, label) in [
+                ("day", crate::i18n::tr("今日")),
+                ("month", crate::i18n::tr("本月")),
+                ("total", crate::i18n::tr("累计")),
+            ] {
                 p.rows.push((
-                    format!("{label}下载 / 上传"),
+                    crate::i18n::format("{0}下载 / 上传", &[label.to_string()]),
                     format!(
                         "{} / {}",
                         super::status::quantity(&d[key]["rx_bytes"], 1e9, "GB"),
@@ -110,24 +143,42 @@ pub fn page(id: &str, readings: &Data) -> Page {
             let l = &d["limit"];
             let c = &d["cycle"];
             p.fields = vec![
-                Field::boolean("limit_enabled", "月度流量限制", &l["enabled"]),
+                Field::boolean(
+                    "limit_enabled",
+                    crate::i18n::tr("月度流量限制"),
+                    &l["enabled"],
+                ),
                 Field::number(
                     "bytes",
-                    "月度额度 / 字节",
+                    crate::i18n::tr("月度额度 / 字节"),
                     &l["bytes"],
                     1,
                     109_951_162_777_600,
                 ),
                 Field::number(
                     "warning_percent",
-                    "告警百分比",
+                    crate::i18n::tr("告警百分比"),
                     &l["warning_percent"],
                     1,
                     100,
                 ),
-                Field::boolean("auto_disconnect", "超额断网", &l["auto_disconnect"]),
-                Field::boolean("cycle_enabled", "自动重置周期", &c["enabled"]),
-                Field::number("reset_day", "每月重置日", &c["reset_day"], 1, 31),
+                Field::boolean(
+                    "auto_disconnect",
+                    crate::i18n::tr("超额断网"),
+                    &l["auto_disconnect"],
+                ),
+                Field::boolean(
+                    "cycle_enabled",
+                    crate::i18n::tr("自动重置周期"),
+                    &c["enabled"],
+                ),
+                Field::number(
+                    "reset_day",
+                    crate::i18n::tr("每月重置日"),
+                    &c["reset_day"],
+                    1,
+                    31,
+                ),
             ];
             for f in &mut p.fields {
                 f.available &= if ["cycle_enabled", "reset_day"].contains(&f.key.as_str()) {
@@ -136,38 +187,47 @@ pub fn page(id: &str, readings: &Data) -> Page {
                     l["available"] == true
                 };
             }
-            p.note =
-                "额度单位为字节，1 GB = 1000000000 字节。设备统计与运营商账单可能存在差异。".into();
+            p.note = crate::i18n::tr(
+                "额度单位为字节，1 GB = 1000000000 字节。设备统计与运营商账单可能存在差异。",
+            )
+            .into();
         }
         "firewall" => {
             p.fields = vec![
                 bit(
                     "firewall_switch",
-                    "防火墙",
+                    crate::i18n::tr("防火墙"),
                     first(d, &["firewall_switch", "firewall_enable"]),
                 ),
                 Field::choice(
                     "firewall_level",
-                    "防护等级",
+                    crate::i18n::tr("防护等级"),
                     first(d, &["firewall_level", "level"]),
-                    &[("low", "低"), ("medium", "中"), ("high", "高")],
+                    &[
+                        ("low", crate::i18n::tr("低")),
+                        ("medium", crate::i18n::tr("中")),
+                        ("high", crate::i18n::tr("高")),
+                    ],
                 ),
             ];
             if let Some(rules) = data(readings, "rules")["rule_list"].as_array() {
                 for rule in rules {
-                    p.rows.push(("过滤规则".into(), rule.to_string()));
+                    p.rows
+                        .push((crate::i18n::tr("过滤规则").into(), rule.to_string()));
                 }
             }
-            p.note =
-                "关闭或降低防护可能让设备上的服务从蜂窝网络可达；提高防护可能阻断现有连接。".into();
+            p.note = crate::i18n::tr(
+                "关闭或降低防护可能让设备上的服务从蜂窝网络可达；提高防护可能阻断现有连接。",
+            )
+            .into();
         }
         "nat" => {
             p.fields.push(bit(
                 "nat_switch",
-                "NAT 地址转换",
+                crate::i18n::tr("NAT 地址转换"),
                 first(d, &["nat_switch", "nat_enable"]),
             ));
-            p.note="固件提供 NAT 开关，不提供可保证的“全锥形 NAT”或公网地址。运营商 CGNAT 不由此开关控制。".into();
+            p.note=crate::i18n::tr("固件提供 NAT 开关，不提供可保证的“全锥形 NAT”或公网地址。运营商 CGNAT 不由此开关控制。").into();
         }
         "dmz" => {
             p.fields = vec![
@@ -176,26 +236,32 @@ pub fn page(id: &str, readings: &Data) -> Page {
                     "DMZ",
                     first(d, &["dmz_enabled", "dmz_enable"]),
                 ),
-                Field::text("dmz_ip", "目标 IPv4", &d["dmz_ip"]),
+                Field::text("dmz_ip", crate::i18n::tr("目标 IPv4"), &d["dmz_ip"]),
             ];
-            p.note =
-                "将未被其他规则匹配的入站连接转交给此局域网设备。目标设备应自行启用防火墙。".into();
+            p.note = crate::i18n::tr(
+                "将未被其他规则匹配的入站连接转交给此局域网设备。目标设备应自行启用防火墙。",
+            )
+            .into();
         }
         "upnp" => p.fields.push(bit(
             "upnp_switch",
-            "UPnP 自动映射",
+            crate::i18n::tr("UPnP 自动映射"),
             first(d, &["upnp_switch", "enable_upnp", "enable"]),
         )),
         "qos" => {
-            p.fields
-                .push(bit("qos_switch", "QoS 流量优先级", &d["qos_switch"]));
-            p.note = "使用固件自带策略。此接口不支持自定义单设备带宽与优先级。".into();
+            p.fields.push(bit(
+                "qos_switch",
+                crate::i18n::tr("QoS 流量优先级"),
+                &d["qos_switch"],
+            ));
+            p.note =
+                crate::i18n::tr("使用固件自带策略。此接口不支持自定义单设备带宽与优先级。").into();
         }
         "vpn" => {
             for (key, label) in [
-                ("l2tp_passthrough", "L2TP 穿透"),
-                ("pptp_passthrough", "PPTP 穿透"),
-                ("ipsec_passthrough", "IPsec 穿透"),
+                ("l2tp_passthrough", crate::i18n::tr("L2TP 穿透")),
+                ("pptp_passthrough", crate::i18n::tr("PPTP 穿透")),
+                ("ipsec_passthrough", crate::i18n::tr("IPsec 穿透")),
                 ("alg_sip_enable", "SIP ALG"),
             ] {
                 p.fields.push(bit(key, label, &d[key]));
@@ -204,42 +270,42 @@ pub fn page(id: &str, readings: &Data) -> Page {
         "dns-config" | "doh" => {
             p.fields.push(Field::choice(
                 "mode",
-                "解析方式",
+                crate::i18n::tr("解析方式"),
                 &d["mode"],
                 &[
-                    ("automatic", "运营商自动分配"),
-                    ("manual", "手动 DNS"),
-                    ("doh", "HTTPS 加密 / DoH"),
-                    ("dot", "TLS 加密 / DoT"),
+                    ("automatic", crate::i18n::tr("运营商自动分配")),
+                    ("manual", crate::i18n::tr("手动 DNS")),
+                    ("doh", crate::i18n::tr("HTTPS 加密 / DoH")),
+                    ("dot", crate::i18n::tr("TLS 加密 / DoT")),
                 ],
             ));
             for (key, label) in [
-                ("primary", "首选 DNS IPv4"),
-                ("secondary", "备用 DNS IPv4"),
-                ("doh_url", "DoH HTTPS 地址"),
-                ("dot_endpoint", "DoT 主机 / 端口"),
-                ("dot_server_name", "DoT 证书域名"),
+                ("primary", crate::i18n::tr("首选 DNS IPv4")),
+                ("secondary", crate::i18n::tr("备用 DNS IPv4")),
+                ("doh_url", crate::i18n::tr("DoH HTTPS 地址")),
+                ("dot_endpoint", crate::i18n::tr("DoT 主机 / 端口")),
+                ("dot_server_name", crate::i18n::tr("DoT 证书域名")),
             ] {
                 p.fields.push(Field::text(key, label, &d[key]));
             }
-            p.row("加密代理运行", &d["proxy_running"]);
-            p.row("运营商 DNS", &d["carrier_servers"]);
+            p.row(crate::i18n::tr("加密代理运行"), &d["proxy_running"]);
+            p.row(crate::i18n::tr("运营商 DNS"), &d["carrier_servers"]);
             let result = data(readings, "last_result");
             if !result.is_null() {
-                p.row("检测耗时 / ms", &result["latency_ms"]);
-                p.row("保存后验证", &result["verified"]);
+                p.row(crate::i18n::tr("检测耗时 / ms"), &result["latency_ms"]);
+                p.row(crate::i18n::tr("保存后验证"), &result["verified"]);
             }
             p.actions.push(Action::new(
                 "test",
-                "检测当前草稿",
-                "向候选 DNS 发起解析测试，不修改设备 DNS 设置。",
+                crate::i18n::tr("检测当前草稿"),
+                crate::i18n::tr("向候选 DNS 发起解析测试，不修改设备 DNS 设置。"),
             ));
-            p.note="固件手动 DNS 仅接受 IPv4。加密模式同样需要首选 DNS 以解析服务器域名。保存前后台强制检测，应用后失败会尝试恢复原设置。".into();
+            p.note=crate::i18n::tr("固件手动 DNS 仅接受 IPv4。加密模式同样需要首选 DNS 以解析服务器域名。保存前后台强制检测，应用后失败会尝试恢复原设置。").into();
         }
         "dns-cache" => {
             let d = data(readings, "cache");
             if let Some(entries) = d["entries"].as_array() {
-                p.row("缓存条目", &json!(entries.len()));
+                p.row(crate::i18n::tr("缓存条目"), &json!(entries.len()));
                 for e in entries {
                     p.rows.push((
                         shown(first(e, &["name", "domain"])),
@@ -251,12 +317,13 @@ pub fn page(id: &str, readings: &Data) -> Page {
                     ));
                 }
             }
-            p.actions.push(Action::new("clear","清空 DNS 缓存","清除设备与代理缓存；下一次未命中的查询重新访问解析器。客户端仍可能保留自己的缓存。"));
+            p.actions.push(Action::new("clear",crate::i18n::tr("清空 DNS 缓存"),crate::i18n::tr("清除设备与代理缓存；下一次未命中的查询重新访问解析器。客户端仍可能保留自己的缓存。")));
         }
         _ => {}
     }
     if !p.fields.is_empty() {
-        p.actions.insert(0, Action::new("save", "保存设置", CUT));
+        p.actions
+            .insert(0, Action::new("save", crate::i18n::tr("保存设置"), CUT));
     }
     for action in &mut p.actions {
         action.enabled &= if id == "dns-cache" {
@@ -280,14 +347,18 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                 json!({"operate_mode":"LPM"}),
             )),
             "online" => Ok(Plan::one(Method::POST, "/api/modem/online", json!({}))),
-            _ => anyhow::bail!("操作不存在。"),
+            _ => anyhow::bail!("{}", crate::i18n::tr("操作不存在。")),
         };
     }
     if id == "dns-cache" && action == "clear" {
         return Ok(Plan::one(Method::POST, "/api/dns/cache/clear", json!({})));
     }
     if ["dns-config", "doh"].contains(&id) {
-        ensure!(["save", "test"].contains(&action), "操作不存在。");
+        ensure!(
+            ["save", "test"].contains(&action),
+            "{}",
+            crate::i18n::tr("操作不存在。")
+        );
         let body = dns_body(p)?;
         let mut plan = Plan::one(
             if action == "test" {
@@ -305,7 +376,11 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
         plan.keep_draft = action == "test";
         return Ok(plan);
     }
-    ensure!(action == "save" && p.dirty(), "没有需要保存的更改。");
+    ensure!(
+        action == "save" && p.dirty(),
+        "{}",
+        crate::i18n::tr("没有需要保存的更改。")
+    );
     match id {
         "lan" => put("/api/router/lan", lan_body(p)?),
         "mobile-data" => {
@@ -317,7 +392,8 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                 body["roam_enable"] != 1
                     || flag(&data(readings, "settings")["roam_enable"]) == Some(true)
                     || body["enable"] == 1,
-                "首次开启漫游时请同时开启蜂窝数据。"
+                "{}",
+                crate::i18n::tr("首次开启漫游时请同时开启蜂窝数据。")
             );
             body["cid"] = json!(1);
             if body["enable"] == 0 {
@@ -401,7 +477,7 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                 "alg_sip_enable",
             ])?,
         ),
-        _ => anyhow::bail!("操作不存在。"),
+        _ => anyhow::bail!("{}", crate::i18n::tr("操作不存在。")),
     }
     let mut plan = Plan::many(requests);
     if id == "lan" {
@@ -437,17 +513,19 @@ fn mask(value: &str) -> Result<u32> {
     let m = u32::from(value.parse::<Ipv4Addr>()?);
     ensure!(
         m.count_ones() == m.leading_ones() && (8..=30).contains(&m.leading_ones()),
-        "子网掩码必须连续，范围 /8–/30。"
+        "{}",
+        crate::i18n::tr("子网掩码必须连续，范围 /8–/30。")
     );
     Ok(m)
 }
 pub fn ipv4(value: &str) -> Result<Ipv4Addr> {
     let ip = value
         .parse::<Ipv4Addr>()
-        .map_err(|_| anyhow::anyhow!("请输入有效 IPv4 地址。"))?;
+        .map_err(|_| anyhow::anyhow!("{}", crate::i18n::tr("请输入有效 IPv4 地址。")))?;
     ensure!(
         !ip.is_unspecified() && !ip.is_multicast() && !ip.is_broadcast() && !ip.is_loopback(),
-        "地址不能是未指定、回环、组播或广播地址。"
+        "{}",
+        crate::i18n::tr("地址不能是未指定、回环、组播或广播地址。")
     );
     Ok(ip)
 }
@@ -459,7 +537,8 @@ pub fn lan_host(value: &str, lan: &Value) -> Result<Ipv4Addr> {
     let v = u32::from(ip);
     ensure!(
         v > n && v < (n | !m) && v & m == n && ip != router,
-        "目标必须在当前局域网内，且不能是网关、网络或广播地址。"
+        "{}",
+        crate::i18n::tr("目标必须在当前局域网内，且不能是网关、网络或广播地址。")
     );
     Ok(ip)
 }
@@ -473,19 +552,25 @@ fn lan_body(p: &Page) -> Result<Value> {
         "dhcp_lease_time",
     ])?;
     let addr = ipv4(&text(&b["lan_ipaddr"]))?;
-    ensure!(addr.is_private(), "网关必须为私有 IPv4 地址。");
+    ensure!(
+        addr.is_private(),
+        "{}",
+        crate::i18n::tr("网关必须为私有 IPv4 地址。")
+    );
     let m = mask(&text(&b["lan_netmask"]))?;
     let n = u32::from(addr) & m;
     ensure!(
         u32::from(addr) > n && u32::from(addr) < (n | !m),
-        "网关不能是网络或广播地址。"
+        "{}",
+        crate::i18n::tr("网关不能是网络或广播地址。")
     );
     let s = lan_host(&text(&b["dhcp_start"]), &b)?;
     let e = lan_host(&text(&b["dhcp_end"]), &b)?;
     let (start, end, router) = (u32::from(s), u32::from(e), u32::from(addr));
     ensure!(
         start <= end && !(start..=end).contains(&router),
-        "地址池顺序错误或包含网关地址。"
+        "{}",
+        crate::i18n::tr("地址池顺序错误或包含网关地址。")
     );
     let lease = text(&b["dhcp_lease_time"]);
     let (num, mult) = match lease.chars().last() {
@@ -497,7 +582,8 @@ fn lan_body(p: &Page) -> Result<Value> {
     let seconds = num.parse::<u64>().ok().and_then(|n| n.checked_mul(mult));
     ensure!(
         seconds.is_some_and(|n| (120..=31_536_000).contains(&n)),
-        "租期需在 120 秒至 365 天之间。"
+        "{}",
+        crate::i18n::tr("租期需在 120 秒至 365 天之间。")
     );
     let mut out = b;
     out["dhcp_start"] = json!(start - n);
@@ -527,7 +613,11 @@ fn dns_body(p: &Page) -> Result<Value> {
         ipv4(&text(&b["primary"]))?;
         if !text(&b["secondary"]).is_empty() {
             ipv4(&text(&b["secondary"]))?;
-            ensure!(b["primary"] != b["secondary"], "首选和备用 DNS 不能相同。");
+            ensure!(
+                b["primary"] != b["secondary"],
+                "{}",
+                crate::i18n::tr("首选和备用 DNS 不能相同。")
+            );
         }
     }
     if mode == "doh" {
@@ -538,13 +628,15 @@ fn dns_body(p: &Page) -> Result<Value> {
                 && u.username().is_empty()
                 && u.password().is_none()
                 && u.fragment().is_none(),
-            "DoH 需要不含账户和片段的 HTTPS 地址。"
+            "{}",
+            crate::i18n::tr("DoH 需要不含账户和片段的 HTTPS 地址。")
         );
     }
     if mode == "dot" {
         ensure!(
             !text(&b["dot_endpoint"]).is_empty() && domain(&text(&b["dot_server_name"])),
-            "请填写 DoT 主机和有效证书域名。"
+            "{}",
+            crate::i18n::tr("请填写 DoT 主机和有效证书域名。")
         );
     }
     Ok(b)

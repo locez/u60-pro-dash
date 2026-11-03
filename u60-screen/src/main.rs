@@ -4,6 +4,7 @@ mod config;
 #[cfg(feature = "device")]
 mod device;
 mod features;
+mod i18n;
 mod platform;
 mod security;
 
@@ -28,6 +29,7 @@ struct Options {
     prefs: Option<PathBuf>,
     page: Option<String>,
     dark: Option<bool>,
+    language: Option<crate::i18n::Locale>,
     accent: Option<String>,
     rotate: Option<bool>,
     touch_rotate: Option<bool>,
@@ -61,6 +63,12 @@ fn options() -> Result<Options> {
             "--page" => opts.page = Some(value()?),
             "--light" => opts.dark = Some(false),
             "--dark" => opts.dark = Some(true),
+            "--language" => {
+                opts.language = Some(
+                    crate::i18n::Locale::parse(&value()?)
+                        .context("language must be zh-Hans, zh-Hant, en, ja or ko")?,
+                )
+            }
             "--accent" => opts.accent = Some(value()?),
             "--rotate" | "--touch-rotate" => {
                 let rotate = match value()?.as_str() {
@@ -83,6 +91,7 @@ fn options() -> Result<Options> {
                     Capture: u60-screen --screenshot FILE.png [--page FEATURE_ID]\n\
                     Device:  use scripts/device-trial.sh (guarded, 90 seconds by default)\n\n\
                     --prefs FILE          Load/save local preferences, never credentials\n\
+                    --language LOCALE     zh-Hans, zh-Hant, en, ja or ko\n\
                     --rotate 0|180        Output orientation (device default: 180)\n\
                     --touch-rotate 0|180  Independent input calibration (default: 180)\n\
                     --touch /dev/input/eventN  Override Sitronix auto-detection\n\
@@ -171,6 +180,9 @@ fn main() -> Result<()> {
     };
     if let Some(dark) = opts.dark {
         prefs.dark = dark;
+    }
+    if let Some(language) = opts.language {
+        prefs.language = language;
     }
     if let Some(accent) = opts.accent {
         prefs.accent = accent;
@@ -515,6 +527,25 @@ mod tests {
         app.ui.invoke_action(0);
         assert!(app.ui.get_message().contains("尚未接入"));
         app.ui.set_message("".into());
+        // Switching language updates authored labels immediately, while stable
+        // field keys, literal SSIDs, preferences and the lock remain intact.
+        app.open("screen-prefs")?;
+        for (code, heading) in [
+            ("en", "Screen & appearance"),
+            ("zh-Hant", "螢幕與外觀"),
+            ("ja", "画面と外観"),
+            ("ko", "화면 및 테마"),
+            ("zh-Hans", "屏幕与外观"),
+        ] {
+            app.ui.invoke_set_language(code.into());
+            assert_eq!(app.ui.get_language(), code);
+            assert_eq!(app.ui.get_heading(), heading);
+            assert_eq!(app.state.borrow().prefs.accent, "#d97706");
+            assert_eq!(app.state.borrow().prefs.probe_target, "10.20.0.10:443");
+            assert!(!app.ui.get_locked());
+            platform::capture(&window, false);
+            save(&format!("language-{code}.png"))?;
+        }
         app.open("screen-lock")?;
         app.ui.invoke_pin_setup(false);
         platform::capture(&window, false);

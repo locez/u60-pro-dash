@@ -25,17 +25,17 @@ pub enum Error {
 impl Error {
     pub fn message(&self) -> &'static str {
         match self {
-            Self::Login => "需要重新登录后台",
-            Self::Unavailable => "后台暂时无法连接",
-            Self::Unsupported => "当前后台或固件不支持此功能",
-            Self::LocalOnly => "请在设备屏幕上运行此检测",
-            Self::InvalidResponse => "后台返回了无法识别的数据",
-            Self::EsimUnavailable => "无法访问 eUICC 卡片的管理通道",
-            Self::EsimReloading => "SIM 正在重新加载，请稍后刷新",
-            Self::EsimBusy => "eSIM 卡片正在处理其他操作，请稍后刷新",
-            Self::EsimNotConfigured => "后台的 eSIM 卡槽或通信配置不可用",
-            Self::Rejected(_) => "后台拒绝了请求，请检查设置后重试",
-            Self::Busy(_) => "后台繁忙，请稍后重试",
+            Self::Login => crate::i18n::tr("需要重新登录后台"),
+            Self::Unavailable => crate::i18n::tr("后台暂时无法连接"),
+            Self::Unsupported => crate::i18n::tr("当前后台或固件不支持此功能"),
+            Self::LocalOnly => crate::i18n::tr("请在设备屏幕上运行此检测"),
+            Self::InvalidResponse => crate::i18n::tr("后台返回了无法识别的数据"),
+            Self::EsimUnavailable => crate::i18n::tr("无法访问 eUICC 卡片的管理通道"),
+            Self::EsimReloading => crate::i18n::tr("SIM 正在重新加载，请稍后刷新"),
+            Self::EsimBusy => crate::i18n::tr("eSIM 卡片正在处理其他操作，请稍后刷新"),
+            Self::EsimNotConfigured => crate::i18n::tr("后台的 eSIM 卡槽或通信配置不可用"),
+            Self::Rejected(_) => crate::i18n::tr("后台拒绝了请求，请检查设置后重试"),
+            Self::Busy(_) => crate::i18n::tr("后台繁忙，请稍后重试"),
         }
     }
 }

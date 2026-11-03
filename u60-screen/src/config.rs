@@ -5,6 +5,7 @@ use std::{fs, io::Write, path::Path};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(default)]
 pub struct Preferences {
+    pub language: crate::i18n::Locale,
     pub dark: bool,
     pub accent: String,
     pub brightness: u8,
@@ -15,6 +16,7 @@ pub struct Preferences {
 impl Default for Preferences {
     fn default() -> Self {
         Self {
+            language: crate::i18n::Locale::default(),
             dark: true,
             accent: "#2563eb".into(),
             brightness: 70,
@@ -142,6 +144,26 @@ pub fn button_ink(rgb: [u8; 3]) -> [u8; 3] {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn language_preferences_preserve_existing_settings() {
+        let legacy = r##"{"dark":false,"accent":"#d97706","brightness":80,"sleep_seconds":120}"##;
+        let mut prefs: Preferences = serde_json::from_str(legacy).unwrap();
+        assert_eq!(prefs.language, crate::i18n::Locale::Simplified);
+        for code in ["zh-Hans", "zh-Hant", "en", "ja", "ko"] {
+            prefs.language = crate::i18n::Locale::parse(code).unwrap();
+            let restored: Preferences =
+                serde_json::from_str(&serde_json::to_string(&prefs).unwrap()).unwrap();
+            assert_eq!(restored.language.code(), code);
+            assert!(!restored.dark);
+            assert_eq!(restored.accent, "#d97706");
+            assert_eq!(restored.brightness, 80);
+            assert_eq!(restored.sleep_seconds, 120);
+        }
+        let unknown: Preferences =
+            serde_json::from_str(r#"{"language":"future-locale","brightness":90}"#).unwrap();
+        assert_eq!(unknown.language, crate::i18n::Locale::Simplified);
+        assert_eq!(unknown.brightness, 90);
+    }
     #[test]
     fn arbitrary_colors_remain_legible_in_both_themes() {
         for dark in [true, false] {

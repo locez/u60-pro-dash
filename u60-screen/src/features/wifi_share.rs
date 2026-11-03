@@ -27,8 +27,8 @@ fn network<'a>(readings: &'a Data, id: &str) -> Result<Network<'a>, &'static str
     let wifi = data(readings, "wifi");
     match flag(&wifi["wifi_onoff"]) {
         Some(true) => {}
-        Some(false) => return Err("Wi-Fi 已关闭，请开启后刷新。"),
-        None => return Err("尚未读取到 Wi-Fi 状态，请刷新。"),
+        Some(false) => return Err(crate::i18n::tr("Wi-Fi 已关闭，请开启后刷新。")),
+        None => return Err(crate::i18n::tr("尚未读取到 Wi-Fi 状态，请刷新。")),
     }
     let (ssid, password, encryption, hidden, active) = match id {
         "2g" | "5g" => (
@@ -62,18 +62,20 @@ fn network<'a>(readings: &'a Data, id: &str) -> Result<Network<'a>, &'static str
                 active,
             )
         }
-        _ => return Err("请选择要分享的热点。"),
+        _ => return Err(crate::i18n::tr("请选择要分享的热点。")),
     };
     if !active {
-        return Err("热点未开启或状态不可读，请检查热点设置。\n开启后刷新即可分享。");
+        return Err(crate::i18n::tr(
+            "热点未开启或状态不可读，请检查热点设置。\n开启后刷新即可分享。",
+        ));
     }
     let ssid = ssid
         .as_str()
         .filter(|s| !s.is_empty() && s.len() <= 32 && !s.chars().any(char::is_control))
-        .ok_or("未读取到有效热点名称，请刷新。")?;
+        .ok_or(crate::i18n::tr("未读取到有效热点名称，请刷新。"))?;
     let encryption = encryption
         .as_str()
-        .ok_or("未读取到加密方式，请刷新。")?
+        .ok_or(crate::i18n::tr("未读取到加密方式，请刷新。"))?
         .to_ascii_lowercase();
     // Transition mode accepts WPA2: the widely supported WPA QR label lets
     // older scanners join it, while pure WPA3 must explicitly use SAE.
@@ -88,7 +90,7 @@ fn network<'a>(readings: &'a Data, id: &str) -> Result<Network<'a>, &'static str
     } else if encryption.starts_with("psk") {
         "WPA"
     } else {
-        return Err("当前加密方式暂不支持扫码分享。");
+        return Err(crate::i18n::tr("当前加密方式暂不支持扫码分享。"));
     };
     let password = if auth == "nopass" {
         ""
@@ -96,14 +98,14 @@ fn network<'a>(readings: &'a Data, id: &str) -> Result<Network<'a>, &'static str
         password
             .as_str()
             .filter(|p| !p.is_empty() && p.len() <= 64 && !p.chars().any(char::is_control))
-            .ok_or("未读取到热点密码，请刷新。")?
+            .ok_or(crate::i18n::tr("未读取到热点密码，请刷新。"))?
     };
     // An explicitly empty UCI hidden option means the default (broadcast).
     // A missing API field is unknown, not an invented visible-network state.
     let hidden = if hidden.as_str() == Some("") {
         false
     } else {
-        flag(hidden).ok_or("未读取到隐藏热点设置，请刷新。")?
+        flag(hidden).ok_or(crate::i18n::tr("未读取到隐藏热点设置，请刷新。"))?
     };
     Ok(Network {
         ssid,
@@ -139,7 +141,7 @@ impl Network<'_> {
 pub fn page(readings: &Data) -> Page {
     let mut page = Page::default();
     let Some(id) = selected(readings) else {
-        page.content = "选择热点，用手机扫码连接。".into();
+        page.content = crate::i18n::tr("选择热点，用手机扫码连接。").into();
         page.items = NETWORKS
             .iter()
             .map(|(id, label)| {
@@ -164,10 +166,11 @@ pub fn page(readings: &Data) -> Page {
         Ok(network) => {
             page.qr_caption = network.ssid.into();
             page.qr = Some(network.payload());
-            page.note = "用手机相机或 WLAN 扫码连接，无需手动输入密码。".into();
+            page.note = crate::i18n::tr("用手机相机或 WLAN 扫码连接，无需手动输入密码。").into();
             if network.auth == "SAE" {
-                page.note
-                    .push_str("此热点使用 WPA3，需要手机支持 SAE 扫码连接。");
+                page.note.push_str(crate::i18n::tr(
+                    "此热点使用 WPA3，需要手机支持 SAE 扫码连接。",
+                ));
             }
         }
         Err(message) => page.content = message.into(),

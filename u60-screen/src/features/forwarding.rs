@@ -62,19 +62,28 @@ fn destination_label(destination: &Value) -> String {
         reqwest::Url::parse(&text(&destination[key]))
             .ok()
             .map(|u| u.origin().ascii_serialization())
-            .unwrap_or_else(|| "地址不可用".into())
+            .unwrap_or_else(|| crate::i18n::tr("地址不可用").into())
     };
     match text(&destination["type"]).as_str() {
         "telegram" => format!("Telegram · {}", shown(&destination["chat_id"])),
-        "sms" => format!("短信 · {}", shown(&destination["forward_number"])),
-        "ntfy" => format!("{} · 主题 {}", origin("url"), shown(&destination["topic"])),
+        "sms" => crate::i18n::format(
+            "短信 · {0}",
+            &[shown(&destination["forward_number"]).to_string()],
+        ),
+        "ntfy" => crate::i18n::format(
+            "{0} · 主题 {1}",
+            &[
+                origin("url").to_string(),
+                shown(&destination["topic"]).to_string(),
+            ],
+        ),
         "webhook" => format!("{} · {}", origin("url"), shown(&destination["method"])),
         "discord" | "slack" => format!(
             "{} · {}",
             shown(&destination["type"]),
             origin("webhook_url")
         ),
-        _ => "未提供".into(),
+        _ => crate::i18n::tr("未提供").into(),
     }
 }
 pub fn page(id: &str, d: &Data) -> Page {
@@ -90,39 +99,41 @@ pub fn page(id: &str, d: &Data) -> Page {
                     shown(&v["sender"])
                 ));
                 for (k, l) in [
-                    ("sender", "发送方"),
-                    ("date", "短信时间"),
-                    ("rule_name", "转发规则"),
-                    ("destination_type", "目的地类型"),
-                    ("success", "转发成功"),
-                    ("pending", "等待处理"),
+                    ("sender", crate::i18n::tr("发送方")),
+                    ("date", crate::i18n::tr("短信时间")),
+                    ("rule_name", crate::i18n::tr("转发规则")),
+                    ("destination_type", crate::i18n::tr("目的地类型")),
+                    ("success", crate::i18n::tr("转发成功")),
+                    ("pending", crate::i18n::tr("等待处理")),
                 ] {
                     p.row(l, &v[k]);
                 }
                 p.content = text(&v["content"]);
                 if !v["error"].is_null() {
-                    p.note = "目的地未接受此次转发，请检查配置或发送测试。".into();
+                    p.note = crate::i18n::tr("目的地未接受此次转发，请检查配置或发送测试。").into();
                 }
                 if let Some(current) = rule(d, &text(&v["rule_id"])) {
-                    p.row("当前规则名称", &current["name"]);
+                    p.row(crate::i18n::tr("当前规则名称"), &current["name"]);
                     p.rows.push((
-                        "当前接收目的地".into(),
+                        crate::i18n::tr("当前接收目的地").into(),
                         destination_label(&current["destination"]),
                     ));
                     let mut a = Action::new(
                         "retry",
-                        "重试此次转发",
-                        "向规则当前配置的目的地重新发送这条短信；若目的地已收到但未返回成功，可能收到重复内容。短信目的地可能收费。",
+                        crate::i18n::tr("重试此次转发"),
+                        crate::i18n::tr(
+                            "向规则当前配置的目的地重新发送这条短信；若目的地已收到但未返回成功，可能收到重复内容。短信目的地可能收费。",
+                        ),
                     );
                     a.enabled = v["pending"] != true
                         && v["success"] == false
                         && envelope["revision"].is_u64();
                     p.actions.push(a);
                 } else {
-                    p.note = "原规则已不存在，不能重试。".into();
+                    p.note = crate::i18n::tr("原规则已不存在，不能重试。").into();
                 }
             } else {
-                p.note = "记录已变化或存在重名标识，请返回刷新后重新选择。".into();
+                p.note = crate::i18n::tr("记录已变化或存在重名标识，请返回刷新后重新选择。").into();
             }
         } else {
             if let Some(log) = data(d, "log").as_array() {
@@ -134,45 +145,48 @@ pub fn page(id: &str, d: &Data) -> Page {
                         subtitle: format!(
                             "{} · {}",
                             if v["pending"] == true {
-                                "等待"
+                                crate::i18n::tr("等待")
                             } else if v["success"] == true {
-                                "成功"
+                                crate::i18n::tr("成功")
                             } else {
-                                "失败"
+                                crate::i18n::tr("失败")
                             },
                             shown(&v["content_preview"])
                         ),
                     })
                     .collect();
-                p.rows.push(("记录数".into(), log.len().to_string()));
+                p.rows
+                    .push((crate::i18n::tr("记录数").into(), log.len().to_string()));
                 p.actions.push(Action::new(
                     "clear",
-                    "清空已完成记录",
-                    "清除已结束的转发记录；后台仍保留待处理的转发，清空不会取消发送。",
+                    crate::i18n::tr("清空已完成记录"),
+                    crate::i18n::tr(
+                        "清除已结束的转发记录；后台仍保留待处理的转发，清空不会取消发送。",
+                    ),
                 ));
             }
-            p.note = "点选失败记录可以核对目标规则并重试。".into();
+            p.note = crate::i18n::tr("点选失败记录可以核对目标规则并重试。").into();
         }
         return p;
     }
     let Some(selection) = selected(d) else {
         p.fields = vec![
-            Field::boolean("enabled", "自动转发", &config["enabled"]),
+            Field::boolean("enabled", crate::i18n::tr("自动转发"), &config["enabled"]),
             Field::number(
                 "poll_interval_secs",
-                "检查间隔（秒）",
+                crate::i18n::tr("检查间隔（秒）"),
                 &config["poll_interval_secs"],
                 10,
                 86400,
             ),
             Field::boolean(
                 "mark_read_after_forward",
-                "成功后标记已读",
+                crate::i18n::tr("成功后标记已读"),
                 &config["mark_read_after_forward"],
             ),
             Field::boolean(
                 "delete_after_forward",
-                "成功后删除原短信",
+                crate::i18n::tr("成功后删除原短信"),
                 &config["delete_after_forward"],
             ),
         ];
@@ -192,21 +206,21 @@ pub fn page(id: &str, d: &Data) -> Page {
                 .collect();
             p.items.push(Item {
                 id: "new".into(),
-                title: "新增转发规则".into(),
-                subtitle: "选择目的地类型".into(),
+                title: crate::i18n::tr("新增转发规则").into(),
+                subtitle: crate::i18n::tr("选择目的地类型").into(),
             });
-            p.actions.push(Action::new("config","保存转发设置","自动转发会向已启用规则的目的地发送收到的短信；开启删除后，成功转发的原短信会被删除。"));
+            p.actions.push(Action::new("config",crate::i18n::tr("保存转发设置"),crate::i18n::tr("自动转发会向已启用规则的目的地发送收到的短信；开启删除后，成功转发的原短信会被删除。")));
         }
         return p;
     };
     if selection == "new" {
-        p.title = Some("选择转发目的地".into());
+        p.title = Some(crate::i18n::tr("选择转发目的地").into());
         p.items = TYPES
             .iter()
             .map(|(key, label)| Item {
                 id: format!("new:{key}"),
                 title: (*label).into(),
-                subtitle: "创建规则".into(),
+                subtitle: crate::i18n::tr("创建规则").into(),
             })
             .collect();
         return p;
@@ -218,43 +232,46 @@ pub fn page(id: &str, d: &Data) -> Page {
         rule(d, selection)
     };
     let Some(current) = current else {
-        p.note = "规则已不存在，请返回刷新。".into();
+        p.note = crate::i18n::tr("规则已不存在，请返回刷新。").into();
         return p;
     };
     let kind = selection
         .strip_prefix("new:")
         .unwrap_or_else(|| current["destination"]["type"].as_str().unwrap_or(""));
     if !TYPES.iter().any(|(k, _)| *k == kind) {
-        p.note = "此目的地类型暂不支持，请使用网页管理。".into();
+        p.note = crate::i18n::tr("此目的地类型暂不支持，请使用网页管理。").into();
         return p;
     }
     p.title = Some(if selection.starts_with("new:") {
-        format!("新增 {kind} 规则")
+        crate::i18n::format("新增 {0} 规则", &[kind.to_string()])
     } else {
         shown(&current["name"])
     });
     p.fields = vec![
-        Field::text("name", "规则名称", &current["name"]),
-        Field::boolean("enabled", "启用规则", &current["enabled"]),
+        Field::text("name", crate::i18n::tr("规则名称"), &current["name"]),
+        Field::boolean("enabled", crate::i18n::tr("启用规则"), &current["enabled"]),
         Field::choice(
             "filter",
-            "匹配条件",
+            crate::i18n::tr("匹配条件"),
             &current["filter"]["type"],
             &[
-                ("all", "全部短信"),
-                ("sender", "发送方匹配"),
-                ("content", "内容包含关键词"),
-                ("sender_and_content", "发送方及内容同时匹配"),
+                ("all", crate::i18n::tr("全部短信")),
+                ("sender", crate::i18n::tr("发送方匹配")),
+                ("content", crate::i18n::tr("内容包含关键词")),
+                (
+                    "sender_and_content",
+                    crate::i18n::tr("发送方及内容同时匹配"),
+                ),
             ],
         ),
         Field::text(
             "patterns",
-            "发送方模式（逗号分隔）",
+            crate::i18n::tr("发送方模式（逗号分隔）"),
             &list_text(&current["filter"]["patterns"]),
         ),
         Field::text(
             "keywords",
-            "关键词（逗号分隔）",
+            crate::i18n::tr("关键词（逗号分隔）"),
             &list_text(&current["filter"]["keywords"]),
         ),
     ];
@@ -262,27 +279,44 @@ pub fn page(id: &str, d: &Data) -> Page {
     p.fields[0].max = 80;
     let dest = &current["destination"];
     if !dest["type"].is_null() {
-        p.rows
-            .push(("已保存目的地".into(), destination_label(dest)));
+        p.rows.push((
+            crate::i18n::tr("已保存目的地").into(),
+            destination_label(dest),
+        ));
     }
     let secret = |key, label| Field::password(key, label, true);
     match kind {
         "telegram" => p.fields.extend([
-            secret("bot_token", "Bot Token（留空保留）"),
-            Field::text("chat_id", "接收方 Chat ID", &optional(&dest["chat_id"])),
-            Field::boolean("silent", "静音通知", &json!(dest["silent"] == true)),
+            secret("bot_token", crate::i18n::tr("Bot Token（留空保留）")),
+            Field::text(
+                "chat_id",
+                crate::i18n::tr("接收方 Chat ID"),
+                &optional(&dest["chat_id"]),
+            ),
+            Field::boolean(
+                "silent",
+                crate::i18n::tr("静音通知"),
+                &json!(dest["silent"] == true),
+            ),
         ]),
         "webhook" => {
             p.fields.extend([
-                secret("url", "Webhook URL（留空保留）"),
+                secret("url", crate::i18n::tr("Webhook URL（留空保留）")),
                 Field::choice(
                     "method",
-                    "请求方式",
+                    crate::i18n::tr("请求方式"),
                     &json!(dest["method"].as_str().unwrap_or("POST")),
                     &[("POST", "POST"), ("GET", "GET"), ("PUT", "PUT")],
                 ),
-                secret("headers", "请求头：每行 Name: Value（留空保留）"),
-                Field::boolean("clear_headers", "清除现有请求头", &json!(false)),
+                secret(
+                    "headers",
+                    crate::i18n::tr("请求头：每行 Name: Value（留空保留）"),
+                ),
+                Field::boolean(
+                    "clear_headers",
+                    crate::i18n::tr("清除现有请求头"),
+                    &json!(false),
+                ),
             ]);
             p.fields
                 .iter_mut()
@@ -292,61 +326,76 @@ pub fn page(id: &str, d: &Data) -> Page {
         }
         "sms" => p.fields.push(Field::text(
             "forward_number",
-            "接收短信的号码",
+            crate::i18n::tr("接收短信的号码"),
             &optional(&dest["forward_number"]),
         )),
         "ntfy" => p.fields.extend([
             Field::text(
                 "url",
-                "ntfy 服务地址",
+                crate::i18n::tr("ntfy 服务地址"),
                 &json!(dest["url"].as_str().unwrap_or("https://ntfy.sh")),
             ),
-            Field::text("topic", "通知主题", &optional(&dest["topic"])),
-            secret("token", "访问令牌（留空保留）"),
-            Field::boolean("clear_token", "清除现有令牌", &json!(false)),
+            Field::text(
+                "topic",
+                crate::i18n::tr("通知主题"),
+                &optional(&dest["topic"]),
+            ),
+            secret("token", crate::i18n::tr("访问令牌（留空保留）")),
+            Field::boolean(
+                "clear_token",
+                crate::i18n::tr("清除现有令牌"),
+                &json!(false),
+            ),
         ]),
-        _ => p
-            .fields
-            .push(secret("webhook_url", "Webhook URL（留空保留）")),
+        _ => p.fields.push(secret(
+            "webhook_url",
+            crate::i18n::tr("Webhook URL（留空保留）"),
+        )),
     }
     p.actions.push(Action::new(
         "save",
-        "保存规则",
-        "后续匹配的短信将按此规则转发，可能包含验证码与私人内容。短信转发会产生运营商费用。",
+        crate::i18n::tr("保存规则"),
+        crate::i18n::tr(
+            "后续匹配的短信将按此规则转发，可能包含验证码与私人内容。短信转发会产生运营商费用。",
+        ),
     ));
     p.actions.push(Action::new(
         "test",
-        "发送测试",
-        "立即向本页填写的目的地发送一条测试消息；无需先保存，短信目的地可能收费。",
+        crate::i18n::tr("发送测试"),
+        crate::i18n::tr("立即向本页填写的目的地发送一条测试消息；无需先保存，短信目的地可能收费。"),
     ));
     if !selection.starts_with("new:") {
         p.actions.push(Action::new(
             "toggle",
             if current["enabled"] == true {
-                "停用规则"
+                crate::i18n::tr("停用规则")
             } else {
-                "启用规则"
+                crate::i18n::tr("启用规则")
             },
-            "切换此规则的启用状态。",
+            crate::i18n::tr("切换此规则的启用状态。"),
         ));
         p.actions.push(Action::new(
             "delete",
-            "删除规则",
-            "删除此转发规则；已进入处理流程的消息可能仍会完成。",
+            crate::i18n::tr("删除规则"),
+            crate::i18n::tr("删除此转发规则；已进入处理流程的消息可能仍会完成。"),
         ));
     }
-    p.note = "凭据不回显；留空保留现有值。发送方模式支持 * 通配符；条件未用到的列表可留空。".into();
+    p.note = crate::i18n::tr(
+        "凭据不回显；留空保留现有值。发送方模式支持 * 通配符；条件未用到的列表可留空。",
+    )
+    .into();
     p
 }
 fn url(value: &str) -> Result<()> {
-    let parsed =
-        reqwest::Url::parse(value).map_err(|_| anyhow::anyhow!("请填写有效的服务地址。"))?;
+    let parsed = reqwest::Url::parse(value)
+        .map_err(|_| anyhow::anyhow!("{}", crate::i18n::tr("请填写有效的服务地址。")))?;
     ensure!(
         ["http", "https"].contains(&parsed.scheme())
             && parsed.host_str().is_some()
             && parsed.username().is_empty()
             && parsed.password().is_none(),
-        "地址必须为 HTTP(S)，账号凭据请使用令牌或请求头。"
+        "{}",
+        crate::i18n::tr("地址必须为 HTTP(S)，账号凭据请使用令牌或请求头。")
     );
     Ok(())
 }
@@ -366,7 +415,8 @@ fn destination(p: &Page, old: &Value, kind: &str) -> Result<Value> {
             let chat = p.value("chat_id")?;
             ensure!(
                 !text(&token).is_empty() && !text(&chat).is_empty(),
-                "请填写 Bot Token 和接收方 Chat ID。"
+                "{}",
+                crate::i18n::tr("请填写 Bot Token 和接收方 Chat ID。")
             );
             d["bot_token"] = token;
             d["chat_id"] = chat;
@@ -379,7 +429,11 @@ fn destination(p: &Page, old: &Value, kind: &str) -> Result<Value> {
             let raw = text(&p.value("headers")?);
             d["headers"] =
                 if p.value("clear_headers")? == true {
-                    ensure!(raw.is_empty(), "清除请求头时请不要同时填写新请求头。");
+                    ensure!(
+                        raw.is_empty(),
+                        "{}",
+                        crate::i18n::tr("清除请求头时请不要同时填写新请求头。")
+                    );
                     json!([])
                 } else if raw.is_empty() {
                     old["headers"]
@@ -390,15 +444,16 @@ fn destination(p: &Page, old: &Value, kind: &str) -> Result<Value> {
                 } else {
                     let mut headers = vec![];
                     for line in raw.lines().filter(|l| !l.trim().is_empty()) {
-                        let (name, value) = line
-                            .split_once(':')
-                            .ok_or_else(|| anyhow::anyhow!("每行请求头必须为 Name: Value。"))?;
+                        let (name, value) = line.split_once(':').ok_or_else(|| {
+                            anyhow::anyhow!("{}", crate::i18n::tr("每行请求头必须为 Name: Value。"))
+                        })?;
                         ensure!(
                             !name.is_empty()
                                 && name.bytes().all(|c| c.is_ascii_alphanumeric()
                                     || b"!#$%&'*+-.^_`|~".contains(&c))
                                 && !value.chars().any(char::is_control),
-                            "请求头名称或值无效。"
+                            "{}",
+                            crate::i18n::tr("请求头名称或值无效。")
                         );
                         headers.push(json!({"name":name,"value":value.trim()}));
                     }
@@ -413,7 +468,8 @@ fn destination(p: &Page, old: &Value, kind: &str) -> Result<Value> {
                         .bytes()
                         .all(|b| b.is_ascii_digit())
                     && !n.starts_with("++"),
-                "请填写有效的短信号码。"
+                "{}",
+                crate::i18n::tr("请填写有效的短信号码。")
             );
             d["forward_number"] = json!(n);
         }
@@ -428,12 +484,14 @@ fn destination(p: &Page, old: &Value, kind: &str) -> Result<Value> {
                     && topic
                         .bytes()
                         .all(|c| c.is_ascii_alphanumeric() || b"_-".contains(&c)),
-                "通知主题限字母、数字、下划线和连字符。"
+                "{}",
+                crate::i18n::tr("通知主题限字母、数字、下划线和连字符。")
             );
             let token = secret(p, old, "token")?;
             ensure!(
                 p.value("clear_token")? != true || p.field("token")?.value.is_empty(),
-                "清除令牌时请不要同时填写新令牌。"
+                "{}",
+                crate::i18n::tr("清除令牌时请不要同时填写新令牌。")
             );
             d["token"] = if p.value("clear_token")? == true || text(&token).is_empty() {
                 Value::Null
@@ -445,7 +503,7 @@ fn destination(p: &Page, old: &Value, kind: &str) -> Result<Value> {
             d["webhook_url"] = secret(p, old, "webhook_url")?;
             url(&text(&d["webhook_url"]))?;
         }
-        _ => anyhow::bail!("不支持的目的地类型。"),
+        _ => anyhow::bail!("{}", crate::i18n::tr("不支持的目的地类型。")),
     }
     Ok(d)
 }
@@ -455,15 +513,18 @@ pub fn plan(id: &str, action: &str, p: &Page, d: &Data) -> Result<Plan> {
         match action {
             "clear" => Plan::one(Method::POST, "/api/sms/forward/log/clear", json!({})),
             "retry" => {
-                let (index, v) =
-                    log_entry(d).ok_or_else(|| anyhow::anyhow!("记录已变化，请重新选择。"))?;
+                let (index, v) = log_entry(d).ok_or_else(|| {
+                    anyhow::anyhow!("{}", crate::i18n::tr("记录已变化，请重新选择。"))
+                })?;
                 ensure!(
                     v["success"] == false && v["pending"] != true,
-                    "此记录不可重试。"
+                    "{}",
+                    crate::i18n::tr("此记录不可重试。")
                 );
                 ensure!(
                     envelope["revision"].is_u64() && rule(d, &text(&v["rule_id"])).is_some(),
-                    "无法核对当前规则，请刷新。"
+                    "{}",
+                    crate::i18n::tr("无法核对当前规则，请刷新。")
                 );
                 let mut plan = Plan::one(
                     Method::POST,
@@ -477,7 +538,7 @@ pub fn plan(id: &str, action: &str, p: &Page, d: &Data) -> Result<Plan> {
                 ));
                 plan
             }
-            _ => anyhow::bail!("不支持的日志操作。"),
+            _ => anyhow::bail!("{}", crate::i18n::tr("不支持的日志操作。")),
         }
     } else if action == "config" {
         let body = p.changed(&[
@@ -488,18 +549,20 @@ pub fn plan(id: &str, action: &str, p: &Page, d: &Data) -> Result<Plan> {
         ])?;
         ensure!(
             !body.as_object().unwrap().is_empty(),
-            "没有需要保存的更改。"
+            "{}",
+            crate::i18n::tr("没有需要保存的更改。")
         );
         Plan::one(Method::PUT, "/api/sms/forward/config", body)
     } else {
-        let selection = selected(d).ok_or_else(|| anyhow::anyhow!("请先选择规则。"))?;
+        let selection =
+            selected(d).ok_or_else(|| anyhow::anyhow!("{}", crate::i18n::tr("请先选择规则。")))?;
         let old = rule(d, selection).unwrap_or(&Value::Null);
         let kind = selection
             .strip_prefix("new:")
             .unwrap_or_else(|| old["destination"]["type"].as_str().unwrap_or(""));
         match action {
             "delete" | "toggle" => {
-                ensure!(old["id"].is_u64(), "规则不存在。");
+                ensure!(old["id"].is_u64(), "{}", crate::i18n::tr("规则不存在。"));
                 if action == "delete" {
                     Plan::one(
                         Method::DELETE,
@@ -546,7 +609,8 @@ pub fn plan(id: &str, action: &str, p: &Page, d: &Data) -> Result<Plan> {
                                 .collect::<Vec<_>>();
                             ensure!(
                                 !values.is_empty(),
-                                "匹配条件需要填写对应的发送方模式或关键词。"
+                                "{}",
+                                crate::i18n::tr("匹配条件需要填写对应的发送方模式或关键词。")
                             );
                             filter[k] = json!(values);
                         }
@@ -555,14 +619,14 @@ pub fn plan(id: &str, action: &str, p: &Page, d: &Data) -> Result<Plan> {
                     let method = if selection.starts_with("new:") {
                         Method::POST
                     } else {
-                        ensure!(old["id"].is_u64(), "规则不存在。");
+                        ensure!(old["id"].is_u64(), "{}", crate::i18n::tr("规则不存在。"));
                         body["id"] = old["id"].clone();
                         Method::PUT
                     };
                     Plan::one(method, "/api/sms/forward/rules", body)
                 }
             }
-            _ => anyhow::bail!("不支持的规则操作。"),
+            _ => anyhow::bail!("{}", crate::i18n::tr("不支持的规则操作。")),
         }
     };
     if let Some(destination) = result
@@ -571,14 +635,17 @@ pub fn plan(id: &str, action: &str, p: &Page, d: &Data) -> Result<Plan> {
         .and_then(|r| r.body.as_ref())
         .and_then(|b| b.get("destination"))
     {
-        result.summary = format!("接收目的地：{}", destination_label(destination));
+        result.summary = crate::i18n::format(
+            "接收目的地：{0}",
+            &[destination_label(destination).to_string()],
+        );
     } else if action == "retry"
         && let Some((_, entry)) = log_entry(d)
         && let Some(current) = rule(d, &text(&entry["rule_id"]))
     {
-        result.summary = format!(
-            "当前接收目的地：{}",
-            destination_label(&current["destination"])
+        result.summary = crate::i18n::format(
+            "当前接收目的地：{0}",
+            &[destination_label(&current["destination"]).to_string()],
         );
     }
     result.guards.push(Guard::new(

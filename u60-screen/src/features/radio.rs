@@ -48,41 +48,49 @@ pub fn page(id: &str, readings: &Data) -> Page {
     let mut p = Page::default();
     match id {
         "nr-bands" | "lte-bands" => {
-            let mut bands = Field::text("bands", "频段列表（逗号分隔）", &json!(""));
+            let mut bands =
+                Field::text("bands", crate::i18n::tr("频段列表（逗号分隔）"), &json!(""));
             bands.required = true;
             bands.max = 512;
             p.fields.push(bands);
             if id == "nr-bands" {
                 p.fields.push(Field::choice(
                     "mode",
-                    "5G 模式",
+                    crate::i18n::tr("5G 模式"),
                     &json!("both"),
-                    &[("both", "NSA 与 SA"), ("nsa", "仅 NSA"), ("sa", "仅 SA")],
+                    &[
+                        ("both", crate::i18n::tr("NSA 与 SA")),
+                        ("nsa", crate::i18n::tr("仅 NSA")),
+                        ("sa", crate::i18n::tr("仅 SA")),
+                    ],
                 ));
             }
-            p.actions
-                .push(Action::new("apply", "应用频段偏好", WARNING));
+            p.actions.push(Action::new(
+                "apply",
+                crate::i18n::tr("应用频段偏好"),
+                WARNING,
+            ));
             p.actions.push(Action::new(
                 "reset",
-                "恢复自动选频",
-                "清除 LTE 和 NR 的频段限制，设备可能重新注册网络。",
+                crate::i18n::tr("恢复自动选频"),
+                crate::i18n::tr("清除 LTE 和 NR 的频段限制，设备可能重新注册网络。"),
             ));
             p.row(
-                "当前工作频段",
+                crate::i18n::tr("当前工作频段"),
                 &data(readings, "signal")[if id == "nr-bands" {
                     "nr5g_action_band"
                 } else {
                     "wan_active_band"
                 }],
             );
-            p.note="此接口不提供当前限制列表；工作频段不等于已设置的偏好。请输入完整列表，例如 1,3,78。".into();
+            p.note=crate::i18n::tr("此接口不提供当前限制列表；工作频段不等于已设置的偏好。请输入完整列表，例如 1,3,78。").into();
         }
         "nr-lock" | "lte-lock" => {
             let nr = id == "nr-lock";
             p.fields = vec![
                 Field::number(
                     "pci",
-                    "物理小区 PCI",
+                    crate::i18n::tr("物理小区 PCI"),
                     &json!(""),
                     0,
                     if nr { 1007 } else { 503 },
@@ -96,26 +104,35 @@ pub fn page(id: &str, readings: &Data) -> Page {
                 ),
             ];
             if nr {
-                p.fields
-                    .push(Field::number("band", "NR 频段", &json!(""), 1, 1024));
+                p.fields.push(Field::number(
+                    "band",
+                    crate::i18n::tr("NR 频段"),
+                    &json!(""),
+                    1,
+                    1024,
+                ));
             }
-            p.actions.push(Action::new("apply", "锁定此小区", WARNING));
+            p.actions
+                .push(Action::new("apply", crate::i18n::tr("锁定此小区"), WARNING));
             p.actions.push(Action::new(
                 "reset",
-                "解除全部小区锁定",
-                "恢复自动选择服务小区，可能重新注册网络。",
+                crate::i18n::tr("解除全部小区锁定"),
+                crate::i18n::tr("恢复自动选择服务小区，可能重新注册网络。"),
             ));
             let s = data(readings, "signal");
-            p.row("当前 PCI", &s[if nr { "nr5g_pci" } else { "lte_pci" }]);
             p.row(
-                "当前信道",
+                crate::i18n::tr("当前 PCI"),
+                &s[if nr { "nr5g_pci" } else { "lte_pci" }],
+            );
+            p.row(
+                crate::i18n::tr("当前信道"),
                 &s[if nr {
                     "nr5g_action_channel"
                 } else {
                     "wan_active_channel"
                 }],
             );
-            p.note = "PCI 不是物理基站唯一编号，需同时确认频段和信道。".into();
+            p.note = crate::i18n::tr("PCI 不是物理基站唯一编号，需同时确认频段和信道。").into();
         }
         "neighbors" => {
             for (key, name) in [("nr", "5G NR"), ("lte", "4G LTE")] {
@@ -123,10 +140,12 @@ pub fn page(id: &str, readings: &Data) -> Page {
                     for c in list {
                         p.rows.push((
                             format!("{name} · {} · PCI {}", shown(&c["band"]), shown(&c["pci"])),
-                            format!(
-                                "信道 {} · RSRP {} dBm",
-                                shown(&c["earfcn"]),
-                                shown(&c["rsrp"])
+                            crate::i18n::format(
+                                "信道 {0} · RSRP {1} dBm",
+                                &[
+                                    shown(&c["earfcn"]).to_string(),
+                                    shown(&c["rsrp"]).to_string(),
+                                ],
                             ),
                         ));
                     }
@@ -134,10 +153,10 @@ pub fn page(id: &str, readings: &Data) -> Page {
             }
             p.actions.push(Action::new(
                 "scan",
-                "重新扫描邻区",
-                "扫描可能短暂影响蜂窝数据。固件可能保留以前的邻区结果。",
+                crate::i18n::tr("重新扫描邻区"),
+                crate::i18n::tr("扫描可能短暂影响蜂窝数据。固件可能保留以前的邻区结果。"),
             ));
-            p.note = "邻区不是额外的聚合载波，也不能直接作为物理站点数量。".into();
+            p.note = crate::i18n::tr("邻区不是额外的聚合载波，也不能直接作为物理站点数量。").into();
         }
         "stc" => {
             let params = data(readings, "params");
@@ -153,14 +172,14 @@ pub fn page(id: &str, readings: &Data) -> Page {
                 p.fields.push(f);
             }
             p.row(
-                "STC 状态",
+                crate::i18n::tr("STC 状态"),
                 first(data(readings, "status"), &["stc_enable", "status"]),
             );
             for (action, label) in [
-                ("save", "保存小区策略"),
-                ("enable", "启用 STC"),
-                ("disable", "停止 STC"),
-                ("reset", "重置 STC"),
+                ("save", crate::i18n::tr("保存小区策略")),
+                ("enable", crate::i18n::tr("启用 STC")),
+                ("disable", crate::i18n::tr("停止 STC")),
+                ("reset", crate::i18n::tr("重置 STC")),
             ] {
                 let mut a = Action::new(action, label, WARNING);
                 a.enabled = !params.is_null() && !data(readings, "status").is_null();
@@ -169,8 +188,8 @@ pub fn page(id: &str, readings: &Data) -> Page {
         }
         "signal-test" => {
             let d = data(readings, "progress");
-            p.row("检测进度 %", &d["progress"]);
-            p.row("检测运行", &d["running"]);
+            p.row(crate::i18n::tr("检测进度 %"), &d["progress"]);
+            p.row(crate::i18n::tr("检测运行"), &d["running"]);
             if let Some(list) = data(readings, "results")["record_list"].as_array() {
                 for c in list {
                     p.rows.push((
@@ -180,22 +199,28 @@ pub fn page(id: &str, readings: &Data) -> Page {
                             shown(&c["band"]),
                             shown(&c["pci"])
                         ),
-                        format!(
-                            "信道 {}\nRSRP {} dBm\nRSRQ {} dB · SINR {} dB",
-                            shown(&c["earfcn"]),
-                            shown(&c["rsrp"]),
-                            shown(&c["rsrq"]),
-                            shown(&c["sinr"])
+                        crate::i18n::format(
+                            "信道 {0}\nRSRP {1} dBm\nRSRQ {2} dB · SINR {3} dB",
+                            &[
+                                shown(&c["earfcn"]).to_string(),
+                                shown(&c["rsrp"]).to_string(),
+                                shown(&c["rsrq"]).to_string(),
+                                shown(&c["sinr"]).to_string(),
+                            ],
                         ),
                     ));
                 }
             }
-            for (action, label) in [("start", "开始信号检测"), ("stop", "停止信号检测")]
-            {
+            for (action, label) in [
+                ("start", crate::i18n::tr("开始信号检测")),
+                ("stop", crate::i18n::tr("停止信号检测")),
+            ] {
                 let mut a = Action::new(
                     action,
                     label,
-                    "检测期间蜂窝连接可能中断。离开页面后检测仍可能继续，请查看实际进度。",
+                    crate::i18n::tr(
+                        "检测期间蜂窝连接可能中断。离开页面后检测仍可能继续，请查看实际进度。",
+                    ),
                 );
                 a.enabled = !d.is_null() && (action == "stop" || flag(&d["running"]) != Some(true));
                 p.actions.push(a);
@@ -204,25 +229,25 @@ pub fn page(id: &str, readings: &Data) -> Page {
         "speedtest" => {
             let progress = data(readings, "progress");
             for (k, l) in [
-                ("phase", "测速阶段"),
-                ("progress", "进度 %"),
-                ("server", "测速服务器"),
-                ("live_speed_mbps", "当前速度 / Mbps"),
-                ("download_mbps", "下载 / Mbps"),
-                ("upload_mbps", "上传 / Mbps"),
-                ("ping_ms", "延迟 / ms"),
-                ("jitter_ms", "抖动 / ms"),
+                ("phase", crate::i18n::tr("测速阶段")),
+                ("progress", crate::i18n::tr("进度 %")),
+                ("server", crate::i18n::tr("测速服务器")),
+                ("live_speed_mbps", crate::i18n::tr("当前速度 / Mbps")),
+                ("download_mbps", crate::i18n::tr("下载 / Mbps")),
+                ("upload_mbps", crate::i18n::tr("上传 / Mbps")),
+                ("ping_ms", crate::i18n::tr("延迟 / ms")),
+                ("jitter_ms", crate::i18n::tr("抖动 / ms")),
             ] {
                 p.row(l, &progress[k]);
             }
             for (k, l) in [
-                ("download_bytes", "测试已下载"),
-                ("upload_bytes", "测试已上传"),
+                ("download_bytes", crate::i18n::tr("测试已下载")),
+                ("upload_bytes", crate::i18n::tr("测试已上传")),
             ] {
                 p.rows
                     .push((l.into(), super::status::quantity(&progress[k], 1e6, "MB")));
             }
-            let mut server = Field::text("server_id", "测速服务器", &json!(""));
+            let mut server = Field::text("server_id", crate::i18n::tr("测速服务器"), &json!(""));
             server.required = true;
             server.wire = Wire::Integer;
             server.range = Some((1, i64::MAX));
@@ -242,35 +267,42 @@ pub fn page(id: &str, readings: &Data) -> Page {
                 ["latency", "download", "upload"].contains(&text(&progress["phase"]).as_str());
             let mut start = Action::new(
                 "start",
-                "开始互联网测速",
-                "测试消耗移动流量，15 秒下载加约 10 MB 上传；高速网络可能消耗数百 MB，并影响其他设备网速。",
+                crate::i18n::tr("开始互联网测速"),
+                crate::i18n::tr(
+                    "测试消耗移动流量，15 秒下载加约 10 MB 上传；高速网络可能消耗数百 MB，并影响其他设备网速。",
+                ),
             );
             start.enabled = !active && !progress.is_null();
             p.actions.push(start);
             let mut stop = Action::new(
                 "stop",
-                "停止测速",
-                "请求停止当前测试，等待正在进行的网络请求结束。",
+                crate::i18n::tr("停止测速"),
+                crate::i18n::tr("请求停止当前测试，等待正在进行的网络请求结束。"),
             );
             stop.enabled = active;
             p.actions.push(stop);
-            p.note = "测试 U60 到互联网的链路，不包含热点客户端的 Wi-Fi 吞吐。".into();
+            p.note =
+                crate::i18n::tr("测试 U60 到互联网的链路，不包含热点客户端的 Wi-Fi 吞吐。").into();
         }
         "at-terminal" => {
-            p.row("AT 端口", first(data(readings, "port"), &["port", "path"]));
-            let mut command = Field::text("command", "AT 指令", &json!(""));
+            p.row(
+                crate::i18n::tr("AT 端口"),
+                first(data(readings, "port"), &["port", "path"]),
+            );
+            let mut command = Field::text("command", crate::i18n::tr("AT 指令"), &json!(""));
             command.required = true;
             command.max = 512;
             p.fields = vec![
                 command,
-                Field::number("timeout", "超时 / 秒", &json!(3), 1, 30),
+                Field::number("timeout", crate::i18n::tr("超时 / 秒"), &json!(3), 1, 30),
             ];
-            p.actions.push(Action::new("send","执行指令","指令直接发送给调制解调器；写配置、重启或擦除指令可能中断服务或造成持久更改。请逐字核对。"));
+            p.actions.push(Action::new("send",crate::i18n::tr("执行指令"),crate::i18n::tr("指令直接发送给调制解调器；写配置、重启或擦除指令可能中断服务或造成持久更改。请逐字核对。")));
             let result = data(readings, "last_result");
             if !result.is_null() {
-                p.row("耗时 / ms", &result["elapsed_ms"]);
+                p.row(crate::i18n::tr("耗时 / ms"), &result["elapsed_ms"]);
                 p.content = text(&result["response"]);
-                p.actions.push(Action::new("clear-local", "清空显示", ""));
+                p.actions
+                    .push(Action::new("clear-local", crate::i18n::tr("清空显示"), ""));
             }
         }
         _ => {}
@@ -283,7 +315,7 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
             if action == "reset" {
                 return Ok(Plan::one(Method::POST, "/api/cell/band/reset", json!({})));
             }
-            ensure!(action == "apply", "操作不存在。");
+            ensure!(action == "apply", "{}", crate::i18n::tr("操作不存在。"));
             let b = bands(
                 &text(&p.value("bands")?),
                 if id == "nr-bands" { 1024 } else { 88 },
@@ -318,7 +350,7 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
             if action == "reset" {
                 return Ok(Plan::one(Method::POST, "/api/cell/lock/reset", json!({})));
             }
-            ensure!(action == "apply", "操作不存在。");
+            ensure!(action == "apply", "{}", crate::i18n::tr("操作不存在。"));
             let mut body = p.all(&["pci", "earfcn"])?;
             if id == "nr-lock" {
                 body["band"] = p.value("band")?;
@@ -352,7 +384,8 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
             } else {
                 ensure!(
                     ["enable", "disable", "reset"].contains(&action),
-                    "操作不存在。"
+                    "{}",
+                    crate::i18n::tr("操作不存在。")
                 );
                 Ok(Plan::one(
                     Method::POST,
@@ -362,7 +395,11 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
             }
         }
         "signal-test" => {
-            ensure!(["start", "stop"].contains(&action), "操作不存在。");
+            ensure!(
+                ["start", "stop"].contains(&action),
+                "{}",
+                crate::i18n::tr("操作不存在。")
+            );
             Ok(Plan::one(
                 Method::POST,
                 &format!("/api/cell/signal-detect/{action}"),
@@ -370,14 +407,19 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
             ))
         }
         "speedtest" => {
-            ensure!(["start", "stop"].contains(&action), "操作不存在。");
+            ensure!(
+                ["start", "stop"].contains(&action),
+                "{}",
+                crate::i18n::tr("操作不存在。")
+            );
             let body = if action == "start" {
                 let id = p.value("server_id")?;
                 ensure!(
                     data(readings, "servers")
                         .as_array()
                         .is_some_and(|v| v.iter().any(|s| text(&s["id"]) == text(&id))),
-                    "服务器列表已变化。"
+                    "{}",
+                    crate::i18n::tr("服务器列表已变化。")
                 );
                 json!({"server_id":id})
             } else {
@@ -396,7 +438,8 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                     && !command
                         .chars()
                         .any(|c| c.is_control() || "'`$;|&".contains(c)),
-                "请输入一条 AT 指令，不可包含控制字符或 ' ` $ ; | &。"
+                "{}",
+                crate::i18n::tr("请输入一条 AT 指令，不可包含控制字符或 ' ` $ ; | &。")
             );
             Ok(Plan::one(
                 Method::POST,
@@ -404,7 +447,7 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
                 json!({"command":command,"timeout":p.value("timeout")?}),
             ))
         }
-        _ => anyhow::bail!("操作不存在。"),
+        _ => anyhow::bail!("{}", crate::i18n::tr("操作不存在。")),
     }
 }
 fn bands(value: &str, max: u16) -> Result<String> {
@@ -415,7 +458,8 @@ fn bands(value: &str, max: u16) -> Result<String> {
         .collect::<std::result::Result<std::collections::BTreeSet<_>, _>>()?;
     ensure!(
         !list.is_empty() && list.iter().all(|n| (1..=max).contains(n)),
-        "频段列表需包含 1–{max} 之间的数字。"
+        "{}",
+        crate::i18n::format("频段列表需包含 1–{0} 之间的数字。", &[format!("{}", max)])
     );
     Ok(list
         .iter()
