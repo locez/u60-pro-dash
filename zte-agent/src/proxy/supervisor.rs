@@ -98,9 +98,12 @@ pub fn cli(args: &[String]) -> i32 {
 }
 
 pub fn cleanup(root: &Path) {
-    if root.join("capture-owned").exists() {
-        super::network::disable();
-        let _ = std::fs::remove_file(root.join("capture-owned"));
-    }
+    let _ = super::network::locked(root, || {
+        if root.join("capture-owned").exists() {
+            super::network::disable();
+            let _ = std::fs::remove_file(root.join("capture-owned"));
+        }
+        Ok(())
+    });
     let _ = std::fs::remove_file(root.join("runtime.json"));
 }

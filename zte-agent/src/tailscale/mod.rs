@@ -823,7 +823,7 @@ impl TailscaleManager {
             "pinned_version": cfg.pinned_version,
             "gateway_mode": gateway_mode(),
             "accept_routes": cfg.accept_routes,
-            "accept_routes_effective": gateway_mode() && cfg.accept_routes,
+            "accept_routes_effective": false,
         });
 
         if !installed() {
@@ -865,6 +865,7 @@ impl TailscaleManager {
         let online = self_obj["Online"].as_bool().unwrap_or(false);
 
         payload["backend_state"] = json!(backend);
+        payload["accept_routes_effective"] = json!(gateway_mode() && cfg.accept_routes && backend == "Running");
         payload["health"] = json!(health);
         payload["tailscale_ips"] = status["TailscaleIPs"].clone();
         payload["dns_name"] = self_obj["DNSName"].clone();

@@ -16,7 +16,7 @@ BINARY = os.environ.get('U60_AGENT_TEST_BINARY')
 
 @unittest.skipUnless(BINARY, 'Set U60_AGENT_TEST_BINARY to the host agent build')
 class SupervisorTest(unittest.TestCase):
-    def exercise(self, engine_exits):
+    def exercise(self, engine_exits, hold_network=False):
         with tempfile.TemporaryDirectory(prefix='u60-proxy-supervisor-') as directory:
             root = Path(directory)
             root.joinpath('runtime.json').write_text('{}')
@@ -28,6 +28,9 @@ class SupervisorTest(unittest.TestCase):
                 utility = root / name
                 utility.write_text(f'#!{sys.executable}\nimport sys\nwith open({str(root / "calls")!r},"a") as f: f.write(" ".join(sys.argv)+"\\n")\n')
                 utility.chmod(0o700)
+            network_lease = open(root / "network.lock", "a")
+            if hold_network:
+                fcntl.flock(network_lease, fcntl.LOCK_EX)
             owner, child = socket.socketpair()
             with open(root / 'service.lock', 'a') as lease:
                 fcntl.flock(lease, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -41,6 +44,12 @@ class SupervisorTest(unittest.TestCase):
                 with open(root / 'service.lock', 'a') as competing:
                     with self.assertRaises(BlockingIOError):
                         fcntl.flock(competing, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                if hold_network:
+                    time.sleep(0.8)
+                    self.assertIsNone(process.poll(), 'cleanup must wait for network activation')
+                    self.assertTrue(root.joinpath('capture-owned').exists())
+                    self.assertFalse(root.joinpath('calls').exists())
+                    fcntl.flock(network_lease, fcntl.LOCK_UN)
                 if not engine_exits:
                     owner.close()  # Same EOF as an owning agent crash or kill.
                 self.assertEqual(process.wait(timeout=30), 1 if engine_exits else 0)
@@ -56,10 +65,13 @@ class SupervisorTest(unittest.TestCase):
                 self.assertNotIn('table 52', calls)
                 self.assertNotIn('flush', calls)
             finally:
+                network_lease.close()
                 owner.close()
                 if process.poll() is None:
                     process.kill()
                 process.communicate(timeout=5)
+    def test_cleanup_waits_for_activation_and_retains_service_ownership(self):
+        self.exercise(True, hold_network=True)
     def test_agent_disconnect_reaps_engine_and_removes_owned_rules(self):
         self.exercise(False)
     def test_engine_failure_restores_routes_while_agent_is_alive(self):

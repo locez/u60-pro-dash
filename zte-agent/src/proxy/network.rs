@@ -3,6 +3,31 @@
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
+// The service lease is inherited by both agent and supervisor. A separate
+// independently opened flock serializes their network changes with each other.
+pub fn locked<T>(
+    root: &std::path::Path,
+    action: impl FnOnce() -> Result<T, String>,
+) -> Result<T, String> {
+    use std::os::unix::{fs::OpenOptionsExt, io::AsRawFd};
+    let lock = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .mode(0o600)
+        .open(root.join("network.lock"))
+        .map_err(|_| "Cannot lock proxy network state")?;
+    loop {
+        // SAFETY: the descriptor remains live until action returns.
+        if unsafe { libc::flock(lock.as_raw_fd(), libc::LOCK_EX) } == 0 {
+            break;
+        }
+        if std::io::Error::last_os_error().kind() != std::io::ErrorKind::Interrupted {
+            return Err("Cannot lock proxy network state".into());
+        }
+    }
+    action()
+}
+
 const TABLE: &str = "20260";
 const IFACES: [&str; 3] = ["br-lan", "wlan0", "wlan2"];
 const PRIVATE4: [&str; 8] = [
@@ -106,7 +131,7 @@ pub fn preflight() -> Result<(), String> {
             ("filter", "U60_PROXY_FW"),
             ("nat", "U60_PROXY_DNS"),
         ] {
-            fw(tool, table, &["-L"])?;
+            fw(tool, table, &["-S"])?;
             if fw(tool, table, &["-S", chain]).is_ok() {
                 return Err("Proxy firewall chains are already in use".into());
             }

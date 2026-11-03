@@ -330,9 +330,11 @@ impl ProxyManager {
             &self.root.join("runtime.json"),
         )?;
         if settings.capture == "hotspot" {
-            network::preflight()?;
-            private_write(&self.root.join("capture-owned"), b"1", 0o600)?;
-            network::prepare()?;
+            network::locked(&self.root, || {
+                network::preflight()?;
+                private_write(&self.root.join("capture-owned"), b"1", 0o600)?;
+                network::prepare()
+            })?;
         }
         let generation = {
             let mut r = self.runtime.lock().unwrap();
@@ -360,7 +362,13 @@ impl ProxyManager {
         let result = if !ready {
             Err("Proxy controller did not become ready".into())
         } else if settings.capture == "hotspot" {
-            network::activate().map(|()| self.runtime.lock().unwrap().capturing = true)
+            network::locked(&self.root, || {
+                if !self.root.join("capture-owned").exists() {
+                    return Err("Proxy engine stopped during startup".into());
+                }
+                network::activate()
+            })
+            .map(|()| self.runtime.lock().unwrap().capturing = true)
         } else {
             Ok(())
         };
@@ -624,6 +632,37 @@ pub fn change(state: &AppState, action: &str, body: &[u8]) -> (u16, Value) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    /// Optional device/engine contract check. The executable may be a wrapper
+    /// that forwards the fixed validation arguments to a connected test device.
+    #[test]
+    #[ignore = "requires an external engine via U60_PROXY_TEST_ENGINE"]
+    fn external_engine_accepts_service_runtime() {
+        let binary = PathBuf::from(std::env::var("U60_PROXY_TEST_ENGINE").expect("test engine"));
+        let root = std::env::temp_dir().join(format!("u60-proxy-contract-{}", std::process::id()));
+        fs::create_dir_all(&root).unwrap();
+        let driver = engine::adapter("compatible-v1").unwrap();
+        let source = driver.normalize("proxies: [{name: Example, type: socks5, server: 192.0.2.2, port: 1080}]\nproxy-groups: [{name: Primary, type: select, proxies: [Example, DIRECT]}]\nrules: ['MATCH,DIRECT']\n").unwrap();
+        for capture in ["local", "hotspot"] {
+            let settings = Settings {
+                capture: capture.into(),
+                ..Settings::default()
+            };
+            let path = root.join(format!("{capture}.json"));
+            private_write(
+                &path,
+                &serde_json::to_vec(&driver.runtime(
+                    &source,
+                    &settings,
+                    "example-validation-credential",
+                ))
+                .unwrap(),
+                0o600,
+            )
+            .unwrap();
+            run_checked(driver.as_ref(), &binary, &root, &path).unwrap();
+        }
+        fs::remove_dir_all(root).unwrap();
+    }
     #[test]
     fn validates_urls_and_settings() {
         for u in [
