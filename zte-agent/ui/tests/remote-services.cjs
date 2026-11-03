@@ -3,6 +3,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
 (async()=>{
  const uploads={};
  const software={mihomo:{phase:'idle',busy:false,available:null},tailscale:{phase:'idle',busy:false,available:null}};
+ for(const kind of ['geoip','geosite','mmdb','asn'])software['mihomo-'+kind]={phase:'idle',busy:false};
  let releaseFailure=false,chunkFailure=false,loseAcceptance=false,loseOfficialAcceptance=false,holdRelease=false,releaseMetadata=null;
  const ok=data=>({ok:true,data}),writes=[],streams=new Set(),errors=[];
  const proxy={id:'mihomo',name:'mihomo',mixed_port:7890,ipv6:true,tcp_concurrent:false,installed:true,configured:false,config_revision:null,enabled:false,running:false,capture:'local',capturing:false,mode:'rule',version:'1.0.0',local_endpoint:'127.0.0.1:7890'};
@@ -42,7 +43,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
      if(req.url.endsWith('/upload/install')){
       if(!uploads[service]?.active){res.statusCode=400;return res.end(JSON.stringify({ok:false,error:'Upload identifier invalid'}));}
       uploads[service].active=false;Object.assign(software[service],{phase:'preparing',busy:true});
-      setTimeout(()=>{proxy.version=uploads[service].version;Object.assign(software[service],{phase:'succeeded',busy:false});},400);
+      setTimeout(()=>{if(service==='mihomo')proxy.version=uploads[service].version;Object.assign(software[service],{phase:'succeeded',busy:false});},400);
       if(loseAcceptance){res.writeHead(200,{'Content-Type':'application/json','Content-Length':2000});res.write('{"ok":true,"data":');setImmediate(()=>res.destroy());return;}return send(software[service]);
      }
      if(service==='mihomo')proxy.version=body.version;else ts.client_version=body.version;
@@ -60,9 +61,10 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
    }
    let raw='';req.on('data',b=>raw+=b);req.on('end',()=>{
     const body=JSON.parse(raw||'{}');writes.push({url:req.url,body});
-    if(['/api/proxy/mihomo/config','/api/proxy/mihomo/subscription','/api/proxy/mihomo/validate','/api/proxy/mihomo/reload'].includes(req.url)){
+    if(['/api/proxy/mihomo/config','/api/proxy/mihomo/subscription','/api/proxy/mihomo/validate','/api/proxy/mihomo/reload','/api/proxy/mihomo/geodata'].includes(req.url)){
      if(body.revision!==proxy.config_revision){res.statusCode=409;return res.end(JSON.stringify({ok:false,error:'Configuration changed since it was read'}));}
      if(rejectConfig){res.statusCode=400;return res.end(JSON.stringify({ok:false,error:'Fixture configuration rejected'}));}
+     if(req.url.endsWith('/geodata'))return send({prepared:true,revision:proxy.config_revision});
      if(req.url.endsWith('/validate'))return send({valid:true,revision:proxy.config_revision});
      if(req.url.endsWith('/reload'))reloads++;
      else if(!ignoreSave)setConfig(body.config||'proxies: [{name: Subscribed, type: socks5, server: example.com, port: 1080}]');
@@ -102,6 +104,15 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
   const sample='proxies: [{name: Example, type: socks5, server: example.com, port: 1080}]';
   await page.locator('#proxy-file').setInputFiles({name:'example.yaml',mimeType:'text/yaml',buffer:Buffer.from(sample)});await page.waitForFunction(()=>document.querySelector('#proxy-config').value.includes('example.com'));
   await page.getByRole('button',{name:'Validate configuration',exact:true}).click();await done();assert.equal(proxy.configured,false);assert.match(await page.locator('#proxy-config-feedback').textContent(),/No changes have been applied/);
+  // Database bootstrap retains the draft and never starts or saves this service.
+  rejectConfig=true;await page.locator('#proxy-geodata-prepare').click();await confirm('Prepare databases');assert.match(await page.locator('#proxy-config-feedback').textContent(),/Fixture configuration rejected/);assert.equal(await page.locator('#proxy-config').inputValue(),sample);rejectConfig=false;
+  await page.locator('#proxy-geodata-prepare').click();await confirm('Prepare databases');assert.equal(writes.at(-1).url,'/api/proxy/mihomo/geodata');assert.equal(writes.at(-1).body.config,sample);assert.equal(savedConfig,'');assert.equal(proxy.running,false);assert.equal(await page.locator('#proxy-config').inputValue(),sample);assert.match(await page.locator('#proxy-config-feedback').textContent(),/Rule databases are ready/);
+  await page.locator('#proxy-geodata-upload summary').click();
+  const databaseBytes=Buffer.alloc(300000,0x45);await page.locator('#proxy-geodata-file').setInputFiles({name:'GeoIP.dat',mimeType:'application/octet-stream',buffer:databaseBytes});
+  chunkFailure=true;await page.locator('#proxy-geodata-install').click();await confirm('Upload database');assert.match(await page.locator('#proxy-geodata-feedback').textContent(),/Upload interrupted in fixture/);assert.equal(software['mihomo-geoip'].busy,false);chunkFailure=false;
+  const beforeDatabase=writes.length;loseAcceptance=true;await page.locator('#proxy-geodata-install').click();await confirm('Upload database');
+  await page.waitForFunction(()=>document.querySelector('#proxy-geodata-feedback').textContent.includes('Database imported'));
+  assert.equal(uploads['mihomo-geoip'].bytes.equals(databaseBytes),true);assert.equal(writes.slice(beforeDatabase).filter(w=>w.url.endsWith('/upload/install')).length,1);assert.equal(await page.locator('#proxy-config').inputValue(),sample);assert.equal(savedConfig,'');loseAcceptance=false;
   ignoreSave=true;await page.getByRole('button',{name:'Save configuration',exact:true}).click();await confirm('Apply configuration');assert.match(await page.locator('#proxy-config-feedback').textContent(),/could not be confirmed/);assert.equal(await page.locator('#proxy-config').inputValue(),sample);assert.equal(await page.getByRole('button',{name:'Start mihomo',exact:true}).isDisabled(),true);ignoreSave=false;
   await page.locator('#proxy-import-file').click();await confirm('Apply configuration');assert.equal(writes.at(-1).body.config,sample);assert.equal(await page.locator('#proxy-config').inputValue(),sample);assert.equal(await page.getByRole('button',{name:'Start mihomo',exact:true}).isDisabled(),false);
   await page.locator('#proxy-source-url').fill('https://example.com/config?token=demo-private');await page.getByRole('button',{name:'Import and apply subscription',exact:true}).click();assert.ok(!(await page.locator('.confirm-dialog').textContent()).includes('demo-private'));await confirm('Apply configuration');assert.equal(await page.locator('#proxy-source-url').inputValue(),'');assert.match(await page.locator('#proxy-config').inputValue(),/Subscribed/);
@@ -118,6 +129,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
   assert.equal(await page.locator('#mihomo-package-file').inputValue(),'');
   await page.getByRole('button',{name:'Start mihomo',exact:true}).click();await confirm('Start mihomo');assert.equal(other.running,true);assert.ok(writes.filter(w=>w.url.startsWith('/api/proxy/')).every(w=>w.url.startsWith('/api/proxy/mihomo/')));
   await page.getByRole('tab',{name:'Configuration',exact:true}).click();
+  assert.equal(await page.locator('#proxy-geodata-prepare').isDisabled(),true);
   const previousConfig=savedConfig,previousRevision=proxy.config_revision,writeStart=writes.length;
   await page.locator('#proxy-config').fill(sample+"\nrules: ['MATCH,DIRECT']");
   rejectConfig=true;await page.getByRole('button',{name:'Save and reload',exact:true}).click();await confirm('Apply configuration');assert.match(await page.locator('#proxy-config-feedback').textContent(),/Fixture configuration rejected/);assert.equal(savedConfig,previousConfig);assert.equal(proxy.running,true);rejectConfig=false;

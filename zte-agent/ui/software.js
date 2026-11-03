@@ -128,4 +128,74 @@
     setInterval(()=>{if(active()&&!document.hidden&&state?.busy&&!uploading)refresh();},2000);
     sync();return {drawInstalled(value){installed=value;sync();},clear};
   };
+  globalThis.OpenU60DatabaseUpload=function(view,parent){
+    const names={'geoip.dat':'geoip','geosite.dat':'geosite','geoip.metadb':'mmdb','geoip.db':'mmdb','country.mmdb':'mmdb','asn.mmdb':'asn','geolite2-asn.mmdb':'asn'};
+    const panel=el('details','software-manual');panel.id='proxy-geodata-upload';
+    panel.append(el('summary','',tr('Offline rule databases')),el('p','panel-note',tr('If the router cannot reach the download source, download the databases on your computer and upload them here. Stop this service before importing. Each file can be up to 64 MiB.')));
+    const label=el('label','field'),file=el('input');file.id='proxy-geodata-file';file.type='file';file.accept='.dat,.mmdb,.metadb,.db';label.append(el('span','field-label',tr('Database file')),file);
+    const upload=button(tr('Upload database'),uploadFile);upload.id='proxy-geodata-install';
+    const progress=el('progress','software-progress');progress.hidden=true;const feedback=UI.status(panel);feedback.id='proxy-geodata-feedback';
+    panel.append(label,el('p','field-help','GeoIP.dat · GeoSite.dat · geoip.metadb / Country.mmdb · ASN.mmdb'),upload,progress,feedback);parent.append(panel);
+    let generation=0,uploading=false,pending=null,states={},loading=false,loaded=false;
+    const active=()=>OpenU60Navigation.current.key===view.route&&!API.locked&&API.connected;
+    const current=epoch=>epoch===generation&&active();
+    const busy=()=>uploading||Object.values(states).some(s=>s.busy);
+    function sync(){upload.disabled=!active()||UI.saving||busy()||!view.data?.installed||view.data?.running!==false||!file.files.length;file.disabled=UI.saving||busy();progress.hidden=!busy();}
+    function report(){
+      const rows=Object.entries(states).filter(([,s])=>s.phase!=='idle');
+      const text=rows.map(([kind,s])=>`${({geoip:'GeoIP.dat',geosite:'GeoSite.dat',mmdb:'geoip.metadb',asn:'ASN.mmdb'})[kind]}: ${s.phase==='succeeded'?tr('Database imported. You can now validate and save the configuration.'):s.phase==='failed'?s.error||tr('Import failed.'):tr('Uploading and checking database…')}`).join('\n');
+      UI.say(feedback,text,rows.some(([,s])=>s.phase==='failed'));sync();
+    }
+    async function refresh(){
+      if(!active()||loading||uploading||UI.saving)return;const epoch=generation;loading=true;
+      try{const result=await Promise.all(['geoip','geosite','mmdb','asn'].map(async kind=>[kind,await UI.request(`/api/software/mihomo-${kind}/status`)]));if(current(epoch)){states=Object.fromEntries(result);loaded=true;report();}}
+      catch(error){if(current(epoch))UI.say(feedback,error.message,true);}
+      finally{if(current(epoch))loading=false;}
+    }
+    async function cancel(job){if(job&&!API.locked){try{await UI.request(`${job.endpoint}/upload/cancel`,UI.json('POST',{upload_id:job.id}));}catch{}}}
+    async function uploadFile(){
+      const selected=file.files[0],epoch=generation;if(!active()||busy()||UI.saving||view.data?.running!==false||!selected)return;
+      const kind=names[selected.name.toLowerCase()];
+      if(!kind){UI.say(feedback,tr('Choose GeoIP.dat, GeoSite.dat, geoip.metadb, Country.mmdb or ASN.mmdb.'),true);return;}
+      if(!selected.size||selected.size>64*1024*1024){UI.say(feedback,tr('The database is empty or exceeds 64 MiB.'),true);return;}
+      if(!await UI.confirm(tr('Import rule database'),tr('Validate and replace {0}? The service stays stopped and your configuration draft is retained.',selected.name),{label:tr('Upload database')}))return;
+      if(!current(epoch))return;
+      uploading=true;sync();const endpoint=`/api/software/mihomo-${kind}`;
+      await UI.mutate(feedback,async live=>{
+        let job=null;
+        try{
+          const start=await UI.request(`${endpoint}/upload`,UI.json('POST',{name:selected.name,size:selected.size}));job={endpoint,id:start.upload_id};
+          if(!live()||!current(epoch)){await cancel(job);return;}pending=job;
+          const chunkSize=Math.min(Number(start.chunk_size)||262144,262144);
+          progress.max=selected.size;progress.value=0;
+          for(let offset=0;offset<selected.size;offset+=chunkSize){
+            const bytes=new Uint8Array(await selected.slice(offset,offset+chunkSize).arrayBuffer());
+            if(!live()||!current(epoch)){await cancel(job);return;}
+            const result=await UI.request(`${endpoint}/upload/chunk`,UI.json('POST',{upload_id:job.id,offset,data:base64(bytes)}));
+            if(live()&&current(epoch)){progress.value=result.bytes_received;UI.say(feedback,tr('Uploading and checking database…'));}
+          }
+          if(!live()||!current(epoch)){await cancel(job);return;}
+          const result=await UI.request(`${endpoint}/upload/install`,UI.json('POST',{upload_id:job.id}));
+          if(live()&&current(epoch)){pending=null;file.value='';states[kind]=result;report();}
+        }catch(error){
+          await cancel(job);
+          // Read back a possibly accepted job; never retry the install write.
+          if(current(epoch)){
+            try{const actual=await UI.request(`${endpoint}/status`);if(current(epoch))states[kind]=actual;}catch{if(current(epoch))states[kind]={busy:true,phase:'preparing'};}
+            if(!current(epoch))return;
+            pending=null;if(states[kind].phase==='succeeded'||(states[kind].busy&&states[kind].phase!=='uploading'))file.value='';
+            UI.say(feedback,error.message,true);
+          }
+        }
+      });
+      if(current(epoch)){uploading=false;sync();}
+    }
+    function clear(){const job=pending;generation++;pending=null;uploading=false;loading=false;loaded=false;states={};file.value='';panel.open=false;UI.say(feedback,'');sync();cancel(job);}
+    file.addEventListener('change',sync);
+    window.addEventListener('dashboard:navigate',()=>{if(OpenU60Navigation.current.key!==view.route)clear();});
+    window.addEventListener('dashboard:connection',sync);window.addEventListener('dashboard:mutation-complete',sync);
+    UI.track({route:view.route,load:refresh,refresh,clear,get loaded(){return loaded;},get dirty(){return !!file.files.length;}});
+    setInterval(()=>{if(active()&&!document.hidden&&busy()&&!uploading)refresh();},2000);
+    return {clear,sync};
+  };
 })();

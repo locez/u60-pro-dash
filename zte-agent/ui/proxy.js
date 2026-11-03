@@ -57,7 +57,10 @@
   const validate=button(tr('Validate configuration'),()=>applyConfiguration('validate'));
   const save=button(tr('Save configuration'),()=>applyConfiguration('config'),'primary');save.id='proxy-save-config';
   const reload=button(tr('Reload saved configuration'),()=>applyConfiguration('reload'));reload.id='proxy-reload-config';
-  editorActions.append(read,validate,save,reload);
+  const prepareData=button(tr('Prepare / repair rule databases'),()=>applyConfiguration('geodata'));prepareData.id='proxy-geodata-prepare';
+  editorActions.append(read,validate,save,reload,prepareData);
+  imported.append(el('p','panel-note',tr('Missing or incomplete rule databases are prepared before validation. Use repair to download fresh copies from this draft’s sources; the service must be stopped.')));
+  const dataUpload=OpenU60DatabaseUpload(proxy,imported);
   const importOptions=el('details','proxy-import-options'),importTitle=el('summary','',tr('Import a file or subscription'));
   const importFields=el('div','proxy-import-fields');importOptions.append(importTitle,importFields);imported.append(importOptions);
   const upload=input(importFields,'proxy-file',tr('Configuration file'),{type:'file'});upload.accept='.yaml,.yml,.json';
@@ -73,6 +76,8 @@
     read.disabled=!ready||editorLoading||fileLoading;
     validate.disabled=!ready||!installed||!editorLoaded||editorLoading||fileLoading||!config.value.trim();
     save.disabled=validate.disabled||!editorDirty;
+    prepareData.disabled=validate.disabled||proxy.data?.running!==false;
+    dataUpload.sync();
     applyFile.disabled=save.disabled||!upload.files.length;
     reload.disabled=!ready||!installed||!proxy.data?.running||!proxy.data?.configured||!editorLoaded||editorLoading||fileLoading;
     fetchSubscription.disabled=!ready||!installed||!editorLoaded||editorLoading||fileLoading||!subURL.value.trim();
@@ -117,15 +122,20 @@
     else if(action!=='reload')body.config=config.value;
     if(body.config!==undefined&&new TextEncoder().encode(body.config).length>512*1024){UI.say(editorFeedback,tr('Configuration exceeds 512 KiB.'),true);return;}
     if(action!=='validate'){
-      const message=action==='reload'?tr('Reload the saved configuration without replacing the draft in this editor.'):action==='subscription'?tr('Fetch, validate and save this subscription. A running service will reload it.'):tr('Validate and save this draft. A running service will reload it; a stopped service stays stopped.');
-      if(!await UI.confirm('mihomo',message,{label:action==='reload'?tr('Reload'):tr('Apply configuration')}))return;
+      const message=action==='geodata'?tr('Download and validate the rule databases required by this draft. The saved configuration is unchanged.'):action==='reload'?tr('Reload the saved configuration without replacing the draft in this editor.'):action==='subscription'?tr('Fetch, validate and save this subscription. A running service will reload it.'):tr('Validate and save this draft. A running service will reload it; a stopped service stays stopped.');
+      if(!await UI.confirm('mihomo',message,{label:action==='geodata'?tr('Prepare databases'):action==='reload'?tr('Reload'):tr('Apply configuration')}))return;
     }
     if(!editorCurrent(epoch))return;
     configRead++;
     await UI.mutate(editorFeedback,async live=>{
       try{
-        const result=await UI.request(`/api/proxy/mihomo/${action}`,{...UI.json('POST',body),timeoutMs:240000});
+        if(action==='geodata')UI.say(editorFeedback,tr('Preparing rule databases and validating configuration…'));
+        const result=await UI.request(`/api/proxy/mihomo/${action}`,{...UI.json('POST',body),timeoutMs:600000});
         if(!live()||!editorCurrent(epoch))return;
+        if(action==='geodata'){
+          if(result.prepared!==true)throw new Error(tr('Database preparation could not be confirmed.'));
+          UI.say(editorFeedback,tr('Rule databases are ready. Your draft is retained; save it to apply the configuration.'));return;
+        }
         if(action==='validate'){
           if(result.valid!==true)throw new Error(tr('The router did not confirm configuration validation.'));
           UI.say(editorFeedback,tr('Configuration is valid. No changes have been applied.'));return;
@@ -166,5 +176,5 @@
     proxy.fact(tr('Version'),d.installed?(d.version||tr('Installed')):tr('Not installed'));proxy.fact(tr('Configuration'),d.configured?tr('Saved'):tr('Not imported'));proxy.fact(tr('Mode'),({rule:tr('Rule'),global:tr('Global'),direct:tr('Direct')})[d.mode]||d.mode);proxy.fact(tr('Local HTTP / SOCKS'),d.local_endpoint);if(d.last_error)proxy.fact(tr('Last error'),d.last_error);
     if(!pf.dataset.dirty){pm.value=d.mode;pc.value=d.capture;port.value=d.mixed_port||7890;ipv6.value=String(d.ipv6!==false);concurrent.value=String(!!d.tcp_concurrent);}
   };
-  proxy.onClear=()=>{installer.clear();fileEpoch++;configRead++;fileRead++;editorLoading=false;fileLoading=false;editorLoaded=false;editorDirty=false;editorRevision=null;config.value='';subURL.value='';upload.value='';importOptions.open=false;UI.say(editorFeedback,'');startHint.replaceChildren();groups.replaceChildren();groupDrafts.clear();show('overview');};proxy.track();
+  proxy.onClear=()=>{installer.clear();dataUpload.clear();fileEpoch++;configRead++;fileRead++;editorLoading=false;fileLoading=false;editorLoaded=false;editorDirty=false;editorRevision=null;config.value='';subURL.value='';upload.value='';importOptions.open=false;UI.say(editorFeedback,'');startHint.replaceChildren();groups.replaceChildren();groupDrafts.clear();show('overview');};proxy.track();
 })();

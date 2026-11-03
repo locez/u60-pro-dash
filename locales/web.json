@@ -13830,5 +13830,131 @@
     "en": "HTTPS URL returning native YAML or JSON, including direct configuration links. The address is cleared after a confirmed import.",
     "ja": "ネイティブの YAML または JSON を返す HTTPS URL。設定ファイルの直接リンクにも対応します。取り込みを確認した後に URL を消去します。",
     "ko": "YAML 또는 JSON을 직접 반환하는 HTTPS 주소와 설정 파일 직접 링크를 지원합니다. 가져오기를 확인한 후 주소를 지웁니다."
+  },
+  "Choose GeoIP.dat, GeoSite.dat, geoip.metadb, Country.mmdb or ASN.mmdb.": {
+    "en": "Choose GeoIP.dat, GeoSite.dat, geoip.metadb, Country.mmdb or ASN.mmdb.",
+    "zh-Hans": "请选择 GeoIP.dat、GeoSite.dat、geoip.metadb、Country.mmdb 或 ASN.mmdb。",
+    "zh-Hant": "請選擇 GeoIP.dat、GeoSite.dat、geoip.metadb、Country.mmdb 或 ASN.mmdb。",
+    "ja": "GeoIP.dat、GeoSite.dat、geoip.metadb、Country.mmdb または ASN.mmdb を選択してください。",
+    "ko": "GeoIP.dat, GeoSite.dat, geoip.metadb, Country.mmdb 또는 ASN.mmdb를 선택하세요."
+  },
+  "Database file": {
+    "en": "Database file",
+    "zh-Hans": "数据库文件",
+    "zh-Hant": "資料庫檔案",
+    "ja": "データファイル",
+    "ko": "데이터 파일"
+  },
+  "Database imported. You can now validate and save the configuration.": {
+    "en": "Database imported. You can now validate and save the configuration.",
+    "zh-Hans": "数据库已导入，可以校验并保存配置。",
+    "zh-Hant": "資料庫已匯入，可以驗證並儲存設定。",
+    "ja": "データを取り込みました。設定を検証して保存できます。",
+    "ko": "데이터를 가져왔습니다. 이제 설정을 검증하고 저장할 수 있습니다."
+  },
+  "Database preparation could not be confirmed.": {
+    "en": "Database preparation could not be confirmed.",
+    "zh-Hans": "无法确认规则数据是否准备完成。",
+    "zh-Hant": "無法確認規則資料是否準備完成。",
+    "ja": "ルールデータの準備完了を確認できませんでした。",
+    "ko": "규칙 데이터 준비 완료를 확인할 수 없습니다."
+  },
+  "Download and validate the rule databases required by this draft. The saved configuration is unchanged.": {
+    "en": "Download and validate the rule databases required by this draft. The saved configuration is unchanged.",
+    "zh-Hans": "下载并校验此草稿需要的规则数据库，不会保存或应用草稿。",
+    "zh-Hant": "下載並驗證此草稿需要的規則資料庫，不會儲存或套用草稿。",
+    "ja": "この下書きに必要なルールデータを取得・検証します。保存済みの設定は変更しません。",
+    "ko": "이 초안에 필요한 규칙 데이터를 다운로드하고 검증합니다. 저장된 설정은 변경하지 않습니다."
+  },
+  "If the router cannot reach the download source, download the databases on your computer and upload them here. Stop this service before importing. Each file can be up to 64 MiB.": {
+    "en": "If the router cannot reach the download source, download the databases on your computer and upload them here. Stop this service before importing. Each file can be up to 64 MiB.",
+    "zh-Hans": "设备无法访问下载源时，可先用电脑下载数据库，再在这里上传。导入前请停止本服务，每个文件最大 64 MiB。",
+    "zh-Hant": "裝置無法存取下載來源時，可先用電腦下載資料庫，再在這裡上傳。匯入前請停止本服務，每個檔案最大 64 MiB。",
+    "ja": "ルーターが配布元に接続できない場合は、パソコンで取得したデータをアップロードできます。取り込み前にサービスを停止してください。1 ファイル最大 64 MiB です。",
+    "ko": "라우터에서 다운로드 주소에 접속할 수 없으면 컴퓨터로 받은 데이터를 업로드하세요. 가져오기 전에 서비스를 중지하세요. 파일당 최대 64 MiB입니다."
+  },
+  "Import failed.": {
+    "en": "Import failed.",
+    "zh-Hans": "导入失败。",
+    "zh-Hant": "匯入失敗。",
+    "ja": "取り込みに失敗しました。",
+    "ko": "가져오기에 실패했습니다."
+  },
+  "Import rule database": {
+    "en": "Import rule database",
+    "zh-Hans": "导入规则数据库",
+    "zh-Hant": "匯入規則資料庫",
+    "ja": "ルールデータの取り込み",
+    "ko": "규칙 데이터 가져오기"
+  },
+  "Missing or incomplete rule databases are prepared before validation. Use repair to download fresh copies from this draft’s sources; the service must be stopped.": {
+    "en": "Missing or incomplete rule databases are prepared before validation. Use repair to download fresh copies from this draft’s sources; the service must be stopped.",
+    "zh-Hans": "校验前会自动准备缺失或不完整的规则数据库。若需按草稿中的下载源重新下载，请先停止服务，再点「准备／修复规则数据」。",
+    "zh-Hant": "驗證前會自動準備缺少或不完整的規則資料庫。若需按草稿中的下載來源重新下載，請先停止服務，再點「準備／修復規則資料」。",
+    "ja": "検証前に不足・破損したルールデータを自動で準備します。下書きの配布元から再取得する場合は、サービスを停止して準備・修復を実行してください。",
+    "ko": "검증 전에 없거나 불완전한 규칙 데이터를 자동으로 준비합니다. 초안의 다운로드 주소에서 다시 받으려면 서비스를 중지하고 준비 / 복구를 실행하세요."
+  },
+  "Offline rule databases": {
+    "en": "Offline rule databases",
+    "zh-Hans": "离线导入规则数据库",
+    "zh-Hant": "離線匯入規則資料庫",
+    "ja": "ルールデータをオフラインで取り込む",
+    "ko": "규칙 데이터 오프라인 가져오기"
+  },
+  "Prepare / repair rule databases": {
+    "en": "Prepare / repair rule databases",
+    "zh-Hans": "准备／修复规则数据",
+    "zh-Hant": "準備／修復規則資料",
+    "ja": "ルールデータを準備・修復",
+    "ko": "규칙 데이터 준비 / 복구"
+  },
+  "Prepare databases": {
+    "en": "Prepare databases",
+    "zh-Hans": "准备数据",
+    "zh-Hant": "準備資料",
+    "ja": "データを準備",
+    "ko": "데이터 준비"
+  },
+  "Rule databases are ready. Your draft is retained; save it to apply the configuration.": {
+    "en": "Rule databases are ready. Your draft is retained; save it to apply the configuration.",
+    "zh-Hans": "规则数据已准备好。草稿已保留，点击保存配置即可应用。",
+    "zh-Hant": "規則資料已準備好。草稿已保留，點擊儲存設定即可套用。",
+    "ja": "ルールデータを準備しました。下書きを適用するには設定を保存してください。",
+    "ko": "규칙 데이터가 준비되었습니다. 초안을 적용하려면 설정을 저장하세요."
+  },
+  "The database is empty or exceeds 64 MiB.": {
+    "en": "The database is empty or exceeds 64 MiB.",
+    "zh-Hans": "数据库为空或超过 64 MiB。",
+    "zh-Hant": "資料庫為空或超過 64 MiB。",
+    "ja": "データファイルが空か、64 MiB を超えています。",
+    "ko": "데이터 파일이 비어 있거나 64 MiB를 초과합니다."
+  },
+  "Upload database": {
+    "en": "Upload database",
+    "zh-Hans": "上传数据库",
+    "zh-Hant": "上傳資料庫",
+    "ja": "データをアップロード",
+    "ko": "데이터 업로드"
+  },
+  "Uploading and checking database…": {
+    "en": "Uploading and checking database…",
+    "zh-Hans": "正在上传并校验数据库…",
+    "zh-Hant": "正在上傳並驗證資料庫…",
+    "ja": "データをアップロード・検証中…",
+    "ko": "데이터 업로드 및 검증 중…"
+  },
+  "Validate and replace {0}? The service stays stopped and your configuration draft is retained.": {
+    "en": "Validate and replace {0}? The service stays stopped and your configuration draft is retained.",
+    "zh-Hans": "校验并替换 {0}？本服务将保持停止，配置草稿会保留。",
+    "zh-Hant": "驗證並替換 {0}？本服務將保持停止，設定草稿會保留。",
+    "ja": "{0} を検証して置き換えますか？サービスは停止状態を維持し、設定の下書きも保持します。",
+    "ko": "{0}을 검증하고 교체할까요? 서비스는 중지 상태를 유지하며 설정 초안은 보존됩니다."
+  },
+  "Preparing rule databases and validating configuration…": {
+    "en": "Preparing rule databases and validating configuration…",
+    "zh-Hans": "正在准备规则数据库并校验配置…",
+    "zh-Hant": "正在準備規則資料庫並驗證設定…",
+    "ja": "ルールデータの準備と設定の検証中…",
+    "ko": "규칙 데이터 준비 및 설정 검증 중…"
   }
 }
