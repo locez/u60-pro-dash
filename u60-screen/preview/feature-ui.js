@@ -30,11 +30,11 @@ window.createFeatureUI = function createFeatureUI(ctx) {
     }
   }
   function setRow(m,label,value){const row=m.rows.find(r=>r[0]===label);if(row)row[1]=value;else m.rows.push([label,value]);}
-  function rootFor(r=route){if(!r)return 'apps';if(r.type==='root')return r.id;const g=r.type==='group'?groups.find(g=>g.id===r.id):groupOf(byId.get(r.id));return g.root==='device-settings'?'device':g.root;}
+  function rootFor(r=route){if(!r)return 'apps';let id=r.type==='root'?r.id:r.type==='group'?r.id:groupOf(byId.get(r.id)).id;for(let n=0;n<=groups.length;n++){const g=groups.find(g=>g.id===id);if(!g)break;id=g.root;}return id==='device-settings'?'device':id;}
   function navigate(next,push=true){cancelDialog();if(push&&route)stack.push(route);route=next;ctx.showCatalog(rootFor());render();}
   function root(id){stack=[];navigate({type:'root',id},false);}
-  function group(id){const g=groups.find(g=>g.id===id);if(!g)return;stack=[{type:'root',id:g.root}];navigate({type:'group',id},false);}
-  function feature(id){const f=byId.get(id);if(!f)return;const g=groupOf(f);if(f.view){ctx.showStatic(f.view);return;}stack=[{type:'root',id:g.root},{type:'group',id:g.id}];navigate({type:'feature',id},false);}
+  function group(id){const g=groups.find(g=>g.id===id);if(!g)return;stack=[];let parent=g.root;for(let n=0;n<=groups.length;n++){const ancestor=groups.find(item=>item.id===parent);if(!ancestor){stack.unshift({type:'root',id:parent});break;}stack.unshift({type:'group',id:parent});parent=ancestor.root;}navigate({type:'group',id},false);}
+  function feature(id){const f=byId.get(id);if(!f)return;const g=groupOf(f);if(f.view){ctx.showStatic(f.view);return;}group(g.id);navigate({type:'feature',id});}
   function back(){cancelDialog();if(stack.length){route=stack.pop();ctx.showCatalog(rootFor());render();}else ctx.showStatic('network');}
   function header(title,description,showBack=true){const wrap=node('header','catalog-head');if(showBack){const b=button('返回',back,'back-button');b.prepend(icon('back'));wrap.append(b);}else wrap.append(node('p','screen-overline','OPEN U60'));wrap.append(node('h2','',title));if(description)wrap.append(node('p','',description));host.append(wrap);}
   function menu(title,subtitle,handler,symbol,unread=false){const b=button('',handler,'menu-link');if(symbol)b.append(icon(symbol));const t=node('span');t.append(node('b','',title));if(subtitle)t.append(node('small','',subtitle));b.append(t);if(unread)b.append(node('i','unread-mark'));b.append(icon('arrow'));return b;}
@@ -95,7 +95,7 @@ window.createFeatureUI = function createFeatureUI(ctx) {
       for(const g of groups.filter(g=>g.root===route.id))host.append(menu(g.title,g.subtitle,()=>navigate({type:'group',id:g.id}),g.icon));
       host.append(node('p','catalog-counter','向上滑动，查看全部分类'));
     }else if(route.type==='group'){
-      const g=groups.find(g=>g.id===route.id);const list=features.filter(f=>f.group===g.id);header(g.title,g.subtitle);host.append(node('p','catalog-counter',list.length+' 项功能'));
+      const g=groups.find(g=>g.id===route.id);const list=features.filter(f=>f.group===g.id), children=groups.filter(child=>child.root===g.id);header(g.title,g.subtitle);for(const child of children)host.append(menu(child.title,child.subtitle,()=>navigate({type:'group',id:child.id}),child.icon));if(list.length)host.append(node('p','catalog-counter',list.length+' 项功能'));
       for(const f of list)host.append(menu(f.title,f.external?'需要配套管理端':f.local?'屏幕本地设置':f.description,()=>{if(f.view)ctx.showStatic(f.view);else navigate({type:'feature',id:f.id});}));
     }else if(route.type==='item'){
       const f=byId.get(route.id),m=model(f),item=m.items[route.index];if(!item){back();return;}

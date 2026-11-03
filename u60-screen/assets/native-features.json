@@ -14,32 +14,32 @@
   },
   {
     "id": "proxy-service",
-    "title": "代理服务",
-    "group": "routing",
-    "description": "管理代理策略、服务启停与热点流量范围。",
+    "title": "运行与配置",
+    "group": "mihomo",
+    "description": "管理 mihomo 的运行模式与流量范围。",
     "apis": [
-      "GET /api/proxy/status",
-      "PUT /api/proxy/settings",
-      "POST /api/proxy/enable",
-      "POST /api/proxy/disable",
-      "POST /api/proxy/restart"
+      "GET /api/proxy/mihomo/status",
+      "PUT /api/proxy/mihomo/settings",
+      "POST /api/proxy/mihomo/enable",
+      "POST /api/proxy/mihomo/disable",
+      "POST /api/proxy/mihomo/restart"
     ]
   },
   {
     "id": "proxy-groups",
-    "title": "代理节点",
-    "group": "routing",
-    "description": "查看路由组并切换节点。",
+    "title": "代理组",
+    "group": "mihomo",
+    "description": "选择 mihomo 代理组中的节点。",
     "apis": [
-      "GET /api/proxy/status",
-      "GET /api/proxy/groups",
-      "POST /api/proxy/select"
+      "GET /api/proxy/mihomo/status",
+      "GET /api/proxy/mihomo/groups",
+      "POST /api/proxy/mihomo/select"
     ]
   },
   {
     "id": "wireguard",
     "title": "WireGuard",
-    "group": "routing",
+    "group": "vpn-services",
     "description": "管理独立的 WireGuard 隧道。",
     "rows": [
       [

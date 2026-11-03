@@ -1,13 +1,13 @@
-//! Small-screen controls share the browser service API and adapter-neutral data.
+//! Small-screen controls share the browser service API and engine-specific data.
 use super::*;
 use serde_json::json;
 
 pub fn reads(id: &str) -> Option<Vec<Read>> {
     match id {
-        "proxy-service" => Some(vec![Read::get("status", "/api/proxy/status")]),
+        "proxy-service" => Some(vec![Read::get("status", "/api/proxy/mihomo/status")]),
         "proxy-groups" => Some(vec![
-            Read::get("status", "/api/proxy/status"),
-            Read::get("groups", "/api/proxy/groups"),
+            Read::get("status", "/api/proxy/mihomo/status"),
+            Read::get("groups", "/api/proxy/mihomo/groups"),
         ]),
         _ => None,
     }
@@ -21,6 +21,7 @@ pub fn page(id: &str, readings: &Data) -> Page {
     }
     let running = d["running"] == true;
     if id == "proxy-service" {
+        p.row("代理内核", &json!("mihomo"));
         p.row(
             "内核版本",
             &if d["installed"] == true {
@@ -57,11 +58,11 @@ pub fn page(id: &str, readings: &Data) -> Page {
         }
         if running {
             p.row(
-                "代理策略",
+                "运行模式",
                 &json!(match d["mode"].as_str() {
-                    Some("rule") => "按规则分流",
-                    Some("global") => "全局选择组",
-                    Some("direct") => "直接连接",
+                    Some("rule") => "规则模式",
+                    Some("global") => "全局模式",
+                    Some("direct") => "直连模式",
                     _ => "未提供",
                 }),
             );
@@ -76,12 +77,12 @@ pub fn page(id: &str, readings: &Data) -> Page {
         } else {
             p.fields.push(Field::choice(
                 "mode",
-                "代理策略",
+                "运行模式",
                 &d["mode"],
                 &[
-                    ("rule", "按规则分流"),
-                    ("global", "全局选择组"),
-                    ("direct", "直接连接"),
+                    ("rule", "规则模式"),
+                    ("global", "全局模式"),
+                    ("direct", "直连模式"),
                 ],
             ));
             p.fields.push(Field::choice(
@@ -112,7 +113,7 @@ pub fn page(id: &str, readings: &Data) -> Page {
             ),
             (
                 "settings",
-                "保存代理策略",
+                "保存运行模式",
                 "保存下次启动使用的策略和流量范围。",
                 !running && !d.is_null(),
             ),
@@ -124,7 +125,9 @@ pub fn page(id: &str, readings: &Data) -> Page {
         for f in &mut p.fields {
             f.available &= !running;
         }
-        p.note="安装内核与导入配置请打开 Web 管理页：网络 → 代理服务。修改策略前先停止服务；局域网和 Tailscale 子网优先。".into();
+        p.note =
+            "Web：网络 → 代理 → mihomo。编辑 YAML、DNS 与订阅请在 Web 完成；各代理服务独立运行。"
+                .into();
     } else {
         let groups = data(readings, "groups").as_array();
         if let Some(groups) = groups {
@@ -170,9 +173,9 @@ pub fn page(id: &str, readings: &Data) -> Page {
         }
         if p.note.is_empty() {
             p.note = if running {
-                "先选择一个路由组，再切换节点。"
+                "先选择一个代理组，再切换节点。"
             } else {
-                "启动代理服务后读取路由组。"
+                "启动代理服务后读取代理组。"
             }
             .into();
         }
@@ -192,23 +195,27 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
             ensure!(p.dirty(), "没有需要保存的更改。");
             Plan::one(
                 Method::PUT,
-                "/api/proxy/settings",
+                "/api/proxy/mihomo/settings",
                 p.changed(&["mode", "capture"])?,
             )
         } else {
-            Plan::one(Method::POST, &format!("/api/proxy/{action}"), json!({}))
+            Plan::one(
+                Method::POST,
+                &format!("/api/proxy/mihomo/{action}"),
+                json!({}),
+            )
         }
     } else {
         ensure!(
             id == "proxy-groups" && action == "select" && d["running"] == true,
-            "请先启动服务并选择路由组。"
+            "请先启动服务并选择代理组。"
         );
-        let name = selected(readings).ok_or_else(|| anyhow::anyhow!("请先选择路由组。"))?;
+        let name = selected(readings).ok_or_else(|| anyhow::anyhow!("请先选择代理组。"))?;
         let choice = p.value("choice")?;
         let group = data(readings, "groups")
             .as_array()
             .and_then(|a| a.iter().find(|g| g["name"] == name))
-            .ok_or_else(|| anyhow::anyhow!("路由组已变化，请刷新。"))?;
+            .ok_or_else(|| anyhow::anyhow!("代理组已变化，请刷新。"))?;
         ensure!(
             group["selectable"] == true
                 && group["choices"]
@@ -218,14 +225,14 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
         );
         Plan::one(
             Method::POST,
-            "/api/proxy/select",
+            "/api/proxy/mihomo/select",
             json!({"group":name,"choice":choice}),
         )
     };
     plan.guards.push(Guard::new(
-        Read::get("status", "/api/proxy/status"),
+        Read::get("status", "/api/proxy/mihomo/status"),
         d,
-        &["/running", "/configured", "/mode", "/capture"],
+        &["/id", "/running", "/configured", "/mode", "/capture"],
     ));
     Ok(plan)
 }
@@ -256,7 +263,7 @@ mod tests {
         assert!(
             p.rows
                 .iter()
-                .any(|(label, value)| label == "代理策略" && value == "按规则分流")
+                .any(|(label, value)| label == "运行模式" && value == "规则模式")
         );
         assert!(plan("proxy-service", "settings", &p, &d).is_err());
     }

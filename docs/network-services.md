@@ -1,24 +1,26 @@
 # 网络服务管理
 
-本 fork 的 Web 管理页提供 **Network → Proxy service** 和 **Network → Tailscale**，地址分别为 `/console/#network/proxy`、`/console/#network/tailscale`。需要运行包含这些页面的 fork 版后台；原厂 Web 管理程序与旧版后台不会自动增加入口。
+本 fork 的 Web 管理页提供 **Network → Proxies** 和 **Network → Tailscale**，地址分别为 `/console/#network/proxy`、`/console/#network/tailscale`。需要运行包含这些页面的 fork 版后台；原厂 Web 管理程序与旧版后台不会自动增加入口。
 
-机身的网络分类增加「代理服务」和「代理节点」，与 Web 共用 API、配置和实际运行状态。大段配置导入、订阅下载和内核安装在 Web 完成。
+机身统一放在「网络」：Tailscale 与 WireGuard 位于「VPN 与组网」，代理位于「代理 → 具体服务」。Web 对应入口也位于 Network。每种代理独立安装、配置和启停，可同时运行；没有全局选中内核或自动停掉其他服务的逻辑。仅在实际监听端口或接管规则冲突时拒绝启动，并保留已运行服务。
 
 ## 代理服务
 
-1. 打开 Web 管理页并登录，在 **Configuration & installation** 中安装内核。填写可信发行文件的 HTTPS 地址、版本标签与下载文件的 SHA-256。文件必须是静态 Linux ARM64 可执行程序，支持单文件 gzip 压缩；校验值对应下载文件本身。
-2. 上传或粘贴 YAML / JSON 配置，也可以从 HTTPS URL 下载一次。配置上限 512 KiB；校验成功才替换旧配置。导入和更新时服务须停止。
-3. 在 **Traffic policy** 选择分流策略与范围。`Follow rules` 使用配置规则，`Use selected global group` 使用全局选择组，`Direct connections` 直接连接。
-4. 范围默认 **Router-local applications only**，本机程序可使用 `127.0.0.1:7890` 的 HTTP / SOCKS 代理。要让连接 Wi-Fi 的设备使用代理，选择 **Connected Wi-Fi devices**，保存，再点击 **Start service**。
-5. 启动后，在 **Routing groups** 选择手动组中的节点。自动选择组显示当前节点，按配置自行选择。
+1. 打开 **Network → Proxies**，在服务列表进入具体服务；列表展示各自的运行状态。
+2. **Installation** 安装或更新该服务。填写可信发行文件的 HTTPS 地址、版本及 SHA-256；需要静态 Linux ARM64 程序，支持单文件 gzip 压缩，校验值对应下载文件。
+3. **Configuration** 上传、粘贴或读取已保存的原生 YAML / JSON，也可以从 HTTPS URL 导入一次。不同内核使用自己的配置格式，不转换成统一的上层配置模型。配置上限 512 KiB，停止当前服务后才可校验保存。
+4. **Overview** 设置该服务的运行模式、流量范围、本地 HTTP / SOCKS 端口、IPv6 与并发连接选项。规则、全局和直连是当前适配器的模式，不是所有代理的必选字段。
+5. **Proxy groups** 选择手动代理组中的节点；自动测速、故障转移与负载均衡组按自己的配置运行。自动刷新会保留尚未提交的节点选择。
+
+本地 HTTP / SOCKS 默认监听回环地址的 7890 端口，可改为其他未占用端口。热点接管只影响所选服务的规则；多种服务同时运行不等于它们可以无条件接管同一份流量。
 
 启用状态会保存，后台下次启动时尝试恢复。停止、内核退出或所属后台进程消失时，独立清理进程撤销本服务的转发规则；热点恢复普通直连。需要始终阻止直连的场景，目前不适用这一恢复策略。
 
-订阅 URL 仅用于本次下载，不保存到设置，也不自动定时更新。配置中的远端 provider 可按其更新周期自行刷新。浏览器离开页面或锁定时清空草稿、认证密钥和授权链接；界面不读回完整代理配置。
+订阅 URL 仅用于本次下载，不保存到设置，也不自动定时更新。配置中的远端 provider 可按其更新周期自行刷新。浏览器离开页面或锁定时清空草稿、认证密钥和授权链接；只有主动点击读取并确认后，才将该服务的完整配置载入编辑器；响应禁止缓存，离页或锁定后清空。
 
-导入保留节点、路由组、规则、远端 provider 与 hosts 数据；端口、控制凭据、DNS、TUN 与流量接管由服务统一生成。当前不接受脚本、文件型 provider 或指向本地私钥文件的配置。远端 provider 必须使用 HTTPS，其缓存路径被限定在服务目录。依赖外部规则数据的配置仍需相应资源可下载。
+导入保留节点、代理组、规则、远端 provider、DNS 上游、嗅探和其他受支持的原生选项。运行页中的明确覆盖项、设备监听地址、控制凭据、provider 缓存路径、TUN 与流量接管由该服务管理；本地域名 DNS 路由保留设备原有解析。当前不接受脚本、文件型 provider 或指向本地私钥文件的配置。远端 provider 必须使用 HTTPS，其缓存路径被限定在服务目录。依赖外部规则数据的配置仍需相应资源可下载。
 
-![代理服务 Web 管理页，演示数据](images/proxy-console.png)
+公开说明不展示具体内核的管理页截图。功能验证使用合成配置和交互断言。
 
 ## Tailscale
 
@@ -48,20 +50,20 @@
 
 | 方法与路径 | 用途 |
 | --- | --- |
-| `GET /api/proxy/status` | 不含原始配置的状态与能力 |
-| `GET /api/proxy/groups` | 当前路由组、节点与可选择性 |
-| `PUT /api/proxy/settings` | 停止时修改策略、范围及适配器 |
-| `POST /api/proxy/enable` | 启用并保存状态 |
-| `POST /api/proxy/disable` | 停止并撤销接管 |
-| `POST /api/proxy/restart` | 按保存配置重启 |
-| `POST /api/proxy/select` | 提交 `group`、`choice`，重新核对组成员 |
-| `POST /api/proxy/config` | 提交 `config` 文本并校验 |
-| `POST /api/proxy/subscription` | 从 `url` 下载配置并校验 |
-| `POST /api/proxy/install` | 提交 `url`、`version`、`sha256` 安装内核 |
+| GET /api/proxy/services | 独立服务列表及各自状态 |
+| GET /api/proxy/{service}/status | 指定服务状态，不含配置凭据 |
+| GET /api/proxy/{service}/groups | 当前适配器的代理组 |
+| GET /api/proxy/{service}/config | 主动读取该服务保存的配置；认证、禁止缓存 |
+| PUT /api/proxy/{service}/settings | 该内核自己的运行设置 |
+| POST /api/proxy/{service}/enable、disable、restart | 只操作指定服务 |
+| POST /api/proxy/{service}/select | 该内核的代理组节点选择 |
+| POST /api/proxy/{service}/config、subscription、install | 该服务的配置和程序维护 |
+
+旧的 /api/proxy/... 路径继续指向原有服务，兼容已安装客户端，不代表全局代理状态。旧安装目录和配置继续保留；旧适配器标识可读取，新界面使用服务身份。未来新增服务需各自实现配置页与管理协议，不套用已有内核的字段。
 
 Tailscale 复用既有的八个管理接口；`PUT /api/tailscale/config` 新增 `accept_routes` 布尔字段。旧配置默认保持原有网关接受路由的行为；状态增加 `accept_routes_effective`，只有内核网关已连接时才报告启用。这是路由接受偏好，不能代替路由审批、访问控制或目标服务可达性验证。
 
-代理的进程、私有存储、互斥锁与系统路由由统一管理层负责，配置转换、命令构造、就绪检查和节点 API 由 `zte-agent/src/proxy/engine.rs` 的适配器负责。首个适配器标识为 `compatible-v1`。未来接入其他内核时，在这一边界实现相同管理契约；公开页面与路径继续使用通用服务名称。
+服务目录仅汇总各服务状态和分派操作；运行配置、私有存储、生命周期锁和控制协议归各自实现所有。目录不要求共享模式或配置格式，也没有全局运行锁。网络层按实际资源检查占用，不能替其他服务清理规则。
 
 ## 验证范围
 
@@ -72,3 +74,5 @@ Tailscale 复用既有的八个管理接口；`PUT /api/tailscale/config` 新增
 该阶段构建均为静态 ARM64/musl。后台 ELF 7,082,968 字节，`size -A` Total 7,074,892，gzip level 9 / mtime 0 为 3,426,678 字节；SHA-256：`ae2d0132a5694167a8ce96a92d382b9c6b08dce63b8b05f5d476ff3289acb6bc`。机身产物体积见 [接入记录](../u60-screen/LIVE.md)。
 
 随后已完成后台与屏幕的首次常驻部署。实机确认 Tailscale 在线且没有健康告警、既有子网路由保留，远程 Web 转发已从 9090 迁移到 9091；后台通过认证及实时数据检查。新的回归结果、构建体积与尚未验证的范围见 [部署验证记录](deployment.md#验证范围)。
+
+布局与配置调整：后台完整回归 1066 项通过（3 项忽略），机身 47 项通过，严格 Clippy 通过。B31 临时校验内核接受本地与热点两种生成配置，覆盖原生 DNS 与嗅探选项；本次校验不启动代理、不改变现有流量。浏览器检查覆盖独立服务列表、原生配置读取与保存、分组草稿刷新、明暗主题和多种宽度。仅实现现有首个内核；其他内核尚未接入，不代表多种真实内核同时运行已完成实机验收。

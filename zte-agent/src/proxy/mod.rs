@@ -676,7 +676,7 @@ mod tests {
         let root = std::env::temp_dir().join(format!("u60-proxy-contract-{}", std::process::id()));
         fs::create_dir_all(&root).unwrap();
         let driver = engine::adapter("compatible-v1").unwrap();
-        let source = driver.normalize("proxies: [{name: Example, type: socks5, server: 192.0.2.2, port: 1080}]\nproxy-groups: [{name: Primary, type: select, proxies: [Example, DIRECT]}]\nrules: ['MATCH,DIRECT']\n").unwrap();
+        let source = driver.normalize("proxies: [{name: Example, type: socks5, server: 192.0.2.2, port: 1080}]\nproxy-groups: [{name: Primary, type: select, proxies: [Example, DIRECT]}]\nrules: ['MATCH,DIRECT']\ndns: {nameserver: ['https://dns.google/dns-query'], enhanced-mode: fake-ip}\nsniffer: {enable: true, sniff: {TLS: {ports: [443]}}}\n").unwrap();
         for capture in ["local", "hotspot"] {
             let settings = Settings {
                 capture: capture.into(),

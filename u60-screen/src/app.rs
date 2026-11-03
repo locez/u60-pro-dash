@@ -44,6 +44,21 @@ pub struct Feature {
     guide: Vec<String>,
 }
 impl Catalog {
+    fn tab_for(&self, id: &str) -> i32 {
+        let mut root = id;
+        for _ in 0..=self.groups.len() {
+            match root {
+                "network-menu" => return 1,
+                "apps" => return 2,
+                "device-settings" => return 3,
+                _ => match self.groups.iter().find(|g| g.id == root) {
+                    Some(group) => root = &group.root,
+                    None => return 0,
+                },
+            }
+        }
+        0
+    }
     pub fn load() -> Result<Self> {
         Ok(serde_json::from_str(include_str!(
             "../assets/catalog.json"
@@ -187,7 +202,13 @@ impl State {
                             .features
                             .iter()
                             .filter(|f| f.group == g.id)
-                            .count();
+                            .count()
+                            + self
+                                .catalog
+                                .groups
+                                .iter()
+                                .filter(|child| child.root == g.id)
+                                .count();
                         entries.push(entry(&g.id, &g.title, &g.subtitle, &count.to_string()));
                     }
                 }
@@ -205,7 +226,7 @@ impl State {
             "tailscale-network" => {
                 title = "Tailscale 网络".into();
                 view = 4;
-                tab = 2;
+                tab = self.catalog.tab_for("vpn-services");
                 self.network.refresh();
             }
             "demo-scenario" => {
@@ -234,11 +255,10 @@ impl State {
             _ => {
                 if let Some(g) = self.catalog.groups.iter().find(|g| g.id == id) {
                     title = g.title.clone();
-                    tab = match g.root.as_str() {
-                        "network-menu" => 1,
-                        "apps" => 2,
-                        _ => 3,
-                    };
+                    tab = self.catalog.tab_for(&g.id);
+                    for child in self.catalog.groups.iter().filter(|child| child.root == id) {
+                        entries.push(entry(&child.id, &child.title, &child.subtitle, ""));
+                    }
                     for f in &self.catalog.features {
                         if f.group == id {
                             entries.push(entry(
@@ -282,11 +302,7 @@ impl State {
                     title = f.title.clone();
                     view = 2;
                     if let Some(g) = self.catalog.groups.iter().find(|g| g.id == f.group) {
-                        tab = match g.root.as_str() {
-                            "network-menu" => 1,
-                            "apps" => 2,
-                            _ => 3,
-                        };
+                        tab = self.catalog.tab_for(&g.id);
                     }
                     description = f.description.clone();
                     for [label, value] in &f.rows {
@@ -1184,5 +1200,27 @@ impl Drop for App {
     fn drop(&mut self) {
         self.timer.stop();
         self.state.borrow_mut().flush_preferences(&self.ui);
+    }
+}
+
+#[cfg(test)]
+mod navigation_tests {
+    use super::*;
+    #[test]
+    fn network_services_and_nested_engines_stay_on_network_tab() {
+        let c = Catalog::load().unwrap();
+        for id in ["vpn-services", "proxy", "mihomo"] {
+            assert_eq!(c.tab_for(id), 1);
+        }
+        for id in [
+            "tailscale-service",
+            "tailscale-network",
+            "wireguard",
+            "proxy-service",
+            "proxy-groups",
+        ] {
+            let f = c.features.iter().find(|f| f.id == id).unwrap();
+            assert_eq!(c.tab_for(&f.group), 1);
+        }
     }
 }

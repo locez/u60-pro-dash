@@ -2,28 +2,31 @@
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),http=require('node:http'),fs=require('node:fs'),path=require('node:path');
 (async()=>{
  const ok=data=>({ok:true,data}),writes=[],streams=new Set(),errors=[];
- const proxy={installed:true,configured:true,enabled:false,running:false,capture:'local',capturing:false,mode:'rule',version:'1.0.0',local_endpoint:'127.0.0.1:7890'};
+ const proxy={id:'mihomo',name:'mihomo',mixed_port:7890,ipv6:true,tcp_concurrent:false,installed:true,configured:true,enabled:false,running:false,capture:'local',capturing:false,mode:'rule',version:'1.0.0',local_endpoint:'127.0.0.1:7890'};
  const ts={installed:true,enabled:true,enrolled:false,daemon_running:true,backend_state:'NeedsLogin',gateway_mode:true,management_port:9091,accept_routes:true,accept_routes_effective:true,hostname:'example-router',advertise_routes:[],hold_wakelock:true,tailscale_ssh:false,client_version:'1.104.4',health:[]};
  const groups=[{name:'Primary group',selected:'Example A',choices:['Example A','Example B'],selectable:true,kind:'Selector'},{name:'<img src=x onerror=alert(1)>',selected:'Example A',choices:['Example A'],selectable:false,kind:'URLTest'}];
  const core={device:ok({hostname:'Example router',uptime_secs:100}),wan:ok({up:true}),wan6:ok({up:false}),signal:ok({network_type:'5G'}),modem:ok({operate_mode:'ONLINE'}),battery:ok({capacity:80}),wifi:ok({}),clients:ok({hosts:{}}),speed:ok({rx_speed:0,tx_speed:0})};
  let holdStatus=false,releaseStatus=null;
+ const other={id:'fixture-service',name:'Fixture service',running:true,installed:true,local_endpoint:'127.0.0.1:7899'};
  const server=http.createServer((req,res)=>{
   if(req.url.startsWith('/api/dashboard/events')){res.writeHead(200,{'Content-Type':'text/event-stream'});streams.add(res);res.on('close',()=>streams.delete(res));res.write(`event: snapshot\ndata: ${JSON.stringify({readings:core})}\n\n`);return;}
   if(req.url.startsWith('/api/')){
    const send=data=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify(ok(data)));};
    if(req.method==='GET'){
-    if(req.url==='/api/proxy/status'){if(holdStatus){releaseStatus=()=>send(proxy);return;}return send(proxy);}
+    if(req.url==='/api/proxy/services')return send({services:[proxy,other]});
+    if(req.url==='/api/proxy/mihomo/config')return send({config:'proxies: [{name: Saved, type: socks5, server: example.com, port: 1080}]'});
+    if(req.url==='/api/proxy/mihomo/status'){if(holdStatus){releaseStatus=()=>send(proxy);return;}return send(proxy);}
     if(req.url==='/api/tailscale/status')return send(ts);
-    if(req.url==='/api/proxy/groups')return send(groups);
+    if(req.url==='/api/proxy/mihomo/groups')return send(groups);
     return send({});
    }
    let raw='';req.on('data',b=>raw+=b);req.on('end',()=>{
     const body=JSON.parse(raw||'{}');writes.push({url:req.url,body});
-    if(req.url==='/api/proxy/settings')Object.assign(proxy,body);
-    if(req.url==='/api/proxy/install')proxy.version=body.version;
-    if(req.url==='/api/proxy/enable')Object.assign(proxy,{enabled:true,running:true,capturing:proxy.capture==='hotspot'});
-    if(req.url==='/api/proxy/disable')Object.assign(proxy,{enabled:false,running:false,capturing:false});
-    if(req.url==='/api/proxy/select')groups[0].selected=body.choice;
+    if(req.url==='/api/proxy/mihomo/settings')Object.assign(proxy,body);
+    if(req.url==='/api/proxy/mihomo/install')proxy.version=body.version;
+    if(req.url==='/api/proxy/mihomo/enable')Object.assign(proxy,{enabled:true,running:true,capturing:proxy.capture==='hotspot'});
+    if(req.url==='/api/proxy/mihomo/disable')Object.assign(proxy,{enabled:false,running:false,capturing:false});
+    if(req.url==='/api/proxy/mihomo/select')groups[0].selected=body.choice;
     if(req.url==='/api/tailscale/config')Object.assign(ts,body,{accept_routes_effective:body.accept_routes});
     if(req.url==='/api/tailscale/login-url'){ts.login_url='https://login.tailscale.com/a/example-only';return send({login_url:ts.login_url});}
     if(req.url==='/api/tailscale/setup')Object.assign(ts,{enrolled:true,backend_state:'Running',tailscale_ips:['100.101.102.103'],dns_name:'example-router.example.ts.net'});
@@ -41,20 +44,26 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
  try{
   await page.goto(`http://127.0.0.1:${server.address().port}/#network/proxy`);await page.waitForFunction(()=>OpenU60Console.connected&&!document.querySelector('#proxy-policy button[type=submit]').disabled);
   await page.locator('#proxy-mode').selectOption('global');await page.locator('#proxy-capture').selectOption('hotspot');
-  await page.getByRole('button',{name:'Save traffic policy',exact:true}).click();await page.locator('.confirm-dialog').getByRole('button',{name:'Cancel',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('.confirm-dialog').open);assert.equal(writes.length,0);
-  await page.getByRole('button',{name:'Save traffic policy',exact:true}).click();await confirm('Apply change');await page.waitForFunction(()=>document.querySelector('#proxy-capture').value==='hotspot');assert.deepEqual(writes[0],{url:'/api/proxy/settings',body:{mode:'global',capture:'hotspot'}});
+  await page.getByRole('button',{name:'Save runtime settings',exact:true}).click();await page.locator('.confirm-dialog').getByRole('button',{name:'Cancel',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('.confirm-dialog').open);assert.equal(writes.length,0);
+  await page.getByRole('button',{name:'Save runtime settings',exact:true}).click();await confirm('Apply change');await page.waitForFunction(()=>document.querySelector('#proxy-capture').value==='hotspot');assert.deepEqual(writes[0],{url:'/api/proxy/mihomo/settings',body:{mode:'global',capture:'hotspot',mixed_port:7890,ipv6:true,tcp_concurrent:false}});
+  assert.equal(await page.locator('#proxy-directory select').count(),0);
+  assert.match(await page.locator('#proxy-directory').textContent(),/Fixture service/);
+  await page.getByRole('tab',{name:'Configuration',exact:true}).click();
+  await page.getByRole('button',{name:'Load saved configuration'}).click();await confirm('Load configuration');assert.match(await page.locator('#proxy-config').inputValue(),/name: Saved/);
   const sample='proxies: [{name: Example, type: socks5, server: example.com, port: 1080}]';
   await page.locator('#proxy-file').setInputFiles({name:'example.yaml',mimeType:'text/yaml',buffer:Buffer.from(sample)});await page.waitForFunction(()=>document.querySelector('#proxy-config').value.includes('example.com'));
-  await page.getByRole('button',{name:'Import configuration',exact:true}).click();await confirm('Apply change');assert.equal(writes.at(-1).body.config,sample);assert.equal(await page.locator('#proxy-config').inputValue(),'');
+  await page.getByRole('button',{name:'Save configuration',exact:true}).click();await confirm('Apply change');assert.equal(writes.at(-1).body.config,sample);assert.equal(await page.locator('#proxy-config').inputValue(),'');
   await page.locator('#proxy-source-url').fill('https://example.com/config?token=demo-private');await page.getByRole('button',{name:'Fetch configuration',exact:true}).click();assert.ok(!(await page.locator('.confirm-dialog').textContent()).includes('demo-private'));await confirm('Apply change');assert.equal(await page.locator('#proxy-source-url').inputValue(),'');
-  await page.locator('#proxy-binary-url').fill('https://downloads.example.com/engine.gz');await page.locator('#proxy-version').fill('1.1.0');await page.locator('#proxy-sha256').fill('a'.repeat(64));await page.getByRole('button',{name:'Install engine',exact:true}).click();await confirm('Install engine');assert.equal(writes.at(-1).url,'/api/proxy/install');
-  await page.getByRole('button',{name:'Start service',exact:true}).click();await confirm('Start service');await page.getByLabel('Primary group',{exact:true}).waitFor();
-  assert.equal(await page.locator('.service-groups img').count(),0);assert.equal(await page.getByRole('button',{name:'Save traffic policy',exact:true}).isDisabled(),true);
-  await page.getByLabel('Primary group',{exact:true}).selectOption('Example B');await page.locator('.service-group').first().getByRole('button',{name:'Use node'}).click();await confirm('Apply change');assert.deepEqual(writes.at(-1),{url:'/api/proxy/select',body:{group:'Primary group',choice:'Example B'}});
+  await page.getByRole('tab',{name:'Installation',exact:true}).click();
+  await page.locator('#proxy-binary-url').fill('https://downloads.example.com/engine.gz');await page.locator('#proxy-version').fill('1.1.0');await page.locator('#proxy-sha256').fill('a'.repeat(64));await page.getByRole('button',{name:'Install mihomo',exact:true}).click();await confirm('Install mihomo');assert.equal(writes.at(-1).url,'/api/proxy/mihomo/install');
+  await page.getByRole('button',{name:'Start mihomo',exact:true}).click();await confirm('Start mihomo');assert.equal(other.running,true);assert.ok(writes.filter(w=>w.url.startsWith('/api/proxy/')).every(w=>w.url.startsWith('/api/proxy/mihomo/')));await page.getByRole('tab',{name:'Proxy groups',exact:true}).click();await page.getByLabel('Primary group',{exact:true}).waitFor();
+  assert.equal(await page.locator('.service-groups img').count(),0);assert.equal(await page.locator('#proxy-policy button[type=submit]').isDisabled(),true);
+  await page.getByLabel('Primary group',{exact:true}).selectOption('Example B');await page.locator('#proxy-service').getByRole('button',{name:'Refresh status',exact:true}).click();await page.waitForTimeout(150);assert.equal(await page.getByLabel('Primary group',{exact:true}).inputValue(),'Example B');await page.locator('.service-group').first().getByRole('button',{name:'Use node'}).click();await confirm('Apply change');assert.deepEqual(writes.at(-1),{url:'/api/proxy/mihomo/select',body:{group:'Primary group',choice:'Example B'}});
   groups[1].name='Automatic group';await page.locator('#proxy-service').getByRole('button',{name:'Refresh status',exact:true}).click();await page.getByLabel('Automatic group',{exact:true}).waitFor();
+  // No proxy-page screenshots: branding is deliberately excluded from published assets.
   const images='/tmp/codex/u60-services-images';fs.mkdirSync(images,{recursive:true});
   for(const theme of ['light','dark'])for(const width of [390,820,1440]){
-   await page.evaluate(t=>{document.documentElement.dataset.theme=t;},theme);await page.setViewportSize({width,height:1000});await page.waitForTimeout(80);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.evaluate(()=>scrollTo(0,0));if(width===1440)await page.screenshot({path:`${images}/proxy-${theme}.png`,fullPage:true});
+   await page.evaluate(t=>{document.documentElement.dataset.theme=t;},theme);await page.setViewportSize({width,height:1000});await page.waitForTimeout(80);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.evaluate(()=>scrollTo(0,0));
   }
   await page.evaluate(()=>OpenU60Navigation.go('network/tailscale'));await page.waitForFunction(()=>!document.querySelector('#tailscale-policy button[type=submit]').disabled);
   assert.match(await page.locator('#tailscale-service').textContent(),/Remote web port.*9091/s);
@@ -69,7 +78,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),http
   const before=writes.length;await page.getByRole('button',{name:'Stop Tailscale',exact:true}).click();await page.evaluate(()=>OpenU60Navigation.go('network/proxy'));await confirm('Stop Tailscale');assert.equal(writes.length,before);
   // A late authenticated reply cannot repopulate private state after lock.
   holdStatus=true;await page.locator('#proxy-service').getByRole('button',{name:'Refresh status',exact:true}).click();await page.waitForTimeout(100);
-  await page.locator('#proxy-config').fill('private draft');await page.locator('#proxy-source-url').fill('private subscription');await page.evaluate(()=>window.dispatchEvent(new Event('dashboard:locked')));releaseStatus?.();await page.waitForTimeout(100);
+  await page.getByRole('tab',{name:'Configuration',exact:true}).click();await page.locator('#proxy-config').fill('private draft');await page.locator('#proxy-source-url').fill('private subscription');await page.evaluate(()=>window.dispatchEvent(new Event('dashboard:locked')));releaseStatus?.();await page.waitForTimeout(100);
   assert.equal(await page.locator('#proxy-config').inputValue(),'');assert.equal(await page.locator('#proxy-source-url').inputValue(),'');assert.equal(await page.locator('#proxy-service .service-summary').textContent(),'Waiting for status');assert.equal(writes.length,before);assert.deepEqual(errors,[]);
   console.log('remote services: policy, import, installation, node selection, Tailscale, stale-session protection and responsive layouts passed');
  }finally{for(const stream of streams)stream.end();await browser.close();await new Promise(r=>server.close(r));}

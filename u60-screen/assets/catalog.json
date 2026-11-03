@@ -36,11 +36,25 @@
       "icon": "network"
     },
     {
-      "id": "tailscale",
-      "title": "Tailscale",
-      "subtitle": "虚拟组网与子网路由",
-      "root": "apps",
+      "id": "vpn-services",
+      "title": "VPN 与组网",
+      "subtitle": "Tailscale、WireGuard 与远端网络",
+      "root": "network-menu",
       "icon": "tailnet"
+    },
+    {
+      "id": "proxy",
+      "title": "代理",
+      "subtitle": "独立管理各代理服务",
+      "root": "network-menu",
+      "icon": "network"
+    },
+    {
+      "id": "mihomo",
+      "title": "mihomo",
+      "subtitle": "运行、配置与代理组",
+      "root": "proxy",
+      "icon": "network"
     },
     {
       "id": "sms",
@@ -1880,7 +1894,7 @@
     {
       "id": "tailscale-network",
       "title": "Tailscale 网络",
-      "group": "tailscale",
+      "group": "vpn-services",
       "description": "查看 Tailscale 连接、子网路由与目标连通性。",
       "rows": [],
       "fields": [],
@@ -1892,8 +1906,8 @@
     },
     {
       "id": "tailscale-service",
-      "title": "连接与服务",
-      "group": "tailscale",
+      "title": "Tailscale 连接",
+      "group": "vpn-services",
       "description": "",
       "rows": [
         [
@@ -1947,7 +1961,7 @@
     {
       "id": "tailscale-config",
       "title": "Tailscale 设置",
-      "group": "tailscale",
+      "group": "vpn-services",
       "description": "本机发布子网与接收远端子网是不同设置。",
       "rows": [],
       "fields": [
@@ -1997,7 +2011,7 @@
     {
       "id": "tailscale-version",
       "title": "Tailscale 版本",
-      "group": "tailscale",
+      "group": "vpn-services",
       "description": "",
       "rows": [
         [
@@ -3722,32 +3736,32 @@
     },
     {
       "id": "proxy-service",
-      "title": "代理服务",
-      "group": "routing",
-      "description": "管理代理策略、服务启停与热点流量范围。",
+      "title": "运行与配置",
+      "group": "mihomo",
+      "description": "管理 mihomo 的运行模式与流量范围。",
       "apis": [
-        "GET /api/proxy/status",
-        "PUT /api/proxy/settings",
-        "POST /api/proxy/enable",
-        "POST /api/proxy/disable",
-        "POST /api/proxy/restart"
+        "GET /api/proxy/mihomo/status",
+        "PUT /api/proxy/mihomo/settings",
+        "POST /api/proxy/mihomo/enable",
+        "POST /api/proxy/mihomo/disable",
+        "POST /api/proxy/mihomo/restart"
       ]
     },
     {
       "id": "proxy-groups",
-      "title": "代理节点",
-      "group": "routing",
-      "description": "查看路由组并切换节点。",
+      "title": "代理组",
+      "group": "mihomo",
+      "description": "选择 mihomo 代理组中的节点。",
       "apis": [
-        "GET /api/proxy/status",
-        "GET /api/proxy/groups",
-        "POST /api/proxy/select"
+        "GET /api/proxy/mihomo/status",
+        "GET /api/proxy/mihomo/groups",
+        "POST /api/proxy/mihomo/select"
       ]
     },
     {
       "id": "wireguard",
       "title": "WireGuard",
-      "group": "routing",
+      "group": "vpn-services",
       "description": "管理独立的 WireGuard 隧道。",
       "rows": [
         [

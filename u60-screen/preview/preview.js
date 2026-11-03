@@ -18,7 +18,7 @@
   function toast(value){clearTimeout(toastTimer);text('screen-toast',value);$('screen-toast').hidden=false;toastTimer=setTimeout(()=>{$('screen-toast').hidden=true;},2600);}
   function hideToast(){clearTimeout(toastTimer);$('screen-toast').hidden=true;}
   function nav(root){
-    const selected=root==='device-settings'?'device':root==='tailnet'?'apps':root==='signal'?'network':root;
+    const selected=root==='device-settings'?'device':root==='tailnet'?'network-menu':root==='signal'?'network':root;
     q('.page-picker [data-page]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.page===selected)));
     q('.screen-nav [data-page]').forEach(b=>{if(b.dataset.page===selected)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   }
