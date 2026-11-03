@@ -295,7 +295,7 @@ impl Engine for Mihomo {
         v["external-controller"] = json!("127.0.0.1:19092");
         v["secret"] = json!(secret);
         if v.get("log-level").is_none() {
-            v["log-level"] = json!("silent");
+            v["log-level"] = json!("info");
         }
         v["ipv6"] = json!(settings.ipv6);
         v["tcp-concurrent"] = json!(settings.tcp_concurrent);

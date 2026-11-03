@@ -13,18 +13,22 @@ pub fn launch(root: &Path, adapter: &str, lease: &File) -> Result<(UnixStream, C
     let (owner, child) =
         UnixStream::pair().map_err(|_| "Cannot create proxy supervisor channel")?;
     let stdin: OwnedFd = child.into();
-    let child =
-        Command::new(std::env::current_exe().map_err(|_| "Cannot locate agent executable")?)
-            .arg("--proxy-watchdog")
-            .arg(root)
-            .arg(adapter)
-            .stdin(Stdio::from(stdin))
-            .stdout(Stdio::from(
-                lease.try_clone().map_err(|_| "Cannot retain proxy lease")?,
-            ))
-            .stderr(Stdio::null())
-            .spawn()
-            .map_err(|_| "Cannot start proxy cleanup supervisor")?;
+    let executable = std::env::current_exe().map_err(|_| "Cannot locate agent executable")?;
+    #[cfg(test)]
+    let executable = std::env::var_os("U60_AGENT_TEST_BINARY")
+        .map(std::path::PathBuf::from)
+        .unwrap_or(executable);
+    let child = Command::new(executable)
+        .arg("--proxy-watchdog")
+        .arg(root)
+        .arg(adapter)
+        .stdin(Stdio::from(stdin))
+        .stdout(Stdio::from(
+            lease.try_clone().map_err(|_| "Cannot retain proxy lease")?,
+        ))
+        .stderr(Stdio::null())
+        .spawn()
+        .map_err(|_| "Cannot start proxy cleanup supervisor")?;
     Ok((owner, child))
 }
 
@@ -43,8 +47,8 @@ pub fn cli(args: &[String]) -> i32 {
     );
     command
         .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null());
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
     use std::os::unix::process::CommandExt;
     // Here the parent is this dedicated process's main thread, which lives
     // until the engine is reaped (not a transient HTTP blocking-pool thread).
@@ -64,6 +68,8 @@ pub fn cli(args: &[String]) -> i32 {
         }
     };
     let mut failed = false;
+    let stdout = super::logs::capture(root, engine.stdout.take().unwrap());
+    let stderr = super::logs::capture(root, engine.stderr.take().unwrap());
     let mut fd = libc::pollfd {
         fd: 0,
         events: libc::POLLIN,
@@ -89,6 +95,8 @@ pub fn cli(args: &[String]) -> i32 {
     }
     let _ = engine.kill();
     let _ = engine.wait();
+    let _ = stdout.recv_timeout(std::time::Duration::from_secs(1));
+    let _ = stderr.recv_timeout(std::time::Duration::from_secs(1));
     cleanup(root);
     if failed {
         1

@@ -22,7 +22,7 @@ class SupervisorTest(unittest.TestCase):
             root.joinpath('runtime.json').write_text('{}')
             root.joinpath('capture-owned').write_text('1')
             engine = root / 'engine'
-            engine.write_text(f'#!{sys.executable}\nimport os, time\nfrom pathlib import Path\nPath({str(root / "engine-pid")!r}).write_text(str(os.getpid()))\ntime.sleep({0.2 if engine_exits else 120})\n')
+            engine.write_text(f'#!{sys.executable}\nimport os, time\nprint("fixture startup output", flush=True)\nfrom pathlib import Path\nPath({str(root / "engine-pid")!r}).write_text(str(os.getpid()))\ntime.sleep({0.2 if engine_exits else 120})\n')
             engine.chmod(0o700)
             for name in ['ip', 'iptables', 'ip6tables']:
                 utility = root / name
@@ -55,6 +55,7 @@ class SupervisorTest(unittest.TestCase):
                 self.assertEqual(process.wait(timeout=30), 1 if engine_exits else 0)
                 self.assertFalse(root.joinpath('capture-owned').exists())
                 self.assertFalse(root.joinpath('runtime.json').exists())
+                self.assertIn('fixture startup output', root.joinpath('engine.log').read_text())
                 with self.assertRaises(ProcessLookupError):
                     os.kill(int(root.joinpath('engine-pid').read_text()), 0)
                 with open(root / 'service.lock', 'a') as recovered:

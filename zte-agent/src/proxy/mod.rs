@@ -2,6 +2,8 @@
 //! engine adapter. No engine or network is started by constructing the state.
 mod configuration;
 pub(crate) mod geodata;
+mod logs;
+mod settings;
 mod validation;
 use validation::run_checked;
 mod engine;
@@ -401,6 +403,7 @@ impl MihomoService {
                     m.prepare().and_then(|()| m.lease()).map(|()| m.stop())
                 };
                 if let Err(e) = result {
+                    logs::record(&m.root, &e);
                     m.runtime.lock().unwrap().error = Some(e);
                 }
             });
@@ -556,6 +559,9 @@ impl MihomoService {
         self.prepare()?;
         self.lease()?;
         let result = self.change_inner(action, body);
+        if let Err(error) = &result {
+            logs::record(&self.root, &format!("{action}: {error}"));
+        }
         let mut r = self.runtime.lock().unwrap();
         if matches!(action, "config" | "subscription" | "reload") {
             r.error = result.as_ref().err().cloned();
@@ -567,6 +573,10 @@ impl MihomoService {
     }
     fn change_inner(self: &Arc<Self>, action: &str, body: &Value) -> Result<Value, String> {
         match action {
+            "logs/clear" => {
+                self.clear_logs()?;
+                return self.logs();
+            }
             "enable" | "disable" | "restart" => {
                 let mut s = self.settings.lock().unwrap().clone();
                 s.enabled = action != "disable";
@@ -585,38 +595,7 @@ impl MihomoService {
                 }
                 *self.settings.lock().unwrap() = s;
             }
-            "settings" => {
-                if self.runtime.lock().unwrap().child.is_some() {
-                    return Err("Stop the service before changing its routing settings".into());
-                }
-                let mut s = self.settings.lock().unwrap().clone();
-                for (key, target) in [("mode", &mut s.mode), ("capture", &mut s.capture)] {
-                    if let Some(v) = body.get(key) {
-                        *target = v.as_str().ok_or("Invalid proxy setting")?.into();
-                    }
-                }
-                if let Some(id) = body.get("adapter") {
-                    if !matches!(id.as_str(), Some("mihomo" | "compatible-v1")) {
-                        return Err("Manage each proxy service separately; an engine cannot be switched here".into());
-                    }
-                }
-                if let Some(v) = body.get("mixed_port") {
-                    s.mixed_port = v
-                        .as_u64()
-                        .and_then(|n| u16::try_from(n).ok())
-                        .ok_or("Invalid mixed port")?;
-                }
-                if let Some(v) = body.get("ipv6") {
-                    s.ipv6 = v.as_bool().ok_or("Invalid IPv6 setting")?;
-                }
-                if let Some(v) = body.get("tcp_concurrent") {
-                    s.tcp_concurrent = v.as_bool().ok_or("Invalid TCP setting")?;
-                }
-                s.adapter = "mihomo".into();
-                s.validate()?;
-                self.save(&s)?;
-                *self.settings.lock().unwrap() = s;
-            }
+            "settings" => self.update_settings(body)?,
             "geodata" => {
                 if self.runtime.lock().unwrap().child.is_some() {
                     return Err(
@@ -739,6 +718,12 @@ pub fn service_route(
     match (method, action) {
         (Method::Get, "status") => reply(Ok(service.status())),
         (Method::Get, "groups") => reply(service.groups()),
+        (Method::Get, "logs") => {
+            if !state.auth.has_password() {
+                return (403, json!({"ok":false,"error":"Agent password required"}));
+            }
+            reply(service.logs())
+        }
         (Method::Get, "config") => {
             if !state.auth.has_password() {
                 return (403, json!({"ok":false,"error":"Agent password required"}));
@@ -749,7 +734,7 @@ pub fn service_route(
         | (
             Method::Post,
             "enable" | "disable" | "restart" | "config" | "subscription" | "validate" | "reload"
-            | "install" | "select" | "geodata",
+            | "install" | "select" | "geodata" | "logs/clear",
         ) => {
             if !state.auth.has_password() {
                 return (

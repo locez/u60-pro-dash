@@ -9,6 +9,11 @@ pub(super) enum Service {
     Mihomo(Arc<MihomoService>),
 }
 impl Service {
+    pub fn logs(&self) -> Result<Value, String> {
+        match self {
+            Self::Mihomo(s) => s.logs(),
+        }
+    }
     pub fn status(&self) -> Value {
         match self {
             Self::Mihomo(s) => s.status(),
