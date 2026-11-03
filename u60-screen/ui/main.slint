@@ -28,6 +28,7 @@ export component Screen inherits Window {
     in-out property <bool> feature-busy;
     in-out property <string> feature-notice;
     in-out property <image> feature-qr;
+    in-out property <string> feature-qr-caption;
     in-out property <string> feature-content;
     in-out property <bool> feature-has-qr;
     in-out property <bool> choice-visible;
@@ -187,6 +188,10 @@ export component Screen inherits Window {
                     Stat { label: "信号强度"; value: root.signal-strength; unit: "dBm"; clicked => { root.open("signal-live"); } }
                     Stat { label: "连接设备"; value: root.client-count; unit: "台设备"; clicked => { root.open("clients"); } }
                 }
+                if root.view == 0: MenuRow {
+                    title: "分享 Wi-Fi"; subtitle: "扫码连接热点，无需输入密码"; tag: "扫码";
+                    clicked => { root.open("wifi-share"); }
+                }
                 if root.view == 0: Rectangle {
                     height: 86px; border-radius: 10px; background: Palette.surface;
                     HorizontalLayout {
@@ -291,7 +296,13 @@ export component Screen inherits Window {
                 if root.view == 7: VerticalLayout {
                     spacing: 8px;
                     if root.feature-notice != "": Label { text: root.feature-notice; color: Palette.warning; wrap: word-wrap; overflow: clip; font-size: 14px; }
-                    if root.feature-has-qr: Image { source: root.feature-qr; width: 256px; height: 256px; image-fit: contain; horizontal-stretch: 0; }
+                    if root.feature-has-qr && root.feature-qr-caption != "": Label {
+                        text: root.feature-qr-caption; font-size: 17px; font-weight: 600; horizontal-alignment: center; wrap: word-wrap;
+                    }
+                    if root.feature-has-qr: HorizontalLayout {
+                        alignment: center;
+                        Image { source: root.feature-qr; width: 256px; height: 256px; image-fit: contain; horizontal-stretch: 0; }
+                    }
                     for row in root.readings: Rectangle {
                         min-height: 62px; background: Palette.surface; border-radius: 8px;
                         VerticalLayout {

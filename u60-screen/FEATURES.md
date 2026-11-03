@@ -2,7 +2,7 @@
 
 本清单的浏览器设计对应仓库基线 `03f86da` 及本地网关补丁，当时有 198 个方法/路径组合；76 个页面入口，13 个分类。当前后台已有 208 个方法/路径组合，原生屏幕直接接入 192 个，统计口径与剩余接口见 [API-COVERAGE.md](API-COVERAGE.md)。
 
-此清单保留浏览器原型的界面设计与接口映射。原生 Rust/Slint 已实现 79 个入口，真实请求契约在 `src/features/`，能力和验证结果以 [LIVE.md](LIVE.md) 为准；浏览器仍仅作模拟，不能把其展示字段直接提交给后台。
+此清单保留浏览器原型的界面设计与接口映射。原生 Rust/Slint 已实现 80 个入口，真实请求契约在 `src/features/`，能力和验证结果以 [LIVE.md](LIVE.md) 为准；浏览器仍仅作模拟，不能把其展示字段直接提交给后台。
 
 一级导航：概览、网络、应用、设备。页面中的“返回”回到上层；长内容向上滚动。
 
@@ -10,6 +10,7 @@
 
 | 页面 | 交互 | 接口映射 |
 | --- | --- | --- |
+| 分享 Wi-Fi（原生） | 从概览或 Wi-Fi 分类选择 2.4 GHz、5 GHz、访客网络，显示已保存配置的连接二维码 | `GET /api/wifi/status`<br>`GET /api/wifi/guest` |
 | [2.4 GHz 热点](preview/index.html#wifi2) | 保存热点设置 | `GET /api/wifi/status`<br>`PUT /api/wifi/settings` |
 | [5 GHz 热点](preview/index.html#wifi5) | 保存热点设置 | `GET /api/wifi/status`<br>`PUT /api/wifi/settings` |
 | [访客网络](preview/index.html#guest) | 保存访客设置 | `GET /api/wifi/guest`<br>`PUT /api/wifi/guest` |

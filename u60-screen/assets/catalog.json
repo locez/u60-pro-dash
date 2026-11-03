@@ -3708,6 +3708,19 @@
       ]
     },
     {
+      "id": "wifi-share",
+      "title": "分享 Wi-Fi",
+      "group": "wifi",
+      "description": "选择 2.4 GHz、5 GHz 或访客网络，让手机扫码连接。",
+      "guide": [
+        "二维码使用已保存的热点配置，解锁机身后查看。"
+      ],
+      "apis": [
+        "GET /api/wifi/status",
+        "GET /api/wifi/guest"
+      ]
+    },
+    {
       "id": "wireguard",
       "title": "WireGuard",
       "group": "routing",

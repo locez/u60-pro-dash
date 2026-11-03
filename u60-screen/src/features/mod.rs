@@ -11,6 +11,7 @@ mod scheduler;
 mod services;
 mod settings;
 mod status;
+mod wifi_share;
 
 use crate::agent::{Error, Request};
 use anyhow::{Result, ensure};
@@ -267,6 +268,7 @@ impl Action {
 pub struct Page {
     pub title: Option<String>,
     pub qr: Option<String>,
+    pub qr_caption: String,
     pub content: String,
     pub rows: Vec<(String, String)>,
     pub fields: Vec<Field>,
@@ -276,6 +278,9 @@ pub struct Page {
 }
 impl Drop for Page {
     fn drop(&mut self) {
+        if let Some(qr) = &mut self.qr {
+            qr.zeroize();
+        }
         for field in &mut self.fields {
             if field.secret {
                 field.value.zeroize();
@@ -381,6 +386,7 @@ pub fn reads(id: &str) -> Option<Vec<Read>> {
         .or_else(|| esim::reads(id))
         .or_else(|| forwarding::reads(id))
         .or_else(|| scheduler::reads(id))
+        .or_else(|| wifi_share::reads(id))
 }
 pub fn page(id: &str, readings: &Data) -> Page {
     let mut result = feature_page(id, readings);
@@ -404,6 +410,9 @@ pub fn page(id: &str, readings: &Data) -> Page {
     result
 }
 fn feature_page(id: &str, readings: &Data) -> Page {
+    if id == "wifi-share" {
+        return wifi_share::page(readings);
+    }
     if id == "history" {
         return history::page(readings);
     }
@@ -537,7 +546,7 @@ pub fn poll_seconds(id: &str) -> Option<u64> {
         "dns-cache" | "operators" | "neighbors" => Some(5),
         "signal-test" | "speedtest" | "phone" | "stk" => Some(2),
         "tailscale-service" | "tailscale-version" | "agent-update" | "https" | "usb" => Some(5),
-        "resources" | "wan" | "device-info" => Some(30),
+        "resources" | "wan" | "device-info" | "wifi-share" => Some(30),
         _ => None,
     }
 }

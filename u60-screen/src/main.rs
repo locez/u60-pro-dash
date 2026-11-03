@@ -359,6 +359,39 @@ mod tests {
         app.feature_data_fixture("tailscale-service",fixture(vec![("status",serde_json::json!({"installed":true,"enabled":true,"enrolled":false,"backend_state":"NeedsLogin","login_url":"https://example.com/authorize/demonstration"}))]));
         assert!(app.ui.get_feature_has_qr());
         save("live-tailscale-qr.png")?;
+        app.feature_data_fixture("wifi-share", fixture(vec![
+            ("wifi",serde_json::json!({
+                "wifi_onoff":"1","radio2_disabled":"0","radio5_disabled":"0",
+                "ssid_2g":"U60 Demo;测试","ssid_5g":"Example 5G",
+                "key_2g":"Demo:pass;with,quotes\"and\\slashes-2026","key_5g":"example-passphrase",
+                "encryption_2g":"sae-mixed","encryption_5g":"sae","hidden_2g":"0","hidden_5g":"1"
+            })),
+            ("guest",serde_json::json!({"ssid":"Example Guest","disabled_2g":"1","disabled_5g":"1","encryption":"none","hidden":"0"})),
+        ]));
+        assert_eq!(app.ui.get_entries().row_count(), 3);
+        save("live-wifi-share-networks.png")?;
+        app.ui.invoke_open("feature-item:2g".into());
+        assert!(app.ui.get_feature_has_qr());
+        assert_eq!(app.ui.get_feature_qr_caption(), "U60 Demo;测试");
+        save("live-wifi-share-qr.png")?;
+        app.ui.invoke_lock_now();
+        assert!(!app.ui.get_feature_has_qr());
+        assert!(app.ui.get_feature_qr_caption().is_empty());
+        assert_eq!(app.ui.get_feature_qr().size().width, 0);
+        hold();
+        app.feature_data_fixture(
+            "esim-profiles",
+            crate::features::Data::from([
+                ("chip".into(), Err(crate::agent::Error::EsimUnavailable)),
+                (
+                    "inventory".into(),
+                    Err(crate::agent::Error::EsimUnavailable),
+                ),
+                ("switch".into(), Ok(serde_json::json!({"state":"idle"}))),
+            ]),
+        );
+        assert!(app.ui.get_feature_content().contains("普通运营商 SIM"));
+        save("live-esim-unavailable.png")?;
         app.feature_data_fixture("esim-download",fixture(vec![("inventory",serde_json::json!({"agent_instance":12})),("download",serde_json::json!({"state":"confirm","started_at":1234,"provider":"演示运营商","name":"示例套餐","iccid":"8900000000000000000"}))]));
         app.ui.invoke_feature_action(0);
         assert!(app.ui.get_confirm_body().contains("示例套餐"));

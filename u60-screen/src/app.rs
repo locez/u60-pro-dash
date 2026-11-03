@@ -122,6 +122,9 @@ impl State {
     fn show(&mut self, ui: &Screen, id: &str, push: bool) -> Result<()> {
         if id != self.page {
             self.features.cancel();
+            ui.set_feature_has_qr(false);
+            ui.set_feature_qr(Default::default());
+            ui.set_feature_qr_caption("".into());
             ui.set_choice_visible(false);
             ui.set_confirm_visible(false);
         }
@@ -382,6 +385,9 @@ impl State {
             || ui.get_asleep()
         {
             self.close_editor(ui);
+            ui.set_feature_has_qr(false);
+            ui.set_feature_qr(Default::default());
+            ui.set_feature_qr_caption("".into());
             ui.set_choice_visible(false);
             ui.set_confirm_visible(false);
             ui.set_confirm_word("".into());
@@ -595,6 +601,7 @@ impl State {
         let qr = page.qr.as_deref().and_then(crate::features::qr_image);
         ui.set_feature_has_qr(qr.is_some());
         ui.set_feature_qr(qr.unwrap_or_default());
+        ui.set_feature_qr_caption(page.qr_caption.clone().into());
         ui.set_feature_content(page.content.clone().into());
         if let Some(title) = &page.title {
             ui.set_heading(title.clone().into());
