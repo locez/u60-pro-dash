@@ -2,9 +2,6 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8\nLanguage: ko\nPlural-Forms: nplurals=1; plural=0;\n"
 
-msgid " · 已锁定"
-msgstr " · 잠김"
-
 msgid " 确认"
 msgstr " 확인"
 
@@ -46,9 +43,6 @@ msgstr "상태 새로 고침"
 
 msgid "刷新连接状态"
 msgstr "연결 상태를 업데이트"
-
-msgid "剩余电量"
-msgstr "배터리 잔량"
 
 msgid "取消"
 msgstr "취소"
@@ -148,6 +142,9 @@ msgstr "데모"
 
 msgid "熄屏"
 msgstr "화면 끄기"
+
+msgid "电池供电"
+msgstr "배터리 전원"
 
 msgid "界面主题"
 msgstr "테마"

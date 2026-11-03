@@ -21,6 +21,7 @@ pub fn reads(id: &str) -> Option<Vec<Read>> {
             ("battery", "/api/battery"),
             ("battery_info", "/api/device/battery-info"),
             ("charger", "/api/device/charger"),
+            ("charge_control", "/api/device/charge-control"),
         ],
         "traffic" => &[
             ("traffic", "/api/network/speeds"),
@@ -329,18 +330,34 @@ pub fn page(id: &str, readings: &Data) -> Page {
                 quantity(&b["current_ua"], 1000., "mA"),
             ));
             let charger = data(readings, "charger");
-            for (key, label) in [
-                ("charger_type", crate::i18n::tr("充电器类型")),
-                ("usb_present", crate::i18n::tr("USB 已连接")),
-                ("direct_power_supply_mode", crate::i18n::tr("直供模式")),
-            ] {
-                if !charger[key].is_null() {
-                    p.row(label, &charger[key]);
-                }
+            if !charger["charger_type"].is_null() {
+                p.row(crate::i18n::tr("充电器类型"), &charger["charger_type"]);
             }
-            p.note =
-                crate::i18n::tr("电流正负方向按固件读数呈现；整机充电策略在「充电策略」设置。")
-                    .into();
+            p.rows.push((
+                crate::i18n::tr("供电状态").into(),
+                crate::agent::model::Power::read(b, charger).label().into(),
+            ));
+            let bypass = flag(&charger["direct_power_supply_mode"]);
+            p.row(
+                crate::i18n::tr("直供电模式"),
+                &bypass.map(Value::Bool).unwrap_or(Value::Null),
+            );
+            let control = data(readings, "charge_control");
+            let enabled = bypass == Some(true);
+            let mut action = Action::new(
+                if enabled { "bypass-off" } else { "bypass-on" },
+                if enabled {
+                    crate::i18n::tr("关闭直供电")
+                } else {
+                    crate::i18n::tr("启用直供电")
+                },
+                crate::i18n::tr(
+                    "启用后接入电源时使用直供电并停止电池充电；关闭后由充电上限策略决定是否恢复充电。",
+                ),
+            );
+            action.enabled = bypass.is_some() && flag(&control["charging_stopped"]) == bypass;
+            p.actions.push(action);
+            p.note = crate::i18n::tr("直供电与停止充电由同一开关控制。拔掉外接电源后使用电池；充电上限仍在「充电策略」设置。").into();
         }
         "traffic" => {
             let t = data(readings, "traffic");
@@ -543,6 +560,32 @@ pub fn page(id: &str, readings: &Data) -> Page {
 }
 pub fn plan(id: &str, action: &str, page: &Page, readings: &Data) -> Result<Plan> {
     match (id, action) {
+        ("battery-details", "bypass-on" | "bypass-off") => {
+            let mode = flag(&data(readings, "charger")["direct_power_supply_mode"]);
+            let control = data(readings, "charge_control");
+            ensure!(
+                mode.is_some() && flag(&control["charging_stopped"]) == mode,
+                "{}",
+                crate::i18n::tr("请先读取设备设置。")
+            );
+            let stopped = action == "bypass-on";
+            ensure!(
+                mode != Some(stopped),
+                "{}",
+                crate::i18n::tr("没有需要保存的更改。")
+            );
+            let mut plan = Plan::one(
+                Method::PUT,
+                "/api/device/charge-control",
+                json!({"charging_stopped":stopped}),
+            );
+            plan.guards.push(Guard::new(
+                Read::get("charge_control", "/api/device/charge-control"),
+                control,
+                &["/charging_stopped", "/manual_override"],
+            ));
+            Ok(plan)
+        }
         ("processes", "clean") => {
             ensure!(
                 data(readings, "processes")["bloat_count"]

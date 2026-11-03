@@ -2,9 +2,6 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8\nLanguage: zh-Hant\nPlural-Forms: nplurals=1; plural=0;\n"
 
-msgid " · 已锁定"
-msgstr " · 已鎖定"
-
 msgid " 确认"
 msgstr " 確認"
 
@@ -46,9 +43,6 @@ msgstr "重新整理狀態"
 
 msgid "刷新连接状态"
 msgstr "重新整理連線狀態"
-
-msgid "剩余电量"
-msgstr "剩餘電量"
 
 msgid "取消"
 msgstr "取消"
@@ -148,6 +142,9 @@ msgstr "演示"
 
 msgid "熄屏"
 msgstr "熄屏"
+
+msgid "电池供电"
+msgstr "電池供電"
 
 msgid "界面主题"
 msgstr "介面主題"

@@ -2,9 +2,6 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8\nLanguage: en\nPlural-Forms: nplurals=1; plural=0;\n"
 
-msgid " · 已锁定"
-msgstr " · Locked"
-
 msgid " 确认"
 msgstr " Confirm"
 
@@ -46,9 +43,6 @@ msgstr "Refresh status"
 
 msgid "刷新连接状态"
 msgstr "Refresh connection status"
-
-msgid "剩余电量"
-msgstr "Battery level"
 
 msgid "取消"
 msgstr "Cancel"
@@ -148,6 +142,9 @@ msgstr "Demo"
 
 msgid "熄屏"
 msgstr "Screen off"
+
+msgid "电池供电"
+msgstr "Battery powered"
 
 msgid "界面主题"
 msgstr "Theme"

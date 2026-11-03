@@ -75,7 +75,7 @@ impl Snapshot {
         let max_age = match topic {
             "traffic" => 2000,
             "signal" | "health" => 4000,
-            "battery" => 10_000,
+            "battery" | "charger" => 10_000,
             "clients" => 20_000,
             _ => 60_000,
         };

@@ -1,6 +1,7 @@
 import { Palette, Label, TapButton, MenuRow, Stat, Brightness, TrafficPanel } from "components.slint";
 import { LockScreen, PinPad } from "lock.slint";
 import { TextEditor } from "editor.slint";
+import { StatusBar } from "status.slint";
 import "../assets/U60Sans.ttf";
 import "../assets/U60Hangul.ttf";
 export { Palette }
@@ -80,6 +81,13 @@ export component Screen inherits Window {
     callback refresh;
     callback agent-forget;
     in-out property <string> battery: "82%";
+    in-out property <int> battery-level: 82;
+    in-out property <bool> charging;
+    in-out property <bool> external-power;
+    in-out property <bool> bypass-power;
+    in-out property <string> power-label: @tr("电池供电");
+    in-out property <int> signal-level: 3;
+    in-out property <string> network-badge: "5G";
     in-out property <bool> network-online: true;
     in-out property <bool> tailnet-online: true;
     in-out property <string> download: "128.6";
@@ -149,14 +157,13 @@ export component Screen inherits Window {
             return reject;
         }
         init => { self.focus(); }
-        Rectangle {
-            x: 0px; y: 0px; width: parent.width; height: 28px;
-            HorizontalLayout {
-                padding-left: 14px; padding-right: 14px;
-                Label { text: "U60"; font-size: 12px; font-weight: 700; vertical-alignment: center; }
-                Label { text: root.connection-label; color: Palette.warning; font-size: 12px; vertical-alignment: center; horizontal-alignment: center; }
-                Label { text: root.network-mode + "  ·  " + root.battery; font-size: 12px; vertical-alignment: center; horizontal-alignment: right; }
-            }
+        StatusBar {
+            x: 0px; y: 0px; width: parent.width;
+            awake: !root.asleep && !root.locked && !root.pin-visible;
+            connection: root.connection-label; network: root.network-badge; signal-level: root.signal-level;
+            battery: root.battery; battery-level: root.battery-level;
+            charging: root.charging; external-power: root.external-power; bypass-power: root.bypass-power;
+            power-label: root.power-label;
         }
         Rectangle {
             y: 28px; width: parent.width; height: 62px;
@@ -424,6 +431,9 @@ export component Screen inherits Window {
             width: parent.width; height: parent.height;
             pin-enabled: root.pin-enabled; awake: !root.asleep; progress: root.hold-progress;
             battery: root.battery; network-online: root.network-online;
+            battery-level: root.battery-level; charging: root.charging;
+            external-power: root.external-power; bypass-power: root.bypass-power; power-label: root.power-label;
+            network-badge: root.network-badge; signal-level: root.signal-level;
             connection-label: root.connection-label; radio-label: root.radio-label;
             signal-strength: root.signal-strength; traffic-total: root.traffic-total;
             download: root.download; upload: root.upload;

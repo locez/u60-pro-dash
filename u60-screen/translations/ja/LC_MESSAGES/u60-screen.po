@@ -2,9 +2,6 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8\nLanguage: ja\nPlural-Forms: nplurals=1; plural=0;\n"
 
-msgid " · 已锁定"
-msgstr " · ロック中"
-
 msgid " 确认"
 msgstr " 確認"
 
@@ -46,9 +43,6 @@ msgstr "状態を更新"
 
 msgid "刷新连接状态"
 msgstr "接続状態を更新する"
-
-msgid "剩余电量"
-msgstr "バッテリー残量"
 
 msgid "取消"
 msgstr "キャンセル"
@@ -148,6 +142,9 @@ msgstr "デモ"
 
 msgid "熄屏"
 msgstr "画面を消灯"
+
+msgid "电池供电"
+msgstr "バッテリー駆動"
 
 msgid "界面主题"
 msgstr "テーマ"

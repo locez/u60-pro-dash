@@ -1,10 +1,18 @@
 import { Palette, Label, TapButton, TrafficPanel, Stat } from "components.slint";
+import { StatusBar } from "status.slint";
 
 export component LockScreen inherits Rectangle {
     in property <bool> pin-enabled;
     in property <bool> awake: true;
     in property <float> progress;
     in property <string> battery;
+    in property <int> battery-level;
+    in property <bool> charging;
+    in property <bool> external-power;
+    in property <bool> bypass-power;
+    in property <string> power-label;
+    in property <string> network-badge;
+    in property <int> signal-level;
     in property <string> connection-label;
     in property <string> radio-label;
     in property <string> signal-strength;
@@ -18,14 +26,12 @@ export component LockScreen inherits Rectangle {
     callback hold-cancel;
     background: Palette.bg;
     TouchArea { }
-    Rectangle {
-        x: 0px; y: 0px; width: parent.width; height: 28px;
-        HorizontalLayout {
-            padding-left: 14px; padding-right: 14px;
-            Label { text: "U60"; font-size: 12px; vertical-alignment: center; }
-            Label { text: root.connection-label + @tr(" · 已锁定"); font-size: 12px; color: Palette.warning; vertical-alignment: center; horizontal-alignment: center; }
-            Label { text: root.battery; font-size: 12px; vertical-alignment: center; horizontal-alignment: right; }
-        }
+    StatusBar {
+        x: 0px; y: 0px; width: parent.width; awake: root.awake; locked: true;
+        connection: root.connection-label; network: root.network-badge; signal-level: root.signal-level;
+        battery: root.battery; battery-level: root.battery-level;
+        charging: root.charging; external-power: root.external-power; bypass-power: root.bypass-power;
+        power-label: root.power-label;
     }
     Label { x: 14px; y: 32px; height: 18px; text: @tr("NETWORK / 网络状态"); font-size: 12px; color: Palette.muted; }
     Label { x: 14px; y: 52px; height: 32px; text: @tr("随身网络"); font-size: 22px; font-weight: 650; }
@@ -33,7 +39,7 @@ export component LockScreen inherits Rectangle {
     HorizontalLayout {
         x: 12px; y: 244px; width: parent.width - 24px; height: 72px; spacing: 10px;
         Stat { label: @tr("信号强度"); value: root.signal-strength; unit: "dBm"; }
-        Stat { label: @tr("剩余电量"); value: root.battery; unit: ""; }
+        Stat { label: root.power-label; value: root.battery; unit: ""; }
     }
     Rectangle {
         x: 36px; y: 350px; width: 248px; height: 60px;

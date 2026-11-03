@@ -213,14 +213,14 @@ pub fn page(id: &str, readings: &Data) -> Page {
                 ),
                 Field::boolean(
                     "charging_stopped",
-                    crate::i18n::tr("手动暂停充电"),
+                    crate::i18n::tr("直供电模式"),
                     &d["charging_stopped"],
                 ),
             ];
             p.row(crate::i18n::tr("当前电量 %"), &d["capacity"]);
             p.row(crate::i18n::tr("电池状态"), &d["battery_status"]);
             p.note =
-                crate::i18n::tr("充电回差用于避免频繁启停；手动暂停会覆盖自动充电策略。").into();
+                crate::i18n::tr("直供电会停止电池充电，并覆盖自动充电策略；关闭后恢复充电上限管理。充电回差用于避免频繁启停。").into();
         }
         "power-save" => p.fields.push(Field::choice(
             "power_saver_mode",

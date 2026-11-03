@@ -3288,7 +3288,9 @@
       "apis": [
         "GET /api/battery",
         "GET /api/device/battery-info",
-        "GET /api/device/charger"
+        "GET /api/device/charger",
+        "GET /api/device/charge-control",
+        "PUT /api/device/charge-control"
       ]
     },
     {
@@ -3322,7 +3324,7 @@
         },
         {
           "key": "stopped",
-          "label": "暂停充电",
+          "label": "直供电模式",
           "value": false,
           "type": "toggle"
         }

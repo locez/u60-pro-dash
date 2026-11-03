@@ -497,6 +497,13 @@ impl State {
         ui.set_network_online(self.scenario != 2);
         ui.set_tailnet_online(self.scenario != 2);
         ui.set_battery(if self.scenario == 3 { "14%" } else { "82%" }.into());
+        ui.set_battery_level(if self.scenario == 3 { 14 } else { 82 });
+        ui.set_charging(false);
+        ui.set_external_power(false);
+        ui.set_bypass_power(false);
+        ui.set_power_label(crate::i18n::tr("电池供电").into());
+        ui.set_signal_level(if self.scenario == 2 { 0 } else { 3 });
+        ui.set_network_badge(if self.scenario == 2 { "" } else { "5G" }.into());
         ui.set_download(if self.scenario == 2 { "—" } else { "128.6" }.into());
         ui.set_upload(if self.scenario == 2 { "—" } else { "16.4" }.into());
         ui.set_signal_strength(if self.scenario == 2 { "—" } else { "−86" }.into());
@@ -551,7 +558,9 @@ impl State {
         let mut topics = if ui.get_asleep() {
             vec![]
         } else {
-            ["signal", "traffic", "battery"].map(String::from).to_vec()
+            ["signal", "traffic", "battery", "charger"]
+                .map(String::from)
+                .to_vec()
         };
         if !ui.get_asleep() && !self.security.locked && ui.get_view() == 7 {
             topics.extend(
@@ -572,6 +581,13 @@ impl State {
             ui.set_signal_strength(dashboard.rsrp.into());
             ui.set_network_online(dashboard.online);
             ui.set_battery(dashboard.battery.into());
+            ui.set_battery_level(dashboard.battery_level);
+            ui.set_charging(dashboard.power == crate::agent::model::Power::Charging);
+            ui.set_external_power(dashboard.power.external());
+            ui.set_bypass_power(dashboard.power == crate::agent::model::Power::Bypass);
+            ui.set_power_label(dashboard.power.label().into());
+            ui.set_signal_level(dashboard.signal_level);
+            ui.set_network_badge(dashboard.network_badge.into());
             ui.set_download(dashboard.download.into());
             ui.set_upload(dashboard.upload.into());
             ui.set_traffic_total(dashboard.total.into());

@@ -567,8 +567,8 @@ pub fn topics(id: &str) -> &'static [&'static str] {
 }
 pub fn poll_seconds(id: &str) -> Option<u64> {
     match id {
-        "clients" | "sms-inbox" | "sms-forward-log" | "scheduler" | "esim-profiles"
-        | "esim-receipts" => Some(10),
+        "battery-details" | "clients" | "sms-inbox" | "sms-forward-log" | "scheduler"
+        | "esim-profiles" | "esim-receipts" => Some(10),
         "esim-download" => Some(3),
         "dns-cache" | "operators" | "neighbors" => Some(5),
         "signal-test" | "speedtest" | "phone" | "stk" => Some(2),

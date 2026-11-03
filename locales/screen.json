@@ -11114,5 +11114,68 @@
     "ko": "연결, 경로 및 연결 테스트",
     "zh-Hans": "连接、路由与连通性检测",
     "zh-Hant": "連線、路由與連通性檢測"
+  },
+  "电源状态未知": {
+    "en": "Power state unknown",
+    "zh-Hans": "电源状态未知",
+    "zh-Hant": "電源狀態未知",
+    "ja": "電源状態不明",
+    "ko": "전원 상태 알 수 없음"
+  },
+  "外接电源": {
+    "en": "External power",
+    "zh-Hans": "外接电源",
+    "zh-Hant": "外接電源",
+    "ja": "外部電源",
+    "ko": "외부 전원"
+  },
+  "直供电模式": {
+    "en": "Bypass power",
+    "zh-Hans": "直供电模式",
+    "zh-Hant": "直供電模式",
+    "ja": "バイパス給電",
+    "ko": "바이패스 전원"
+  },
+  "供电状态": {
+    "en": "Power source",
+    "zh-Hans": "供电状态",
+    "zh-Hant": "供電狀態",
+    "ja": "給電状態",
+    "ko": "전원 상태"
+  },
+  "关闭直供电": {
+    "en": "Disable bypass power",
+    "zh-Hans": "关闭直供电",
+    "zh-Hant": "關閉直供電",
+    "ja": "バイパス給電を無効にする",
+    "ko": "바이패스 전원 끄기"
+  },
+  "启用直供电": {
+    "en": "Enable bypass power",
+    "zh-Hans": "启用直供电",
+    "zh-Hant": "啟用直供電",
+    "ja": "バイパス給電を有効にする",
+    "ko": "바이패스 전원 켜기"
+  },
+  "启用后接入电源时使用直供电并停止电池充电；关闭后由充电上限策略决定是否恢复充电。": {
+    "en": "When enabled, external power supplies the router and battery charging stops. When disabled, the charge limit policy decides whether charging resumes.",
+    "zh-Hans": "启用后接入电源时使用直供电并停止电池充电；关闭后由充电上限策略决定是否恢复充电。",
+    "zh-Hant": "啟用後接入電源時使用直供電並停止電池充電；關閉後由充電上限策略決定是否恢復充電。",
+    "ja": "有効にすると外部電源から直接給電し、バッテリーの充電を停止します。無効にすると充電上限の設定に従って充電を再開します。",
+    "ko": "켜면 외부 전원으로 라우터에 직접 전원을 공급하고 배터리 충전을 중지합니다. 끄면 충전 한도 정책에 따라 충전을 재개합니다."
+  },
+  "直供电与停止充电由同一开关控制。拔掉外接电源后使用电池；充电上限仍在「充电策略」设置。": {
+    "en": "Bypass power and charging pause share one control. Unplugging switches to battery power. Set the charge limit under Charge policy.",
+    "zh-Hans": "直供电与停止充电由同一开关控制。拔掉外接电源后使用电池；充电上限仍在「充电策略」设置。",
+    "zh-Hant": "直供電與停止充電由同一開關控制。拔掉外接電源後使用電池；充電上限仍在「充電策略」設定。",
+    "ja": "バイパス給電と充電停止は同じスイッチで制御します。外部電源を外すとバッテリー駆動になります。充電上限は「充電ポリシー」で設定します。",
+    "ko": "바이패스 전원과 충전 중지는 같은 스위치로 제어됩니다. 외부 전원을 분리하면 배터리를 사용합니다. 충전 한도는 충전 정책에서 설정합니다."
+  },
+  "直供电会停止电池充电，并覆盖自动充电策略；关闭后恢复充电上限管理。充电回差用于避免频繁启停。": {
+    "en": "Bypass power pauses charging and overrides the automatic charge policy. Disable it to restore charge limit management. Hysteresis prevents frequent cycling.",
+    "zh-Hans": "直供电会停止电池充电，并覆盖自动充电策略；关闭后恢复充电上限管理。充电回差用于避免频繁启停。",
+    "zh-Hant": "直供電會停止電池充電，並覆蓋自動充電策略；關閉後恢復充電上限管理。充電回差用於避免頻繁啟停。",
+    "ja": "バイパス給電は充電を停止し、自動充電設定より優先されます。無効にすると充電上限の管理に戻ります。ヒステリシスは頻繁な切り替えを防ぎます。",
+    "ko": "바이패스 전원은 충전을 중지하고 자동 충전 정책보다 우선합니다. 끄면 충전 한도 관리가 재개됩니다. 히스테리시스는 잦은 충전 전환을 방지합니다."
   }
 }

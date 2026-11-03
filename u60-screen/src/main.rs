@@ -406,6 +406,109 @@ mod tests {
             }
             Ok(())
         };
+        app.open("vpn-services")?;
+        save("vpn-services.png")?;
+        app.open("tailscale")?;
+        save("tailscale-menu.png")?;
+        app.open("overview")?;
+        let status_pixels = || {
+            platform::capture(&window, false)
+                .into_iter()
+                .take(320 * 28)
+                .map(|p| p.0)
+                .collect::<Vec<_>>()
+        };
+        for locked in [false, true] {
+            app.ui.invoke_theme(!locked);
+            if locked {
+                app.ui.invoke_lock_now();
+            }
+            app.ui.set_battery("40%".into());
+            app.ui.set_battery_level(40);
+            app.ui.set_external_power(true);
+            app.ui.set_bypass_power(false);
+            app.ui.set_charging(true);
+            app.ui.set_power_label("充电中".into());
+            slint::platform::update_timers_and_animations();
+            let charging = status_pixels();
+            save(if locked {
+                "status-lock-charging.png"
+            } else {
+                "status-charging.png"
+            })?;
+            std::thread::sleep(std::time::Duration::from_millis(550));
+            slint::platform::update_timers_and_animations();
+            assert!(
+                charging != status_pixels(),
+                "charging must animate, including while locked"
+            );
+            app.ui.set_charging(false);
+            app.ui.set_bypass_power(true);
+            app.ui.set_power_label("直供电模式".into());
+            let bypass = status_pixels();
+            assert_ne!(bypass, charging, "bypass and charging need distinct icons");
+            save(if locked {
+                "status-lock-bypass.png"
+            } else {
+                "status-bypass.png"
+            })?;
+            std::thread::sleep(std::time::Duration::from_millis(550));
+            slint::platform::update_timers_and_animations();
+            assert!(
+                bypass == status_pixels(),
+                "bypass must not animate as charging"
+            );
+            app.ui.set_bypass_power(false);
+            app.ui.set_power_label("外接电源".into());
+            assert!(
+                bypass != status_pixels(),
+                "ordinary external power has its own icon"
+            );
+            save(if locked {
+                "status-lock-external.png"
+            } else {
+                "status-external.png"
+            })?;
+            if locked {
+                hold();
+            }
+        }
+        app.ui.set_external_power(false);
+        app.ui.set_battery("14%".into());
+        app.ui.set_battery_level(14);
+        app.ui.set_power_label("电池供电".into());
+        app.ui.set_signal_level(0);
+        app.ui.set_network_badge("".into());
+        let offline = status_pixels();
+        save("status-low-offline.png")?;
+        app.ui.set_signal_level(-1);
+        app.ui.set_battery("—".into());
+        app.ui.set_battery_level(-1);
+        assert!(
+            offline != status_pixels(),
+            "missing readings must differ from no service and low battery"
+        );
+        save("status-unknown.png")?;
+        app.ui.set_battery("82%".into());
+        app.ui.set_battery_level(82);
+        app.ui.set_signal_level(3);
+        app.ui.set_network_badge("5G".into());
+        app.ui.invoke_theme(false);
+        app.feature_data_fixture("battery-details",fixture(vec![
+            ("battery",serde_json::json!({"capacity":80,"status":"Discharging","temperature":310,"voltage_uv":4100000,"current_ua":-10000})),
+            ("charger",serde_json::json!({"charger_connect":1,"direct_power_supply_mode":"enable"})),
+            ("charge_control",serde_json::json!({"charging_stopped":true,"manual_override":true})),
+        ]));
+        assert!(app.ui.get_feature_actions().row_data(0).unwrap().enabled);
+        assert_eq!(
+            app.ui.get_feature_actions().row_data(0).unwrap().label,
+            "关闭直供电"
+        );
+        app.ui.invoke_feature_action(0);
+        assert!(app.ui.get_confirm_visible());
+        assert!(app.ui.get_confirm_body().contains("直供电"));
+        save("bypass-confirmation.png")?;
+        app.ui.invoke_confirm_cancel();
         app.feature_data_fixture("sms-inbox", fixture(vec![
             ("internal",serde_json::json!({"messages":[{"id":1,"number":"+15555550100","date":"2026-11-03 08:00","tag":1,"mem_store":1,"content":"测试短信：中文正文应清楚显示。\n这是第二行，带有网络状态提示。"}]})),
             ("card",serde_json::json!({"messages":[]})),("__selection",serde_json::json!("1")),

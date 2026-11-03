@@ -560,6 +560,83 @@ mod tests {
         c
     }
     #[test]
+    fn bypass_controls_confirm_write_only_the_switch_and_read_back_actual_state() {
+        for original in [false, true] {
+            let mut c = Controller::default();
+            assert!(c.open("battery-details"));
+            c.queue.clear();
+            let control = json!({"charging_stopped":original,"manual_override":original,"charge_limit_enabled":true,"charge_limit":80,"hysteresis":5});
+            c.data.insert("charger".into(),Ok(json!({"charger_connect":1,"direct_power_supply_mode":if original {"enable"} else {"disable"}})));
+            c.data.insert("charge_control".into(), Ok(control.clone()));
+            c.finish_reads();
+            assert!(c.page.actions[0].enabled);
+            assert!(c.confirm("").is_err());
+            c.prepare(0).unwrap();
+            assert!(c.queue.is_empty(), "opening confirmation must not write");
+            let plan = c.confirmation.as_ref().unwrap();
+            assert_eq!(
+                plan.requests[0].body,
+                Some(json!({"charging_stopped":!original}))
+            );
+            assert_eq!(plan.requests[0].path, "/api/device/charge-control");
+            assert_eq!(plan.requests[0].method, Method::PUT);
+            assert!(plan.guards[0].matches(&control));
+            let mut changed = control.clone();
+            changed["charging_stopped"] = json!(!original);
+            assert!(!plan.guards[0].matches(&changed));
+            c.confirm("").unwrap();
+            let (key, request) = c.queue.pop_front().unwrap();
+            assert!(key.is_some());
+            c.pending = Some(Pending {
+                id: 910,
+                key,
+                request,
+                attempt: 0,
+            });
+            c.receive(910, Ok(control));
+            let (key, request) = c.queue.pop_front().unwrap();
+            assert!(key.is_none());
+            c.pending = Some(Pending {
+                id: 911,
+                key,
+                request,
+                attempt: 0,
+            });
+            c.receive(911, Ok(json!({"charging_stopped":!original})));
+            assert!(
+                c.page.actions.iter().all(|a| !a.enabled),
+                "wait for authoritative readback"
+            );
+            while let Some((key, request)) = c.queue.pop_front() {
+                let result = match key.as_deref().unwrap() {
+                    "charger" => {
+                        json!({"charger_connect":1,"direct_power_supply_mode":if original {"disable"} else {"enable"}})
+                    }
+                    "charge_control" => {
+                        json!({"charging_stopped":!original,"manual_override":!original})
+                    }
+                    _ => json!({}),
+                };
+                c.pending = Some(Pending {
+                    id: 912,
+                    key,
+                    request,
+                    attempt: 0,
+                });
+                c.receive(912, Ok(result));
+            }
+            assert_eq!(
+                c.page.actions[0].id,
+                if original { "bypass-on" } else { "bypass-off" }
+            );
+            assert!(c.page.actions[0].enabled);
+            c.data.insert("charger".into(), Err(Error::Unavailable));
+            c.finish_reads();
+            assert!(!c.page.actions[0].enabled);
+            assert!(c.prepare(0).is_err());
+        }
+    }
+    #[test]
     fn changed_preflight_cancels_all_writes_before_the_first_mutation() {
         let mut c = charge();
         c.edit(1, "85".into()).unwrap();
