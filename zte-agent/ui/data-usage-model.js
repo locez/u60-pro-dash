@@ -1,5 +1,6 @@
 'use strict';
 (() => {
+  const tr = globalThis.OpenU60I18n?.t || ((s,...v)=>s.replace(/\{(\d+)\}/g,(match,i)=>Number(i)<v.length?String(v[i]):match));
   const number = value => value !== null && value !== undefined && typeof value !== 'boolean' && String(value).trim() !== '' && Number.isFinite(Number(value)) ? Number(value) : null;
   const nonnegative = value => number(value) !== null && number(value) >= 0 ? number(value) : null;
   const flag = value => [true,1,'1','true','enabled'].includes(value) ? true : [false,0,'0','false','disabled'].includes(value) ? false : null;
@@ -23,13 +24,13 @@
     return result;
   }
   function bytes(value) {
-    const n=nonnegative(value);if(n===null)return 'Not reported';
+    const n=nonnegative(value);if(n===null)return tr('Not reported');
     const units=[['TB',1e12],['GB',1e9],['MB',1e6],['KB',1e3],['B',1]],unit=units.find(([,size])=>n>=size)||units.at(-1),digits=unit[0]==='B'?0:n/unit[1]>=1000?1:2;
     return `${(n/unit[1]).toFixed(digits)} ${unit[0]}`;
   }
-  function count(value) { const n=nonnegative(value); return n===null ? 'Not reported' : new Intl.NumberFormat().format(n); }
+  function count(value) { const n=nonnegative(value); return n===null ? tr('Not reported') : new Intl.NumberFormat().format(n); }
   function duration(value) {
-    const seconds=nonnegative(value);if(seconds===null)return 'Not reported';
+    const seconds=nonnegative(value);if(seconds===null)return tr('Not reported');
     const minutes=Math.floor(seconds/60),days=Math.floor(minutes/1440),hours=Math.floor(minutes%1440/60),rest=minutes%60;
     return [days?`${days}d`:'',hours?`${hours}h`:'',rest||(!days&&!hours)?`${rest}m`:''].filter(Boolean).join(' ');
   }
@@ -44,7 +45,8 @@
     return Number.isSafeInteger(result)&&result>0&&result<=100*1024**4?result:null;
   }
   function ordinal(value) {
-    const n=number(value);if(!Number.isInteger(n)||n<1||n>31)return 'Not reported';
+    const n=number(value);if(!Number.isInteger(n)||n<1||n>31)return tr('Not reported');
+    if (globalThis.OpenU60I18n && globalThis.OpenU60I18n.locale !== 'en') return String(n);
     const mod100=n%100,suffix=mod100>=11&&mod100<=13?'th':({1:'st',2:'nd',3:'rd'}[n%10]||'th');return `${n}${suffix}`;
   }
   const api={parse,bytes,count,duration,gigabytes,bytesFromGigabytes,ordinal};

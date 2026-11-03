@@ -3302,3 +3302,15 @@ dialog[data-motion="closing"]::backdrop { animation: dialog-scrim-out .12s ease-
 .proxy-pane[hidden]{display:none}
 .proxy-pane .service-form:first-child{border:0;padding-top:12px;margin-top:12px}
 #proxy-config{font:13px/1.65 var(--mono);tab-size:2;min-height:300px}
+
+/* Locale selectors use autonyms so the way back stays recognizable. */
+.language-control { display:inline-flex; align-items:center; gap:8px; }
+.language-control select { min-width:96px; max-width:128px; padding:7px 24px 7px 9px; font:inherit; font-size:12px; border:1px solid var(--line); border-radius:8px; color:var(--ink); background:var(--surface); }
+.login-language { justify-content:space-between; width:100%; margin-bottom:20px; font-size:12px; }
+.language-settings { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:24px; }
+.language-settings select { max-width:220px; }
+html:lang(zh-Hans), html:lang(zh-Hant), html:lang(ja), html:lang(ko) { --sans: 'Noto Sans', 'Noto Sans CJK SC', 'Noto Sans CJK TC', 'Noto Sans CJK JP', 'Noto Sans CJK KR', system-ui, sans-serif; }
+@media (max-width:600px) { .topbar-actions #address { display:none; } .topbar .breadcrumb { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } }
+
+.topbar .breadcrumb { flex:1 1 0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.topbar-actions { flex:0 0 auto; }

@@ -253,6 +253,14 @@ fn certificate_download(ctx: &Ctx, method: &axum::http::Method, path: &str) -> O
 
 fn asset(path: &str) -> Option<(&'static str, &'static str)> {
     match path {
+        "/console/a/i18n.js" => Some((
+            "text/javascript; charset=utf-8",
+            include_str!("../ui/i18n.js"),
+        )),
+        "/console/a/locales.js" => Some((
+            "text/javascript; charset=utf-8",
+            include_str!("../ui/locales.js"),
+        )),
         "/console/setup" => Some(("text/html; charset=utf-8", include_str!("../ui/setup.html"))),
         "/console/a/https.js" => Some((
             "text/javascript; charset=utf-8",
@@ -313,8 +321,14 @@ fn asset(path: &str) -> Option<(&'static str, &'static str)> {
             "text/javascript; charset=utf-8",
             include_str!("../ui/wireguard-model.js"),
         )),
-        "/console/a/proxy.js" => Some(("text/javascript; charset=utf-8", include_str!("../ui/proxy.js"))),
-        "/console/a/remote-services.js" => Some(("text/javascript; charset=utf-8", include_str!("../ui/remote-services.js"))),
+        "/console/a/proxy.js" => Some((
+            "text/javascript; charset=utf-8",
+            include_str!("../ui/proxy.js"),
+        )),
+        "/console/a/remote-services.js" => Some((
+            "text/javascript; charset=utf-8",
+            include_str!("../ui/remote-services.js"),
+        )),
         "/console/a/wireguard.js" => Some((
             "text/javascript; charset=utf-8",
             include_str!("../ui/wireguard.js"),
@@ -403,6 +417,8 @@ mod tests {
         for (path, status) in [
             ("/console/", 200),
             ("/console/a/motion.js", 200),
+            ("/console/a/i18n.js", 200),
+            ("/console/a/locales.js", 200),
             ("/console/a/dns.js", 200),
             ("/console/a/dns-cache.js", 200),
             ("/console/a/wireguard-model.js", 200),
