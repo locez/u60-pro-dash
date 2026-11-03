@@ -97,6 +97,34 @@ pub(super) fn run_checked(
     root: &Path,
     config: &Path,
 ) -> Result<(), String> {
+    run_prepared(driver, binary, root, config, false, true)
+}
+
+pub(super) fn run_prepared(
+    driver: &dyn engine::Engine,
+    binary: &Path,
+    root: &Path,
+    config: &Path,
+    force: bool,
+    allow_updates: bool,
+) -> Result<(), String> {
+    let source: Value = serde_json::from_slice(
+        &fs::read(config).map_err(|_| "Cannot read candidate configuration")?,
+    )
+    .map_err(|_| "Invalid runtime configuration")?;
+    let mut work = geodata::Workspace::new(root)?;
+    work.prepare(root, &source, force, allow_updates)?;
+    run_raw(driver, binary, &work.path, config)?;
+    work.include_native_downloads(root, allow_updates)?;
+    work.promote()
+}
+
+pub(super) fn run_raw(
+    driver: &dyn engine::Engine,
+    binary: &Path,
+    root: &Path,
+    config: &Path,
+) -> Result<(), String> {
     let mut child = driver
         .command(binary, root, config, true)
         .stdin(Stdio::null())
@@ -149,6 +177,23 @@ pub(super) fn run_checked(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn failed_native_validation_cannot_leave_a_partial_active_database() {
+        let root =
+            std::env::temp_dir().join(format!("u60-validation-isolated-{}", std::process::id()));
+        fs::create_dir_all(&root).unwrap();
+        let binary = root.join("engine");
+        let config = root.join("config.json");
+        private_write(&binary, b"#!/bin/sh\nwhile [ $# -gt 0 ]; do if [ \"$1\" = -d ]; then shift; root=$1; fi; shift; done\nprintf partial > \"$root/GeoIP.dat\"\nexit 1\n", 0o700).unwrap();
+        private_write(&config, b"{}", 0o600).unwrap();
+        assert!(run_checked(&engine::Mihomo, &binary, &root, &config).is_err());
+        assert!(!root.join("GeoIP.dat").exists());
+        assert!(!fs::read_dir(&root)
+            .unwrap()
+            .flatten()
+            .any(|e| e.file_name().to_string_lossy().starts_with(".geodata-")));
+        fs::remove_dir_all(root).unwrap();
+    }
     #[test]
     fn validation_returns_the_actual_reason_without_credentials_or_urls() {
         let root = std::env::temp_dir().join(format!("u60-validation-{}", std::process::id()));

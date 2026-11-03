@@ -80,11 +80,13 @@ impl MihomoService {
         let runtime = serde_json::to_vec(&runtime).map_err(|_| "Invalid runtime configuration")?;
         let candidate = Candidate(self.root.join("candidate.json"));
         private_write(&candidate.0, &runtime, 0o600)?;
-        run_checked(
+        validation::run_prepared(
             driver.as_ref(),
             &self.root.join("engine"),
             &self.root,
             &candidate.0,
+            false,
+            !running,
         )?;
         if validate_only {
             return Ok(());
@@ -105,6 +107,31 @@ impl MihomoService {
                 )
                 .map(|_| ())
             },
+        )
+    }
+    pub(super) fn prepare_geodata(
+        &self,
+        text: &str,
+        expected: Option<&Value>,
+    ) -> Result<(), String> {
+        self.check_revision(expected)?;
+        let settings = self.settings.lock().unwrap().clone();
+        let driver = engine::adapter(&settings.adapter)?;
+        let source = driver.normalize(text)?;
+        let runtime = driver.runtime(&source, &settings, "validation-only");
+        let candidate = Candidate(self.root.join("candidate.json"));
+        private_write(
+            &candidate.0,
+            &serde_json::to_vec(&runtime).map_err(|_| "Invalid runtime configuration")?,
+            0o600,
+        )?;
+        validation::run_prepared(
+            driver.as_ref(),
+            &self.root.join("engine"),
+            &self.root,
+            &candidate.0,
+            true,
+            true,
         )
     }
 }

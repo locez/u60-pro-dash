@@ -1,6 +1,7 @@
 //! Authenticated proxy service with private configuration and a replaceable
 //! engine adapter. No engine or network is started by constructing the state.
 mod configuration;
+pub(crate) mod geodata;
 mod validation;
 use validation::run_checked;
 mod engine;
@@ -468,7 +469,14 @@ impl MihomoService {
                 json!({"mode":"direct","mixed-port":0,"proxies":[],"rules":["MATCH,DIRECT"]})
             };
             private_write(&validation, &serde_json::to_vec(&config).unwrap(), 0o600)?;
-            run_checked(driver.as_ref(), &staged, &self.root, &validation)?;
+            validation::run_prepared(
+                driver.as_ref(),
+                &staged,
+                &self.root,
+                &validation,
+                false,
+                !was_running,
+            )?;
             // Keep the inter-process lease through stop, replacement and rollback.
             let lease = self
                 .runtime
@@ -609,6 +617,18 @@ impl MihomoService {
                 self.save(&s)?;
                 *self.settings.lock().unwrap() = s;
             }
+            "geodata" => {
+                if self.runtime.lock().unwrap().child.is_some() {
+                    return Err(
+                        "Stop this service before preparing or repairing its rule databases".into(),
+                    );
+                }
+                self.prepare_geodata(
+                    body["config"].as_str().ok_or("Configuration required")?,
+                    body.get("revision"),
+                )?;
+                return Ok(json!({"prepared":true,"revision":self.configuration_revision()?}));
+            }
             "config" | "subscription" | "validate" | "reload" => {
                 let text = if action == "subscription" {
                     String::from_utf8(download_as(
@@ -729,7 +749,7 @@ pub fn service_route(
         | (
             Method::Post,
             "enable" | "disable" | "restart" | "config" | "subscription" | "validate" | "reload"
-            | "install" | "select",
+            | "install" | "select" | "geodata",
         ) => {
             if !state.auth.has_password() {
                 return (

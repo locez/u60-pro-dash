@@ -4,6 +4,7 @@ mod archive;
 mod releases;
 pub(crate) use archive::extract_tailscale;
 
+use crate::proxy::geodata::{self, Kind as DataKind};
 use base64::Engine as _;
 use releases::Release;
 use serde_json::{json, Value};
@@ -90,12 +91,14 @@ enum Source {
 }
 enum Target {
     Proxy(Arc<crate::proxy::MihomoService>),
+    ProxyData(Arc<crate::proxy::MihomoService>, DataKind),
     Tailscale(Arc<crate::tailscale::TailscaleManager>),
 }
 impl Target {
     fn install(&self, package: &Path, version: &str) -> Result<(), String> {
         match self {
             Self::Proxy(service) => service.install_package(package, version),
+            Self::ProxyData(service, kind) => service.install_geodata(*kind, package),
             Self::Tailscale(service) => {
                 crate::tailscale::install_package(service, package, version)
             }
@@ -117,22 +120,31 @@ impl Manager {
     fn at(root: PathBuf) -> Self {
         Self {
             root,
-            slots: ["mihomo", "tailscale"]
-                .into_iter()
-                .map(|s| {
-                    (
-                        s,
-                        Arc::new(Mutex::new(State {
-                            package_limit: if s == "mihomo" {
-                                crate::proxy::BINARY_LIMIT
-                            } else {
-                                PACKAGE_MAX
-                            },
-                            ..State::default()
-                        })),
-                    )
-                })
-                .collect(),
+            slots: [
+                "mihomo",
+                "tailscale",
+                "mihomo-geoip",
+                "mihomo-geosite",
+                "mihomo-mmdb",
+                "mihomo-asn",
+            ]
+            .into_iter()
+            .map(|s| {
+                (
+                    s,
+                    Arc::new(Mutex::new(State {
+                        package_limit: if DataKind::from_service(s).is_some() {
+                            geodata::LIMIT
+                        } else if s == "mihomo" {
+                            crate::proxy::BINARY_LIMIT
+                        } else {
+                            PACKAGE_MAX
+                        },
+                        ..State::default()
+                    })),
+                )
+            })
+            .collect(),
         }
     }
     fn slot(&self, service: &str) -> Result<Arc<Mutex<State>>, String> {
@@ -178,6 +190,11 @@ impl Manager {
         Ok((Package(path), file))
     }
     fn check(&self, service: &str) -> Result<Value, String> {
+        if DataKind::from_service(service).is_some() {
+            return Err(
+                "Prepare rule databases from the configuration page or import a local file".into(),
+            );
+        }
         let slot = self.slot(service)?;
         {
             let mut s = slot.lock().unwrap();
@@ -229,7 +246,14 @@ impl Manager {
             .as_str()
             .filter(|v| v.len() <= 180 && !v.contains(['/', '\\']))
             .ok_or("Invalid package filename")?;
-        let version = releases::uploaded_version(service, name, body["version"].as_str())?;
+        let version = if let Some(kind) = DataKind::from_service(service) {
+            if !kind.accepts(name) {
+                return Err(format!("Choose {} for this database", kind.filename()));
+            }
+            kind.filename().to_owned()
+        } else {
+            releases::uploaded_version(service, name, body["version"].as_str())?
+        };
         let (package, file) = self.new_package()?;
         let id = random_id()?;
         s.upload = Some(Upload {
@@ -306,6 +330,10 @@ impl Manager {
         let target = match service {
             "mihomo" => Target::Proxy(Arc::clone(app.proxy.legacy())),
             "tailscale" => Target::Tailscale(Arc::clone(&app.tailscale)),
+            s if uploaded && DataKind::from_service(s).is_some() => Target::ProxyData(
+                Arc::clone(app.proxy.legacy()),
+                DataKind::from_service(s).unwrap(),
+            ),
             _ => return Err("Unknown software service".into()),
         };
         let source;
@@ -504,6 +532,31 @@ pub fn route(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn database_uploads_have_exact_types_and_do_not_require_a_software_version() {
+        let root = std::env::temp_dir().join(format!("u60-data-upload-{}", random_id().unwrap()));
+        let manager = Manager::at(root.clone());
+        for kind in [
+            DataKind::GeoIp,
+            DataKind::GeoSite,
+            DataKind::Mmdb,
+            DataKind::Asn,
+        ] {
+            let s = kind.service();
+            assert!(manager
+                .begin_upload(s, &json!({"name":"engine.gz","size":4}))
+                .is_err());
+            assert!(manager
+                .begin_upload(s, &json!({"name":kind.filename(),"size":geodata::LIMIT+1}))
+                .is_err());
+            let upload = manager
+                .begin_upload(s, &json!({"name":kind.filename(),"size":4}))
+                .unwrap();
+            manager.cancel_upload(s, &upload).unwrap();
+            assert!(manager.check(s).is_err());
+        }
+        fs::remove_dir_all(root).unwrap();
+    }
     #[test]
     fn uploads_are_bounded_ordered_private_and_independent_per_service() {
         let root = std::env::temp_dir().join(format!("u60-upload-test-{}", random_id().unwrap()));
