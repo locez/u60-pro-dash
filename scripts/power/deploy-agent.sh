@@ -11,6 +11,8 @@ R="root@192.168.0.1"; P=2222
 SSH=(ssh -o BatchMode=yes -o ConnectTimeout=5 -p $P $R)
 cd "$(dirname "$0")/../.."
 
+"${SSH[@]}" 'if [ -s /data/u60-dash/current ] && [ "$(cat /data/u60-dash/current)" != none ]; then echo "Use bash dash.sh install to update agent and screen together." >&2; exit 1; fi'
+
 cargo build --release --target aarch64-unknown-linux-musl -p zte-agent
 BIN=target/aarch64-unknown-linux-musl/release/zte-agent
 SHA=$(shasum -a 256 "$BIN" | cut -d' ' -f1)

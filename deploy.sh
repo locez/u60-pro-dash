@@ -18,6 +18,9 @@ SUPERVISOR_LOCAL=scripts/router/zte-agent-supervisor.sh
 STARTUP_SCRIPT=/data/local/tmp/start_zte_agent.sh
 SSH="ssh -p $SSH_PORT -o StrictHostKeyChecking=no root@$DEVICE"
 
+# A paired deployment owns both executables and its startup wrapper.
+$SSH 'if [ -s /data/u60-dash/current ] && [ "$(cat /data/u60-dash/current)" != none ]; then echo "Use bash dash.sh install to update agent and screen together." >&2; exit 1; fi'
+
 # 1. Build
 echo "Building..."
 cargo build --release --target $TARGET -p zte-agent

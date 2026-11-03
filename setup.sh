@@ -427,6 +427,8 @@ remote_ok() {
 }
 
 # ── Step 3: Get zte-agent binary ─────────────────────────────────────
+remote_ok 'test ! -s /data/u60-dash/current || test "$(cat /data/u60-dash/current)" = none' \
+    || fail "Paired deployment or connection unavailable. Use bash dash.sh status and bash dash.sh install."
 if [ "$BUILD_CHOICE" = "1" ]; then
     info "Downloading zte-agent from GitHub releases..."
     mkdir -p "$(dirname "$BINARY")"

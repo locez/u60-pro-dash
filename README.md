@@ -1,5 +1,5 @@
 > **u60-pro-dash fork**：自定义机身小屏与 Tailscale 子网网关。
-> [小屏预览](u60-screen/README.md) · [网关说明](local-tools/tailscale-gateway/README.md) · [网络服务管理](docs/network-services.md) · [同步上游与二开流程](FORK.md)
+> [项目部署](docs/deployment.md) · [小屏预览](u60-screen/README.md) · [网关说明](local-tools/tailscale-gateway/README.md) · [网络服务管理](docs/network-services.md) · [同步上游与二开流程](FORK.md)
 
 <div align="center">
 
@@ -300,7 +300,26 @@ Visit [open-u60-pro.vercel.app](https://open-u60-pro.vercel.app), enter your rou
 
 Enables ADB, builds and pushes the agent, creates boot scripts, and optionally sets up SSH for wireless deploys.
 
-### Deploy Agent (subsequent updates)
+### Deploy this fork: agent and native screen
+
+Once the agent is set up and running, use the project deployment script to
+build and deploy **both `zte-agent` and `u60-screen`**:
+
+```bash
+bash dash.sh check
+bash dash.sh install
+bash dash.sh status
+```
+
+This preserves device credentials and preferences, checks both programs,
+and enables guarded screen startup after firmware initialization. It supports
+ADB or SSH, paired rollback and restoration of the original installation.
+See [deployment and recovery](docs/deployment.md) for commands and validation limits.
+
+### Deploy only the upstream agent (without the native screen)
+
+The following legacy workflow is for agent-only installations. It refuses to
+overwrite an active paired deployment; use `dash.sh` for this fork's two programs.
 
 ```bash
 ./deploy.sh yourpassword
