@@ -11086,5 +11086,33 @@
     "en": "Unknown state",
     "ja": "状態不明",
     "ko": "알 수 없는 상태"
+  },
+  "连接与登录": {
+    "en": "Connection & sign-in",
+    "ja": "接続とログイン",
+    "ko": "연결 및 로그인",
+    "zh-Hans": "连接与登录",
+    "zh-Hant": "連線與登入"
+  },
+  "网络设置": {
+    "en": "Network settings",
+    "ja": "ネットワーク設定",
+    "ko": "네트워크 설정",
+    "zh-Hans": "网络设置",
+    "zh-Hant": "網路設定"
+  },
+  "安装与更新": {
+    "en": "Install & update",
+    "ja": "インストールと更新",
+    "ko": "설치 및 업데이트",
+    "zh-Hans": "安装与更新",
+    "zh-Hant": "安裝與更新"
+  },
+  "连接、路由与连通性检测": {
+    "en": "Connection, routes and diagnostics",
+    "ja": "接続・ルート・接続テスト",
+    "ko": "연결, 경로 및 연결 테스트",
+    "zh-Hans": "连接、路由与连通性检测",
+    "zh-Hant": "連線、路由與連通性檢測"
   }
 }

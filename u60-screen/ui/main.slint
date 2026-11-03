@@ -206,7 +206,7 @@ export component Screen inherits Window {
                         }
                         Label { text: "↗"; font-size: 24px; vertical-alignment: center; color: Palette.accent-ink; width: 24px; }
                     }
-                    TouchArea { clicked => { root.open("tailscale-network"); } }
+                    TouchArea { clicked => { root.open("tailscale"); } }
                 }
                 if root.view == 1: VerticalLayout {
                     spacing: 8px;

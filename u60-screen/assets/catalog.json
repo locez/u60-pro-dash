@@ -43,6 +43,13 @@
       "icon": "tailnet"
     },
     {
+      "id": "tailscale",
+      "title": "Tailscale",
+      "subtitle": "连接、路由与连通性检测",
+      "root": "vpn-services",
+      "icon": "tailnet"
+    },
+    {
       "id": "proxy",
       "title": "代理",
       "subtitle": "独立管理各代理服务",
@@ -1892,22 +1899,9 @@
       ]
     },
     {
-      "id": "tailscale-network",
-      "title": "Tailscale 网络",
-      "group": "vpn-services",
-      "description": "查看 Tailscale 连接、子网路由与目标连通性。",
-      "rows": [],
-      "fields": [],
-      "actions": [],
-      "apis": [
-        "GET /api/tailscale/status"
-      ],
-      "view": "tailnet"
-    },
-    {
       "id": "tailscale-service",
-      "title": "Tailscale 连接",
-      "group": "vpn-services",
+      "title": "连接与登录",
+      "group": "tailscale",
       "description": "",
       "rows": [
         [
@@ -1960,8 +1954,8 @@
     },
     {
       "id": "tailscale-config",
-      "title": "Tailscale 设置",
-      "group": "vpn-services",
+      "title": "网络设置",
+      "group": "tailscale",
       "description": "本机发布子网与接收远端子网是不同设置。",
       "rows": [],
       "fields": [
@@ -2009,9 +2003,22 @@
       ]
     },
     {
+      "id": "tailscale-network",
+      "title": "连通性检测",
+      "group": "tailscale",
+      "description": "查看 Tailscale 连接、子网路由与目标连通性。",
+      "rows": [],
+      "fields": [],
+      "actions": [],
+      "apis": [
+        "GET /api/tailscale/status"
+      ],
+      "view": "tailnet"
+    },
+    {
       "id": "tailscale-version",
-      "title": "Tailscale 版本",
-      "group": "vpn-services",
+      "title": "安装与更新",
+      "group": "tailscale",
       "description": "",
       "rows": [
         [

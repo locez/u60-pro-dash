@@ -112,18 +112,18 @@
                   <div class="chart-wrap" aria-label="模拟下载速率曲线"><svg id="traffic-chart" viewBox="0 0 288 48" preserveAspectRatio="none" role="img" aria-label="最近 30 秒的演示下载速率"><path class="chart-grid" d="M0 12H288M0 36H288"/><path id="chart-area" class="chart-area"/><path id="chart-line" class="chart-line"/></svg><span id="chart-empty" hidden>暂无网络数据</span></div>
                   <button type="button" class="signal-row" data-open="signal" aria-label="查看信号详情"><span>信号 <b id="signal-quality">良好</b></span><span class="mono"><b id="signal-rsrp">−86</b><small> dBm</small></span><svg class="icon"><use href="#i-arrow"/></svg></button>
                   <div class="network-foot"><span><svg class="icon"><use href="#i-wifi"/></svg>热点已开启</span><span><b class="mono">3</b> 台在线</span></div>
-                  <button type="button" class="tailnet-shortcut" data-page="tailnet"><span class="shortcut-icon"><svg class="icon"><use href="#i-tailnet"/></svg></span><span><b id="tailnet-shortcut-title">目标服务可达</b><small id="tailnet-shortcut-sub">192.168.1.0/24</small></span><svg class="icon"><use href="#i-arrow"/></svg></button>
+                  <button type="button" class="tailnet-shortcut" data-group="tailscale"><span class="shortcut-icon"><svg class="icon"><use href="#i-tailnet"/></svg></span><span><b id="tailnet-shortcut-title">目标服务可达</b><small id="tailnet-shortcut-sub">192.168.1.0/24</small></span><svg class="icon"><use href="#i-arrow"/></svg></button>
                 </section>
 
                 <section class="screen-page tailnet-page" id="page-tailnet" aria-labelledby="tailnet-heading" hidden>
-                  <div class="screen-heading"><div><p class="screen-overline">TAILNET / 虚拟组网</p><h2 id="tailnet-heading">Tailscale 网络</h2></div><span id="tailnet-badge" class="badge good">可访问</span></div>
+                  <button type="button" class="back-button" data-group="tailscale"><svg class="icon"><use href="#i-back"/></svg>Tailscale</button>
+                  <div class="screen-heading"><div><p class="screen-overline">TAILNET / 虚拟组网</p><h2 id="tailnet-heading">连通性检测</h2></div><span id="tailnet-badge" class="badge good">可访问</span></div>
                   <div class="route-map" aria-label="U60 经 Tailscale 连接子网路由节点"><div><span class="map-node"><svg class="icon"><use href="#i-device"/></svg></span><span>这台 U60</span></div><span id="route-link-a" class="route-link"><i></i></span><div><span class="map-node tailscale-mark"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span>Tailscale</span></div><span id="route-link-b" class="route-link"><i></i></span><div><span id="tailnet-map-node" class="map-node"><svg class="icon"><use href="#i-network"/></svg></span><span>子网路由节点</span></div></div>
                   <p id="tailnet-message" class="tailnet-message">通过 Tailscale 访问目标网络。</p>
                   <p id="tailnet-explanation" class="tailnet-explanation">热点里的设备可直接访问远端网络。</p>
                   <dl class="tailnet-details"><div><dt>Tailscale</dt><dd id="tailscale-state" class="tone-good">已连接</dd></div><div><dt>子网路由节点</dt><dd id="tailnet-peer-state">在线</dd></div><div class="route-detail"><dt>目标子网</dt><dd class="mono">192.168.1.0/24</dd></div></dl>
                   <button type="button" id="probe-target" class="primary-button"><svg class="icon"><use href="#i-refresh"/></svg><span id="probe-label">检测目标连通性</span></button>
                   <p id="probe-result" class="probe-result" aria-live="polite">尚未检测</p>
-                  <button type="button" class="inline-feature-link" data-group="tailscale">Tailscale 服务与设置 <svg class="icon"><use href="#i-arrow"/></svg></button>
                 </section>
 
                 <section class="screen-page device-page" id="page-device" aria-labelledby="device-heading" hidden>

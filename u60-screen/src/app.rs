@@ -252,9 +252,9 @@ impl State {
                 tab = 3;
             }
             "tailscale-network" => {
-                title = crate::i18n::tr("Tailscale 网络").into();
+                title = crate::i18n::tr("连通性检测").into();
                 view = 4;
-                tab = self.catalog.tab_for("vpn-services");
+                tab = self.catalog.tab_for("tailscale");
                 self.network.refresh();
             }
             "demo-scenario" => {
@@ -1304,12 +1304,14 @@ mod navigation_tests {
     #[test]
     fn network_services_and_nested_engines_stay_on_network_tab() {
         let c = Catalog::load().unwrap();
-        for id in ["vpn-services", "proxy", "mihomo"] {
+        for id in ["vpn-services", "tailscale", "proxy", "mihomo"] {
             assert_eq!(c.tab_for(id), 1);
         }
         for id in [
             "tailscale-service",
+            "tailscale-config",
             "tailscale-network",
+            "tailscale-version",
             "wireguard",
             "proxy-service",
             "proxy-groups",

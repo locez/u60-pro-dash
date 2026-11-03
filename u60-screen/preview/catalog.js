@@ -9,6 +9,7 @@
     ['routing','路由与防火墙','转发、访问规则与 QoS','network-menu','network'],
     ['dns','DNS 与隐私','解析、加密 DNS 与缓存','network-menu','network'],
     ['vpn-services','VPN 与组网','Tailscale、WireGuard 与远端网络','network-menu','tailnet'],
+    ['tailscale','Tailscale','连接、路由与连通性检测','vpn-services','tailnet'],
     ['proxy','代理','独立管理各代理服务','network-menu','network'],
     ['mihomo','mihomo','运行、配置与代理组','proxy','network'],
     ['sms','短信','收件箱、发送与自动转发','apps','message'],

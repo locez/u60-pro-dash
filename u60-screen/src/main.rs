@@ -317,6 +317,44 @@ mod tests {
         tap(140., 114.);
         assert_eq!(app.ui.get_heading(), "Wi-Fi 与局域网");
         assert!(app.ui.get_entries().row_count() >= 5);
+        app.open("vpn-services")?;
+        assert_eq!(
+            app.ui
+                .get_entries()
+                .iter()
+                .map(|entry| entry.id.to_string())
+                .collect::<Vec<_>>(),
+            ["tailscale", "wireguard"]
+        );
+        app.ui.invoke_open("tailscale".into());
+        assert_eq!(app.ui.get_heading(), "Tailscale");
+        let tailscale_pages = [
+            ("tailscale-service", "连接与登录"),
+            ("tailscale-config", "网络设置"),
+            ("tailscale-network", "连通性检测"),
+            ("tailscale-version", "安装与更新"),
+        ];
+        assert_eq!(
+            app.ui
+                .get_entries()
+                .iter()
+                .map(|entry| entry.id.to_string())
+                .collect::<Vec<_>>(),
+            tailscale_pages.map(|(id, _)| id)
+        );
+        for (id, title) in tailscale_pages {
+            app.ui.invoke_open(id.into());
+            assert_eq!(app.ui.get_heading(), title);
+            assert_eq!(app.ui.get_tab(), 1);
+            app.ui.invoke_back();
+            assert_eq!(app.ui.get_heading(), "Tailscale");
+        }
+        app.ui.invoke_back();
+        assert_eq!(app.ui.get_heading(), "VPN 与组网");
+        app.ui.invoke_open("wireguard".into());
+        assert_eq!(app.ui.get_heading(), "WireGuard");
+        app.ui.invoke_back();
+        assert_eq!(app.ui.get_heading(), "VPN 与组网");
         let ids = app
             .state
             .borrow()
