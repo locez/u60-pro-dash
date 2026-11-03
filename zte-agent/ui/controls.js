@@ -56,7 +56,7 @@
     const surfaces = [...document.querySelectorAll('.control-panel form,#apn-profile,.message-toolbar,.message-actions,.rule-toolbar,.rule-actions,.operator-list,.diagnostic-actions')];
     for (const surface of surfaces) surface.inert = true;
     try { await operation(()=>epoch === session && !consoleAPI.locked); }
-    catch (error) { if (epoch === session && !consoleAPI.locked) say(node,tr("The change could not be confirmed. {0}. Check the router state before retrying; the request may already have taken effect.", error.message),true); }
+    catch (error) { if (epoch === session && !consoleAPI.locked) say(node,error.status?error.message:tr("The change could not be confirmed. {0}. Check the router state before retrying; the request may already have taken effect.", error.message),true); }
     finally { mutationBusy = false; delete document.documentElement.dataset.saving; for (const surface of surfaces) surface.inert = false; window.dispatchEvent(new Event('dashboard:mutation-complete')); }
   }
   function field(key,label,options = {}) { return {key,label,...options}; }

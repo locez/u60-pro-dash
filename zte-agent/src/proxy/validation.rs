@@ -4,7 +4,7 @@ use std::sync::mpsc;
 
 const LOG_LIMIT: usize = 16 * 1024;
 
-fn capture(mut reader: impl Read + Send + 'static) -> mpsc::Receiver<Vec<u8>> {
+pub(super) fn capture(mut reader: impl Read + Send + 'static) -> mpsc::Receiver<Vec<u8>> {
     let (send, receive) = mpsc::channel();
     std::thread::spawn(move || {
         let mut tail = Vec::new();

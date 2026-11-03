@@ -47,27 +47,79 @@ fn run(program: &str, args: &[&str]) -> Result<(), String> {
         .args(args)
         .stdin(Stdio::null())
         .stdout(Stdio::null())
-        .stderr(Stdio::null())
+        .stderr(Stdio::piped())
         .spawn()
         .map_err(|_| format!("Cannot start network utility {program}"))?;
+    let stderr = super::validation::capture(child.stderr.take().unwrap());
     let end = Instant::now() + Duration::from_secs(4);
-    loop {
+    let result = loop {
         match child.try_wait() {
             Ok(Some(s)) => {
-                return if s.success() {
+                break if s.success() {
                     Ok(())
                 } else {
-                    Err(format!("Network utility {program} refused a rule"))
-                }
+                    Err("command failed")
+                };
             }
             Ok(None) if Instant::now() < end => std::thread::sleep(Duration::from_millis(20)),
             _ => {
                 let _ = child.kill();
                 let _ = child.wait();
-                return Err("Network utility timed out".into());
+                break Err("command timed out");
+            }
+        }
+    };
+    result.map_err(|reason| {
+        let bytes = stderr
+            .recv_timeout(Duration::from_secs(1))
+            .unwrap_or_default();
+        let detail: String = String::from_utf8_lossy(&bytes)
+            .chars()
+            .filter(|c| !c.is_control())
+            .take(800)
+            .collect();
+        format!(
+            "{program} {}: {}",
+            args.join(" "),
+            if detail.is_empty() { reason } else { &detail }
+        )
+    })
+}
+
+fn parse_local_addresses(bytes: &[u8], family: &str) -> Result<Vec<String>, String> {
+    let interfaces: serde_json::Value =
+        serde_json::from_slice(bytes).map_err(|_| "Cannot parse local interface addresses")?;
+    let mut addresses = std::collections::BTreeSet::new();
+    for interface in interfaces
+        .as_array()
+        .ok_or("Invalid local interface addresses")?
+    {
+        for addr in interface["addr_info"].as_array().into_iter().flatten() {
+            let Some(address) = addr["local"]
+                .as_str()
+                .and_then(|s| s.parse::<std::net::IpAddr>().ok())
+            else {
+                continue;
+            };
+            if address.is_ipv4() == (family == "-4")
+                && !address.is_loopback()
+                && !address.is_unspecified()
+            {
+                addresses.insert(address.to_string());
             }
         }
     }
+    Ok(addresses.into_iter().collect())
+}
+fn local_addresses(family: &str) -> Result<Vec<String>, String> {
+    let output = Command::new("ip")
+        .args([family, "-j", "address", "show"])
+        .output()
+        .map_err(|_| "Cannot inspect local interface addresses")?;
+    if !output.status.success() {
+        return Err("Cannot inspect local interface addresses".into());
+    }
+    parse_local_addresses(&output.stdout, family)
 }
 fn ip(family: &str, args: Vec<String>) -> Result<(), String> {
     let mut all = vec![family];
@@ -145,6 +197,9 @@ pub fn preflight() -> Result<(), String> {
 pub fn prepare() -> Result<(), String> {
     let result = (|| {
         for (family, tool) in [("-4", "iptables"), ("-6", "ip6tables")] {
+            // B31 has no xt_addrtype match. Exact local addresses provide the
+            // LOCAL destination exception before private-network DNS bypass.
+            let local = local_addresses(family)?;
             for (table, chain) in [
                 ("filter", "U60_PROXY_IN"),
                 ("filter", "U60_PROXY_FW"),
@@ -170,28 +225,28 @@ pub fn prepare() -> Result<(), String> {
                             "ACCEPT",
                         ],
                     )?;
-                    fw(
-                        tool,
-                        "nat",
-                        &[
-                            "-A",
-                            "U60_PROXY_DNS",
-                            "-i",
-                            iface,
-                            "-p",
-                            proto,
-                            "--dport",
-                            "53",
-                            "-m",
-                            "addrtype",
-                            "--dst-type",
-                            "LOCAL",
-                            "-j",
-                            "REDIRECT",
-                            "--to-ports",
-                            "1053",
-                        ],
-                    )?;
+                    for address in &local {
+                        fw(
+                            tool,
+                            "nat",
+                            &[
+                                "-A",
+                                "U60_PROXY_DNS",
+                                "-i",
+                                iface,
+                                "-p",
+                                proto,
+                                "--dport",
+                                "53",
+                                "-d",
+                                address,
+                                "-j",
+                                "REDIRECT",
+                                "--to-ports",
+                                "1053",
+                            ],
+                        )?;
+                    }
                 }
                 fw(
                     tool,
@@ -336,6 +391,19 @@ pub fn disable() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn local_dns_addresses_are_normalized_deduplicated_and_family_specific() {
+        let addresses = br#"[{"addr_info":[{"local":"127.0.0.1"},{"local":"192.0.2.1"},{"local":"192.0.2.1"},{"local":"2001:db8::1"},{"local":"fe80::1"},{"local":"::1"},{"local":"bad; command"}]}]"#;
+        assert_eq!(
+            parse_local_addresses(addresses, "-4").unwrap(),
+            ["192.0.2.1"]
+        );
+        assert_eq!(
+            parse_local_addresses(addresses, "-6").unwrap(),
+            ["2001:db8::1", "fe80::1"]
+        );
+        assert!(parse_local_addresses(b"invalid", "-4").is_err());
+    }
     #[test]
     fn routes_are_ingress_only_and_follow_existing_overlay_rules() {
         for f in ["-4", "-6"] {
