@@ -29,8 +29,8 @@ msgstr "잠금 해제 PIN 변경"
 msgid "关闭密码解锁"
 msgstr "PIN 잠금 해제"
 
-msgid "分享 Wi-Fi"
-msgstr "Wi-Fi 공유"
+msgid "切换 Wi-Fi 频段"
+msgstr "Wi-Fi 대역 전환"
 
 msgid "切换演示场景"
 msgstr "시범 시나리오 전환"
@@ -86,23 +86,23 @@ msgstr "강조 색상"
 msgid "当前读数为演示数据。"
 msgstr "이 자료는 디모 데이터입니다."
 
-msgid "扫码"
-msgstr "QR 코드를 스캔"
-
-msgid "扫码连接热点，无需输入密码"
-msgstr "비밀번호를 입력하지 않고 스카드 연결 핫포트"
-
 msgid "换行"
 msgstr "줄 바꿈"
 
 msgid "提示"
 msgstr "안내"
 
+msgid "放大连接二维码"
+msgstr "Wi-Fi QR 코드 확대"
+
 msgid "断开并清除本地会话"
 msgstr "로컬 세션을 해제하고 클리어"
 
 msgid "明暗、配色与亮度即时生效。"
 msgstr "테마, 색상, 밝기가 즉시 적용됩니다."
+
+msgid "显示密码"
+msgstr "암호 표시"
 
 msgid "未开启 · 仅长按解锁"
 msgstr "열리지 않은 · 잠금 잠금"
@@ -128,6 +128,9 @@ msgstr "개요"
 msgid "正在处理…"
 msgstr "일하는 것..."
 
+msgid "正在读取 Wi-Fi…"
+msgstr "Wi-Fi 읽는 중…"
+
 msgid "浅色"
 msgstr "라이트"
 
@@ -142,6 +145,9 @@ msgstr "데모"
 
 msgid "演示运营商"
 msgstr "예시 통신사"
+
+msgid "点二维码放大"
+msgstr "QR 코드를 눌러 확대"
 
 msgid "熄屏"
 msgstr "화면 끄기"
@@ -194,6 +200,9 @@ msgstr "입력"
 msgid "输入密码登录"
 msgstr "비밀번호로 로그인"
 
+msgid "返回"
+msgstr "돌아가기"
+
 msgid "连接设备"
 msgstr "연결된 장치"
 
@@ -211,3 +220,6 @@ msgstr "길게 눌러 잠금 해제"
 
 msgid "随身网络"
 msgstr "모바일 라우터"
+
+msgid "隐藏密码"
+msgstr "암호 숨기기"

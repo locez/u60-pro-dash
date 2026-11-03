@@ -29,8 +29,8 @@ msgstr "Change unlock PIN"
 msgid "关闭密码解锁"
 msgstr "Disable PIN lock"
 
-msgid "分享 Wi-Fi"
-msgstr "Share Wi-Fi"
+msgid "切换 Wi-Fi 频段"
+msgstr "Switch Wi-Fi band"
 
 msgid "切换演示场景"
 msgstr "Switch demo scenario"
@@ -86,23 +86,23 @@ msgstr "Accent color"
 msgid "当前读数为演示数据。"
 msgstr "These readings are demo data."
 
-msgid "扫码"
-msgstr "Scan QR code"
-
-msgid "扫码连接热点，无需输入密码"
-msgstr "Browse the connection hotspot without entering a password"
-
 msgid "换行"
 msgstr "Enter"
 
 msgid "提示"
 msgstr "Notice"
 
+msgid "放大连接二维码"
+msgstr "Enlarge Wi-Fi QR code"
+
 msgid "断开并清除本地会话"
 msgstr "Disconnect and clear local session"
 
 msgid "明暗、配色与亮度即时生效。"
 msgstr "Theme, color and brightness apply immediately."
+
+msgid "显示密码"
+msgstr "Show password"
 
 msgid "未开启 · 仅长按解锁"
 msgstr "Unlocked · Long only by unlocking"
@@ -128,6 +128,9 @@ msgstr "Overview"
 msgid "正在处理…"
 msgstr "Working…"
 
+msgid "正在读取 Wi-Fi…"
+msgstr "Reading Wi-Fi…"
+
 msgid "浅色"
 msgstr "Light"
 
@@ -142,6 +145,9 @@ msgstr "Demo"
 
 msgid "演示运营商"
 msgstr "Example Mobile"
+
+msgid "点二维码放大"
+msgstr "Tap QR to enlarge"
 
 msgid "熄屏"
 msgstr "Screen off"
@@ -194,6 +200,9 @@ msgstr "Enter "
 msgid "输入密码登录"
 msgstr "Sign in with password"
 
+msgid "返回"
+msgstr "Back"
+
 msgid "连接设备"
 msgstr "Connected devices"
 
@@ -211,3 +220,6 @@ msgstr "Hold to unlock"
 
 msgid "随身网络"
 msgstr "Mobile hotspot"
+
+msgid "隐藏密码"
+msgstr "Hide password"

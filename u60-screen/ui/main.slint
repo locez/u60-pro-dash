@@ -2,6 +2,7 @@ import { Palette, Label, TapButton, MenuRow, Stat, Brightness, TrafficPanel } fr
 import { LockScreen, PinPad } from "lock.slint";
 import { TextEditor } from "editor.slint";
 import { StatusBar } from "status.slint";
+import { WifiCard } from "wifi.slint";
 import "../assets/U60Sans.ttf";
 import "../assets/U60Hangul.ttf";
 export { Palette }
@@ -33,6 +34,21 @@ export component Screen inherits Window {
     in-out property <string> feature-qr-caption;
     in-out property <string> feature-content;
     in-out property <bool> feature-has-qr;
+    in-out property <image> home-wifi-qr;
+    in-out property <image> home-wifi-qr-large;
+    in-out property <bool> home-wifi-ready;
+    in-out property <string> home-wifi-name;
+    in-out property <string> home-wifi-band;
+    in-out property <string> home-wifi-key;
+    in-out property <string> home-wifi-message: @tr("正在读取 Wi-Fi…");
+    in-out property <bool> home-wifi-protected;
+    in-out property <bool> home-wifi-revealed;
+    in-out property <bool> home-wifi-switchable;
+    in-out property <bool> wifi-expanded;
+    callback wifi-toggle-password;
+    callback wifi-switch-band;
+    callback wifi-expand;
+    callback wifi-close;
     in-out property <bool> choice-visible;
     in-out property <string> choice-title;
     in-out property <[MenuEntry]> choices;
@@ -191,18 +207,25 @@ export component Screen inherits Window {
                 width: scroll.width; height: self.preferred-height;
                 padding-left: 12px; padding-right: 12px; padding-top: 2px; padding-bottom: 12px; spacing: 10px;
                 if root.view == 0: TrafficPanel {
+                    compact: true;
                     online: root.network-online; download: root.download; upload: root.upload;
                     network-label: root.radio-label; total: root.traffic-total;
                     interactive: true; clicked => { root.open("traffic"); }
                 }
                 if root.view == 0: HorizontalLayout {
                     spacing: 10px;
-                    Stat { label: @tr("信号强度"); value: root.signal-strength; unit: "dBm"; clicked => { root.open("signal-live"); } }
-                    Stat { label: @tr("连接设备"); value: root.client-count; unit: @tr("台设备"); clicked => { root.open("clients"); } }
+                    Stat { compact: true; label: @tr("信号强度"); value: root.signal-strength; unit: "dBm"; clicked => { root.open("signal-live"); } }
+                    Stat { compact: true; label: @tr("连接设备"); value: root.client-count; unit: @tr("台设备"); clicked => { root.open("clients"); } }
                 }
-                if root.view == 0: MenuRow {
-                    title: @tr("分享 Wi-Fi"); subtitle: @tr("扫码连接热点，无需输入密码"); tag: @tr("扫码");
-                    clicked => { root.open("wifi-share"); }
+                if root.view == 0: WifiCard {
+                    qr: root.home-wifi-qr; ready: root.home-wifi-ready;
+                    ssid: root.home-wifi-name; band: root.home-wifi-band;
+                    password: root.home-wifi-key; protected: root.home-wifi-protected;
+                    revealed: root.home-wifi-revealed; switchable: root.home-wifi-switchable;
+                    message: root.home-wifi-message;
+                    expand => { root.wifi-expand(); }
+                    toggle-password => { root.wifi-toggle-password(); }
+                    switch-band => { root.wifi-switch-band(); }
                 }
                 if root.view == 0: Rectangle {
                     height: 86px; border-radius: 10px; background: Palette.surface;
@@ -371,6 +394,14 @@ export component Screen inherits Window {
                     TouchArea { clicked => { root.navigate(index); } }
                 }
             }
+        }
+        if root.wifi-expanded && root.home-wifi-ready: Rectangle {
+            y: 28px; width: parent.width; height: parent.height - 28px; background: Palette.bg;
+            TouchArea { }
+            Label { x: 16px; y: 12px; width: 288px; height: 48px; text: root.home-wifi-name; font-size: 18px; font-weight: 600; wrap: char-wrap; horizontal-alignment: center; vertical-alignment: center; }
+            Label { x: 16px; y: 65px; width: 288px; text: root.home-wifi-band; font-size: 13px; color: Palette.muted; horizontal-alignment: center; }
+            Image { x: 32px; y: 96px; width: 256px; height: 256px; source: root.home-wifi-qr-large; image-fit: contain; }
+            TapButton { x: 16px; y: 392px; width: 288px; height: 44px; text: @tr("返回"); clicked => { root.wifi-close(); } }
         }
         if root.choice-visible: Rectangle {
             width: parent.width; height: parent.height; background: Palette.bg;

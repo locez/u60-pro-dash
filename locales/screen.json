@@ -11212,5 +11212,75 @@
     "en": "Start the service first.",
     "ja": "先にサービスを起動してください。",
     "ko": "먼저 서비스를 시작하세요."
+  },
+  "正在读取 Wi-Fi…": {
+    "zh-Hans": "正在读取 Wi-Fi…",
+    "zh-Hant": "正在讀取 Wi-Fi…",
+    "en": "Reading Wi-Fi…",
+    "ja": "Wi-Fi を読み込み中…",
+    "ko": "Wi-Fi 읽는 중…"
+  },
+  "双频设置已变化，请重新选择热点。": {
+    "zh-Hans": "双频设置已变化，请重新选择热点。",
+    "zh-Hant": "雙頻設定已變更，請重新選擇熱點。",
+    "en": "Band settings changed. Select the network again.",
+    "ja": "周波数帯の設定が変わりました。ネットワークを選び直してください。",
+    "ko": "대역 설정이 변경되었습니다. 네트워크를 다시 선택하세요."
+  },
+  "双频合一热点": {
+    "zh-Hans": "双频合一热点",
+    "zh-Hant": "雙頻合一熱點",
+    "en": "Combined bands",
+    "ja": "共通 SSID",
+    "ko": "통합 대역"
+  },
+  "无需密码": {
+    "zh-Hans": "无需密码",
+    "zh-Hant": "無需密碼",
+    "en": "No password",
+    "ja": "パスワード不要",
+    "ko": "암호 없음"
+  },
+  "放大连接二维码": {
+    "zh-Hans": "放大连接二维码",
+    "zh-Hant": "放大連線 QR 碼",
+    "en": "Enlarge Wi-Fi QR code",
+    "ja": "接続 QR コードを拡大",
+    "ko": "Wi-Fi QR 코드 확대"
+  },
+  "切换 Wi-Fi 频段": {
+    "zh-Hans": "切换 Wi-Fi 频段",
+    "zh-Hant": "切換 Wi-Fi 頻段",
+    "en": "Switch Wi-Fi band",
+    "ja": "Wi-Fi の周波数帯を切り替え",
+    "ko": "Wi-Fi 대역 전환"
+  },
+  "隐藏密码": {
+    "zh-Hans": "隐藏密码",
+    "zh-Hant": "隱藏密碼",
+    "en": "Hide password",
+    "ja": "パスワードを隠す",
+    "ko": "암호 숨기기"
+  },
+  "显示密码": {
+    "zh-Hans": "显示密码",
+    "zh-Hant": "顯示密碼",
+    "en": "Show password",
+    "ja": "パスワードを表示",
+    "ko": "암호 표시"
+  },
+  "点二维码放大": {
+    "zh-Hans": "点二维码放大",
+    "zh-Hant": "點 QR 碼放大",
+    "en": "Tap QR to enlarge",
+    "ja": "QR をタップで拡大",
+    "ko": "QR 코드를 눌러 확대"
+  },
+  "返回": {
+    "zh-Hans": "返回",
+    "zh-Hant": "返回",
+    "en": "Back",
+    "ja": "戻る",
+    "ko": "돌아가기"
   }
 }

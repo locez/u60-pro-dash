@@ -7,6 +7,7 @@ mod features;
 mod i18n;
 mod platform;
 mod security;
+mod wifi_home;
 
 use anyhow::{Context, Result, bail};
 use config::Preferences;
@@ -223,7 +224,7 @@ fn main() -> Result<()> {
         // password configuration still remains locked; --device cannot use this path.
         if opts.page.as_deref() != Some("lock") && !app.state.borrow().security.enabled() {
             app.state.borrow_mut().security.locked = false;
-            app.state.borrow().sync_security(&app.ui);
+            app.state.borrow_mut().sync_security(&app.ui);
         }
         app.ui.show()?;
         slint::platform::update_timers_and_animations();
@@ -542,6 +543,89 @@ mod tests {
         ]));
         assert_eq!(app.ui.get_feature_fields().row_count(), 1);
         // Proxy interaction is verified without exporting branded screenshots.
+        app.open("overview")?;
+        app.ui.invoke_accent("#2563eb".into());
+        let home_data = fixture(vec![(
+            "wifi",
+            serde_json::json!({
+                "wifi_onoff":"1","radio2_disabled":"0","radio5_disabled":"0",
+                "ssid_2g":"U60 Demo;测试","ssid_5g":"U60 Demo;测试",
+                "key_2g":"example:long;password,with\\escapes-2026","key_5g":"example:long;password,with\\escapes-2026",
+                "encryption_2g":"sae-mixed","encryption_5g":"sae-mixed","hidden_2g":"0","hidden_5g":"0"
+            }),
+        )]);
+        app.wifi_fixture(home_data.clone());
+        assert!(app.ui.get_home_wifi_ready());
+        assert_eq!(app.ui.get_home_wifi_band(), "2.4 + 5 GHz");
+        assert!(!app.ui.get_home_wifi_switchable());
+        assert_eq!(app.ui.get_home_wifi_key(), "********");
+        for dark in [false, true] {
+            app.ui.invoke_theme(dark);
+            save(if dark {
+                "overview-wifi-dark.png"
+            } else {
+                "overview-wifi-light.png"
+            })?;
+        }
+        for code in ["en", "zh-Hant", "ja", "ko", "zh-Hans"] {
+            app.ui.invoke_set_language(code.into());
+            app.wifi_fixture(home_data.clone());
+            assert_eq!(app.ui.get_home_wifi_key(), "********");
+            save(&format!("overview-wifi-{code}.png"))?;
+        }
+        // Actual touch targets, followed by lock/navigation and timeout checks.
+        platform::capture(&window, false);
+        tap(278., 358.);
+        assert!(app.ui.get_home_wifi_revealed());
+        assert!(app.ui.get_home_wifi_key().starts_with("example:long"));
+        save("overview-wifi-password.png")?;
+        app.wifi_expire_reveal();
+        assert_eq!(app.ui.get_home_wifi_key(), "********");
+        platform::capture(&window, false);
+        tap(84., 334.);
+        assert!(app.ui.get_wifi_expanded());
+        save("overview-wifi-expanded.png")?;
+        app.ui.invoke_back();
+        assert!(!app.ui.get_wifi_expanded());
+        assert_eq!(app.ui.get_view(), 0);
+        app.ui.invoke_wifi_toggle_password();
+        app.ui.invoke_lock_now();
+        assert!(!app.ui.get_home_wifi_ready());
+        assert!(app.ui.get_home_wifi_key().is_empty());
+        assert_eq!(app.ui.get_home_wifi_qr().size().width, 0);
+        app.ui.invoke_wifi_toggle_password();
+        assert!(app.ui.get_home_wifi_key().is_empty());
+        hold();
+        assert_eq!(app.ui.get_home_wifi_key(), "********");
+        app.ui.invoke_navigate(1);
+        assert!(!app.ui.get_home_wifi_ready());
+        assert!(app.ui.get_home_wifi_key().is_empty());
+        app.ui.invoke_navigate(0);
+        assert!(app.ui.get_home_wifi_ready());
+        let mut split = home_data.clone();
+        split.get_mut("wifi").unwrap().as_mut().unwrap()["ssid_5g"] =
+            serde_json::json!("U60 Demo 5G");
+        app.wifi_fixture(split);
+        assert!(app.ui.get_home_wifi_switchable());
+        app.ui.invoke_wifi_switch_band();
+        assert_eq!(app.ui.get_home_wifi_name(), "U60 Demo 5G");
+        save("overview-wifi-separate.png")?;
+        let mut dense = home_data.clone();
+        for suffix in ["2g", "5g"] {
+            let data = dense.get_mut("wifi").unwrap().as_mut().unwrap();
+            data[format!("ssid_{suffix}")] = serde_json::json!(":".repeat(32));
+            data[format!("key_{suffix}")] = serde_json::json!(":".repeat(64));
+        }
+        app.wifi_fixture(dense);
+        assert!(app.ui.get_home_wifi_ready());
+        save("overview-wifi-dense.png")?;
+        let mut off = home_data.clone();
+        off.get_mut("wifi").unwrap().as_mut().unwrap()["wifi_onoff"] = serde_json::json!("0");
+        app.wifi_fixture(off);
+        assert!(!app.ui.get_home_wifi_ready());
+        assert!(app.ui.get_home_wifi_key().is_empty());
+        app.wifi_fixture(home_data);
+        app.ui.invoke_accent("#d97706".into());
         app.feature_data_fixture("wifi-share", fixture(vec![
             ("wifi",serde_json::json!({
                 "wifi_onoff":"1","radio2_disabled":"0","radio5_disabled":"0",

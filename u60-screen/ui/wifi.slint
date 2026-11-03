@@ -1,0 +1,55 @@
+import { Palette, Label } from "components.slint";
+
+export component WifiCard inherits Rectangle {
+    in property <image> qr;
+    in property <bool> ready;
+    in property <string> ssid;
+    in property <string> band;
+    in property <string> password;
+    in property <string> message;
+    in property <bool> protected;
+    in property <bool> revealed;
+    in property <bool> switchable;
+    callback expand;
+    callback toggle-password;
+    callback switch-band;
+    height: max(164px, details.preferred-height + 16px);
+    background: Palette.surface; border-radius: 10px;
+    Rectangle {
+        x: 8px; y: 8px; width: 148px; height: 148px;
+        background: root.ready ? #ffffff : Palette.bg;
+        border-radius: root.ready ? 0px : 6px;
+        if root.ready: Image { source: root.qr; width: 148px; height: 148px; image-fit: contain; }
+        if !root.ready: Label { text: "Wi-Fi"; horizontal-alignment: center; vertical-alignment: center; color: Palette.muted; font-size: 23px; }
+        TouchArea { enabled: root.ready; accessible-role: button; accessible-label: @tr("放大连接二维码"); clicked => { root.expand(); } }
+    }
+    details := VerticalLayout {
+        x: 164px; y: 8px; width: parent.width - 172px; height: self.preferred-height; spacing: 4px;
+        Rectangle {
+            height: root.switchable ? 44px : 22px;
+            Label { text: root.band; font-size: 12px; vertical-alignment: center; color: root.switchable ? Palette.accent-ink : Palette.muted; }
+            if root.switchable: Label { text: "›"; width: 16px; x: parent.width - 16px; font-size: 22px; vertical-alignment: center; color: Palette.accent-ink; }
+            TouchArea { enabled: root.switchable; accessible-role: button; accessible-label: @tr("切换 Wi-Fi 频段"); clicked => { root.switch-band(); } }
+        }
+        Label { width: root.width - 172px; height: max(36px, self.preferred-height); text: root.ready ? root.ssid : root.message; font-size: 15px; font-weight: 600; wrap: char-wrap; overflow: clip; }
+        if root.ready: HorizontalLayout {
+            spacing: 2px; min-height: 44px;
+            Label { width: root.width - 218px; height: max(44px, self.preferred-height); text: root.password; font-size: 14px; wrap: char-wrap; overflow: clip; vertical-alignment: center; }
+            if root.protected: Rectangle {
+                width: 44px; height: 44px; vertical-stretch: 0;
+                border-radius: 7px; background: eye.pressed ? Palette.line : Palette.surface;
+                Path {
+                    x: 10px; y: 14px; width: 24px; height: 16px;
+                    commands: "M 1 8 Q 12 -5 23 8 Q 12 21 1 8 Z M 15 8 A 3 3 0 1 1 9 8 A 3 3 0 1 1 15 8";
+                    stroke: Palette.accent-ink; stroke-width: 1.5px;
+                }
+                if !root.revealed: Path {
+                    x: 10px; y: 10px; width: 24px; height: 24px;
+                    commands: "M 2 2 L 22 22"; stroke: Palette.accent-ink; stroke-width: 1.5px;
+                }
+                eye := TouchArea { accessible-role: button; accessible-label: root.revealed ? @tr("隐藏密码") : @tr("显示密码"); clicked => { root.toggle-password(); } }
+            }
+        }
+        if root.ready && !root.revealed: Label { text: @tr("点二维码放大"); font-size: 12px; color: Palette.muted; wrap: word-wrap; }
+    }
+}

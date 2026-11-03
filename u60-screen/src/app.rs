@@ -104,6 +104,7 @@ pub struct State {
     network: crate::agent::network::Network,
     network_rows: Vec<(String, String)>,
     clients: crate::agent::clients::Clients,
+    wifi: crate::wifi_home::WifiHome,
     editor: Option<Editor>,
     features: crate::features::controller::Controller,
     feature_revision: u64,
@@ -159,6 +160,7 @@ fn text<'a>(v: &'a Value, key: &str) -> &'a str {
 impl State {
     fn show(&mut self, ui: &Screen, id: &str, push: bool) -> Result<()> {
         if id != self.page {
+            self.wifi.suspend(ui);
             self.features.cancel();
             ui.set_feature_has_qr(false);
             ui.set_feature_qr(Default::default());
@@ -413,6 +415,12 @@ impl State {
         ui.set_description(description.into());
         ui.set_note(note.into());
         ui.set_page_revision(ui.get_page_revision().wrapping_add(1));
+        if self.agent.is_none() {
+            self.wifi.demo(
+                ui,
+                !self.security.locked && !ui.get_asleep() && !ui.get_pin_visible() && view == 0,
+            );
+        }
         Ok(())
     }
 
@@ -436,11 +444,12 @@ impl State {
         });
     }
 
-    pub fn sync_security(&self, ui: &Screen) {
+    pub fn sync_security(&mut self, ui: &Screen) {
         if self.security.locked
             || self.security.mode != crate::security::Mode::Hold
             || ui.get_asleep()
         {
+            self.wifi.suspend(ui);
             self.close_editor(ui);
             ui.set_feature_has_qr(false);
             ui.set_feature_qr(Default::default());
@@ -469,6 +478,12 @@ impl State {
         ui.set_pin_masked("●".repeat(s.input.len()).into());
         ui.set_pin_remaining(s.remaining() as i32);
         ui.set_hold_progress(s.progress);
+        if self.agent.is_none() {
+            self.wifi.demo(
+                ui,
+                !ui.get_locked() && !ui.get_asleep() && !ui.get_pin_visible() && ui.get_view() == 0,
+            );
+        }
     }
 
     fn persist(&mut self, ui: &Screen) {
@@ -500,7 +515,8 @@ impl State {
                 crate::i18n::tr("无服务")
             } else {
                 crate::i18n::tr("演示运营商")
-            }.into(),
+            }
+            .into(),
         );
         ui.set_tailnet_online(self.scenario != 2);
         ui.set_battery(if self.scenario == 3 { "14%" } else { "82%" }.into());
@@ -559,7 +575,13 @@ impl State {
     }
 
     fn update_agent(&mut self, ui: &Screen) {
+        let wifi_active = !ui.get_asleep()
+            && !self.security.locked
+            && !ui.get_pin_visible()
+            && self.page == "overview"
+            && ui.get_view() == 0;
         let Some(agent) = &mut self.agent else {
+            self.wifi.demo(ui, wifi_active);
             return;
         };
         let mut topics = if ui.get_asleep() {
@@ -609,7 +631,15 @@ impl State {
             self.network.disconnected();
         }
         let on_network = self.page == "tailscale-network";
+        let wifi_active =
+            wifi_active && snapshot.authenticated && snapshot.status == crate::agent::Status::Live;
+        if !wifi_active {
+            self.wifi.suspend(ui);
+        }
         for reply in agent.replies() {
+            if self.wifi.receive(reply.id, reply.result.clone()) {
+                continue;
+            }
             if self.clients.receive(reply.id, reply.result.clone()) {
                 continue;
             }
@@ -651,6 +681,7 @@ impl State {
                 self.network.accept_status(Err(error));
             }
         }
+        self.wifi.tick(ui, agent, wifi_active);
         self.clients.tick(
             agent,
             active && snapshot.authenticated && self.page == "overview",
@@ -923,6 +954,7 @@ impl App {
             live_revision: u64::MAX,
             network: crate::agent::network::Network::default(),
             clients: Default::default(),
+            wifi: Default::default(),
             network_rows: Vec::new(),
             editor: None,
             features: crate::features::controller::Controller::default(),
@@ -945,7 +977,7 @@ impl App {
         state.borrow().apply_preferences(&ui);
         state.borrow().apply_scenario(&ui);
         state.borrow_mut().show(&ui, "overview", false)?;
-        state.borrow().sync_security(&ui);
+        state.borrow_mut().sync_security(&ui);
         // Weak component handles avoid keeping the UI alive through its own callbacks.
         macro_rules! bind {
             ($method:ident, |$s:ident, $u:ident $(, $arg:ident)*| $body:block) => {{
@@ -1005,6 +1037,10 @@ impl App {
             }
         });
         bind!(on_back, |s, u| {
+            if u.get_wifi_expanded() {
+                u.set_wifi_expanded(false);
+                return;
+            }
             if !u.get_message().is_empty() {
                 u.set_message("".into());
                 return;
@@ -1036,6 +1072,20 @@ impl App {
                 let _ = agent.retry();
             }
             s.network.refresh();
+        });
+        bind!(on_wifi_toggle_password, |s, u| {
+            s.wifi.toggle_password(&u);
+        });
+        bind!(on_wifi_switch_band, |s, u| {
+            s.wifi.switch_band(&u);
+        });
+        bind!(on_wifi_expand, |_s, u| {
+            if u.get_home_wifi_ready() {
+                u.set_wifi_expanded(true);
+            }
+        });
+        bind!(on_wifi_close, |_s, u| {
+            u.set_wifi_expanded(false);
         });
         bind!(on_feature_edit, |s, u, index| {
             if let Ok(index) = usize::try_from(index) {
@@ -1290,6 +1340,15 @@ impl App {
         self.ui.set_tailnet_readings(model(vec![]));
         state.update_agent(&self.ui);
         Ok(())
+    }
+    #[cfg(test)]
+    pub fn wifi_fixture(&self, data: crate::features::Data) {
+        self.ui.set_demo(true);
+        self.state.borrow_mut().wifi.fixture(&self.ui, data);
+    }
+    #[cfg(test)]
+    pub fn wifi_expire_reveal(&self) {
+        self.state.borrow_mut().wifi.expire_reveal(&self.ui);
     }
     #[cfg(test)]
     pub fn feature_fixture(&self, id: &str, value: Value) {

@@ -65,20 +65,21 @@ export component MenuRow inherits Rectangle {
 }
 
 export component Stat inherits Rectangle {
+    in property <bool> compact: false;
     in property <string> label;
     in property <string> value;
     in property <string> unit;
     callback clicked;
-    height: 72px;
+    height: root.compact ? 50px : 72px;
     border-radius: 10px;
     background: Palette.surface;
     VerticalLayout {
-        padding: 12px; spacing: 3px;
-        Label { text: root.label; height: 18px; color: Palette.muted; font-size: 13px; }
+        padding: root.compact ? 5px : 12px; spacing: root.compact ? 1px : 3px;
+        Label { text: root.label; height: root.compact ? 16px : 18px; color: Palette.muted; font-size: 13px; }
         HorizontalLayout {
-            height: 27px;
+            height: root.compact ? 23px : 27px;
             spacing: 4px;
-            Label { text: root.value; font-size: 22px; font-weight: 600; }
+            Label { text: root.value; font-size: root.compact ? 20px : 22px; font-weight: 600; }
             Label { text: root.unit; color: Palette.muted; font-size: 13px; vertical-alignment: bottom; }
         }
     }
@@ -100,6 +101,7 @@ export component Brightness inherits Rectangle {
 }
 
 export component TrafficPanel inherits Rectangle {
+    in property <bool> compact: false;
     in property <bool> online;
     in property <string> download;
     in property <string> upload;
@@ -107,13 +109,13 @@ export component TrafficPanel inherits Rectangle {
     in property <string> total: "2.38 GB";
     in property <bool> interactive: false;
     callback clicked;
-    height: 142px; background: Palette.surface; border-radius: 12px;
-    Rectangle { x: 14px; y: 16px; width: 3px; height: 12px; background: root.online ? Palette.good : Palette.warning; border-radius: 1px; }
-    Label { x: 24px; y: 14px; text: root.network-label; font-size: 13px; color: Palette.muted; }
-    Label { x: 14px; y: 34px; height: 58px; text: root.download; font-size: 46px; font-weight: 600; color: Palette.accent-ink; }
-    Label { x: 226px; y: 68px; text: "Mbps ↓"; font-size: 12px; color: Palette.muted; }
-    Rectangle { x: 14px; y: 103px; width: parent.width - 28px; height: 1px; background: Palette.line; }
-    Label { x: 14px; y: 115px; text: "↑ " + root.upload + " Mbps"; font-size: 13px; }
-    Label { x: 175px; y: 115px; text: @tr("本次 ") + root.total; font-size: 12px; color: Palette.muted; }
+    height: root.compact ? 96px : 142px; background: Palette.surface; border-radius: 12px;
+    Rectangle { x: 14px; y: root.compact ? 10px : 16px; width: 3px; height: 12px; background: root.online ? Palette.good : Palette.warning; border-radius: 1px; }
+    Label { x: 24px; y: root.compact ? 8px : 14px; text: root.network-label; font-size: 13px; color: Palette.muted; }
+    Label { x: 14px; y: root.compact ? 24px : 34px; height: root.compact ? 42px : 58px; text: root.download; font-size: root.compact ? 34px : 46px; font-weight: 600; color: Palette.accent-ink; }
+    Label { x: 226px; y: root.compact ? 51px : 68px; text: "Mbps ↓"; font-size: 12px; color: Palette.muted; }
+    Rectangle { x: 14px; y: root.compact ? 69px : 103px; width: parent.width - 28px; height: 1px; background: Palette.line; }
+    Label { x: 14px; y: root.compact ? 78px : 115px; text: "↑ " + root.upload + " Mbps"; font-size: 13px; }
+    Label { x: 175px; y: root.compact ? 78px : 115px; text: @tr("本次 ") + root.total; font-size: 12px; color: Palette.muted; }
     TouchArea { enabled: root.interactive; clicked => { root.clicked(); } }
 }

@@ -12,7 +12,7 @@ mod scheduler;
 mod services;
 mod settings;
 mod status;
-mod wifi_share;
+pub(crate) mod wifi_share;
 
 use crate::agent::{Error, Request};
 use anyhow::{Result, ensure};
@@ -527,18 +527,20 @@ pub fn selected(readings: &Data) -> Option<&str> {
     data(readings, "__selection").as_str()
 }
 pub fn qr_image(value: &str) -> Option<slint::Image> {
+    qr_image_sized(value, 256)
+}
+pub fn qr_image_sized(value: &str, size: u32) -> Option<slint::Image> {
     use qrcodegen::{QrCode, QrCodeEcc};
     if value.len() > 2048 {
         return None;
     }
     let qr = QrCode::encode_text(value, QrCodeEcc::Medium).ok()?;
     let modules = qr.size() + 8;
-    let scale = 256 / modules;
+    let scale = size as i32 / modules;
     if scale < 2 {
         return None;
     }
-    let size = 256u32;
-    let margin = (256 - modules * scale) / 2;
+    let margin = (size as i32 - modules * scale) / 2;
     let mut pixels = slint::SharedPixelBuffer::<slint::Rgb8Pixel>::new(size, size);
     for (index, pixel) in pixels.make_mut_slice().iter_mut().enumerate() {
         let x = ((index as u32 % size) as i32 - margin) / scale - 4;
@@ -574,7 +576,7 @@ pub fn poll_seconds(id: &str) -> Option<u64> {
         "signal-test" | "speedtest" | "phone" | "stk" => Some(2),
         "proxy-service" | "proxy-groups" | "tailscale-service" | "tailscale-version"
         | "agent-update" | "https" | "usb" => Some(5),
-        "resources" | "wan" | "device-info" | "wifi-share" => Some(30),
+        "resources" | "wan" | "device-info" | "wifi-share" | "wifi-home" => Some(30),
         _ => None,
     }
 }

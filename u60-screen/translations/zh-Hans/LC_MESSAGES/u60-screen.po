@@ -29,8 +29,8 @@ msgstr "修改解锁密码"
 msgid "关闭密码解锁"
 msgstr "关闭密码解锁"
 
-msgid "分享 Wi-Fi"
-msgstr "分享 Wi-Fi"
+msgid "切换 Wi-Fi 频段"
+msgstr "切换 Wi-Fi 频段"
 
 msgid "切换演示场景"
 msgstr "切换演示场景"
@@ -86,23 +86,23 @@ msgstr "强调色"
 msgid "当前读数为演示数据。"
 msgstr "当前读数为演示数据。"
 
-msgid "扫码"
-msgstr "扫码"
-
-msgid "扫码连接热点，无需输入密码"
-msgstr "扫码连接热点，无需输入密码"
-
 msgid "换行"
 msgstr "换行"
 
 msgid "提示"
 msgstr "提示"
 
+msgid "放大连接二维码"
+msgstr "放大连接二维码"
+
 msgid "断开并清除本地会话"
 msgstr "断开并清除本地会话"
 
 msgid "明暗、配色与亮度即时生效。"
 msgstr "明暗、配色与亮度即时生效。"
+
+msgid "显示密码"
+msgstr "显示密码"
 
 msgid "未开启 · 仅长按解锁"
 msgstr "未开启 · 仅长按解锁"
@@ -128,6 +128,9 @@ msgstr "概览"
 msgid "正在处理…"
 msgstr "正在处理…"
 
+msgid "正在读取 Wi-Fi…"
+msgstr "正在读取 Wi-Fi…"
+
 msgid "浅色"
 msgstr "浅色"
 
@@ -142,6 +145,9 @@ msgstr "演示"
 
 msgid "演示运营商"
 msgstr "演示运营商"
+
+msgid "点二维码放大"
+msgstr "点二维码放大"
 
 msgid "熄屏"
 msgstr "熄屏"
@@ -194,6 +200,9 @@ msgstr "输入 "
 msgid "输入密码登录"
 msgstr "输入密码登录"
 
+msgid "返回"
+msgstr "返回"
+
 msgid "连接设备"
 msgstr "连接设备"
 
@@ -211,3 +220,6 @@ msgstr "长按解锁"
 
 msgid "随身网络"
 msgstr "随身网络"
+
+msgid "隐藏密码"
+msgstr "隐藏密码"

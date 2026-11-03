@@ -10,7 +10,7 @@
 
 | 页面 | 交互 | 接口映射 |
 | --- | --- | --- |
-| 分享 Wi-Fi（原生） | 从概览或 Wi-Fi 分类选择 2.4 GHz、5 GHz、访客网络，显示已保存配置的连接二维码 | `GET /api/wifi/status`<br>`GET /api/wifi/guest` |
+| 分享 Wi-Fi（原生） | 概览直接显示二维码、名称及可临时查看的掩码密码；相同配置的双频热点共用连接码，不同配置可切换；Wi-Fi 分类另可选择访客网络 | `GET /api/wifi/status`<br>`GET /api/wifi/guest` |
 | [2.4 GHz 热点](preview/index.html#wifi2) | 保存热点设置 | `GET /api/wifi/status`<br>`PUT /api/wifi/settings` |
 | [5 GHz 热点](preview/index.html#wifi5) | 保存热点设置 | `GET /api/wifi/status`<br>`PUT /api/wifi/settings` |
 | [访客网络](preview/index.html#guest) | 保存访客设置 | `GET /api/wifi/guest`<br>`PUT /api/wifi/guest` |

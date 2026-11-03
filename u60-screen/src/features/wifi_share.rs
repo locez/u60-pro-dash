@@ -8,14 +8,17 @@ const NETWORKS: [(&str, &str); 3] = [
 ];
 
 pub fn reads(id: &str) -> Option<Vec<Read>> {
-    (id == "wifi-share").then(|| {
-        vec![
+    match id {
+        "wifi-home" => Some(vec![Read::get("wifi", "/api/wifi/status")]),
+        "wifi-share" => Some(vec![
             Read::get("wifi", "/api/wifi/status"),
             Read::get("guest", "/api/wifi/guest"),
-        ]
-    })
+        ]),
+        _ => None,
+    }
 }
 
+#[derive(PartialEq, Eq)]
 struct Network<'a> {
     ssid: &'a str,
     password: &'a str,
@@ -24,6 +27,14 @@ struct Network<'a> {
 }
 
 fn network<'a>(readings: &'a Data, id: &str) -> Result<Network<'a>, &'static str> {
+    if id == "dual" {
+        let a = network(readings, "2g")?;
+        let b = network(readings, "5g")?;
+        if shared(readings, &a, &b) {
+            return Ok(a);
+        }
+        return Err(crate::i18n::tr("双频设置已变化，请重新选择热点。"));
+    }
     let wifi = data(readings, "wifi");
     match flag(&wifi["wifi_onoff"]) {
         Some(true) => {}
@@ -115,6 +126,43 @@ fn network<'a>(readings: &'a Data, id: &str) -> Result<Network<'a>, &'static str
     })
 }
 
+fn shared(readings: &Data, a: &Network<'_>, b: &Network<'_>) -> bool {
+    a == b && data(readings, "wifi")["encryption_2g"] == data(readings, "wifi")["encryption_5g"]
+}
+
+pub(crate) struct HomeJoin {
+    pub ssid: String,
+    pub password: zeroize::Zeroizing<String>,
+    pub payload: zeroize::Zeroizing<String>,
+    pub band: &'static str,
+    pub selection: &'static str,
+    pub switchable: bool,
+    pub protected: bool,
+}
+/// One credential set identifies a network; Wi-Fi QR has no frequency field.
+/// Never pretend different names/passwords/security settings are one network.
+pub(crate) fn home(readings: &Data, preferred: &str) -> Result<HomeJoin, &'static str> {
+    let (a, b) = (network(readings, "2g"), network(readings, "5g"));
+    let both = a.is_ok() && b.is_ok();
+    let merged = matches!((&a,&b),(Ok(a),Ok(b)) if shared(readings,a,b));
+    let (network, selection, band) = if merged {
+        (a?, "dual", "2.4 + 5 GHz")
+    } else if (preferred == "5g" && b.is_ok()) || a.is_err() && b.is_ok() {
+        (b?, "5g", "5 GHz")
+    } else {
+        (a?, "2g", "2.4 GHz")
+    };
+    Ok(HomeJoin {
+        ssid: network.ssid.into(),
+        password: zeroize::Zeroizing::new(network.password.into()),
+        payload: zeroize::Zeroizing::new(network.payload()),
+        band,
+        selection,
+        switchable: both && !merged,
+        protected: network.auth != "nopass",
+    })
+}
+
 fn escape(value: &str) -> String {
     let mut escaped = String::with_capacity(value.len());
     for c in value.chars() {
@@ -142,7 +190,14 @@ pub fn page(readings: &Data) -> Page {
     let mut page = Page::default();
     let Some(id) = selected(readings) else {
         page.content = crate::i18n::tr("选择热点，用手机扫码连接。").into();
-        page.items = NETWORKS
+        let mut networks = vec![];
+        if network(readings, "dual").is_ok() {
+            networks.push(("dual", "双频合一热点"));
+        } else {
+            networks.extend_from_slice(&NETWORKS[..2]);
+        }
+        networks.push(NETWORKS[2]);
+        page.items = networks
             .iter()
             .map(|(id, label)| {
                 let subtitle = match network(readings, id) {
@@ -151,17 +206,21 @@ pub fn page(readings: &Data) -> Page {
                 };
                 Item {
                     id: (*id).into(),
-                    title: (*label).into(),
+                    title: crate::i18n::tr(label).into(),
                     subtitle,
                 }
             })
             .collect();
         return page;
     };
-    page.title = NETWORKS
-        .iter()
-        .find(|(key, _)| *key == id)
-        .map(|(_, name)| (*name).into());
+    page.title = if id == "dual" {
+        Some(crate::i18n::tr("双频合一热点").into())
+    } else {
+        NETWORKS
+            .iter()
+            .find(|(key, _)| *key == id)
+            .map(|(_, name)| crate::i18n::tr(name).into())
+    };
     match network(readings, id) {
         Ok(network) => {
             page.qr_caption = network.ssid.into();
@@ -201,6 +260,35 @@ mod tests {
                 ),
             ),
         ])
+    }
+    #[test]
+    fn overview_combines_only_identical_active_credentials_and_falls_back() {
+        let mut d = readings();
+        assert!(home(&d, "2g").unwrap().switchable);
+        assert_eq!(home(&d, "5g").unwrap().selection, "5g");
+        let wifi = d.get_mut("wifi").unwrap().as_mut().unwrap();
+        for key in ["ssid", "key", "encryption", "hidden"] {
+            wifi[format!("{key}_5g")] = wifi[format!("{key}_2g")].clone();
+        }
+        let combined = home(&d, "5g").unwrap();
+        assert_eq!(combined.selection, "dual");
+        assert!(!combined.switchable);
+        assert_eq!(page(&d).items.len(), 2);
+        let original = d.clone();
+        for (key, value) in [
+            ("key_5g", json!("different-password")),
+            ("encryption_5g", json!("psk2")),
+            ("hidden_5g", json!("1")),
+            ("ssid_5g", json!("Other network")),
+        ] {
+            let mut changed = original.clone();
+            changed.get_mut("wifi").unwrap().as_mut().unwrap()[key] = value;
+            assert!(home(&changed, "2g").unwrap().switchable, "{key}");
+        }
+        d.get_mut("wifi").unwrap().as_mut().unwrap()["radio2_disabled"] = json!("1");
+        assert_eq!(home(&d, "2g").unwrap().selection, "5g");
+        d.get_mut("wifi").unwrap().as_mut().unwrap()["wifi_onoff"] = json!("0");
+        assert!(home(&d, "2g").is_err());
     }
     #[test]
     fn join_codes_escape_credentials_and_keep_security_and_hidden_flags() {
