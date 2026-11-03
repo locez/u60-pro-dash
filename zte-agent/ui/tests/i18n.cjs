@@ -1,8 +1,10 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.join(__dirname,'..'),localeSource=fs.readFileSync(path.join(root,'locales.js'),'utf8'),source=fs.readFileSync(path.join(root,'i18n.js'),'utf8');
-function runtime(language,saved,storageThrows=false){const context={module:{exports:{}},navigator:{languages:[language]},localStorage:{getItem(){if(storageThrows)throw Error('blocked');return saved;}}};vm.createContext(context);vm.runInContext(localeSource,context);vm.runInContext(source,context);return context.module.exports;}
-for(const [input,expected]of [['zh-CN','zh-Hans'],['zh-SG','zh-Hans'],['zh-TW','zh-Hant'],['zh-HK','zh-Hant'],['zh-Hant-MO','zh-Hant'],['en-GB','en'],['ja-JP','ja'],['ko-KR','ko'],['de-DE','en']])assert.equal(runtime(input).locale,expected);
+function runtime(language,saved,storageThrows=false){const context={module:{exports:{}},navigator:{languages:Array.isArray(language)?language:[language]},localStorage:{getItem(){if(storageThrows)throw Error('blocked');return saved;}}};vm.createContext(context);vm.runInContext(localeSource,context);vm.runInContext(source,context);return context.module.exports;}
+for(const [input,expected]of [['zh-CN','zh-Hans'],['zh-SG','zh-Hans'],['zh-TW','zh-Hant'],['zh-HK','zh-Hant'],['zh-Hant-MO','zh-Hant'],['zh-Hans-TW','zh-Hans'],['zh-Hant-CN','zh-Hant'],['en-GB','en'],['ja-JP','ja'],['ko-KR','ko'],['de-DE','en']])assert.equal(runtime(input).locale,expected);
+assert.equal(runtime(['fr-FR','ja-JP','en-US']).locale,'ja');
+assert.equal(runtime(['de-DE','fr-FR']).locale,'en');
 assert.equal(runtime('zh-CN','en').locale,'en');assert.equal(runtime('ja-JP','bad').locale,'ja');assert.equal(runtime('ko-KR',null,true).locale,'ko');
 for(const locale of ['zh-Hans','zh-Hant','en','ja','ko']){
  const i=runtime('en',locale),value='<img src=x onerror=alert(1)> Network {1}';

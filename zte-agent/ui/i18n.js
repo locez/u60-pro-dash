@@ -2,16 +2,22 @@
 (() => {
   const languages = Object.freeze({'zh-Hans':'简体中文','zh-Hant':'繁體中文',en:'English',ja:'日本語',ko:'한국어'});
   const key = 'openu60.language';
-  function resolve(value) {
+  function supportedLocale(value) {
     const code = String(value || '').toLowerCase().replace(/_/g, '-');
-    if (/^zh(?:-|$)/.test(code)) return /(?:hant|tw|hk|mo)(?:-|$)/.test(code) ? 'zh-Hant' : 'zh-Hans';
+    if (/^zh(?:-|$)/.test(code)) {
+      if (/(?:^|-)hans(?:-|$)/.test(code)) return 'zh-Hans';
+      return /(?:^|-)(?:hant|tw|hk|mo)(?:-|$)/.test(code) ? 'zh-Hant' : 'zh-Hans';
+    }
     if (/^ja(?:-|$)/.test(code)) return 'ja';
     if (/^ko(?:-|$)/.test(code)) return 'ko';
-    return 'en';
+    if (/^en(?:-|$)/.test(code)) return 'en';
+    return null;
   }
+  function resolve(value) { return supportedLocale(value) || 'en'; }
   let saved;
   try { saved = globalThis.localStorage?.getItem(key); } catch { /* Private browser mode. */ }
-  const locale = Object.hasOwn(languages, saved || '') ? saved : resolve(globalThis.navigator?.languages?.[0] || globalThis.navigator?.language);
+  const preferred = globalThis.navigator?.languages?.length ? navigator.languages : [globalThis.navigator?.language];
+  const locale = Object.hasOwn(languages, saved || '') ? saved : preferred.map(supportedLocale).find(Boolean) || 'en';
   const messages = globalThis.OpenU60Locales || {};
   function t(source, ...values) {
     const template = typeof source === 'string' ? source : source.reduce((out, part, i) => out + (i ? '{' + (i - 1) + '}' : '') + part, '');

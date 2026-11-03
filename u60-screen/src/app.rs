@@ -1136,6 +1136,10 @@ impl App {
             }
             let page = s.page.clone();
             let _ = s.show(&u, &page, false);
+            // Language selection is a discrete preference change. Save now so
+            // an immediate restart keeps it, and report a failed save after
+            // refreshing the page (show clears the previous message).
+            s.flush_preferences(&u);
         });
         bind!(on_accent, |s, u, color| {
             match parse_color(&color) {

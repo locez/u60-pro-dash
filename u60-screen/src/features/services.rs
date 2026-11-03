@@ -360,13 +360,13 @@ pub fn page(id: &str, readings: &Data) -> Page {
                             &[
                                 shown(&c["id"]).to_string(),
                                 (match text(&c["stat"]).as_str() {
-                                    "0" => "通话中",
-                                    "1" => "保持",
-                                    "2" => "正在拨号",
-                                    "3" => "对方响铃",
-                                    "4" => "来电",
-                                    "5" => "呼叫等待",
-                                    _ => "状态未知",
+                                    "0" => crate::i18n::tr("通话中"),
+                                    "1" => crate::i18n::tr("保持"),
+                                    "2" => crate::i18n::tr("正在拨号"),
+                                    "3" => crate::i18n::tr("对方响铃"),
+                                    "4" => crate::i18n::tr("来电"),
+                                    "5" => crate::i18n::tr("呼叫等待"),
+                                    _ => crate::i18n::tr("状态未知"),
                                 })
                                 .to_string(),
                             ],

@@ -78,10 +78,10 @@
   },
   " · STAGED": {
     "en": " · STAGED",
-    "zh-Hans": " · 暂停",
-    "zh-Hant": " · 暫停",
-    "ja": " · ステーゲッド",
-    "ko": " · 스테이지"
+    "zh-Hans": " · 已暂存",
+    "zh-Hant": " · 已暫存",
+    "ja": " · 準備済み",
+    "ko": " · 준비됨"
   },
   " · Saved in this browser": {
     "en": " · Saved in this browser",
@@ -106,10 +106,10 @@
   },
   " · charging stopped by policy": {
     "en": " · charging stopped by policy",
-    "zh-Hans": " · 由于政策停止收费",
-    "zh-Hant": " · 由於政策停止收費",
-    "ja": " · 政策によって停止された課金",
-    "ko": " · 정책으로 정지된 수수료"
+    "zh-Hans": " · 策略已停止充电",
+    "zh-Hant": " · 策略已停止充電",
+    "ja": " · 充電方針により停止",
+    "ko": " · 정책에 따라 충전 중지됨"
   },
   " · detailed source unavailable": {
     "en": " · detailed source unavailable",
@@ -232,10 +232,10 @@
   },
   "2.4 GHz guest radio": {
     "en": "2.4 GHz guest radio",
-    "zh-Hans": "2.4 GHz 客人收音机",
-    "zh-Hant": "2.4 GHz 客人收音機",
-    "ja": "2.4 GHz のゲストラジオ",
-    "ko": "2.4 GHz 게스트 라디오"
+    "zh-Hans": "2.4 GHz 访客网络",
+    "zh-Hant": "2.4 GHz 訪客網路",
+    "ja": "2.4 GHz ゲスト Wi-Fi",
+    "ko": "2.4 GHz 게스트 Wi-Fi"
   },
   "2.4 GHz network": {
     "en": "2.4 GHz network",
@@ -267,10 +267,10 @@
   },
   "4G / 5G carriers": {
     "en": "4G / 5G carriers",
-    "zh-Hans": "4G/5G运营商",
-    "zh-Hant": "4G/5G運營商",
+    "zh-Hans": "4G / 5G 载波",
+    "zh-Hant": "4G / 5G 載波",
     "ja": "4G / 5G キャリア",
-    "ko": "4G / 5G 통신사"
+    "ko": "4G / 5G 반송파"
   },
   "4G LTE": {
     "en": "4G LTE",
@@ -281,10 +281,10 @@
   },
   "4G LTE CARRIERS": {
     "en": "4G LTE CARRIERS",
-    "zh-Hans": "4G LTE 运营商",
-    "zh-Hant": "4G LTE 運營商",
+    "zh-Hans": "4G LTE 载波",
+    "zh-Hant": "4G LTE 載波",
     "ja": "4G LTE キャリア",
-    "ko": "4G LTE 통신사"
+    "ko": "4G LTE 반송파"
   },
   "4G LTE only": {
     "en": "4G LTE only",
@@ -323,10 +323,10 @@
   },
   "5 GHz guest radio": {
     "en": "5 GHz guest radio",
-    "zh-Hans": "5 GHz 客人电台",
-    "zh-Hant": "5 GHz 客人電臺",
-    "ja": "5 GHz のゲストラジオ",
-    "ko": "5 GHz 게스트 라디오"
+    "zh-Hans": "5 GHz 访客网络",
+    "zh-Hant": "5 GHz 訪客網路",
+    "ja": "5 GHz ゲスト Wi-Fi",
+    "ko": "5 GHz 게스트 Wi-Fi"
   },
   "5 GHz network": {
     "en": "5 GHz network",
@@ -344,17 +344,17 @@
   },
   "5G NR CARRIERS": {
     "en": "5G NR CARRIERS",
-    "zh-Hans": "5G NR 运营商",
-    "zh-Hant": "5G NR 運營商",
+    "zh-Hans": "5G NR 载波",
+    "zh-Hant": "5G NR 載波",
     "ja": "5G NR キャリア",
-    "ko": "5G NR 통신사"
+    "ko": "5G NR 반송파"
   },
   "5G NR bands": {
     "en": "5G NR bands",
-    "zh-Hans": "5G NR带",
-    "zh-Hant": "5G NR帶",
-    "ja": "5G NR帯",
-    "ko": "5G NR 대역"
+    "zh-Hans": "5G NR 频段",
+    "zh-Hant": "5G NR 頻段",
+    "ja": "5G NR バンド",
+    "ko": "5G NR 주파수 대역"
   },
   "5G NSA": {
     "en": "5G NSA",
@@ -526,10 +526,10 @@
   },
   "A signed release is available.": {
     "en": "A signed release is available.",
-    "zh-Hans": "已签署的许可证可用.",
-    "zh-Hant": "已簽署的許可證可用.",
-    "ja": "署名されたリリースが利用可能だ.",
-    "ko": "서명된 면허가 있습니다."
+    "zh-Hans": "有可用的已签名版本。",
+    "zh-Hant": "有可用的已簽名版本。",
+    "ja": "署名付きのリリースを利用できます。",
+    "ko": "서명된 릴리스를 사용할 수 있습니다."
   },
   "A · IPv4": {
     "en": "A · IPv4",
@@ -540,10 +540,10 @@
   },
   "A/B recovery ready": {
     "en": "A/B recovery ready",
-    "zh-Hans": "恢复准备好",
-    "zh-Hant": "恢復準備好",
-    "ja": "A/B 回復準備",
-    "ko": "A/B 복구 준비"
+    "zh-Hans": "A/B 恢复已就绪",
+    "zh-Hant": "A/B 恢復已就緒",
+    "ja": "A/B 復元の準備完了",
+    "ko": "A/B 복구 준비됨"
   },
   "AAAA · IPv6": {
     "en": "AAAA · IPv6",
@@ -582,17 +582,17 @@
   },
   "AVAILABLE RELEASE": {
     "en": "AVAILABLE RELEASE",
-    "zh-Hans": "可获取的释放",
-    "zh-Hant": "可獲取的釋放",
-    "ja": "公開可能",
-    "ko": "가용 가능"
+    "zh-Hans": "可用版本",
+    "zh-Hant": "可用版本",
+    "ja": "利用可能なリリース",
+    "ko": "사용 가능한 릴리스"
   },
   "About": {
     "en": "About",
     "zh-Hans": "关于",
     "zh-Hant": "關於",
-    "ja": "について",
-    "ko": "에 관한 것"
+    "ja": "情報",
+    "ko": "정보"
   },
   "About OpenU60": {
     "en": "About OpenU60",
@@ -603,8 +603,8 @@
   },
   "Accept remote subnet routes": {
     "en": "Accept remote subnet routes",
-    "zh-Hans": "接受远端子网路由",
-    "zh-Hant": "接受遠端子網路由",
+    "zh-Hans": "接收远端子网路由",
+    "zh-Hant": "接收遠端子網路由",
     "ja": "リモートサブネット経路を受け入れる",
     "ko": "원격 서브넷 경로 수락"
   },
@@ -701,10 +701,10 @@
   },
   "Active answers": {
     "en": "Active answers",
-    "zh-Hans": "积极的答案",
-    "zh-Hant": "積極的答案",
-    "ja": "積極的な回答",
-    "ko": "적극적인 답변"
+    "zh-Hans": "有效应答",
+    "zh-Hant": "有效應答",
+    "ja": "有効な応答",
+    "ko": "유효한 응답"
   },
   "Active answers: {0} · open the live cache to inspect expiry.": {
     "en": "Active answers: {0} · open the live cache to inspect expiry.",
@@ -722,10 +722,10 @@
   },
   "Active profile": {
     "en": "Active profile",
-    "zh-Hans": "活跃的配置文件",
-    "zh-Hant": "活躍的配置檔案",
-    "ja": "アクティブプロフィール",
-    "ko": "활성 프로필"
+    "zh-Hans": "已启用的配置",
+    "zh-Hant": "已啟用的配置",
+    "ja": "有効なプロファイル",
+    "ko": "활성 프로파일"
   },
   "Active profile confirmed by the router.": {
     "en": "Active profile confirmed by the router.",
@@ -757,10 +757,10 @@
   },
   "Add port-forward rule": {
     "en": "Add port-forward rule",
-    "zh-Hans": "添加出口向前规则",
-    "zh-Hant": "添加出口向前規則",
-    "ja": "ポートフォワードルールを追加する",
-    "ko": "포트 포워드 규칙을 추가"
+    "zh-Hans": "添加端口转发规则",
+    "zh-Hant": "新增埠轉發規則",
+    "ja": "ポート転送ルールを追加",
+    "ko": "포트 전달 규칙 추가"
   },
   "Add rule": {
     "en": "Add rule",
@@ -771,10 +771,10 @@
   },
   "Add, edit and activate a carrier access point. Changes can interrupt mobile data.": {
     "en": "Add, edit and activate a carrier access point. Changes can interrupt mobile data.",
-    "zh-Hans": "添加,编辑和激活载体访问点. 变化可能会破坏移动数据.",
-    "zh-Hant": "新增,編輯和啟用載體訪問點. 變化可能會破壞移動資料.",
-    "ja": "キャリアアクセスポイントを追加し,編集し,アクティブ化します. 変更はモバイルデータに干渉する可能性があります",
-    "ko": "캐리어 액세스 포인트를 추가, 편집 및 활성화하십시오. 변화는 모바일 데이터를 방해할 수 있습니다."
+    "zh-Hans": "添加、编辑并启用运营商接入点。更改可能中断蜂窝数据连接。",
+    "zh-Hant": "新增、編輯並啟用運營商接入點。更改可能中斷蜂窩資料連線。",
+    "ja": "通信事業者のアクセスポイントを追加・編集・有効化します。変更によりモバイル通信が切断されることがあります。",
+    "ko": "통신사 액세스 포인트를 추가, 수정하고 활성화합니다. 변경 시 모바일 데이터 연결이 끊길 수 있습니다."
   },
   "Added": {
     "en": "Added",
@@ -841,10 +841,10 @@
   },
   "Addresses in pool": {
     "en": "Addresses in pool",
-    "zh-Hans": "在游泳池中的地址",
-    "zh-Hant": "在游泳池中的地址",
-    "ja": "プール内の住所",
-    "ko": "수영장 주소는"
+    "zh-Hans": "地址池内的地址",
+    "zh-Hant": "地址池內的地址",
+    "ja": "アドレスプール内のアドレス",
+    "ko": "주소 풀의 주소"
   },
   "Addresses: {0} · Peers: {1} · MTU {2}": {
     "en": "Addresses: {0} · Peers: {1} · MTU {2}",
@@ -939,9 +939,9 @@
   },
   "Agent Update": {
     "en": "Agent Update",
-    "zh-Hans": "后台更新",
-    "zh-Hant": "後臺更新",
-    "ja": "管理サービスの更新",
+    "zh-Hans": "后台程序更新",
+    "zh-Hant": "後臺程式更新",
+    "ja": "管理サービス更新",
     "ko": "관리 서비스 업데이트"
   },
   "Agent address": {
@@ -1044,10 +1044,10 @@
   },
   "Allow all bands": {
     "en": "Allow all bands",
-    "zh-Hans": "让所有乐队",
-    "zh-Hant": "讓所有樂隊",
-    "ja": "すべてのバンドを許可する",
-    "ko": "모든 밴드를 허용"
+    "zh-Hans": "允许所有频段",
+    "zh-Hant": "允許所有頻段",
+    "ja": "すべてのバンドを許可",
+    "ko": "모든 주파수 대역 허용"
   },
   "Allow charging": {
     "en": "Allow charging",
@@ -1072,52 +1072,52 @@
   },
   "Allowance & alert": {
     "en": "Allowance & alert",
-    "zh-Hans": "补贴和警报",
-    "zh-Hant": "補貼和警報",
-    "ja": "補給と警報",
-    "ko": "보조금 및 경보"
+    "zh-Hans": "流量额度与提醒",
+    "zh-Hant": "流量額度與提醒",
+    "ja": "データ容量と通知",
+    "ko": "데이터 한도 및 알림"
   },
   "Allowance (GB)": {
     "en": "Allowance (GB)",
-    "zh-Hans": "补贴 (GB)",
-    "zh-Hant": "補貼 (GB)",
-    "ja": "給与 (GB)",
-    "ko": "보조금 (GB)"
+    "zh-Hans": "流量额度（GB）",
+    "zh-Hant": "流量額度（GB）",
+    "ja": "データ容量（GB）",
+    "ko": "데이터 한도(GB)"
   },
   "Allowance and alert": {
     "en": "Allowance and alert",
-    "zh-Hans": "补贴和警报",
-    "zh-Hant": "補貼和警報",
-    "ja": "補助金と警報",
-    "ko": "보조금 및 경보"
+    "zh-Hans": "流量额度与提醒",
+    "zh-Hant": "流量額度與提醒",
+    "ja": "データ容量と通知",
+    "ko": "데이터 한도 및 알림"
   },
   "Allowance disabled": {
     "en": "Allowance disabled",
-    "zh-Hans": "残疾人补贴",
-    "zh-Hant": "殘疾人補貼",
-    "ja": "障害者給与",
-    "ko": "장애인 보조금"
+    "zh-Hans": "流量额度未启用",
+    "zh-Hant": "流量額度未啟用",
+    "ja": "データ容量の設定は無効",
+    "ko": "데이터 한도 비활성화됨"
   },
   "Allowance off": {
     "en": "Allowance off",
-    "zh-Hans": "免除补贴",
-    "zh-Hant": "免除補貼",
-    "ja": "補助金",
-    "ko": "보조금 면제"
+    "zh-Hans": "流量额度未启用",
+    "zh-Hant": "流量額度未啟用",
+    "ja": "データ容量の設定は無効",
+    "ko": "데이터 한도 비활성화됨"
   },
   "Allowance reached": {
     "en": "Allowance reached",
-    "zh-Hans": "获得的补贴",
-    "zh-Hant": "獲得的補貼",
-    "ja": "給与が達成された",
-    "ko": "지원금"
+    "zh-Hans": "已达到流量额度",
+    "zh-Hant": "已達到流量額度",
+    "ja": "データ容量の上限に到達",
+    "ko": "데이터 한도 도달"
   },
   "Allowance saved and confirmed by the router.": {
     "en": "Allowance saved and confirmed by the router.",
-    "zh-Hans": "由路由器保存和确认的补贴.",
-    "zh-Hant": "由路由器儲存和確認的補貼.",
-    "ja": "ルーターによって保存され確認された補助金.",
-    "ko": "라우터에 의해 저장되고 확인된 보조금"
+    "zh-Hans": "流量额度已保存，并经路由器确认。",
+    "zh-Hant": "流量額度已儲存，並經路由器確認。",
+    "ja": "データ容量を保存し、ルーターで確認しました。",
+    "ko": "데이터 한도가 저장되고 라우터에서 확인되었습니다."
   },
   "Allowed · carrier charges may apply": {
     "en": "Allowed · carrier charges may apply",
@@ -1135,10 +1135,10 @@
   },
   "Android": {
     "en": "Android",
-    "zh-Hans": "安卓",
-    "zh-Hant": "安卓",
-    "ja": "アンドロイド",
-    "ko": "안드로이드"
+    "zh-Hans": "Android",
+    "zh-Hant": "Android",
+    "ja": "Android",
+    "ko": "Android"
   },
   "Another change is in progress. Wait for it to finish.": {
     "en": "Another change is in progress. Wait for it to finish.",
@@ -1205,24 +1205,24 @@
   },
   "Apply LTE bands": {
     "en": "Apply LTE bands",
-    "zh-Hans": "应用 LTE 带",
-    "zh-Hant": "應用 LTE 帶",
-    "ja": "LTE帯を適用する",
-    "ko": "LTE 대역을 적용"
+    "zh-Hans": "应用 LTE 频段",
+    "zh-Hant": "應用 LTE 頻段",
+    "ja": "LTE バンドを適用",
+    "ko": "LTE 주파수 대역 적용"
   },
   "Apply NR bands": {
     "en": "Apply NR bands",
-    "zh-Hans": "应用 NR 带",
-    "zh-Hant": "應用 NR 帶",
-    "ja": "NR帯を適用する",
-    "ko": "NR 대역을 적용"
+    "zh-Hans": "应用 NR 频段",
+    "zh-Hant": "應用 NR 頻段",
+    "ja": "NR バンドを適用",
+    "ko": "NR 주파수 대역 적용"
   },
   "Apply change": {
     "en": "Apply change",
-    "zh-Hans": "应用变化",
-    "zh-Hant": "應用變化",
-    "ja": "変更を適用する",
-    "ko": "변경사항을 적용"
+    "zh-Hans": "应用更改",
+    "zh-Hant": "應用更改",
+    "ja": "変更を適用",
+    "ko": "변경 적용"
   },
   "Apply these Tailscale preferences. Changing subnet routes or SSH can affect remote access.": {
     "en": "Apply these Tailscale preferences. Changing subnet routes or SSH can affect remote access.",
@@ -1233,10 +1233,10 @@
   },
   "Applying changes…": {
     "en": "Applying changes…",
-    "zh-Hans": "应用变化...",
-    "zh-Hant": "應用變化...",
-    "ja": "変更を適用する...",
-    "ko": "변경사항을 적용하면..."
+    "zh-Hans": "正在应用更改…",
+    "zh-Hant": "正在應用更改…",
+    "ja": "変更を適用中…",
+    "ko": "변경 적용 중…"
   },
   "Applying wireless settings may disconnect this device. Reconnect using the new network name or password, then reopen the console.": {
     "en": "Applying wireless settings may disconnect this device. Reconnect using the new network name or password, then reopen the console.",
@@ -1277,15 +1277,15 @@
     "en": "Assigned by carrier",
     "zh-Hans": "运营商自动分配",
     "zh-Hant": "運營商自動分配",
-    "ja": "運輸業者によって割り当てられた",
-    "ko": "운송자로부터 할당된"
+    "ja": "通信事業者による割り当て",
+    "ko": "통신사에서 할당"
   },
   "Assigned by your carrier": {
     "en": "Assigned by your carrier",
-    "zh-Hans": "由您的运输商分配",
-    "zh-Hant": "由您的運輸商分配",
-    "ja": "航空会社によって割り当てられた",
-    "ko": "항공사에서 할당된"
+    "zh-Hans": "由运营商分配",
+    "zh-Hant": "由運營商分配",
+    "ja": "通信事業者による割り当て",
+    "ko": "통신사에서 할당"
   },
   "At 100%": {
     "en": "At 100%",
@@ -1317,8 +1317,8 @@
   },
   "Authentication": {
     "en": "Authentication",
-    "zh-Hans": "验证",
-    "zh-Hant": "驗證",
+    "zh-Hans": "认证",
+    "zh-Hant": "認證",
     "ja": "認証",
     "ko": "인증"
   },
@@ -1345,10 +1345,10 @@
   },
   "Automatic monthly reset": {
     "en": "Automatic monthly reset",
-    "zh-Hans": "自动每月重新设置",
-    "zh-Hant": "自動每月重新設定",
-    "ja": "自動毎月リセット",
-    "ko": "자동 월간 리셋"
+    "zh-Hans": "每月自动重置",
+    "zh-Hant": "每月自動重置",
+    "ja": "毎月自動リセット",
+    "ko": "매월 자동 초기화"
   },
   "Automatic network selection confirmed by the modem.": {
     "en": "Automatic network selection confirmed by the modem.",
@@ -1359,10 +1359,10 @@
   },
   "Automatic reset off": {
     "en": "Automatic reset off",
-    "zh-Hans": "自动重新启动",
-    "zh-Hant": "自動重新啟動",
-    "ja": "自動リセット",
-    "ko": "자동 리셋"
+    "zh-Hans": "自动重置已关闭",
+    "zh-Hant": "自動重置已關閉",
+    "ja": "自動リセットは無効",
+    "ko": "자동 초기화 꺼짐"
   },
   "Automatic selection requested. Waiting for the modem to confirm it…": {
     "en": "Automatic selection requested. Waiting for the modem to confirm it…",
@@ -1436,10 +1436,10 @@
   },
   "BAND UNREPORTED": {
     "en": "BAND UNREPORTED",
-    "zh-Hans": "没有报道",
-    "zh-Hant": "沒有報道",
-    "ja": "報告されていないバンド",
-    "ko": "보고되지 않은 밴드"
+    "zh-Hans": "未提供频段",
+    "zh-Hant": "未提供頻段",
+    "ja": "バンド情報なし",
+    "ko": "주파수 대역 정보 없음"
   },
   "Band": {
     "en": "Band",
@@ -1450,17 +1450,17 @@
   },
   "Band and cell restrictions can leave the router without service. Keep a local connection and use Reset restrictions if service is lost.": {
     "en": "Band and cell restrictions can leave the router without service. Keep a local connection and use Reset restrictions if service is lost.",
-    "zh-Hans": "带和手机限制可能会使路由器无需服务. 保持本地连接,并在服务丢失时使用重置限制.",
-    "zh-Hant": "帶和手機限制可能會使路由器無需服務. 保持本地連線,並在服務丟失時使用重置限制.",
-    "ja": "バンドと携帯電話の制限により ルーターがサービス無しになります ローカル接続を保持し,サービスが失われている場合,リセット制限を使用します.",
-    "ko": "밴드 및 셀 제한은 라우터를 서비스하지 않을 수 있습니다. 로컬 연결을 유지하고 서비스가 손실되면 리셋 제한을 사용하십시오."
+    "zh-Hans": "限制频段或小区可能导致无服务。请保持与路由器的本地连接，失去服务时解除限制。",
+    "zh-Hant": "限制頻段或小區可能導致無服務。請保持與路由器的本地連線，失去服務時解除限制。",
+    "ja": "バンドやセルの制限により圏外になることがあります。ルーターとのローカル接続を維持し、圏外になった場合は制限を解除してください。",
+    "ko": "주파수 대역이나 셀 제한으로 서비스가 끊길 수 있습니다. 라우터와의 로컬 연결을 유지하고 서비스가 끊기면 제한을 해제하세요."
   },
   "Band unreported": {
     "en": "Band unreported",
-    "zh-Hans": "未报告的乐队",
-    "zh-Hant": "未報告的樂隊",
-    "ja": "報告されていないバンド",
-    "ko": "보고되지 않은 밴드"
+    "zh-Hans": "未提供频段",
+    "zh-Hant": "未提供頻段",
+    "ja": "バンド情報なし",
+    "ko": "주파수 대역 정보 없음"
   },
   "Bands & Cell Lock": {
     "en": "Bands & Cell Lock",
@@ -1485,10 +1485,10 @@
   },
   "Battery & Power": {
     "en": "Battery & Power",
-    "zh-Hans": "电池和功率",
-    "zh-Hant": "電池和功率",
-    "ja": "バッテリー&パワー",
-    "ko": "배터리 & 전력"
+    "zh-Hans": "电池与电源",
+    "zh-Hant": "電池與電源",
+    "ja": "バッテリーと電源",
+    "ko": "배터리 및 전원"
   },
   "Battery & power": {
     "en": "Battery & power",
@@ -1534,10 +1534,10 @@
   },
   "Battery is full": {
     "en": "Battery is full",
-    "zh-Hans": "电池充满了",
-    "zh-Hant": "電池充滿了",
-    "ja": "バッテリーは満載",
-    "ko": "배터리가 가득한"
+    "zh-Hans": "电池已充满",
+    "zh-Hant": "電池已充滿",
+    "ja": "バッテリー充電完了",
+    "ko": "배터리 완충됨"
   },
   "Battery level": {
     "en": "Battery level",
@@ -1562,10 +1562,10 @@
   },
   "Battery present": {
     "en": "Battery present",
-    "zh-Hans": "电池现场",
-    "zh-Hant": "電池現場",
-    "ja": "バッテリーの存在",
-    "ko": "배터리 출력"
+    "zh-Hans": "电池已连接",
+    "zh-Hant": "電池已連線",
+    "ja": "バッテリー接続済み",
+    "ko": "배터리 연결됨"
   },
   "Battery state": {
     "en": "Battery state",
@@ -1604,10 +1604,10 @@
   },
   "Bearer {0}": {
     "en": "Bearer {0}",
-    "zh-Hans": "载体 {0}",
-    "zh-Hant": "載體 {0}",
-    "ja": "持ち物 {0}",
-    "ko": "운반 {0}"
+    "zh-Hans": "承载 {0}",
+    "zh-Hant": "承載 {0}",
+    "ja": "ベアラー {0}",
+    "ko": "베어러 {0}"
   },
   "Before trusting the certificate, compare the SHA-256 fingerprint above with the one shown on your device. For a trusted comparison, use this page over HTTPS on a device that already trusts the router, or compare with sha256sum /data/zte-agent-tls/ca.crt over SSH. Plain HTTP can be altered by someone on the network.": {
     "en": "Before trusting the certificate, compare the SHA-256 fingerprint above with the one shown on your device. For a trusted comparison, use this page over HTTPS on a device that already trusts the router, or compare with sha256sum /data/zte-agent-tls/ca.crt over SSH. Plain HTTP can be altered by someone on the network.",
@@ -1646,10 +1646,10 @@
   },
   "Billing cycle": {
     "en": "Billing cycle",
-    "zh-Hans": "收费周期",
-    "zh-Hant": "收費週期",
+    "zh-Hans": "计费周期",
+    "zh-Hant": "計費週期",
     "ja": "請求サイクル",
-    "ko": "청구 시클"
+    "ko": "요금 청구 주기"
   },
   "Billing cycle saved and confirmed by the router.": {
     "en": "Billing cycle saved and confirmed by the router.",
@@ -1667,10 +1667,10 @@
   },
   "Bootstrap required": {
     "en": "Bootstrap required",
-    "zh-Hans": "需要启动带",
-    "zh-Hant": "需要啟動帶",
-    "ja": "ブートストラップが必要",
-    "ko": "부트 스트랩이 필요"
+    "zh-Hans": "需要初始化安装",
+    "zh-Hant": "需要初始化安裝",
+    "ja": "初回セットアップが必要",
+    "ko": "초기 설치 필요"
   },
   "Build details unavailable": {
     "en": "Build details unavailable",
@@ -1681,17 +1681,17 @@
   },
   "CNAME · Alias": {
     "en": "CNAME · Alias",
-    "zh-Hans": "姓名 · 别名",
-    "zh-Hant": "姓名 · 別名",
-    "ja": "姓名 · アリア",
-    "ko": "이름 · 별명"
+    "zh-Hans": "CNAME · 别名",
+    "zh-Hant": "CNAME · 別名",
+    "ja": "CNAME · 別名",
+    "ko": "CNAME · 별칭"
   },
   "CONNECTION HISTORY · THIS TAB": {
     "en": "CONNECTION HISTORY · THIS TAB",
-    "zh-Hans": "连接历史 · 这张图表",
-    "zh-Hant": "連線歷史 · 這張圖表",
-    "ja": "接続の歴史 · このタブ",
-    "ko": "연결 역사 · 이 탭"
+    "zh-Hans": "连接记录 · 当前标签页",
+    "zh-Hant": "連線記錄 · 當前標籤頁",
+    "ja": "接続履歴 · 現在のタブ",
+    "ko": "연결 기록 · 현재 탭"
   },
   "CPU use": {
     "en": "CPU use",
@@ -1702,8 +1702,8 @@
   },
   "CURRENT VERSION": {
     "en": "CURRENT VERSION",
-    "zh-Hans": "现在的版本",
-    "zh-Hant": "現在的版本",
+    "zh-Hans": "当前版本",
+    "zh-Hant": "當前版本",
     "ja": "現在のバージョン",
     "ko": "현재 버전"
   },
@@ -1730,10 +1730,10 @@
   },
   "Cache hit rate": {
     "en": "Cache hit rate",
-    "zh-Hans": "缓存击中率",
-    "zh-Hant": "快取擊中率",
+    "zh-Hans": "缓存命中率",
+    "zh-Hant": "快取命中率",
     "ja": "キャッシュヒット率",
-    "ko": "캐시 접속률"
+    "ko": "캐시 적중률"
   },
   "Cache hits: {0}": {
     "en": "Cache hits: {0}",
@@ -1751,17 +1751,17 @@
   },
   "Cached": {
     "en": "Cached",
-    "zh-Hans": "隐藏",
-    "zh-Hant": "隱藏",
-    "ja": "キャッシュされた",
-    "ko": "캐시"
+    "zh-Hans": "已缓存",
+    "zh-Hant": "已快取",
+    "ja": "キャッシュ済み",
+    "ko": "캐시됨"
   },
   "Cached answers": {
     "en": "Cached answers",
-    "zh-Hans": "隐藏的答案",
-    "zh-Hant": "隱藏的答案",
-    "ja": "キャッシュされた回答",
-    "ko": "저장된 답변"
+    "zh-Hans": "已缓存应答",
+    "zh-Hant": "已快取應答",
+    "ja": "キャッシュ済みの応答",
+    "ko": "캐시된 응답"
   },
   "Cached answers held by the U60 are removed. The next uncached lookup asks the active resolver again; client devices may retain answers until TTL expiry.": {
     "en": "Cached answers held by the U60 are removed. The next uncached lookup asks the active resolver again; client devices may retain answers until TTL expiry.",
@@ -1821,10 +1821,10 @@
   },
   "Candidate was not applied.": {
     "en": "Candidate was not applied.",
-    "zh-Hans": "候选人没有申请.",
-    "zh-Hant": "候選人沒有申請.",
-    "ja": "候補者は申請されなかった.",
-    "ko": "지원자는 신청되지 않았습니다."
+    "zh-Hans": "未应用候选配置。",
+    "zh-Hant": "未應用候選配置。",
+    "ja": "候補設定は適用されませんでした。",
+    "ko": "후보 구성이 적용되지 않았습니다."
   },
   "Capacity and unread message counts reported by the modem.": {
     "en": "Capacity and unread message counts reported by the modem.",
@@ -1863,16 +1863,16 @@
   },
   "Carrier automatic": {
     "en": "Carrier automatic",
-    "zh-Hans": "载体自动",
-    "zh-Hant": "載體自動",
-    "ja": "輸送機自動",
-    "ko": "운반자동형"
+    "zh-Hans": "运营商自动配置",
+    "zh-Hant": "運營商自動配置",
+    "ja": "通信事業者の自動設定",
+    "ko": "통신사 자동 설정"
   },
   "Carrier, HTTPS or TLS": {
     "en": "Carrier, HTTPS or TLS",
-    "zh-Hans": "航母, HTTPS 或 TLS",
-    "zh-Hant": "航母, HTTPS 或 TLS",
-    "ja": "輸送機, HTTPS または TLS",
+    "zh-Hans": "运营商、HTTPS 或 TLS",
+    "zh-Hant": "運營商、HTTPS 或 TLS",
+    "ja": "通信事業者、HTTPS または TLS",
     "ko": "통신사, HTTPS 또는 TLS"
   },
   "Cell ID": {
@@ -1933,10 +1933,10 @@
   },
   "Certificate-verified TLS tunnel": {
     "en": "Certificate-verified TLS tunnel",
-    "zh-Hans": "证书验证的 TLS ?? 道",
-    "zh-Hant": "證書驗證的 TLS ?? 道",
-    "ja": "証明書で確認されたトンネル",
-    "ko": "인증서 검증된 TLS 터널"
+    "zh-Hans": "证书已验证的 TLS 隧道",
+    "zh-Hant": "證書已驗證的 TLS 隧道",
+    "ja": "証明書検証済み TLS トンネル",
+    "ko": "인증서가 검증된 TLS 터널"
   },
   "Change DNS resolver?": {
     "en": "Change DNS resolver?",
@@ -1989,10 +1989,10 @@
   },
   "Changing firewall protection can affect incoming connections. Disabling it removes the router’s inbound filtering. Apply this change?": {
     "en": "Changing firewall protection can affect incoming connections. Disabling it removes the router’s inbound filtering. Apply this change?",
-    "zh-Hans": "改变防火墙保护可能会影响接入的连接. 关闭它会删除路由器的输入过 ?? . 适用这个变化?",
-    "zh-Hant": "改變防火牆保護可能會影響接入的連線. 關閉它會刪除路由器的輸入過 ?? . 適用這個變化?",
-    "ja": "ファイアウォール保護変更は 入力接続に影響を与える可能性があります. シャットダウンすると ルーターのインバウンドフィルタを削除します この変更を適用する?",
-    "ko": "방화벽 보호 변경은 입력 연결에 영향을 미칠 수 있습니다. 비활성화하면 라우터의 입력 필터링이 제거됩니다. 이 변경사항을 적용하세요?"
+    "zh-Hans": "更改防火墙保护会影响入站连接。关闭后将不再过滤入站流量。确认应用更改？",
+    "zh-Hant": "更改防火牆保護會影響入站連線。關閉後將不再過濾入站流量。確認應用更改？",
+    "ja": "ファイアウォールの変更は着信接続に影響します。無効にすると着信フィルタリングが停止します。変更を適用しますか？",
+    "ko": "방화벽 변경은 인바운드 연결에 영향을 줍니다. 끄면 인바운드 필터링이 중지됩니다. 변경 사항을 적용할까요?"
   },
   "Changing mobile settings can interrupt internet access. Roaming may incur carrier charges. Keep a local connection to the router.": {
     "en": "Changing mobile settings can interrupt internet access. Roaming may incur carrier charges. Keep a local connection to the router.",
@@ -2024,17 +2024,17 @@
   },
   "Charge cycles": {
     "en": "Charge cycles",
-    "zh-Hans": "充电周期",
-    "zh-Hant": "充電週期",
-    "ja": "充電サイクル",
-    "ko": "충전 주기는"
+    "zh-Hans": "充电循环次数",
+    "zh-Hant": "充電迴圈次數",
+    "ja": "充電サイクル数",
+    "ko": "충전 사이클 수"
   },
   "Charge limit": {
     "en": "Charge limit",
-    "zh-Hans": "收费限制",
-    "zh-Hant": "收費限制",
-    "ja": "充電制限",
-    "ko": "충전 제한"
+    "zh-Hans": "充电上限",
+    "zh-Hant": "充電上限",
+    "ja": "充電上限",
+    "ko": "충전 상한"
   },
   "Charge phase": {
     "en": "Charge phase",
@@ -2066,9 +2066,9 @@
   },
   "Chat ID or @channel": {
     "en": "Chat ID or @channel",
-    "zh-Hans": "聊天身份证或@channel",
-    "zh-Hant": "聊天身份證或@channel",
-    "ja": "チャット ID または @チャネル",
+    "zh-Hans": "会话 ID 或 @频道",
+    "zh-Hant": "會話 ID 或 @頻道",
+    "ja": "チャット ID または @チャンネル",
     "ko": "채팅 ID 또는 @채널"
   },
   "Check automatically": {
@@ -2143,10 +2143,10 @@
   },
   "Choose a resolver": {
     "en": "Choose a resolver",
-    "zh-Hans": "选择一个解决方案",
-    "zh-Hant": "選擇一個解決方案",
-    "ja": "解決器を選択する",
-    "ko": "솔루션을 선택"
+    "zh-Hans": "选择解析器",
+    "zh-Hant": "選擇解析器",
+    "ja": "リゾルバーを選択",
+    "ko": "리졸버 선택"
   },
   "Choose a supported value for {0}.": {
     "en": "Choose a supported value for {0}.",
@@ -2185,10 +2185,10 @@
   },
   "Choose preferred LTE and NR bands or a specific serving cell.": {
     "en": "Choose preferred LTE and NR bands or a specific serving cell.",
-    "zh-Hans": "选择最喜欢的 LTE 和 NR 带或特定的服务小区.",
-    "zh-Hant": "選擇最喜歡的 LTE 和 NR 帶或特定的服務小區.",
-    "ja": "好きな LTE と NR 帯または特定のサービスセルを選択します.",
-    "ko": "선호하는 LTE 및 NR 대역 또는 특정 서비스 셀을 선택하십시오."
+    "zh-Hans": "选择 LTE / NR 偏好频段，或锁定指定服务小区。",
+    "zh-Hant": "選擇 LTE / NR 偏好頻段，或鎖定指定服務小區。",
+    "ja": "優先する LTE / NR バンドまたは特定の接続セルを選択します。",
+    "ko": "선호하는 LTE / NR 주파수 대역 또는 특정 서빙 셀을 선택합니다."
   },
   "Choose the local gateway and address pool. Pool addresses must belong to the same subnet and exclude the router.": {
     "en": "Choose the local gateway and address pool. Pool addresses must belong to the same subnet and exclude the router.",
@@ -2206,10 +2206,10 @@
   },
   "Choose when the router starts a new monthly counter. This does not change your carrier’s billing date.": {
     "en": "Choose when the router starts a new monthly counter. This does not change your carrier’s billing date.",
-    "zh-Hans": "选择路由器启动新的月计时机时. 这不会改变您的运营商的发票日期.",
-    "zh-Hant": "選擇路由器啟動新的月計時機時. 這不會改變您的運營商的發票日期.",
-    "ja": "ルーターが新しい月間カウンタを起動するときに選択してください. これは航空会社の請求日程を変更しません.",
-    "ko": "라우터가 새로운 월간 카운터를 시작할 때 선택하십시오. 이것은 운송사의 청구 날짜를 변경하지 않습니다."
+    "zh-Hans": "设置路由器每月流量计数的重置日期，不会更改运营商的计费日期。",
+    "zh-Hant": "設定路由器每月流量計數的重置日期，不會更改運營商的計費日期。",
+    "ja": "ルーターの月間カウンターのリセット日を設定します。通信事業者の請求日は変更されません。",
+    "ko": "라우터의 월간 카운터 초기화 날짜를 설정합니다. 통신사의 청구 날짜는 변경되지 않습니다."
   },
   "Choose whether automatic sleep is enabled.": {
     "en": "Choose whether automatic sleep is enabled.",
@@ -2234,10 +2234,10 @@
   },
   "Clear activity": {
     "en": "Clear activity",
-    "zh-Hans": "清晰的活动",
-    "zh-Hant": "清晰的活動",
-    "ja": "明確な活動",
-    "ko": "명확한 활동"
+    "zh-Hans": "清除活动记录",
+    "zh-Hant": "清除活動記錄",
+    "ja": "履歴を消去",
+    "ko": "활동 기록 지우기"
   },
   "Clear cache": {
     "en": "Clear cache",
@@ -2248,17 +2248,17 @@
   },
   "Clear codes": {
     "en": "Clear codes",
-    "zh-Hans": "清晰的代码",
-    "zh-Hant": "清晰的程式碼",
-    "ja": "クリアコード",
-    "ko": "명확한 코드"
+    "zh-Hans": "清空代码",
+    "zh-Hant": "清空程式碼",
+    "ja": "コードを消去",
+    "ko": "코드 지우기"
   },
   "Clear draft": {
     "en": "Clear draft",
-    "zh-Hans": "清晰的草案",
-    "zh-Hant": "清晰的草案",
-    "ja": "清晰な草案",
-    "ko": "명확한 초안"
+    "zh-Hans": "清空草稿",
+    "zh-Hant": "清空草稿",
+    "ja": "下書きを消去",
+    "ko": "초안 지우기"
   },
   "Clear request accepted. Waiting messages and their related activity are retained; the live log will update automatically.": {
     "en": "Clear request accepted. Waiting messages and their related activity are retained; the live log will update automatically.",
@@ -2283,17 +2283,17 @@
   },
   "Clear selection": {
     "en": "Clear selection",
-    "zh-Hans": "清晰的选择",
-    "zh-Hant": "清晰的選擇",
-    "ja": "明確な選択",
-    "ko": "명확한 선택"
+    "zh-Hans": "清除选择",
+    "zh-Hant": "清除選擇",
+    "ja": "選択を解除",
+    "ko": "선택 해제"
   },
   "Clear settled activity": {
     "en": "Clear settled activity",
-    "zh-Hans": "清晰的固定活动",
-    "zh-Hant": "清晰的固定活動",
-    "ja": "明確な安定した活動",
-    "ko": "확정된 활동"
+    "zh-Hans": "清除已完成记录",
+    "zh-Hant": "清除已完成記錄",
+    "ja": "完了済みの履歴を消去",
+    "ko": "완료된 기록 지우기"
   },
   "Clear settled forwarding activity?": {
     "en": "Clear settled forwarding activity?",
@@ -2304,10 +2304,10 @@
   },
   "Clear terminal history": {
     "en": "Clear terminal history",
-    "zh-Hans": "清晰的终端历史",
-    "zh-Hant": "清晰的終端歷史",
-    "ja": "端末履歴が明確",
-    "ko": "명확한 터미널 역사"
+    "zh-Hans": "清空终端历史",
+    "zh-Hant": "清空終端歷史",
+    "ja": "端末の履歴を消去",
+    "ko": "터미널 기록 지우기"
   },
   "Clear the nickname for ICCID …{0}?": {
     "en": "Clear the nickname for ICCID …{0}?",
@@ -2318,10 +2318,10 @@
   },
   "Close result": {
     "en": "Close result",
-    "zh-Hans": "接近结果",
-    "zh-Hant": "接近結果",
-    "ja": "近い結果",
-    "ko": "근접한 결과"
+    "zh-Hans": "关闭结果",
+    "zh-Hant": "關閉結果",
+    "ja": "結果を閉じる",
+    "ko": "결과 닫기"
   },
   "Collapse navigation": {
     "en": "Collapse navigation",
@@ -2374,10 +2374,10 @@
   },
   "Compose": {
     "en": "Compose",
-    "zh-Hans": "编写",
-    "zh-Hant": "編寫",
-    "ja": "作曲する",
-    "ko": "작곡"
+    "zh-Hans": "写短信",
+    "zh-Hant": "寫簡訊",
+    "ja": "メッセージを作成",
+    "ko": "문자 작성"
   },
   "Concurrent TCP connections": {
     "en": "Concurrent TCP connections",
@@ -2451,17 +2451,17 @@
   },
   "Configured charge and resume levels are inactive while the charge limit is disabled.": {
     "en": "Configured charge and resume levels are inactive while the charge limit is disabled.",
-    "zh-Hans": "设置的收费和续航水平是不活跃的,而收费限制是禁用的.",
-    "zh-Hant": "設定的收費和續航水平是不活躍的,而收費限制是停用的.",
-    "ja": "設定された充電と再開レベルは,充電制限が無効である間に無効です.",
-    "ko": "구성된 충전 및 재개정 레벨은 충전 제한이 비활성화되는 동안 비활성입니다."
+    "zh-Hans": "关闭充电限制后，设置的充电上限和恢复充电阈值均不生效。",
+    "zh-Hant": "關閉充電限制後，設定的充電上限和恢復充電閾值均不生效。",
+    "ja": "充電制限が無効な間は、充電上限と再充電の設定値は適用されません。",
+    "ko": "충전 제한이 꺼져 있으면 충전 상한과 충전 재개 기준이 적용되지 않습니다."
   },
   "Configured charge limit": {
     "en": "Configured charge limit",
-    "zh-Hans": "配置的收费限制",
-    "zh-Hant": "配置的收費限制",
-    "ja": "設定された充電制限",
-    "ko": "구성된 충전 제한"
+    "zh-Hans": "设置的充电上限",
+    "zh-Hant": "設定的充電上限",
+    "ja": "充電上限の設定値",
+    "ko": "설정된 충전 상한"
   },
   "Configured download limit": {
     "en": "Configured download limit",
@@ -2479,10 +2479,10 @@
   },
   "Configured resume level": {
     "en": "Configured resume level",
-    "zh-Hans": "配置简历水平",
-    "zh-Hant": "配置簡歷水平",
-    "ja": "設定された履歴書レベル",
-    "ko": "구성된 자기소개서 레벨"
+    "zh-Hans": "设置的恢复充电阈值",
+    "zh-Hant": "設定的恢復充電閾值",
+    "ja": "充電再開の設定値",
+    "ko": "설정된 충전 재개 기준"
   },
   "Configured upload limit": {
     "en": "Configured upload limit",
@@ -2556,8 +2556,8 @@
   },
   "Connected Devices": {
     "en": "Connected Devices",
-    "zh-Hans": "已连接设备",
-    "zh-Hant": "已連線裝置",
+    "zh-Hans": "连接设备",
+    "zh-Hant": "連線裝置",
     "ja": "接続デバイス",
     "ko": "연결된 장치"
   },
@@ -2570,8 +2570,8 @@
   },
   "Connected time": {
     "en": "Connected time",
-    "zh-Hans": "连接时长",
-    "zh-Hant": "連線時長",
+    "zh-Hans": "在线时长",
+    "zh-Hant": "線上時長",
     "ja": "接続時間",
     "ko": "연결 시간"
   },
@@ -2773,17 +2773,17 @@
   },
   "Coulomb counter": {
     "en": "Coulomb counter",
-    "zh-Hans": "库罗姆计数器",
-    "zh-Hant": "庫羅姆計數器",
-    "ja": "クーロンブカウンター",
-    "ko": "쿨롬 카운터"
+    "zh-Hans": "库仑计",
+    "zh-Hant": "庫侖計",
+    "ja": "クーロンカウンター",
+    "ko": "쿨롱 카운터"
   },
   "Counter reset": {
     "en": "Counter reset",
-    "zh-Hans": "反重置",
-    "zh-Hant": "反重置",
-    "ja": "カウンターリセット",
-    "ko": "카운터 리셋"
+    "zh-Hans": "计数器重置",
+    "zh-Hant": "計數器重置",
+    "ja": "カウンターのリセット",
+    "ko": "카운터 초기화"
   },
   "Create a profile": {
     "en": "Create a profile",
@@ -2836,10 +2836,10 @@
   },
   "Current interruption": {
     "en": "Current interruption",
-    "zh-Hans": "电流中断",
-    "zh-Hant": "電流中斷",
-    "ja": "流動中断",
-    "ko": "현재 중단"
+    "zh-Hans": "当前中断",
+    "zh-Hant": "當前中斷",
+    "ja": "現在の切断",
+    "ko": "현재 연결 중단"
   },
   "Current rules loaded.": {
     "en": "Current rules loaded.",
@@ -2857,8 +2857,8 @@
   },
   "Current speed": {
     "en": "Current speed",
-    "zh-Hans": "电流速度",
-    "zh-Hant": "電流速度",
+    "zh-Hans": "当前速度",
+    "zh-Hant": "當前速度",
     "ja": "現在の速度",
     "ko": "현재 속도"
   },
@@ -2887,8 +2887,8 @@
     "en": "Currently active",
     "zh-Hans": "当前启用",
     "zh-Hant": "當前啟用",
-    "ja": "現在活動している",
-    "ko": "현재 활동중"
+    "ja": "現在有効",
+    "ko": "현재 활성화됨"
   },
   "DHCP end address": {
     "en": "DHCP end address",
@@ -2927,8 +2927,8 @@
   },
   "DMZ address": {
     "en": "DMZ address",
-    "zh-Hans": "区间地址",
-    "zh-Hant": "區間地址",
+    "zh-Hans": "DMZ 地址",
+    "zh-Hant": "DMZ 地址",
     "ja": "DMZ アドレス",
     "ko": "DMZ 주소"
   },
@@ -2948,10 +2948,10 @@
   },
   "DNS & Privacy": {
     "en": "DNS & Privacy",
-    "zh-Hans": "DNS 和隐私",
-    "zh-Hant": "DNS 和隱私",
-    "ja": "DNS & プライバシー",
-    "ko": "DNS 및 개인 정보 보호"
+    "zh-Hans": "DNS 与隐私",
+    "zh-Hant": "DNS 與隱私",
+    "ja": "DNS とプライバシー",
+    "ko": "DNS 및 개인 정보"
   },
   "DNS & privacy": {
     "en": "DNS & privacy",
@@ -3034,7 +3034,7 @@
     "en": "Data roaming",
     "zh-Hans": "数据漫游",
     "zh-Hant": "資料漫遊",
-    "ja": "データロミング",
+    "ja": "データローミング",
     "ko": "데이터 로밍"
   },
   "Data usage": {
@@ -3067,10 +3067,10 @@
   },
   "Decline profile": {
     "en": "Decline profile",
-    "zh-Hans": "降幅概况",
-    "zh-Hant": "降幅概況",
-    "ja": "減少プロフィール",
-    "ko": "감소 프로파일"
+    "zh-Hans": "拒绝配置",
+    "zh-Hant": "拒絕配置",
+    "ja": "プロファイルを拒否",
+    "ko": "프로파일 거부"
   },
   "Decline request accepted. Waiting for cancellation.": {
     "en": "Decline request accepted. Waiting for cancellation.",
@@ -3165,10 +3165,10 @@
   },
   "Delete port-forward rule": {
     "en": "Delete port-forward rule",
-    "zh-Hans": "删除出口前行规则",
-    "zh-Hant": "刪除出口前行規則",
-    "ja": "ポートフォワードルールを削除する",
-    "ko": "포트 포워드 규칙을 삭제"
+    "zh-Hans": "删除端口转发规则",
+    "zh-Hant": "刪除埠轉發規則",
+    "ja": "ポート転送ルールを削除",
+    "ko": "포트 전달 규칙 삭제"
   },
   "Delete profile": {
     "en": "Delete profile",
@@ -3214,17 +3214,17 @@
   },
   "Delivery activity": {
     "en": "Delivery activity",
-    "zh-Hans": "交付活动",
-    "zh-Hant": "交付活動",
-    "ja": "配達活動",
-    "ko": "배달 활동"
+    "zh-Hans": "发送记录",
+    "zh-Hant": "傳送記錄",
+    "ja": "送信履歴",
+    "ko": "전송 기록"
   },
   "Design capacity": {
     "en": "Design capacity",
-    "zh-Hans": "设计能力",
-    "zh-Hant": "設計能力",
-    "ja": "設計能力",
-    "ko": "설계 능력"
+    "zh-Hans": "设计容量",
+    "zh-Hant": "設計容量",
+    "ja": "設計容量",
+    "ko": "설계 용량"
   },
   "Desktop navigation": {
     "en": "Desktop navigation",
@@ -3445,8 +3445,8 @@
   },
   "Disabled": {
     "en": "Disabled",
-    "zh-Hans": "已关闭",
-    "zh-Hant": "已關閉",
+    "zh-Hans": "已停用",
+    "zh-Hant": "已停用",
     "ja": "無効",
     "ko": "비활성화됨"
   },
@@ -3459,10 +3459,10 @@
   },
   "Discard and read": {
     "en": "Discard and read",
-    "zh-Hans": "丢弃和阅读",
-    "zh-Hant": "丟棄和閱讀",
-    "ja": "捨てて読む",
-    "ko": "폐기하고 읽어라"
+    "zh-Hans": "放弃编辑并重新读取",
+    "zh-Hant": "放棄編輯並重新讀取",
+    "ja": "編集を破棄して再読み込み",
+    "ko": "수정 취소 후 다시 불러오기"
   },
   "Discard draft": {
     "en": "Discard draft",
@@ -3529,8 +3529,8 @@
   },
   "Disconnected": {
     "en": "Disconnected",
-    "zh-Hans": "已断开",
-    "zh-Hant": "已斷開",
+    "zh-Hans": "未连接",
+    "zh-Hant": "未連線",
     "ja": "切断済み",
     "ko": "연결 끊김"
   },
@@ -3564,17 +3564,17 @@
   },
   "DoT TLS certificate name": {
     "en": "DoT TLS certificate name",
-    "zh-Hans": "DOT TLS证书名称",
-    "zh-Hant": "DOT TLS證書名稱",
-    "ja": "DOT TLS証明書名",
-    "ko": "DOT TLS 인증서 이름"
+    "zh-Hans": "DoT TLS 证书域名",
+    "zh-Hant": "DoT TLS 證書域名",
+    "ja": "DoT TLS 証明書のホスト名",
+    "ko": "DoT TLS 인증서 호스트 이름"
   },
   "DoT server": {
     "en": "DoT server",
-    "zh-Hans": "没有服务器",
-    "zh-Hant": "沒有伺服器",
-    "ja": "DOTサーバー",
-    "ko": "DOT 서버"
+    "zh-Hans": "DoT 服务器",
+    "zh-Hant": "DoT 伺服器",
+    "ja": "DoT サーバー",
+    "ko": "DoT 서버"
   },
   "Download": {
     "en": "Download",
@@ -3685,8 +3685,8 @@
     "en": "Downloaded",
     "zh-Hans": "已下载",
     "zh-Hant": "已下載",
-    "ja": "ダウンロード",
-    "ko": "다운로드"
+    "ja": "ダウンロード済み",
+    "ko": "다운로드됨"
   },
   "Downloaded over this Wi-Fi association": {
     "en": "Downloaded over this Wi-Fi association",
@@ -3718,17 +3718,17 @@
   },
   "Draft cleared.": {
     "en": "Draft cleared.",
-    "zh-Hans": "草案已批准.",
-    "zh-Hant": "草案已批准.",
-    "ja": "ドラフトは完了",
-    "ko": "초안이 확정됐습니다."
+    "zh-Hans": "草稿已清空。",
+    "zh-Hant": "草稿已清空。",
+    "ja": "下書きを消去しました。",
+    "ko": "초안을 지웠습니다."
   },
   "Each service has its own configuration, installation and start/stop controls. Services can run together when their ports and traffic rules do not conflict.": {
     "en": "Each service has its own configuration, installation and start/stop controls. Services can run together when their ports and traffic rules do not conflict.",
-    "zh-Hans": "每个服务都有自己的配置,安装和启动/停止控制. 当服务的港口和交通规则不冲突时,服务可以一起运行.",
-    "zh-Hant": "每個服務都有自己的配置,安裝和啟動/停止控制. 當服務的港口和交通規則不衝突時,服務可以一起執行.",
-    "ja": "各サービスには独自の設定,インストール,スタート/ストップ制御があります. 港と交通規則が衝突しない場合,サービスが一緒に実行できます.",
-    "ko": "각 서비스에는 자체적인 구성, 설치 및 시작/정지 제어 장치가 있습니다. 서비스들은 항구와 교통 규칙이 충돌하지 않는 경우에 함께 실행될 수 있습니다."
+    "zh-Hans": "每个服务独立配置、安装和启停。端口与流量规则不冲突时，多个服务可以同时运行。",
+    "zh-Hant": "每個服務獨立配置、安裝和啟停。埠與流量規則不衝突時，多個服務可以同時執行。",
+    "ja": "各サービスの設定、インストール、起動と停止は独立しています。ポートや通信ルールが競合しなければ同時に実行できます。",
+    "ko": "각 서비스의 구성, 설치, 시작 및 중지는 독립적입니다. 포트와 트래픽 규칙이 충돌하지 않으면 동시에 실행할 수 있습니다."
   },
   "Edit": {
     "en": "Edit",
@@ -3991,10 +3991,10 @@
   },
   "Enter an allowance from 0.001 GB up to 109,951.163 GB, with no more than three decimal places.": {
     "en": "Enter an allowance from 0.001 GB up to 109,951.163 GB, with no more than three decimal places.",
-    "zh-Hans": "输入从0.001GB到109,951.163GB的权限,不超过三个零位.",
-    "zh-Hant": "輸入從0.001GB到109,951.163GB的許可權,不超過三個零位.",
-    "ja": "0.001 GBから 109,951.163 GBまでの許容量を入力し,最大3つの十位を入力します.",
-    "ko": "0.001 GB에서 109,951.163 GB까지의 용량을 입력하고, 최대 3개의 십자리 자리로 입력한다."
+    "zh-Hans": "流量额度应为 0.001 至 109,951.163 GB，最多三位小数。",
+    "zh-Hant": "流量額度應為 0.001 至 109,951.163 GB，最多三位小數。",
+    "ja": "データ容量は 0.001～109,951.163 GB、小数点以下 3 桁までで入力してください。",
+    "ko": "데이터 한도는 0.001~109,951.163 GB 범위에서 소수점 셋째 자리까지 입력하세요."
   },
   "Enter at least one message keyword.": {
     "en": "Enter at least one message keyword.",
@@ -4075,9 +4075,9 @@
   },
   "Ethernet": {
     "en": "Ethernet",
-    "zh-Hans": "互联网",
-    "zh-Hant": "網際網路",
-    "ja": "エーサネット",
+    "zh-Hans": "以太网",
+    "zh-Hant": "乙太網",
+    "ja": "イーサネット",
     "ko": "이더넷"
   },
   "Event frame too large": {
@@ -4096,10 +4096,10 @@
   },
   "Every reported LTE and NR carrier, with clear SA and NSA status.": {
     "en": "Every reported LTE and NR carrier, with clear SA and NSA status.",
-    "zh-Hans": "每个报告的航母, 清晰的SA和NSA状态.",
-    "zh-Hant": "每個報告的航母, 清晰的SA和NSA狀態.",
-    "ja": "報告されたすべての運搬機は,SAとNSAのステータスが明確だ.",
-    "ko": "모든 보고된 LTE 및 NR 통신사, 명확한 SA 및 NSA 상태."
+    "zh-Hans": "显示上报的全部 LTE 与 NR 载波，以及 SA / NSA 状态。",
+    "zh-Hant": "顯示上報的全部 LTE 與 NR 載波，以及 SA / NSA 狀態。",
+    "ja": "報告された LTE / NR キャリアと SA / NSA の状態を表示します。",
+    "ko": "보고된 모든 LTE 및 NR 반송파와 SA / NSA 상태를 표시합니다."
   },
   "Every save runs a live test first. If the applied path cannot resolve a name, the agent restores the previous DNS settings automatically.": {
     "en": "Every save runs a live test first. If the applied path cannot resolve a name, the agent restores the previous DNS settings automatically.",
@@ -4201,17 +4201,17 @@
   },
   "Fallback / bootstrap": {
     "en": "Fallback / bootstrap",
-    "zh-Hans": "倒退/启动带",
-    "zh-Hant": "倒退/啟動帶",
-    "ja": "バックバック / ブートストラップ",
-    "ko": "후퇴 / 부트 스트랩"
+    "zh-Hans": "备用 / 引导解析",
+    "zh-Hant": "備用 / 引導解析",
+    "ja": "フォールバック / ブートストラップ",
+    "ko": "대체 / 부트스트랩"
   },
   "Fallback check interval (seconds)": {
     "en": "Fallback check interval (seconds)",
-    "zh-Hans": "倒退检查间隔 (秒)",
-    "zh-Hant": "倒退檢查間隔 (秒)",
-    "ja": "バックバックチェックインターバル (秒)",
-    "ko": "후퇴 검사 간격 (초)"
+    "zh-Hans": "备用检查间隔（秒）",
+    "zh-Hant": "備用檢查間隔（秒）",
+    "ja": "フォールバック確認間隔（秒）",
+    "ko": "대체 확인 간격(초)"
   },
   "Fast boot": {
     "en": "Fast boot",
@@ -4229,24 +4229,24 @@
   },
   "Fetch configuration": {
     "en": "Fetch configuration",
-    "zh-Hans": "带来配置",
-    "zh-Hant": "帶來配置",
-    "ja": "フレッシュ設定",
-    "ko": "트레치 구성"
+    "zh-Hans": "获取配置",
+    "zh-Hant": "獲取配置",
+    "ja": "設定を取得",
+    "ko": "구성 가져오기"
   },
   "Filter by DNS record type": {
     "en": "Filter by DNS record type",
-    "zh-Hans": "根据 DNS记录类型的过 ??",
-    "zh-Hant": "根據 DNS記錄型別的過 ??",
-    "ja": "DNS レコードタイプによるフィルタ",
-    "ko": "DNS 기록 유형에 따라 필터"
+    "zh-Hans": "按 DNS 记录类型筛选",
+    "zh-Hant": "按 DNS 記錄型別篩選",
+    "ja": "DNS レコードの種類で絞り込み",
+    "ko": "DNS 레코드 유형으로 필터링"
   },
   "Filter forwarding activity": {
     "en": "Filter forwarding activity",
-    "zh-Hans": "过 ?? 转发活动",
-    "zh-Hant": "過 ?? 轉發活動",
-    "ja": "フィルター転送活動",
-    "ko": "필터 전송 활동"
+    "zh-Hans": "筛选转发记录",
+    "zh-Hant": "篩選轉發記錄",
+    "ja": "転送履歴を絞り込み",
+    "ko": "전달 기록 필터링"
   },
   "Find a cached domain": {
     "en": "Find a cached domain",
@@ -4327,10 +4327,10 @@
   },
   "First pool address": {
     "en": "First pool address",
-    "zh-Hans": "第一个游泳池地址",
-    "zh-Hant": "第一個游泳池地址",
-    "ja": "最初のプール アドレス",
-    "ko": "첫 번째 수영장 주소"
+    "zh-Hans": "地址池起始地址",
+    "zh-Hant": "地址池起始地址",
+    "ja": "プールの開始アドレス",
+    "ko": "주소 풀 시작 주소"
   },
   "Following your device appearance": {
     "en": "Following your device appearance",
@@ -4397,10 +4397,10 @@
   },
   "Forwarding service": {
     "en": "Forwarding service",
-    "zh-Hans": "送货服务",
-    "zh-Hant": "送貨服務",
-    "ja": "送料サービス",
-    "ko": "송신 서비스"
+    "zh-Hans": "转发服务",
+    "zh-Hant": "轉發服務",
+    "ja": "転送サービス",
+    "ko": "전달 서비스"
   },
   "Forwarding shares matching incoming messages, including any private content or verification codes, with your chosen destinations. SMS destinations may incur carrier charges. Deleting after forwarding permanently removes those messages.": {
     "en": "Forwarding shares matching incoming messages, including any private content or verification codes, with your chosen destinations. SMS destinations may incur carrier charges. Deleting after forwarding permanently removes those messages.",
@@ -4411,17 +4411,17 @@
   },
   "Free RAM": {
     "en": "Free RAM",
-    "zh-Hans": "免费的RAM",
-    "zh-Hant": "免費的RAM",
-    "ja": "無料のRAM",
-    "ko": "무료 램"
+    "zh-Hans": "可用内存",
+    "zh-Hant": "可用記憶體",
+    "ja": "空きメモリ",
+    "ko": "사용 가능한 메모리"
   },
   "Free profile storage": {
     "en": "Free profile storage",
-    "zh-Hans": "免费配置文件存储",
-    "zh-Hant": "免費配置檔案儲存",
-    "ja": "免費プロフィール保存",
-    "ko": "무료 프로파일 저장"
+    "zh-Hans": "可用配置存储空间",
+    "zh-Hant": "可用配置儲存空間",
+    "ja": "プロファイルの空き容量",
+    "ko": "사용 가능한 프로파일 저장 공간"
   },
   "Full": {
     "en": "Full",
@@ -4544,17 +4544,17 @@
   },
   "Health": {
     "en": "Health",
-    "zh-Hans": "卫生",
-    "zh-Hant": "衛生",
-    "ja": "健康",
-    "ko": "건강"
+    "zh-Hans": "健康状况",
+    "zh-Hant": "健康狀況",
+    "ja": "状態",
+    "ko": "건강 상태"
   },
   "Health trial": {
     "en": "Health trial",
-    "zh-Hans": "健康试验",
-    "zh-Hant": "健康試驗",
-    "ja": "健康試験",
-    "ko": "건강 실험"
+    "zh-Hans": "健康检查试运行",
+    "zh-Hant": "健康檢查試執行",
+    "ja": "動作確認の試行",
+    "ko": "상태 확인을 위한 시험 실행"
   },
   "Held": {
     "en": "Held",
@@ -4607,10 +4607,10 @@
   },
   "Host hints and DHCP leases may include recently disconnected devices.": {
     "en": "Host hints and DHCP leases may include recently disconnected devices.",
-    "zh-Hans": "主机提示和 DHCP租金可能包括最近断开设备.",
-    "zh-Hant": "主機提示和 DHCP租金可能包括最近斷開裝置.",
-    "ja": "ホストのヒントと DHCP リースには,最近接続が切断されたデバイスが含まれます.",
-    "ko": "호스트 힌트 및 DHCP 렌즈에는 최근에 연결되지 않은 장치가 포함될 수 있습니다."
+    "zh-Hans": "主机信息和 DHCP 租约中可能包含刚断开的设备。",
+    "zh-Hant": "主機資訊和 DHCP 租約中可能包含剛斷開的裝置。",
+    "ja": "ホスト情報や DHCP リースには、最近切断されたデバイスが含まれることがあります。",
+    "ko": "호스트 정보와 DHCP 임대에는 최근 연결이 끊긴 장치가 포함될 수 있습니다."
   },
   "Host or IP with optional port; port 853 is used by default.": {
     "en": "Host or IP with optional port; port 853 is used by default.",
@@ -4621,10 +4621,10 @@
   },
   "Hosts and leases": {
     "en": "Hosts and leases",
-    "zh-Hans": "房东和租金",
-    "zh-Hant": "房東和租金",
+    "zh-Hans": "主机与租约",
+    "zh-Hant": "主機與租約",
     "ja": "ホストとリース",
-    "ko": "숙주 및 임대"
+    "ko": "호스트 및 임대"
   },
   "How name lookups leave devices on this network.": {
     "en": "How name lookups leave devices on this network.",
@@ -4733,17 +4733,17 @@
   },
   "Import a split-tunnel profile and inspect native kernel handshakes and traffic.": {
     "en": "Import a split-tunnel profile and inspect native kernel handshakes and traffic.",
-    "zh-Hans": "进口一个分通道配置文件,检查本土的内核握手和流量.",
-    "zh-Hant": "進口一個分通道配置檔案,檢查本土的核心握手和流量.",
-    "ja": "分断トンネルプロフィールを輸入し,ネイティブカーネルの握手とトラフィックをチェックする.",
-    "ko": "스플릿 터널 프로파일을 수입하고 네이티브 커널 수렴과 트래픽을 검사합니다."
+    "zh-Hans": "导入分流隧道配置，查看内核提供的握手状态与流量。",
+    "zh-Hant": "匯入分流隧道配置，檢視核心提供的握手狀態與流量。",
+    "ja": "スプリットトンネル設定をインポートし、カーネルのハンドシェイクと通信量を確認します。",
+    "ko": "분할 터널 구성을 가져오고 커널의 핸드셰이크와 트래픽을 확인합니다."
   },
   "Import configuration": {
     "en": "Import configuration",
-    "zh-Hans": "进口配置",
-    "zh-Hant": "進口配置",
-    "ja": "輸入設定",
-    "ko": "수입 구성"
+    "zh-Hans": "导入配置",
+    "zh-Hant": "匯入配置",
+    "ja": "設定をインポート",
+    "ko": "구성 가져오기"
   },
   "Inactive": {
     "en": "Inactive",
@@ -4908,10 +4908,10 @@
   },
   "Install the staged agent?": {
     "en": "Install the staged agent?",
-    "zh-Hans": "设置了机器人?",
-    "zh-Hant": "設定了機器人?",
-    "ja": "捜査官を設置する?",
-    "ko": "엑스레이션 에이전트를 설치해?"
+    "zh-Hans": "安装已暂存的后台程序？",
+    "zh-Hant": "安裝已暫存的後臺程式？",
+    "ja": "準備済みの管理サービスをインストールしますか？",
+    "ko": "준비된 관리 서비스를 설치할까요?"
   },
   "Install this Tailscale version. Check the service status here until the update completes.": {
     "en": "Install this Tailscale version. Check the service status here until the update completes.",
@@ -5020,10 +5020,10 @@
   },
   "Interruptions": {
     "en": "Interruptions",
-    "zh-Hans": "干扰",
-    "zh-Hant": "干擾",
-    "ja": "障害物",
-    "ko": "중단"
+    "zh-Hans": "连接中断",
+    "zh-Hant": "連線中斷",
+    "ja": "接続の切断",
+    "ko": "연결 중단"
   },
   "Interruptions and recovery observed during this tab session.": {
     "en": "Interruptions and recovery observed during this tab session.",
@@ -5034,10 +5034,10 @@
   },
   "Invalid session response": {
     "en": "Invalid session response",
-    "zh-Hans": "无效的会议响应",
-    "zh-Hant": "無效的會議響應",
+    "zh-Hans": "无效的会话响应",
+    "zh-Hant": "無效的會話響應",
     "ja": "無効なセッション応答",
-    "ko": "유효하지 않은 세션 응답"
+    "ko": "잘못된 세션 응답"
   },
   "Isolate guest devices": {
     "en": "Isolate guest devices",
@@ -5048,9 +5048,9 @@
   },
   "Jitter": {
     "en": "Jitter",
-    "zh-Hans": "投资者",
-    "zh-Hant": "投資者",
-    "ja": "ジャッター",
+    "zh-Hans": "抖动",
+    "zh-Hant": "抖動",
+    "ja": "ジッター",
     "ko": "지터"
   },
   "Join the network associated with this auth key.": {
@@ -5097,15 +5097,15 @@
   },
   "Kernel": {
     "en": "Kernel",
-    "zh-Hans": "核子",
-    "zh-Hant": "核子",
+    "zh-Hans": "内核",
+    "zh-Hant": "核心",
     "ja": "カーネル",
     "ko": "커널"
   },
   "Kernel gateway": {
     "en": "Kernel gateway",
-    "zh-Hans": "核入口",
-    "zh-Hant": "核入口",
+    "zh-Hans": "内核网关",
+    "zh-Hant": "核心閘道器",
     "ja": "カーネルゲートウェイ",
     "ko": "커널 게이트웨이"
   },
@@ -5132,24 +5132,24 @@
   },
   "LIVE": {
     "en": "LIVE",
-    "zh-Hans": "现场生活",
-    "zh-Hant": "現場生活",
-    "ja": "ライブ",
-    "ko": "라이브"
+    "zh-Hans": "实时",
+    "zh-Hant": "即時",
+    "ja": "リアルタイム",
+    "ko": "실시간"
   },
   "LIVE CACHE CONTENTS": {
     "en": "LIVE CACHE CONTENTS",
-    "zh-Hans": "现场隐藏内容",
-    "zh-Hant": "現場隱藏內容",
-    "ja": "ライブキャッシュコンテンツ",
-    "ko": "라이브 캐시 컨텐츠"
+    "zh-Hans": "实时缓存内容",
+    "zh-Hant": "即時快取內容",
+    "ja": "リアルタイムキャッシュ",
+    "ko": "실시간 캐시 내용"
   },
   "LOCAL NETWORK": {
     "en": "LOCAL NETWORK",
-    "zh-Hans": "本地网络",
-    "zh-Hant": "本地網路",
+    "zh-Hans": "局域网",
+    "zh-Hant": "區域網",
     "ja": "ローカルネットワーク",
-    "ko": "로컬 네트워크"
+    "ko": "지역 네트워크"
   },
   "LTE bands": {
     "en": "LTE bands",
@@ -5223,17 +5223,17 @@
   },
   "Last known · {0} carriers": {
     "en": "Last known · {0} carriers",
-    "zh-Hans": "最后已知 · {0}载体",
-    "zh-Hant": "最後已知 · {0}載體",
-    "ja": "最期の知られた · {0} キャリア",
-    "ko": "마지막으로 알려진 · {0} 운반자"
+    "zh-Hans": "上次状态 · {0} 个载波",
+    "zh-Hant": "上次狀態 · {0} 個載波",
+    "ja": "前回の状態 · {0} キャリア",
+    "ko": "마지막 상태 · 반송파 {0}개"
   },
   "Last pool address": {
     "en": "Last pool address",
-    "zh-Hans": "最后的游泳池地址",
-    "zh-Hant": "最後的游泳池地址",
-    "ja": "プール最後の住所",
-    "ko": "마지막 수영장 주소"
+    "zh-Hans": "地址池结束地址",
+    "zh-Hant": "地址池結束地址",
+    "ja": "プールの終了アドレス",
+    "ko": "주소 풀 마지막 주소"
   },
   "Last received": {
     "en": "Last received",
@@ -5405,10 +5405,10 @@
   },
   "Lifetime counter": {
     "en": "Lifetime counter",
-    "zh-Hans": "终身计数",
-    "zh-Hant": "終身計數",
-    "ja": "終身カウンター",
-    "ko": "평생 카운터"
+    "zh-Hans": "累计用量",
+    "zh-Hant": "累計用量",
+    "ja": "累計使用量",
+    "ko": "누적 사용량"
   },
   "Light": {
     "en": "Light",
@@ -5419,10 +5419,10 @@
   },
   "Limit charging for long periods on USB power. Hysteresis controls when charging resumes below the limit.": {
     "en": "Limit charging for long periods on USB power. Hysteresis controls when charging resumes below the limit.",
-    "zh-Hans": "在 USB 功率上限制长期充电. 当充电重启低于极限时,歇斯底里的控制.",
-    "zh-Hant": "在 USB 功率上限制長期充電. 當充電重啟低於極限時,歇斯底里的控制.",
-    "ja": "USB 電力で長時間充電を制限する 充電が限界以下で再開する時 ヒステリーゼスの制御",
-    "ko": "USB 전원을 장시간 충전할 수 있도록 제한합니다. 히스테리시스 조절은 제한보다 낮게 충전이 재개될 때"
+    "zh-Hans": "长期接入 USB 电源时可限制充电上限。回差决定电量降至上限以下多少时恢复充电。",
+    "zh-Hant": "長期接入 USB 電源時可限制充電上限。回差決定電量降至上限以下多少時恢復充電。",
+    "ja": "USB 電源に長時間接続する際の充電上限を設定します。再充電は、残量が上限から指定の差分だけ下がると開始します。",
+    "ko": "USB 전원에 장시간 연결할 때 충전 상한을 제한합니다. 배터리 잔량이 상한에서 설정한 차이만큼 낮아지면 충전이 재개됩니다."
   },
   "Link & transfer details": {
     "en": "Link & transfer details",
@@ -5447,10 +5447,10 @@
   },
   "Live DNS cache": {
     "en": "Live DNS cache",
-    "zh-Hans": "现场 DNS缓存",
-    "zh-Hant": "現場 DNS快取",
-    "ja": "ライブ DNS キャッシュ",
-    "ko": "라이브 DNS 캐시"
+    "zh-Hans": "实时 DNS 缓存",
+    "zh-Hant": "即時 DNS 快取",
+    "ja": "リアルタイム DNS キャッシュ",
+    "ko": "실시간 DNS 캐시"
   },
   "Live HTTPS status": {
     "en": "Live HTTPS status",
@@ -5545,10 +5545,10 @@
   },
   "Live modem readings · Every reported carrier is listed below.": {
     "en": "Live modem readings · Every reported carrier is listed below.",
-    "zh-Hans": "现场调节机阅读 · 每个报告的载体都列出在下面.",
-    "zh-Hant": "現場調節機閱讀 · 每個報告的載體都列出在下面.",
-    "ja": "ライブモデム読み取り · 報告されたすべてのキャリアは以下のとおりです.",
-    "ko": "라이브 모덤 읽기 · 보고된 모든 통신사는 아래에 나열되어 있습니다."
+    "zh-Hans": "实时调制解调器数据 · 下方列出全部上报载波。",
+    "zh-Hant": "即時調變解調器資料 · 下方列出全部上報載波。",
+    "ja": "モデムのリアルタイム測定値 · 報告された全キャリアを以下に表示します。",
+    "ko": "모뎀 실시간 측정값 · 보고된 모든 반송파가 아래에 표시됩니다."
   },
   "Live network activity": {
     "en": "Live network activity",
@@ -5601,10 +5601,10 @@
   },
   "Load available test servers": {
     "en": "Load available test servers",
-    "zh-Hans": "负载可用的测试服务器",
-    "zh-Hant": "負載可用的測試伺服器",
-    "ja": "利用可能なテストサーバーを負荷する",
-    "ko": "사용 가능한 테스트 서버를 로드"
+    "zh-Hans": "加载可用测速服务器",
+    "zh-Hant": "載入可用測速伺服器",
+    "ja": "利用可能な測定サーバーを読み込む",
+    "ko": "사용 가능한 속도 측정 서버 불러오기"
   },
   "Load average": {
     "en": "Load average",
@@ -5615,24 +5615,24 @@
   },
   "Load configuration": {
     "en": "Load configuration",
-    "zh-Hans": "负载配置",
-    "zh-Hant": "負載配置",
-    "ja": "負荷設定",
-    "ko": "로드 구성"
+    "zh-Hans": "加载配置",
+    "zh-Hant": "載入配置",
+    "ja": "設定を読み込む",
+    "ko": "구성 불러오기"
   },
   "Load saved configuration": {
     "en": "Load saved configuration",
-    "zh-Hans": "存储载荷配置",
-    "zh-Hant": "儲存載荷配置",
-    "ja": "負荷保存設定",
-    "ko": "로드 저장된 구성"
+    "zh-Hans": "加载已保存配置",
+    "zh-Hant": "載入已儲存配置",
+    "ja": "保存済み設定を読み込む",
+    "ko": "저장된 구성 불러오기"
   },
   "Load test servers": {
     "en": "Load test servers",
-    "zh-Hans": "负载测试服务器",
-    "zh-Hant": "負載測試伺服器",
-    "ja": "負荷テストサーバー",
-    "ko": "로드 테스트 서버"
+    "zh-Hans": "加载测速服务器",
+    "zh-Hant": "載入測速伺服器",
+    "ja": "測定サーバーを読み込む",
+    "ko": "속도 측정 서버 불러오기"
   },
   "Load the saved configuration into this editor. It may contain credentials and will replace the current draft.": {
     "en": "Load the saved configuration into this editor. It may contain credentials and will replace the current draft.",
@@ -5650,15 +5650,15 @@
   },
   "Local HTTP / SOCKS": {
     "en": "Local HTTP / SOCKS",
-    "zh-Hans": "当地 HTTP / SOCKS",
-    "zh-Hant": "當地 HTTP / SOCKS",
+    "zh-Hans": "本地 HTTP / SOCKS",
+    "zh-Hant": "本地 HTTP / SOCKS",
     "ja": "ローカル HTTP / SOCKS",
     "ko": "로컬 HTTP / SOCKS"
   },
   "Local HTTP / SOCKS clients": {
     "en": "Local HTTP / SOCKS clients",
-    "zh-Hans": "当地 HTTP / SOCKS 客户端",
-    "zh-Hant": "當地 HTTP / SOCKS 客戶端",
+    "zh-Hans": "本地 HTTP / SOCKS 客户端",
+    "zh-Hant": "本地 HTTP / SOCKS 客戶端",
     "ja": "ローカル HTTP / SOCKS クライアント",
     "ko": "로컬 HTTP / SOCKS 클라이언트"
   },
@@ -5685,17 +5685,17 @@
   },
   "Local networks": {
     "en": "Local networks",
-    "zh-Hans": "地方网络",
-    "zh-Hant": "地方網路",
+    "zh-Hans": "本地网络",
+    "zh-Hant": "本地網路",
     "ja": "ローカルネットワーク",
-    "ko": "지역 네트워크"
+    "ko": "로컬 네트워크"
   },
   "Local router console": {
     "en": "Local router console",
-    "zh-Hans": "当地路由器控制台",
-    "zh-Hant": "當地路由器控制檯",
-    "ja": "ローターコンソール",
-    "ko": "로컬 라우터 콘솔"
+    "zh-Hans": "本地路由器管理",
+    "zh-Hant": "本地路由器管理",
+    "ja": "ローカルルーター管理",
+    "ko": "로컬 라우터 관리"
   },
   "Lock console": {
     "en": "Lock console",
@@ -5720,10 +5720,10 @@
   },
   "Loopback only. Choose a free port for this service.": {
     "en": "Loopback only. Choose a free port for this service.",
-    "zh-Hans": "只有循环回放. 选择一个免费的港口.",
-    "zh-Hant": "只有迴圈回放. 選擇一個免費的港口.",
-    "ja": "ループバックのみ このサービスに無料のポートを選択してください.",
-    "ko": "루프백만 이 서비스를 위해 무료 항구를 선택하세요."
+    "zh-Hans": "仅监听回环地址。请为此服务选择未被占用的端口。",
+    "zh-Hant": "僅監聽迴環地址。請為此服務選擇未被佔用的埠。",
+    "ja": "ループバックのみで待ち受けます。未使用のポートを指定してください。",
+    "ko": "루프백 주소에서만 수신합니다. 사용하지 않는 포트를 선택하세요."
   },
   "Low": {
     "en": "Low",
@@ -5734,8 +5734,8 @@
   },
   "MAC ADDRESS": {
     "en": "MAC ADDRESS",
-    "zh-Hans": "马克地址",
-    "zh-Hant": "馬克地址",
+    "zh-Hans": "MAC 地址",
+    "zh-Hant": "MAC 地址",
     "ja": "MAC アドレス",
     "ko": "MAC 주소"
   },
@@ -5755,17 +5755,17 @@
   },
   "MODEM RADIO": {
     "en": "MODEM RADIO",
-    "zh-Hans": "摩登电台",
-    "zh-Hant": "摩登電臺",
-    "ja": "モデムラジオ",
-    "ko": "모템 라디오"
+    "zh-Hans": "蜂窝无线模块",
+    "zh-Hant": "蜂窩無線模組",
+    "ja": "モデム無線",
+    "ko": "모뎀 무선"
   },
   "Mac": {
     "en": "Mac",
-    "zh-Hans": "马克",
-    "zh-Hant": "馬克",
-    "ja": "マック",
-    "ko": "맥"
+    "zh-Hans": "Mac",
+    "zh-Hant": "Mac",
+    "ja": "Mac",
+    "ko": "Mac"
   },
   "Main navigation": {
     "en": "Main navigation",
@@ -5832,10 +5832,10 @@
   },
   "Manual": {
     "en": "Manual",
-    "zh-Hans": "手册",
-    "zh-Hant": "手冊",
-    "ja": "マニュアル",
-    "ko": "매뉴얼"
+    "zh-Hans": "手动",
+    "zh-Hant": "手動",
+    "ja": "手動",
+    "ko": "수동"
   },
   "Manual APN profiles": {
     "en": "Manual APN profiles",
@@ -5874,10 +5874,10 @@
   },
   "Mark as read:": {
     "en": "Mark as read:",
-    "zh-Hans": "标记如下:",
-    "zh-Hant": "標記如下:",
-    "ja": "記号は:",
-    "ko": "마크는 다음과 같습니다."
+    "zh-Hans": "标记为已读：",
+    "zh-Hant": "標記為已讀：",
+    "ja": "既読にする：",
+    "ko": "읽음으로 표시:"
   },
   "Mark as unread:": {
     "en": "Mark as unread:",
@@ -5888,17 +5888,17 @@
   },
   "Mark message read": {
     "en": "Mark message read",
-    "zh-Hans": "标记消息阅读",
-    "zh-Hant": "標記訊息閱讀",
-    "ja": "マークメッセージの読み取り",
-    "ko": "마크 메시지 읽기"
+    "zh-Hans": "将短信标记为已读",
+    "zh-Hant": "將簡訊標記為已讀",
+    "ja": "メッセージを既読にする",
+    "ko": "문자를 읽음으로 표시"
   },
   "Mark read": {
     "en": "Mark read",
-    "zh-Hans": "马克阅读",
-    "zh-Hant": "馬克閱讀",
-    "ja": "マークは読みました",
-    "ko": "마크가 읽었다"
+    "zh-Hans": "标记已读",
+    "zh-Hant": "標記已讀",
+    "ja": "既読にする",
+    "ko": "읽음으로 표시"
   },
   "Mark unread": {
     "en": "Mark unread",
@@ -6052,7 +6052,7 @@
     "zh-Hans": "移动网络",
     "zh-Hant": "行動網路",
     "ja": "モバイルネットワーク",
-    "ko": "이동통신망"
+    "ko": "모바일 네트워크"
   },
   "Mobile data": {
     "en": "Mobile data",
@@ -6126,10 +6126,10 @@
   },
   "Modem readings received {0} · All reported carriers shown.": {
     "en": "Modem readings received {0} · All reported carriers shown.",
-    "zh-Hans": "收到的调制解调器读数 {0} · 所有报告的载体都显示.",
-    "zh-Hant": "收到的調變解調器讀數 {0} · 所有報告的載體都顯示.",
-    "ja": "{0} · 報告されたすべてのキャリアが表示されます.",
-    "ko": "모덤 읽기 수신 {0} · 모든 보고된 운반자 표시."
+    "zh-Hans": "调制解调器数据接收于 {0} · 已显示全部上报载波。",
+    "zh-Hant": "調變解調器資料接收於 {0} · 已顯示全部上報載波。",
+    "ja": "モデム測定値の受信時刻 {0} · 報告された全キャリアを表示。",
+    "ko": "모뎀 측정값 수신 {0} · 보고된 모든 반송파 표시."
   },
   "Modem response received. Inspect the response for OK, ERROR or command-specific results.": {
     "en": "Modem response received. Inspect the response for OK, ERROR or command-specific results.",
@@ -6147,45 +6147,45 @@
   },
   "Monthly allowance": {
     "en": "Monthly allowance",
-    "zh-Hans": "月薪补贴",
-    "zh-Hant": "月薪補貼",
-    "ja": "月額給与",
-    "ko": "월급"
+    "zh-Hans": "月度流量额度",
+    "zh-Hant": "月度流量額度",
+    "ja": "月間データ容量",
+    "ko": "월간 데이터 한도"
   },
   "Monthly allowance disabled": {
     "en": "Monthly allowance disabled",
-    "zh-Hans": "残疾人月薪补贴",
-    "zh-Hant": "殘疾人月薪補貼",
-    "ja": "障害者の月給",
-    "ko": "장애인 월급"
+    "zh-Hans": "月度流量额度未启用",
+    "zh-Hant": "月度流量額度未啟用",
+    "ja": "月間データ容量の設定は無効",
+    "ko": "월간 데이터 한도 비활성화됨"
   },
   "Monthly allowance is disabled": {
     "en": "Monthly allowance is disabled",
-    "zh-Hans": "月薪补贴被禁用",
-    "zh-Hant": "月薪補貼被停用",
-    "ja": "月給は無効です",
-    "ko": "월급은 무능하다"
+    "zh-Hans": "月度流量额度未启用",
+    "zh-Hant": "月度流量額度未啟用",
+    "ja": "月間データ容量の設定は無効",
+    "ko": "월간 데이터 한도 비활성화됨"
   },
   "Monthly allowance status": {
     "en": "Monthly allowance status",
-    "zh-Hans": "月薪补贴状况",
-    "zh-Hant": "月薪補貼狀況",
-    "ja": "月給の状況",
-    "ko": "월급 수급 상태"
+    "zh-Hans": "月度流量额度状态",
+    "zh-Hant": "月度流量額度狀態",
+    "ja": "月間データ容量の状態",
+    "ko": "월간 데이터 한도 상태"
   },
   "Monthly allowance unavailable": {
     "en": "Monthly allowance unavailable",
-    "zh-Hans": "月薪补贴不可使用",
-    "zh-Hant": "月薪補貼不可使用",
-    "ja": "月額給付不可",
-    "ko": "월급은 사용할 수 없습니다"
+    "zh-Hans": "月度流量额度不可用",
+    "zh-Hant": "月度流量額度不可用",
+    "ja": "月間データ容量を取得できません",
+    "ko": "월간 데이터 한도를 확인할 수 없음"
   },
   "Monthly data allowance": {
     "en": "Monthly data allowance",
-    "zh-Hans": "月份数据额",
-    "zh-Hant": "月份資料額",
-    "ja": "月額データ補償",
-    "ko": "월간 데이터 부당"
+    "zh-Hans": "月度流量额度",
+    "zh-Hant": "月度流量額度",
+    "ja": "月間データ容量",
+    "ko": "월간 데이터 한도"
   },
   "Monthly data budget": {
     "en": "Monthly data budget",
@@ -6224,17 +6224,17 @@
   },
   "Monthly use is at or above the allowance": {
     "en": "Monthly use is at or above the allowance",
-    "zh-Hans": "每月使用量达到或超过额外的水平",
-    "zh-Hant": "每月使用量達到或超過額外的水平",
-    "ja": "月間使用は,許容額を超えている",
-    "ko": "월간 사용량은 수당 이상입니다."
+    "zh-Hans": "本月用量已达到或超出额度",
+    "zh-Hant": "本月用量已達到或超出額度",
+    "ja": "今月の使用量が容量の上限に達しています",
+    "ko": "이번 달 사용량이 한도에 도달했거나 초과했습니다"
   },
   "Monthly use is within your allowance": {
     "en": "Monthly use is within your allowance",
-    "zh-Hans": "每个月的使用是您的额外费用.",
-    "zh-Hant": "每個月的使用是您的額外費用.",
-    "ja": "月間使用は ご利用の範囲内です",
-    "ko": "월간 사용은"
+    "zh-Hans": "本月用量未超出额度",
+    "zh-Hant": "本月用量未超出額度",
+    "ja": "今月の使用量は容量内です",
+    "ko": "이번 달 사용량이 한도 이내입니다"
   },
   "Must be an HTTPS DNS endpoint.": {
     "en": "Must be an HTTPS DNS endpoint.",
@@ -6252,10 +6252,10 @@
   },
   "NATIVE KERNEL TUNNEL": {
     "en": "NATIVE KERNEL TUNNEL",
-    "zh-Hans": "产地核突尼尔",
-    "zh-Hant": "產地核突尼爾",
-    "ja": "原産カーネルトンネル",
-    "ko": "토네일 터널"
+    "zh-Hans": "原生内核隧道",
+    "zh-Hant": "原生核心隧道",
+    "ja": "ネイティブカーネルトンネル",
+    "ko": "네이티브 커널 터널"
   },
   "NEEDS ATTENTION": {
     "en": "NEEDS ATTENTION",
@@ -6273,10 +6273,10 @@
   },
   "NR band": {
     "en": "NR band",
-    "zh-Hans": "乐队",
-    "zh-Hant": "樂隊",
+    "zh-Hans": "NR 频段",
+    "zh-Hant": "NR 頻段",
     "ja": "NR バンド",
-    "ko": "NR 밴드"
+    "ko": "NR 주파수 대역"
   },
   "NR bands": {
     "en": "NR bands",
@@ -6308,8 +6308,8 @@
   },
   "NSA · LTE anchor": {
     "en": "NSA · LTE anchor",
-    "zh-Hans": "美国国家安全局 · LTE 安克",
-    "zh-Hant": "美國國家安全域性 · LTE 安克",
+    "zh-Hans": "NSA · LTE 锚点",
+    "zh-Hant": "NSA · LTE 錨點",
     "ja": "NSA · LTE アンカー",
     "ko": "NSA · LTE 앵커"
   },
@@ -6343,10 +6343,10 @@
   },
   "Network address translation": {
     "en": "Network address translation",
-    "zh-Hans": "网络地址翻译",
-    "zh-Hant": "網路地址翻譯",
-    "ja": "ネットワークアドレスの翻訳",
-    "ko": "네트워크 주소 번역"
+    "zh-Hans": "网络地址转换",
+    "zh-Hant": "網路地址轉換",
+    "ja": "ネットワークアドレス変換",
+    "ko": "네트워크 주소 변환"
   },
   "Network details are read directly from your router.": {
     "en": "Network details are read directly from your router.",
@@ -6406,10 +6406,10 @@
   },
   "New bot token": {
     "en": "New bot token",
-    "zh-Hans": "新的机器人代码",
-    "zh-Hant": "新的機器人程式碼",
+    "zh-Hans": "新的机器人令牌",
+    "zh-Hant": "新的機器人令牌",
     "ja": "新しいボットトークン",
-    "ko": "새로운 보트 토큰"
+    "ko": "새 봇 토큰"
   },
   "New incoming webhook address": {
     "en": "New incoming webhook address",
@@ -6441,10 +6441,10 @@
   },
   "New port-forward rule": {
     "en": "New port-forward rule",
-    "zh-Hans": "新的港口前行规则",
-    "zh-Hant": "新的港口前行規則",
-    "ja": "新しい港向規則",
-    "ko": "새로운 포트 포워드 규칙"
+    "zh-Hans": "新建端口转发规则",
+    "zh-Hant": "新建埠轉發規則",
+    "ja": "新しいポート転送ルール",
+    "ko": "새 포트 전달 규칙"
   },
   "New rule": {
     "en": "New rule",
@@ -6476,8 +6476,8 @@
   },
   "Nickname": {
     "en": "Nickname",
-    "zh-Hans": "姓名",
-    "zh-Hant": "姓名",
+    "zh-Hans": "昵称",
+    "zh-Hant": "暱稱",
     "ja": "ニックネーム",
     "ko": "별명"
   },
@@ -6490,10 +6490,10 @@
   },
   "No": {
     "en": "No",
-    "zh-Hans": "没有.",
-    "zh-Hant": "沒有.",
-    "ja": "違う",
-    "ko": "아뇨"
+    "zh-Hans": "否",
+    "zh-Hant": "否",
+    "ja": "いいえ",
+    "ko": "아니요"
   },
   "No DHCP leases reported.": {
     "en": "No DHCP leases reported.",
@@ -6511,10 +6511,10 @@
   },
   "No WireGuard peers configured.": {
     "en": "No WireGuard peers configured.",
-    "zh-Hans": "没有WireGuard同龄组合.",
-    "zh-Hant": "沒有WireGuard同齡組合.",
-    "ja": "WireGuard 同級者は設定されていません.",
-    "ko": "WireGuard 동료가 구성되어 있지 않습니다."
+    "zh-Hans": "尚未配置 WireGuard 对端。",
+    "zh-Hant": "尚未配置 WireGuard 對端。",
+    "ja": "WireGuard ピアは未設定です。",
+    "ko": "WireGuard 피어가 설정되지 않았습니다."
   },
   "No active slot reported": {
     "en": "No active slot reported",
@@ -6539,10 +6539,10 @@
   },
   "No current serving signal. Last known carriers": {
     "en": "No current serving signal. Last known carriers",
-    "zh-Hans": "没有电流服务信号. 最后的已知运输商",
-    "zh-Hant": "沒有電流服務訊號. 最後的已知運輸商",
-    "ja": "信号がない 最後の知られた運輸業者",
-    "ko": "전류 신호가 없습니다. 마지막 알려진 항공사"
+    "zh-Hans": "当前无服务信号，显示上次已知载波",
+    "zh-Hant": "當前無服務訊號，顯示上次已知載波",
+    "ja": "現在の接続信号なし。前回のキャリアを表示",
+    "ko": "현재 연결 신호 없음. 마지막 반송파 표시"
   },
   "No devices currently confirmed connected.": {
     "en": "No devices currently confirmed connected.",
@@ -6602,10 +6602,10 @@
   },
   "No interruptions observed": {
     "en": "No interruptions observed",
-    "zh-Hans": "没有出现干扰",
-    "zh-Hant": "沒有出現干擾",
-    "ja": "断続は認められなかった",
-    "ko": "중단은 관찰되지 않았다"
+    "zh-Hans": "未发现连接中断",
+    "zh-Hant": "未發現連線中斷",
+    "ja": "切断は検出されていません",
+    "ko": "감지된 연결 중단 없음"
   },
   "No live data yet": {
     "en": "No live data yet",
@@ -6826,10 +6826,10 @@
   },
   "No {0} carriers reported by the modem.": {
     "en": "No {0} carriers reported by the modem.",
-    "zh-Hans": "调制解调器没有报道过的 {0}载体.",
-    "zh-Hant": "調變解調器沒有報道過的 {0}載體.",
-    "ja": "モデムが報告した {0} キャリアはありません.",
-    "ko": "모템에 의해 보고된 {0} 운반자는 없습니다."
+    "zh-Hans": "调制解调器未上报 {0} 载波。",
+    "zh-Hant": "調變解調器未上報 {0} 載波。",
+    "ja": "モデムから {0} キャリアの報告がありません。",
+    "ko": "모뎀에서 보고된 {0} 반송파가 없습니다."
   },
   "None": {
     "en": "None",
@@ -6840,9 +6840,9 @@
   },
   "Normal": {
     "en": "Normal",
-    "zh-Hans": "正常的",
-    "zh-Hant": "正常的",
-    "ja": "普通のこと",
+    "zh-Hans": "正常",
+    "zh-Hant": "正常",
+    "ja": "正常",
     "ko": "정상"
   },
   "Not active": {
@@ -6910,10 +6910,10 @@
   },
   "Not imported": {
     "en": "Not imported",
-    "zh-Hans": "没有进口",
-    "zh-Hant": "沒有進口",
-    "ja": "輸入されていない",
-    "ko": "수입되지 않은"
+    "zh-Hans": "尚未导入",
+    "zh-Hant": "尚未匯入",
+    "ja": "未インポート",
+    "ko": "가져오지 않음"
   },
   "Not installed": {
     "en": "Not installed",
@@ -6931,10 +6931,10 @@
   },
   "OF ALLOWANCE": {
     "en": "OF ALLOWANCE",
-    "zh-Hans": "许可证",
-    "zh-Hant": "許可證",
-    "ja": "許可",
-    "ko": "허가"
+    "zh-Hans": "流量额度使用比例",
+    "zh-Hant": "流量額度使用比例",
+    "ja": "データ容量の使用率",
+    "ko": "데이터 한도 사용률"
   },
   "OPENU60 CONSOLE": {
     "en": "OPENU60 CONSOLE",
@@ -6966,15 +6966,15 @@
   },
   "Off": {
     "en": "Off",
-    "zh-Hans": "关",
-    "zh-Hant": "關",
+    "zh-Hans": "关闭",
+    "zh-Hant": "關閉",
     "ja": "オフ",
     "ko": "꺼짐"
   },
   "On": {
     "en": "On",
-    "zh-Hans": "开",
-    "zh-Hant": "開",
+    "zh-Hans": "开启",
+    "zh-Hant": "開啟",
     "ja": "オン",
     "ko": "켜짐"
   },
@@ -7092,10 +7092,10 @@
   },
   "OpenU60 home": {
     "en": "OpenU60 home",
-    "zh-Hans": "在家里",
-    "zh-Hant": "在家裡",
-    "ja": "OpenU60 帰宅",
-    "ko": "집"
+    "zh-Hans": "OpenU60 首页",
+    "zh-Hant": "OpenU60 首頁",
+    "ja": "OpenU60 ホーム",
+    "ko": "OpenU60 홈"
   },
   "Opening a message does not mark it read automatically. Select messages to change their read status or delete them. Up to 500 stored messages are shown.": {
     "en": "Opening a message does not mark it read automatically. Select messages to change their read status or delete them. Up to 500 stored messages are shown.",
@@ -7113,17 +7113,17 @@
   },
   "Operator receipt": {
     "en": "Operator receipt",
-    "zh-Hans": "运营商收据",
-    "zh-Hant": "運營商收據",
-    "ja": "運行者の領収書",
-    "ko": "운영자 인수증"
+    "zh-Hans": "运营商回执",
+    "zh-Hant": "運營商回執",
+    "ja": "通信事業者への通知",
+    "ko": "통신사 알림"
   },
   "Operator receipts": {
     "en": "Operator receipts",
-    "zh-Hans": "运营商收据",
-    "zh-Hant": "運營商收據",
-    "ja": "事業者の領収",
-    "ko": "사업자의 영수증"
+    "zh-Hans": "运营商回执",
+    "zh-Hant": "運營商回執",
+    "ja": "通信事業者への通知",
+    "ko": "통신사 알림"
   },
   "Operator unavailable": {
     "en": "Operator unavailable",
@@ -7134,10 +7134,10 @@
   },
   "Optional IPv4 fallback/bootstrap. It is tested when provided.": {
     "en": "Optional IPv4 fallback/bootstrap. It is tested when provided.",
-    "zh-Hans": "选择性 IPv4 倒退/启动带. 在提供时进行测试.",
-    "zh-Hant": "選擇性 IPv4 倒退/啟動帶. 在提供時進行測試.",
-    "ja": "オプション IPv4 バックバック/ブートストラップ 提供されたときに検査されます.",
-    "ko": "선택적 IPv4 역전/부트 스트랩. 제공될 때 테스트됩니다."
+    "zh-Hans": "可选的 IPv4 备用 / 引导 DNS，填写后会进行测试。",
+    "zh-Hant": "可選的 IPv4 備用 / 引導 DNS，填寫後會進行測試。",
+    "ja": "任意の IPv4 フォールバック / ブートストラップ DNS です。指定した場合はテストします。",
+    "ko": "선택 사항인 IPv4 대체 / 부트스트랩 DNS입니다. 입력하면 테스트합니다."
   },
   "Optional. Leave blank to keep the saved token.": {
     "en": "Optional. Leave blank to keep the saved token.",
@@ -7169,17 +7169,17 @@
   },
   "PCC is the primary carrier; SCCs are secondary carriers. Carriers can share a physical cell site. Cell IDs and measurements appear only when reported by the modem.": {
     "en": "PCC is the primary carrier; SCCs are secondary carriers. Carriers can share a physical cell site. Cell IDs and measurements appear only when reported by the modem.",
-    "zh-Hans": "PCC是主要运输商;SCC则是二级运输商. 携带者可以共享物理小区位置. 只有在调制解调器报告时才会出现小区ID和测量.",
-    "zh-Hant": "PCC是主要運輸商;SCC則是二級運輸商. 攜帶者可以共享物理小區位置. 只有在調變解調器報告時才會出現小區ID和測量.",
-    "ja": "PCCは主要なキャリアであり,SCCは次要なキャリアである. キャリアは物理的な細胞サイトを共有できます モデムで報告された場合にのみ,セルIDと測定が表示されます.",
-    "ko": "PCC는 주요 통신사이고, SCC는 부차적 항공사입니다. 운반자는 물리적 세포 위치를 공유할 수 있습니다. 세포 ID와 측정은 모템에 의해 보고될 때만 나타납니다."
+    "zh-Hans": "PCC 为主载波，SCC 为辅载波。多个载波可能来自同一物理基站。小区 ID 和测量值仅在调制解调器提供时显示。",
+    "zh-Hant": "PCC 為主載波，SCC 為輔載波。多個載波可能來自同一物理基站。小區 ID 和測量值僅在調變解調器提供時顯示。",
+    "ja": "PCC は主キャリア、SCC は副キャリアです。複数のキャリアが同じ基地局を共有することがあります。セル ID と測定値はモデムから報告された場合のみ表示します。",
+    "ko": "PCC는 주 반송파이고 SCC는 보조 반송파입니다. 여러 반송파가 같은 기지국을 공유할 수 있습니다. 셀 ID와 측정값은 모뎀이 보고한 경우에만 표시됩니다."
   },
   "PEER CONNECTED": {
     "en": "PEER CONNECTED",
-    "zh-Hans": "同龄人连接",
-    "zh-Hant": "同齡人連線",
-    "ja": "仲間とのつながり",
-    "ko": "연대 관계"
+    "zh-Hans": "对端已连接",
+    "zh-Hant": "對端已連線",
+    "ja": "ピア接続済み",
+    "ko": "피어 연결됨"
   },
   "PLMN unavailable": {
     "en": "PLMN unavailable",
@@ -7204,17 +7204,17 @@
   },
   "Packet TTL": {
     "en": "Packet TTL",
-    "zh-Hans": "包 TTL",
-    "zh-Hant": "包 TTL",
+    "zh-Hans": "数据包 TTL",
+    "zh-Hant": "資料包 TTL",
     "ja": "パケット TTL",
-    "ko": "패키지 TTL"
+    "ko": "패킷 TTL"
   },
   "Packets": {
     "en": "Packets",
-    "zh-Hans": "包装",
-    "zh-Hant": "包裝",
-    "ja": "パッケージ",
-    "ko": "패키지"
+    "zh-Hans": "数据包",
+    "zh-Hant": "資料包",
+    "ja": "パケット",
+    "ko": "패킷"
   },
   "Paste a WireGuard client configuration to begin.": {
     "en": "Paste a WireGuard client configuration to begin.",
@@ -7246,10 +7246,10 @@
   },
   "Pause live view": {
     "en": "Pause live view",
-    "zh-Hans": "暂停现场视频",
-    "zh-Hant": "暫停現場影片",
-    "ja": "ライブビューを一時停止する",
-    "ko": "생중계 중단을"
+    "zh-Hans": "暂停实时显示",
+    "zh-Hant": "暫停即時顯示",
+    "ja": "リアルタイム表示を一時停止",
+    "ko": "실시간 표시 일시 중지"
   },
   "Pause mobile data · connection can drop": {
     "en": "Pause mobile data · connection can drop",
@@ -7274,10 +7274,10 @@
   },
   "Peer connected": {
     "en": "Peer connected",
-    "zh-Hans": "连接",
-    "zh-Hant": "連線",
-    "ja": "接続された",
-    "ko": "연결된"
+    "zh-Hans": "对端已连接",
+    "zh-Hant": "對端已連線",
+    "ja": "ピア接続済み",
+    "ko": "피어 연결됨"
   },
   "Peer handshake is current.": {
     "en": "Peer handshake is current.",
@@ -7295,31 +7295,31 @@
   },
   "Peers": {
     "en": "Peers",
-    "zh-Hans": "同龄人",
-    "zh-Hant": "同齡人",
-    "ja": "同級者",
-    "ko": "또래"
+    "zh-Hans": "对端",
+    "zh-Hant": "對端",
+    "ja": "ピア",
+    "ko": "피어"
   },
   "Peers & handshakes": {
     "en": "Peers & handshakes",
-    "zh-Hans": "同龄人和握手",
-    "zh-Hant": "同齡人和握手",
-    "ja": "仲間と握手",
-    "ko": "동료와 손떨림"
+    "zh-Hans": "对端与握手",
+    "zh-Hant": "對端與握手",
+    "ja": "ピアとハンドシェイク",
+    "ko": "피어 및 핸드셰이크"
   },
   "Pending operator receipts": {
     "en": "Pending operator receipts",
-    "zh-Hans": "运营商待收的收据",
-    "zh-Hant": "運營商待收的收據",
-    "ja": "待機中の事業者領収",
-    "ko": "대기중의 사업자 영수증"
+    "zh-Hans": "待处理的运营商回执",
+    "zh-Hant": "待處理的運營商回執",
+    "ja": "未処理の通信事業者への通知",
+    "ko": "대기 중인 통신사 알림"
   },
   "Pending receipts read from the card.": {
     "en": "Pending receipts read from the card.",
-    "zh-Hans": "预期收到的收据从卡上读取.",
-    "zh-Hant": "預期收到的收據從卡上讀取.",
-    "ja": "待機中の領収書をカードから読み取ります",
-    "ko": "카드에서 보고 있는 영수증."
+    "zh-Hans": "已从卡片读取待处理回执。",
+    "zh-Hant": "已從卡片讀取待處理回執。",
+    "ja": "未処理の通知をカードから読み込みました。",
+    "ko": "카드에서 대기 중인 알림을 읽었습니다."
   },
   "Per-core usage unavailable.": {
     "en": "Per-core usage unavailable.",
@@ -7414,10 +7414,10 @@
   },
   "Preflight passed · {0} ms": {
     "en": "Preflight passed · {0} ms",
-    "zh-Hans": "飞行前经过 · {0} ms",
-    "zh-Hant": "飛行前經過 · {0} ms",
-    "ja": "飛行前行程 · {0} ms",
-    "ko": "비행 전공 · {0} ms"
+    "zh-Hans": "预检通过 · {0} ms",
+    "zh-Hant": "預檢透過 · {0} ms",
+    "ja": "事前確認済み · {0} ms",
+    "ko": "사전 점검 통과 · {0} ms"
   },
   "Preparing download…": {
     "en": "Preparing download…",
@@ -7463,8 +7463,8 @@
   },
   "Process name": {
     "en": "Process name",
-    "zh-Hans": "过程名称",
-    "zh-Hant": "過程名稱",
+    "zh-Hans": "进程名称",
+    "zh-Hant": "程序名稱",
     "ja": "プロセス名",
     "ko": "프로세스 이름"
   },
@@ -7575,10 +7575,10 @@
   },
   "Profiles on your eSIM": {
     "en": "Profiles on your eSIM",
-    "zh-Hans": "你的配置文件",
-    "zh-Hant": "你的配置檔案",
-    "ja": "あなたのプロフィール",
-    "ko": "당신의 프로파일"
+    "zh-Hans": "eSIM 中的配置",
+    "zh-Hant": "eSIM 中的配置",
+    "ja": "eSIM 上のプロファイル",
+    "ko": "eSIM의 프로파일"
   },
   "Profiles unavailable. {0}. Check that a compatible eSIM card is installed, then try “Read profiles”.": {
     "en": "Profiles unavailable. {0}. Check that a compatible eSIM card is installed, then try “Read profiles”.",
@@ -7666,17 +7666,17 @@
   },
   "RELEASE CHANNEL": {
     "en": "RELEASE CHANNEL",
-    "zh-Hans": "释放频道",
-    "zh-Hant": "釋放頻道",
-    "ja": "リリースチャネル",
-    "ko": "방출 채널"
+    "zh-Hans": "发布通道",
+    "zh-Hant": "釋出通道",
+    "ja": "リリースチャンネル",
+    "ko": "릴리스 채널"
   },
   "ROLLBACK GUARD": {
     "en": "ROLLBACK GUARD",
-    "zh-Hans": "后卫",
-    "zh-Hant": "後衛",
-    "ja": "ロールバックガード",
-    "ko": "롤백 워드"
+    "zh-Hans": "回退保护",
+    "zh-Hant": "回退保護",
+    "ja": "ロールバック保護",
+    "ko": "롤백 보호"
   },
   "ROUTER CONSOLE": {
     "en": "ROUTER CONSOLE",
@@ -7687,10 +7687,10 @@
   },
   "ROUTER UPTIME": {
     "en": "ROUTER UPTIME",
-    "zh-Hans": "路由器上限时间",
-    "zh-Hant": "路由器上限時間",
-    "ja": "ルーターアップタイム",
-    "ko": "라우터 최후 시간"
+    "zh-Hans": "路由器运行时间",
+    "zh-Hant": "路由器執行時間",
+    "ja": "ルーター稼働時間",
+    "ko": "라우터 가동 시간"
   },
   "Radio diagnostics": {
     "en": "Radio diagnostics",
@@ -7722,24 +7722,24 @@
   },
   "Read": {
     "en": "Read",
-    "zh-Hans": "已读",
-    "zh-Hant": "已讀",
+    "zh-Hans": "已阅读",
+    "zh-Hant": "已閱讀",
     "ja": "既読",
     "ko": "읽음"
   },
   "Read card information": {
     "en": "Read card information",
-    "zh-Hans": "阅读卡信息",
-    "zh-Hant": "閱讀卡資訊",
-    "ja": "カード情報を読む",
-    "ko": "카드 정보를 읽어보세요"
+    "zh-Hans": "读取卡片信息",
+    "zh-Hant": "讀取卡片資訊",
+    "ja": "カード情報を読み込む",
+    "ko": "카드 정보 읽기"
   },
   "Read current DNS": {
     "en": "Read current DNS",
-    "zh-Hans": "阅读电流 DNS",
-    "zh-Hant": "閱讀電流 DNS",
-    "ja": "読み流 DNS",
-    "ko": "전류 DNS를 읽으십시오"
+    "zh-Hans": "读取当前 DNS",
+    "zh-Hant": "讀取當前 DNS",
+    "ja": "現在の DNS を読み込む",
+    "ko": "현재 DNS 읽기"
   },
   "Read current rules": {
     "en": "Read current rules",
@@ -7785,17 +7785,17 @@
   },
   "Read pending receipts": {
     "en": "Read pending receipts",
-    "zh-Hans": "阅读未收到的收据",
-    "zh-Hant": "閱讀未收到的收據",
-    "ja": "待機中の領収書を読み取る",
-    "ko": "대기 중인 영수증을 읽어보세요"
+    "zh-Hans": "读取待处理回执",
+    "zh-Hant": "讀取待處理回執",
+    "ja": "未処理の通知を読み込む",
+    "ko": "대기 중인 알림 읽기"
   },
   "Read profiles": {
     "en": "Read profiles",
-    "zh-Hans": "阅读配置文件",
-    "zh-Hant": "閱讀配置檔案",
-    "ja": "読み込みプロフィール",
-    "ko": "읽기 프로필"
+    "zh-Hans": "读取配置",
+    "zh-Hant": "讀取配置",
+    "ja": "プロファイルを読み込む",
+    "ko": "프로파일 읽기"
   },
   "Read rules": {
     "en": "Read rules",
@@ -8156,10 +8156,10 @@
   },
   "Remove stored headers": {
     "en": "Remove stored headers",
-    "zh-Hans": "删除存储的标题",
-    "zh-Hant": "刪除儲存的標題",
-    "ja": "保存されたヘッダを削除",
-    "ko": "저장된 헤더를 제거"
+    "zh-Hans": "删除已保存的请求头",
+    "zh-Hant": "刪除已儲存的請求頭",
+    "ja": "保存済みヘッダーを削除",
+    "ko": "저장된 헤더 삭제"
   },
   "Remove the router’s HTTPS certificates and turn off its HTTPS listener. Remove the old authority from your devices afterward. If you are using HTTPS now, reopen the router’s HTTP address after this change.": {
     "en": "Remove the router’s HTTPS certificates and turn off its HTTPS listener. Remove the old authority from your devices afterward. If you are using HTTPS now, reopen the router’s HTTP address after this change.",
@@ -8275,10 +8275,10 @@
   },
   "Replacement request headers": {
     "en": "Replacement request headers",
-    "zh-Hans": "取代请求标题",
-    "zh-Hant": "取代請求標題",
-    "ja": "代替要求のヘッダ",
-    "ko": "대체 요청 헤더"
+    "zh-Hans": "替换请求头",
+    "zh-Hant": "替換請求頭",
+    "ja": "置き換えるリクエストヘッダー",
+    "ko": "교체할 요청 헤더"
   },
   "Reply": {
     "en": "Reply",
@@ -8303,10 +8303,10 @@
   },
   "Reported USB current limit": {
     "en": "Reported USB current limit",
-    "zh-Hans": "报告的 USB流量限制",
-    "zh-Hant": "報告的 USB流量限制",
-    "ja": "報告された USB 現在の限界",
-    "ko": "보고된 USB 전류 제한"
+    "zh-Hans": "上报的 USB 电流上限",
+    "zh-Hant": "上報的 USB 電流上限",
+    "ja": "報告された USB 電流上限",
+    "ko": "보고된 USB 전류 상한"
   },
   "Reported USB voltage limit": {
     "en": "Reported USB voltage limit",
@@ -8324,17 +8324,17 @@
   },
   "Reported charge remaining": {
     "en": "Reported charge remaining",
-    "zh-Hans": "报告的剩余收费",
-    "zh-Hant": "報告的剩餘收費",
-    "ja": "報告された残留料",
-    "ko": "보고된 수수료 남아"
+    "zh-Hans": "上报的剩余电量",
+    "zh-Hant": "上報的剩餘電量",
+    "ja": "報告された残容量",
+    "ko": "보고된 남은 충전량"
   },
   "Reported full capacity": {
     "en": "Reported full capacity",
-    "zh-Hans": "报告的全部产能",
-    "zh-Hant": "報告的全部產能",
-    "ja": "報告された全容量",
-    "ko": "보고된 전체 용량"
+    "zh-Hans": "上报的满充容量",
+    "zh-Hant": "上報的滿充容量",
+    "ja": "報告された満充電容量",
+    "ko": "보고된 완충 용량"
   },
   "Reported full energy": {
     "en": "Reported full energy",
@@ -8359,17 +8359,17 @@
   },
   "Reported leases": {
     "en": "Reported leases",
-    "zh-Hans": "报告的租金",
-    "zh-Hant": "報告的租金",
-    "ja": "報告された賃貸",
+    "zh-Hans": "上报的租约",
+    "zh-Hant": "上報的租約",
+    "ja": "報告されたリース",
     "ko": "보고된 임대"
   },
   "Reported leases may include devices that recently disconnected. Use a stable device address for DMZ and port-forward destinations.": {
     "en": "Reported leases may include devices that recently disconnected. Use a stable device address for DMZ and port-forward destinations.",
-    "zh-Hans": "报告的租金可能包括最近断开设备. 用一个稳定的设备地址用于DMZ和港口前进目的地.",
-    "zh-Hant": "報告的租金可能包括最近斷開裝置. 用一個穩定的裝置地址用於DMZ和港口前進目的地.",
-    "ja": "報告されたリース契約には,最近接続が切断された装置が含まれます. DMZと港行きの目的地に安定したデバイスアドレスを使用する.",
-    "ko": "보고된 임대 계약에는 최근에 연결되지 않은 장치가 포함될 수 있습니다. DMZ 및 항구 이동 목적지에 안정적인 장치 주소를 사용하십시오."
+    "zh-Hans": "上报的租约可能包含刚断开的设备。DMZ 和端口转发的目标应使用固定地址。",
+    "zh-Hant": "上報的租約可能包含剛斷開的裝置。DMZ 和埠轉發的目標應使用固定地址。",
+    "ja": "報告されたリースには最近切断されたデバイスが含まれることがあります。DMZ やポート転送の宛先には固定アドレスを使用してください。",
+    "ko": "보고된 임대에는 최근 연결이 끊긴 장치가 포함될 수 있습니다. DMZ 및 포트 전달 대상에는 고정 주소를 사용하세요."
   },
   "Reported neighbors are candidates around the serving connection. They are not additional aggregated carriers or distinct physical sites.": {
     "en": "Reported neighbors are candidates around the serving connection. They are not additional aggregated carriers or distinct physical sites.",
@@ -8464,10 +8464,10 @@
   },
   "Reset band restrictions": {
     "en": "Reset band restrictions",
-    "zh-Hans": "重置带限制",
-    "zh-Hant": "重置帶限制",
-    "ja": "リセットバンドの制限",
-    "ko": "리셋 밴드 제한"
+    "zh-Hans": "解除频段限制",
+    "zh-Hant": "解除頻段限制",
+    "ja": "バンド制限を解除",
+    "ko": "주파수 대역 제한 해제"
   },
   "Reset cell locks": {
     "en": "Reset cell locks",
@@ -8485,10 +8485,10 @@
   },
   "Resolver path": {
     "en": "Resolver path",
-    "zh-Hans": "解决器路径",
-    "zh-Hant": "解決器路徑",
-    "ja": "解決路線",
-    "ko": "해상자 경로"
+    "zh-Hans": "解析路径",
+    "zh-Hant": "解析路徑",
+    "ja": "名前解決の経路",
+    "ko": "이름 확인 경로"
   },
   "Resource use and sensor readings from the agent. Missing measurements stay unreported.": {
     "en": "Resource use and sensor readings from the agent. Missing measurements stay unreported.",
@@ -8555,24 +8555,24 @@
   },
   "Restrict 4G to selected bands. The modem still chooses its serving carriers.": {
     "en": "Restrict 4G to selected bands. The modem still chooses its serving carriers.",
-    "zh-Hans": "限制4G到特定的频段. 调制解调器仍然选择其服务载体.",
-    "zh-Hant": "限制4G到特定的頻段. 調變解調器仍然選擇其服務載體.",
-    "ja": "4Gを選択されたバンドに制限する モデムはまだ サービスキャリアを選びます",
-    "ko": "선택된 대역으로 4G를 제한합니다. 모담은 여전히 서비스 통신사를 선택합니다."
+    "zh-Hans": "将 4G 限制在所选频段内，服务载波仍由调制解调器选择。",
+    "zh-Hant": "將 4G 限制在所選頻段內，服務載波仍由調變解調器選擇。",
+    "ja": "4G を選択したバンドに制限します。接続キャリアは引き続きモデムが選択します。",
+    "ko": "4G를 선택한 주파수 대역으로 제한합니다. 연결 반송파는 모뎀이 계속 선택합니다."
   },
   "Resume below limit by (%)": {
     "en": "Resume below limit by (%)",
-    "zh-Hans": "简历低于 (%) 的限度",
-    "zh-Hant": "簡歷低於 (%) 的限度",
-    "ja": "履歴書は (%) の制限以下",
-    "ko": "(%) 한계 이하의 재개정"
+    "zh-Hans": "低于上限多少时恢复（%）",
+    "zh-Hant": "低於上限多少時恢復（%）",
+    "ja": "上限との差で再充電（%）",
+    "ko": "상한 대비 재개 차이(%)"
   },
   "Resume live view": {
     "en": "Resume live view",
-    "zh-Hans": "恢复现场视频",
-    "zh-Hant": "恢復現場影片",
-    "ja": "ライブビューを再開する",
-    "ko": "라이브 뷰를 재개"
+    "zh-Hans": "恢复实时显示",
+    "zh-Hant": "恢復即時顯示",
+    "ja": "リアルタイム表示を再開",
+    "ko": "실시간 표시 재개"
   },
   "Retry once": {
     "en": "Retry once",
@@ -8632,10 +8632,10 @@
   },
   "Review change": {
     "en": "Review change",
-    "zh-Hans": "审查变化",
-    "zh-Hant": "審查變化",
-    "ja": "変更をレビューする",
-    "ko": "변경 사항을 검토"
+    "zh-Hans": "确认更改",
+    "zh-Hant": "確認更改",
+    "ja": "変更を確認",
+    "ko": "변경 검토"
   },
   "Review this profile before installing": {
     "en": "Review this profile before installing",
@@ -8660,10 +8660,10 @@
   },
   "Rollback accepted. This console will reconnect automatically.": {
     "en": "Rollback accepted. This console will reconnect automatically.",
-    "zh-Hans": "翻车接受了. 这台机器将自动重新连接.",
-    "zh-Hant": "翻車接受了. 這臺機器將自動重新連線.",
-    "ja": "ロールバックは受け入れました このコンソールは自動的に再接続します",
-    "ko": "롤백은 받아들여졌습니다. 이 콘솔은 자동으로 다시 연결됩니다."
+    "zh-Hans": "回退请求已接受，管理界面将自动重连。",
+    "zh-Hant": "回退請求已接受，管理介面將自動重連。",
+    "ja": "ロールバック要求を受け付けました。管理画面は自動的に再接続します。",
+    "ko": "롤백 요청이 수락되었습니다. 관리 화면이 자동으로 다시 연결됩니다."
   },
   "Route incoming messages to the destinations you choose.": {
     "en": "Route incoming messages to the destinations you choose.",
@@ -8772,10 +8772,10 @@
   },
   "Router-measured usage, your monthly allowance and the point where you want a warning.": {
     "en": "Router-measured usage, your monthly allowance and the point where you want a warning.",
-    "zh-Hans": "路由器测量使用量,你的月薪和你需要警告的地方.",
-    "zh-Hant": "路由器測量使用量,你的月薪和你需要警告的地方.",
-    "ja": "ルーターで測定された使用額 月額支給と警告が必要なポイントです",
-    "ko": "라우터가 측정한 사용량, 월급 및 경고를 원하는 지점"
+    "zh-Hans": "查看路由器统计的用量，设置月度流量额度及提醒阈值。",
+    "zh-Hant": "檢視路由器統計的用量，設定月度流量額度及提醒閾值。",
+    "ja": "ルーターの使用量を確認し、月間データ容量と通知のしきい値を設定します。",
+    "ko": "라우터가 측정한 사용량을 확인하고 월간 데이터 한도와 알림 기준을 설정합니다."
   },
   "Router-wide configured limits: download {0} · upload {1}. These apply to the router, not to each device.": {
     "en": "Router-wide configured limits: download {0} · upload {1}. These apply to the router, not to each device.",
@@ -8905,10 +8905,10 @@
   },
   "Running mandatory resolver preflight…": {
     "en": "Running mandatory resolver preflight…",
-    "zh-Hans": "执行必须解决方案的飞行前...",
-    "zh-Hant": "執行必須解決方案的飛行前...",
-    "ja": "必須のリズルフライトを 実行する...",
-    "ko": "필사적 해결기 전 비행을 실행하고 있습니다."
+    "zh-Hans": "正在执行必要的 DNS 解析器预检…",
+    "zh-Hant": "正在執行必要的 DNS 解析器預檢…",
+    "ja": "必須の DNS リゾルバー事前確認を実行中…",
+    "ko": "필수 DNS 리졸버 사전 점검 중…"
   },
   "Running processes": {
     "en": "Running processes",
@@ -8968,10 +8968,10 @@
   },
   "SHA-1 fingerprint for Windows": {
     "en": "SHA-1 fingerprint for Windows",
-    "zh-Hans": "窗户的指纹",
-    "zh-Hant": "窗戶的指紋",
-    "ja": "Windows の SHA-1 指紋",
-    "ko": "윈도우용 SHA-1 지문"
+    "zh-Hans": "Windows 使用的 SHA-1 指纹",
+    "zh-Hant": "Windows 使用的 SHA-1 指紋",
+    "ja": "Windows 用 SHA-1 フィンガープリント",
+    "ko": "Windows용 SHA-1 지문"
   },
   "SHA-256 fingerprint": {
     "en": "SHA-256 fingerprint",
@@ -8989,8 +8989,8 @@
   },
   "SIM storage": {
     "en": "SIM storage",
-    "zh-Hans": "存储",
-    "zh-Hant": "儲存",
+    "zh-Hans": "SIM 存储",
+    "zh-Hant": "SIM 儲存",
     "ja": "SIM ストレージ",
     "ko": "SIM 저장 장치"
   },
@@ -9052,10 +9052,10 @@
   },
   "Save allowance": {
     "en": "Save allowance",
-    "zh-Hans": "节省补贴",
-    "zh-Hant": "節省補貼",
-    "ja": "省金",
-    "ko": "예금"
+    "zh-Hans": "保存流量额度",
+    "zh-Hant": "儲存流量額度",
+    "ja": "データ容量を保存",
+    "ko": "데이터 한도 저장"
   },
   "Save an automatic monthly counter reset on the {0}? This changes the router counter, not your carrier’s records.": {
     "en": "Save an automatic monthly counter reset on the {0}? This changes the router counter, not your carrier’s records.",
@@ -9164,10 +9164,10 @@
   },
   "Save this monthly allowance and warning on the router?": {
     "en": "Save this monthly allowance and warning on the router?",
-    "zh-Hans": "在路由器上保存这个月薪和警告?",
-    "zh-Hant": "在路由器上儲存這個月薪和警告?",
-    "ja": "ローターに毎月の補償と警告を保存する?",
-    "ko": "라우터에 월간 보조금과 경고를 저장하세요?"
+    "zh-Hans": "将此月度流量额度和提醒设置保存到路由器？",
+    "zh-Hant": "將此月度流量額度和提醒設定儲存到路由器？",
+    "ja": "月間データ容量と通知設定をルーターに保存しますか？",
+    "ko": "월간 데이터 한도와 알림 설정을 라우터에 저장할까요?"
   },
   "Save “{0}” with APN “{1}”. Saving an active profile can interrupt mobile data.": {
     "en": "Save “{0}” with APN “{1}”. Saving an active profile can interrupt mobile data.",
@@ -9206,10 +9206,10 @@
   },
   "Saving allowance…": {
     "en": "Saving allowance…",
-    "zh-Hans": "节省补贴...",
-    "zh-Hant": "節省補貼...",
-    "ja": "貯金...",
-    "ko": "저축금..."
+    "zh-Hans": "正在保存流量额度…",
+    "zh-Hant": "正在儲存流量額度…",
+    "ja": "データ容量を保存中…",
+    "ko": "데이터 한도 저장 중…"
   },
   "Saving billing cycle…": {
     "en": "Saving billing cycle…",
@@ -9479,8 +9479,8 @@
   },
   "Sender": {
     "en": "Sender",
-    "zh-Hans": "发件人",
-    "zh-Hant": "發件人",
+    "zh-Hans": "发送方",
+    "zh-Hant": "傳送方",
     "ja": "送信者",
     "ko": "보낸 사람"
   },
@@ -9493,10 +9493,10 @@
   },
   "Sender patterns": {
     "en": "Sender patterns",
-    "zh-Hans": "发送模式",
-    "zh-Hant": "傳送模式",
-    "ja": "送信パターン",
-    "ko": "송신 패턴"
+    "zh-Hans": "发件人匹配规则",
+    "zh-Hant": "發件人匹配規則",
+    "ja": "送信者の一致条件",
+    "ko": "발신자 일치 규칙"
   },
   "Sending request…": {
     "en": "Sending request…",
@@ -9703,10 +9703,10 @@
   },
   "Signed Stable and Beta releases with automatic rollback protection.": {
     "en": "Signed Stable and Beta releases with automatic rollback protection.",
-    "zh-Hans": "签署的稳定版和Beta版,具有自动反弹保护.",
-    "zh-Hant": "簽署的穩定版和Beta版,具有自動反彈保護.",
-    "ja": "自動ロールバック保護付きのステーブルとベータ版にサイン",
-    "ko": "서명된 안정 및 베타 버전 자동 롤백 보호"
+    "zh-Hans": "提供已签名的稳定版与测试版，并支持自动回退保护。",
+    "zh-Hant": "提供已簽名的穩定版與測試版，並支援自動回退保護。",
+    "ja": "署名付きの安定版とベータ版を、自動ロールバック保護付きで提供します。",
+    "ko": "자동 롤백 보호가 적용된 서명된 안정판 및 베타 릴리스를 제공합니다."
   },
   "Signed Stable release available for this device.": {
     "en": "Signed Stable release available for this device.",
@@ -9724,10 +9724,10 @@
   },
   "Silent": {
     "en": "Silent",
-    "zh-Hans": "沉默",
-    "zh-Hant": "沉默",
-    "ja": "黙って",
-    "ko": "침묵"
+    "zh-Hans": "静音",
+    "zh-Hant": "靜音",
+    "ja": "サイレント",
+    "ko": "무음"
   },
   "Skip to content": {
     "en": "Skip to content",
@@ -9745,10 +9745,10 @@
   },
   "Sort processes": {
     "en": "Sort processes",
-    "zh-Hans": "排序过程",
-    "zh-Hant": "排序過程",
-    "ja": "排序プロセス",
-    "ko": "분류 과정"
+    "zh-Hans": "进程排序",
+    "zh-Hant": "程序排序",
+    "ja": "プロセスの並べ替え",
+    "ko": "프로세스 정렬"
   },
   "Source": {
     "en": "Source",
@@ -9773,10 +9773,10 @@
   },
   "Split tunnel": {
     "en": "Split tunnel",
-    "zh-Hans": "分裂通道",
-    "zh-Hant": "分裂通道",
-    "ja": "分断トンネル",
-    "ko": "갈라진 터널"
+    "zh-Hans": "分流隧道",
+    "zh-Hant": "分流隧道",
+    "ja": "スプリットトンネル",
+    "ko": "분할 터널"
   },
   "Stable": {
     "en": "Stable",
@@ -9913,10 +9913,10 @@
   },
   "Starting protected rollback…": {
     "en": "Starting protected rollback…",
-    "zh-Hans": "开始保护后退...",
-    "zh-Hant": "開始保護後退...",
-    "ja": "保護されたロールバックを始める...",
-    "ko": "보호된 롤백을 시작..."
+    "zh-Hans": "正在执行受保护的回退…",
+    "zh-Hant": "正在執行受保護的回退…",
+    "ja": "保護付きロールバックを開始中…",
+    "ko": "보호된 롤백 시작 중…"
   },
   "State not reported": {
     "en": "State not reported",
@@ -10018,10 +10018,10 @@
   },
   "Stop this service before changing these settings. They override the corresponding fields in the imported YAML.": {
     "en": "Stop this service before changing these settings. They override the corresponding fields in the imported YAML.",
-    "zh-Hans": "在改变这些设置之前停止此服务. 它们在进口 YAML中的相应的字段被覆盖.",
-    "zh-Hant": "在改變這些設定之前停止此服務. 它們在進口 YAML中的相應的欄位被覆蓋.",
-    "ja": "この設定を変更する前にこのサービスを停止します. 輸入された YAML の対応するフィールドを優先する.",
-    "ko": "이 설정을 변경하기 전에 이 서비스를 중지하십시오. 그들은 수입된 YAML에 해당된 필드를 초과한다."
+    "zh-Hans": "修改这些设置前请先停止此服务。它们会覆盖已导入 YAML 中的对应字段。",
+    "zh-Hant": "修改這些設定前請先停止此服務。它們會覆蓋已匯入 YAML 中的對應欄位。",
+    "ja": "変更前にこのサービスを停止してください。これらの設定はインポートした YAML の対応項目を上書きします。",
+    "ko": "이 설정을 변경하기 전에 서비스를 중지하세요. 가져온 YAML의 해당 필드를 덮어씁니다."
   },
   "Stopped": {
     "en": "Stopped",
@@ -10060,10 +10060,10 @@
   },
   "Stream disconnected": {
     "en": "Stream disconnected",
-    "zh-Hans": "电流被断开",
-    "zh-Hant": "電流被斷開",
-    "ja": "ストリームが切断された",
-    "ko": "전류 연결이 끊어졌다"
+    "zh-Hans": "实时数据连接已断开",
+    "zh-Hant": "即時資料連線已斷開",
+    "ja": "リアルタイム接続が切断されました",
+    "ko": "실시간 연결 끊김"
   },
   "Subnet mask": {
     "en": "Subnet mask",
@@ -10151,10 +10151,10 @@
   },
   "THIS TAB SESSION": {
     "en": "THIS TAB SESSION",
-    "zh-Hans": "这次会议",
-    "zh-Hant": "這次會議",
-    "ja": "このタブ セッション",
-    "ko": "이 탭 세션"
+    "zh-Hans": "当前标签页会话",
+    "zh-Hant": "當前標籤頁會話",
+    "ja": "現在のタブセッション",
+    "ko": "현재 탭 세션"
   },
   "TLS name unavailable": {
     "en": "TLS name unavailable",
@@ -10165,10 +10165,10 @@
   },
   "TTL rewriting": {
     "en": "TTL rewriting",
-    "zh-Hans": "翻译",
-    "zh-Hant": "翻譯",
-    "ja": "書き直す",
-    "ko": "TTL 다시 작성"
+    "zh-Hans": "TTL 重写",
+    "zh-Hant": "TTL 重寫",
+    "ja": "TTL 書き換え",
+    "ko": "TTL 재작성"
   },
   "Tailscale": {
     "en": "Tailscale",
@@ -10235,10 +10235,10 @@
   },
   "Telegram notification": {
     "en": "Telegram notification",
-    "zh-Hans": "通知",
-    "zh-Hant": "通知",
-    "ja": "通知",
-    "ko": "통지"
+    "zh-Hans": "Telegram 通知",
+    "zh-Hant": "Telegram 通知",
+    "ja": "Telegram 通知",
+    "ko": "Telegram 알림"
   },
   "Test destination": {
     "en": "Test destination",
@@ -10305,10 +10305,10 @@
   },
   "Test without saving": {
     "en": "Test without saving",
-    "zh-Hans": "没有储存的测试",
-    "zh-Hant": "沒有儲存的測試",
-    "ja": "保存せずにテストする",
-    "ko": "저장 없이 테스트"
+    "zh-Hans": "仅测试，不保存",
+    "zh-Hant": "僅測試，不儲存",
+    "ja": "保存せずにテスト",
+    "ko": "저장하지 않고 테스트"
   },
   "Test, save & verify": {
     "en": "Test, save & verify",
@@ -10333,10 +10333,10 @@
   },
   "That external port and protocol already belong to a rule. Remove the old rule or choose another port.": {
     "en": "That external port and protocol already belong to a rule. Remove the old rule or choose another port.",
-    "zh-Hans": "这种外部端口和协议已经属于一个规则. 取消旧规则,或者选择另一个港口.",
-    "zh-Hant": "這種外部埠和協議已經屬於一個規則. 取消舊規則,或者選擇另一個港口.",
-    "ja": "外部のポートとプロトコルは すでに規則に属しています 古いルールを削除するか 別のポートを選択してください.",
-    "ko": "외부 포트와 프로토콜은 이미 규칙에 속해 있습니다. 오래된 규칙을 제거하거나 다른 항구를 선택하십시오."
+    "zh-Hans": "此外部端口和协议已被某条规则使用。请删除旧规则或改用其他端口。",
+    "zh-Hant": "此外部埠和協議已被某條規則使用。請刪除舊規則或改用其他埠。",
+    "ja": "この外部ポートとプロトコルは既存のルールで使用されています。既存ルールを削除するか別のポートを選択してください。",
+    "ko": "해당 외부 포트와 프로토콜은 기존 규칙에서 사용 중입니다. 기존 규칙을 삭제하거나 다른 포트를 선택하세요."
   },
   "That profile is no longer on the current card.": {
     "en": "That profile is no longer on the current card.",
@@ -10368,10 +10368,10 @@
   },
   "The U60 counts traffic itself. These readings can differ from your carrier’s billing records, rounding and zero-rated traffic. Alerts appear in this console; they are not phone notifications.": {
     "en": "The U60 counts traffic itself. These readings can differ from your carrier’s billing records, rounding and zero-rated traffic. Alerts appear in this console; they are not phone notifications.",
-    "zh-Hans": "车辆本身也算出了交通. 这些数据可能不同于您的运营商的账单记录,圆化和零额定的流量. 在这个控制台上显示了警报,而不是电话通知.",
-    "zh-Hant": "車輛本身也算出了交通. 這些資料可能不同於您的運營商的賬單記錄,圓化和零額定的流量. 在這個控制檯上顯示了警報,而不是電話通知.",
-    "ja": "U60はトラフィックを数える. これらの測定値は,航空会社の請求記録,丸化およびゼロ評価のトラフィックとは異なる可能性があります. このコンソールには警告が表示されます. 電話通知ではありません.",
-    "ko": "U60는 트래픽 자체를 계산합니다. 이러한 판독은 통신사의 청구 기록, 라운딩 및 무등급 트래픽과 다를 수 있습니다. 이 콘솔에는 알림이 나타납니다. 전화 통보가 아닙니다."
+    "zh-Hans": "U60 独立统计流量，数值可能因计费取整、免流等因素而与运营商账单不同。提醒显示在此管理界面，不会推送手机通知。",
+    "zh-Hant": "U60 獨立統計流量，數值可能因計費取整、免流等因素而與運營商賬單不同。提醒顯示在此管理介面，不會推送手機通知。",
+    "ja": "U60 は通信量を独自に集計するため、丸め処理や無料通信などにより通信事業者の請求記録と異なる場合があります。通知はこの画面に表示され、スマートフォンには送信されません。",
+    "ko": "U60은 트래픽을 자체 집계하므로 반올림, 무료 데이터 등의 영향으로 통신사 청구 기록과 다를 수 있습니다. 알림은 이 관리 화면에 표시되며 휴대폰으로 전송되지 않습니다."
   },
   "The activation code contains an invalid server or matching ID.": {
     "en": "The activation code contains an invalid server or matching ID.",
@@ -10634,10 +10634,10 @@
   },
   "The modem reports each carrier separately.": {
     "en": "The modem reports each carrier separately.",
-    "zh-Hans": "调制解调器将每个载体单独报告.",
-    "zh-Hant": "調變解調器將每個載體單獨報告.",
-    "ja": "モデムは各キャリアを別々に報告します",
-    "ko": "모템은 각 통신사를 개별적으로 보고합니다."
+    "zh-Hans": "调制解调器分别上报各个载波。",
+    "zh-Hant": "調變解調器分別上報各個載波。",
+    "ja": "モデムは各キャリアを個別に報告します。",
+    "ko": "모뎀은 각 반송파를 개별적으로 보고합니다."
   },
   "The modem reports registration failed for {0}. Try automatic selection or another allowed network.": {
     "en": "The modem reports registration failed for {0}. Try automatic selection or another allowed network.",
@@ -10956,10 +10956,10 @@
   },
   "The router switches only after preflight succeeds.": {
     "en": "The router switches only after preflight succeeds.",
-    "zh-Hans": "路由器只能在飞行前成功后切换.",
-    "zh-Hant": "路由器只能在飛行前成功後切換.",
-    "ja": "ルーターは飛行前の成功後のみ切り替える.",
-    "ko": "라우터는 비행 전에 성공한 후에만 전환됩니다."
+    "zh-Hans": "只有预检通过后，路由器才会切换配置。",
+    "zh-Hant": "只有預檢通過後，路由器才會切換配置。",
+    "ja": "事前確認に成功した場合のみルーターの設定を切り替えます。",
+    "ko": "사전 점검을 통과한 경우에만 라우터 구성이 전환됩니다."
   },
   "The router uses a manual APN{0}. This profile may need a different APN.": {
     "en": "The router uses a manual APN{0}. This profile may need a different APN.",
@@ -10970,10 +10970,10 @@
   },
   "The router was read again. Your unsaved allowance draft is kept.": {
     "en": "The router was read again. Your unsaved allowance draft is kept.",
-    "zh-Hans": "路由器再次被读取. 您的未储存补贴草案被保留.",
-    "zh-Hant": "路由器再次被讀取. 您的未儲存補貼草案被保留.",
-    "ja": "ルーターが読み返されました 貯金されていない手当は保存されます",
-    "ko": "라우터가 다시 읽혔어 구금되지 않은 보험료는 보관됩니다."
+    "zh-Hans": "已重新读取路由器数据，未保存的流量额度编辑已保留。",
+    "zh-Hant": "已重新讀取路由器資料，未儲存的流量額度編輯已保留。",
+    "ja": "ルーターの情報を再取得しました。未保存の容量設定は保持されています。",
+    "ko": "라우터 정보를 다시 읽었습니다. 저장하지 않은 데이터 한도 수정 사항은 유지됩니다."
   },
   "The router was read again. Your unsaved billing-cycle draft is kept.": {
     "en": "The router was read again. Your unsaved billing-cycle draft is kept.",
@@ -11222,10 +11222,10 @@
   },
   "Timeout (seconds)": {
     "en": "Timeout (seconds)",
-    "zh-Hans": "暂停时间 (秒)",
-    "zh-Hant": "暫停時間 (秒)",
-    "ja": "タイムアウト (秒)",
-    "ko": "타임아웃 (초)"
+    "zh-Hans": "超时（秒）",
+    "zh-Hant": "超時（秒）",
+    "ja": "タイムアウト（秒）",
+    "ko": "시간 제한(초)"
   },
   "To: {0}\n\n{1}\n\nThis sends from your router’s SIM and may incur carrier charges.": {
     "en": "To: {0}\n\n{1}\n\nThis sends from your router’s SIM and may incur carrier charges.",
@@ -11250,10 +11250,10 @@
   },
   "Track router-measured usage and set a monthly allowance, warning and billing cycle.": {
     "en": "Track router-measured usage and set a monthly allowance, warning and billing cycle.",
-    "zh-Hans": "追踪路由器测量使用情况,设定月薪补贴,警告和收费周期.",
-    "zh-Hant": "追蹤路由器測量使用情況,設定月薪補貼,警告和收費週期.",
-    "ja": "ルーターによる測定された使用を追跡し,毎月の配給,警告および請求サイクルを設定する.",
-    "ko": "라우터 측정한 사용량을 추적하고 월급, 경고 및 청구 주기를 설정합니다."
+    "zh-Hans": "查看路由器流量统计，设置月度额度、提醒及计费周期。",
+    "zh-Hant": "檢視路由器流量統計，設定月度額度、提醒及計費週期。",
+    "ja": "ルーターのデータ使用量を確認し、月間容量、通知、請求サイクルを設定します。",
+    "ko": "라우터 데이터 사용량을 확인하고 월간 한도, 알림 및 요금 청구 주기를 설정합니다."
   },
   "Traffic counters come from the kernel interface. An idle tunnel may be healthy even when its last handshake is old.": {
     "en": "Traffic counters come from the kernel interface. An idle tunnel may be healthy even when its last handshake is old.",
@@ -11278,10 +11278,10 @@
   },
   "Traffic prioritization": {
     "en": "Traffic prioritization",
-    "zh-Hans": "交通优先级",
-    "zh-Hant": "交通優先順序",
-    "ja": "交通優先順位設定",
-    "ko": "교통 우선 순위"
+    "zh-Hans": "流量优先级",
+    "zh-Hant": "流量優先順序",
+    "ja": "トラフィック優先度",
+    "ko": "트래픽 우선순위"
   },
   "Traffic scope": {
     "en": "Traffic scope",
@@ -11306,15 +11306,15 @@
   },
   "Tunnel active": {
     "en": "Tunnel active",
-    "zh-Hans": "活跃的通道",
-    "zh-Hant": "活躍的通道",
-    "ja": "トンネル活動",
-    "ko": "터널 활동"
+    "zh-Hans": "隧道已启用",
+    "zh-Hant": "隧道已啟用",
+    "ja": "トンネルは有効",
+    "ko": "터널 활성화됨"
   },
   "Tunnel addresses": {
     "en": "Tunnel addresses",
-    "zh-Hans": "道地址",
-    "zh-Hant": "道地址",
+    "zh-Hans": "隧道地址",
+    "zh-Hant": "隧道地址",
     "ja": "トンネルアドレス",
     "ko": "터널 주소"
   },
@@ -11334,10 +11334,10 @@
   },
   "Tunnel requested, but not active": {
     "en": "Tunnel requested, but not active",
-    "zh-Hans": "要求通道,但不活跃",
-    "zh-Hant": "要求通道,但不活躍",
-    "ja": "要求されたトンネルが活動していない",
-    "ko": "터널이 요청되었지만 작동하지 않습니다"
+    "zh-Hans": "已请求启动隧道，但尚未生效",
+    "zh-Hant": "已請求啟動隧道，但尚未生效",
+    "ja": "トンネル起動要求済み、未稼働",
+    "ko": "터널 시작 요청됨, 아직 비활성"
   },
   "Tunnel routes will be removed immediately. The saved configuration remains available.": {
     "en": "Tunnel routes will be removed immediately. The saved configuration remains available.",
@@ -11369,15 +11369,15 @@
   },
   "Type {0} to continue": {
     "en": "Type {0} to continue",
-    "zh-Hans": "继续的类型 {0}",
-    "zh-Hant": "繼續的型別 {0}",
-    "ja": "継続する {0} のタイプ",
-    "ko": "계속하기 위해 {0} 타입"
+    "zh-Hans": "输入 {0} 以继续",
+    "zh-Hant": "輸入 {0} 以繼續",
+    "ja": "続行するには {0} を入力",
+    "ko": "계속하려면 {0} 입력"
   },
   "U60 LOCAL CACHE": {
     "en": "U60 LOCAL CACHE",
-    "zh-Hans": "U60 地方现金",
-    "zh-Hant": "U60 地方現金",
+    "zh-Hans": "U60 本地缓存",
+    "zh-Hant": "U60 本地快取",
     "ja": "U60 ローカルキャッシュ",
     "ko": "U60 로컬 캐시"
   },
@@ -11404,9 +11404,9 @@
   },
   "USB & charge policy": {
     "en": "USB & charge policy",
-    "zh-Hans": "USB 和收费政策",
-    "zh-Hant": "USB 和收費政策",
-    "ja": "USB &料金政策",
+    "zh-Hans": "USB 与充电策略",
+    "zh-Hant": "USB 與充電策略",
+    "ja": "USB と充電方針",
     "ko": "USB 및 충전 정책"
   },
   "USB current": {
@@ -11453,10 +11453,10 @@
   },
   "Unavailable": {
     "en": "Unavailable",
-    "zh-Hans": "不可用",
-    "zh-Hant": "不可用",
-    "ja": "利用不可",
-    "ko": "사용 불가"
+    "zh-Hans": "当前不可用",
+    "zh-Hant": "當前不可用",
+    "ja": "現在利用できません",
+    "ko": "현재 사용 불가"
   },
   "Unicode": {
     "en": "Unicode",
@@ -11621,10 +11621,10 @@
   },
   "Unsaved allowance changes.": {
     "en": "Unsaved allowance changes.",
-    "zh-Hans": "没有储存的补贴变化.",
-    "zh-Hant": "沒有儲存的補貼變化.",
-    "ja": "貯金されていない給与の変更",
-    "ko": "저장되지 않은 보조금 변경"
+    "zh-Hans": "流量额度更改尚未保存。",
+    "zh-Hant": "流量額度更改尚未儲存。",
+    "ja": "データ容量の変更は未保存です。",
+    "ko": "데이터 한도 변경 사항이 저장되지 않았습니다."
   },
   "Unsaved billing-cycle changes.": {
     "en": "Unsaved billing-cycle changes.",
@@ -11677,10 +11677,10 @@
   },
   "Update both programs together with bash dash.sh install; use bash dash.sh rollback to restore the previous pair.": {
     "en": "Update both programs together with bash dash.sh install; use bash dash.sh rollback to restore the previous pair.",
-    "zh-Hans": "更新两个程序,并安装bash dash.sh;使用bash dash.sh 滚动恢复前一对.",
-    "zh-Hant": "更新兩個程式,並安裝bash dash.sh;使用bash dash.sh 滾動恢復前一對.",
-    "ja": "バッシュ・ダッシュ.sh インストールと共に両方のプログラムを更新し,以前のペアを復元するためにバッシュ・ダッシュ.sh ロールバックを使用します.",
-    "ko": "Bash dash.sh 설치와 함께 두 프로그램을 업데이트하고 bash dash.sh 롤백을 사용하여 이전 쌍을 복원합니다."
+    "zh-Hans": "使用 bash dash.sh install 同时更新两个程序；使用 bash dash.sh rollback 恢复上一组版本。",
+    "zh-Hant": "使用 bash dash.sh install 同時更新兩個程式；使用 bash dash.sh rollback 恢復上一組版本。",
+    "ja": "bash dash.sh install で両方のプログラムを更新します。前の組み合わせに戻すには bash dash.sh rollback を使用します。",
+    "ko": "bash dash.sh install로 두 프로그램을 함께 업데이트합니다. 이전 버전 쌍으로 복원하려면 bash dash.sh rollback을 사용하세요."
   },
   "Update preferences": {
     "en": "Update preferences",
@@ -11894,10 +11894,10 @@
   },
   "Use the carrier’s automatic profile, or select a manual profile below.": {
     "en": "Use the carrier’s automatic profile, or select a manual profile below.",
-    "zh-Hans": "使用载体自动配置文件,或选择下面的手动配置文件.",
-    "zh-Hant": "使用載體自動配置檔案,或選擇下面的手動配置檔案.",
-    "ja": "自動キャリアプロフィールを使用するか,下記のマニュアルプロフィールを選択してください.",
-    "ko": "운반자의 자동 프로필을 사용하거나 아래에서 수동 프로필을 선택하십시오."
+    "zh-Hans": "使用运营商自动配置，或选择下方的手动配置。",
+    "zh-Hant": "使用運營商自動配置，或選擇下方的手動配置。",
+    "ja": "通信事業者の自動設定を使用するか、以下の手動設定を選択してください。",
+    "ko": "통신사 자동 구성을 사용하거나 아래에서 수동 구성을 선택하세요."
   },
   "Use the day your carrier’s billing cycle begins (1–31).": {
     "en": "Use the day your carrier’s billing cycle begins (1–31).",
@@ -11908,10 +11908,10 @@
   },
   "Use the filtering level provided by your router’s firmware.": {
     "en": "Use the filtering level provided by your router’s firmware.",
-    "zh-Hans": "使用路由器固件提供的过 ?? 级别.",
-    "zh-Hant": "使用路由器韌體提供的過 ?? 級別.",
-    "ja": "ルーターのファームウェアが提供するフィルタリングレベルを使用します",
-    "ko": "라우터의 펌웨어에서 제공하는 필터링 레벨을 사용하세요."
+    "zh-Hans": "使用路由器固件提供的过滤级别。",
+    "zh-Hant": "使用路由器韌體提供的過濾級別。",
+    "ja": "ルーターのファームウェアが提供するフィルタリングレベルを使用します。",
+    "ko": "라우터 펌웨어에서 제공하는 필터링 수준을 사용합니다."
   },
   "Use the router’s built-in traffic policy. Individual device priorities and custom bandwidth limits are unavailable in this console.": {
     "en": "Use the router’s built-in traffic policy. Individual device priorities and custom bandwidth limits are unavailable in this console.",
@@ -11929,10 +11929,10 @@
   },
   "Use values from Signal & Cells. A carrier’s physical cell ID is not a physical site identifier.": {
     "en": "Use values from Signal & Cells. A carrier’s physical cell ID is not a physical site identifier.",
-    "zh-Hans": "使用信号和小区的值. 运营商的物理小区ID不是物理地址识别器.",
-    "zh-Hant": "使用訊號和小區的值. 運營商的物理小區ID不是物理地址識別器.",
-    "ja": "Signal & Cells の値を使用します. キャリアの物理的なセル IDは物理的なサイト識別子ではありません.",
-    "ko": "Signal & Cells의 값을 사용하세요. 통신사의 물리적 셀 ID는 물리적 사이트 식별자가 아닙니다."
+    "zh-Hans": "请使用「信号与小区」中的值。载波的物理小区 ID 不能作为物理基站的唯一标识。",
+    "zh-Hant": "請使用「訊號與小區」中的值。載波的物理小區 ID 不能作為物理基站的唯一標識。",
+    "ja": "「信号とセル」の値を使用してください。キャリアの物理セル ID は基地局そのものの識別子ではありません。",
+    "ko": "신호 및 셀 화면의 값을 사용하세요. 반송파의 물리 셀 ID는 기지국 자체의 식별자가 아닙니다."
   },
   "Use {0} for every device on this router? The candidate is tested first, and the previous settings are restored if final verification fails.": {
     "en": "Use {0} for every device on this router? The candidate is tested first, and the previous settings are restored if final verification fails.",
@@ -12013,10 +12013,10 @@
   },
   "View all serving carriers": {
     "en": "View all serving carriers",
-    "zh-Hans": "查看所有服务的航母",
-    "zh-Hant": "檢視所有服務的航母",
-    "ja": "サービスを提供するすべてのキャリアを表示する",
-    "ko": "서비스 하는 모든 운송수단을 보시기 바랍니다"
+    "zh-Hans": "查看所有服务载波",
+    "zh-Hant": "檢視所有服務載波",
+    "ja": "すべての接続キャリアを表示",
+    "ko": "모든 연결 반송파 보기"
   },
   "WAN IPv4": {
     "en": "WAN IPv4",
@@ -12062,8 +12062,8 @@
   },
   "Waiting": {
     "en": "Waiting",
-    "zh-Hans": "等待中",
-    "zh-Hant": "等待中",
+    "zh-Hans": "等待",
+    "zh-Hant": "等待",
     "ja": "待機中",
     "ko": "대기 중"
   },
@@ -12160,17 +12160,17 @@
   },
   "Waiting for live readings": {
     "en": "Waiting for live readings",
-    "zh-Hans": "等待现场阅读",
-    "zh-Hant": "等待現場閱讀",
-    "ja": "読み直しを待っている",
-    "ko": "생방송을 기다리고 있습니다."
+    "zh-Hans": "等待实时数据",
+    "zh-Hant": "等待即時資料",
+    "ja": "リアルタイムデータを待機中",
+    "ko": "실시간 데이터 대기 중"
   },
   "Waiting for live readings.": {
     "en": "Waiting for live readings.",
-    "zh-Hans": "在等待现场阅读.",
-    "zh-Hant": "在等待現場閱讀.",
-    "ja": "生放送を待っています",
-    "ko": "라이브 리딩을 기다리고 있습니다."
+    "zh-Hans": "正在等待实时数据。",
+    "zh-Hant": "正在等待即時資料。",
+    "ja": "リアルタイムデータを待機中。",
+    "ko": "실시간 데이터를 기다리는 중입니다."
   },
   "Waiting for live router settings.": {
     "en": "Waiting for live router settings.",
@@ -12188,10 +12188,10 @@
   },
   "Waiting for live status": {
     "en": "Waiting for live status",
-    "zh-Hans": "在等待现场状态",
-    "zh-Hant": "在等待現場狀態",
-    "ja": "ライブ状態を待っています",
-    "ko": "라이브 상태를 기다리고 있습니다"
+    "zh-Hans": "等待实时状态",
+    "zh-Hant": "等待即時狀態",
+    "ja": "リアルタイム状態を待機中",
+    "ko": "실시간 상태 대기 중"
   },
   "Waiting for live update status.": {
     "en": "Waiting for live update status.",
@@ -12237,10 +12237,10 @@
   },
   "Waiting for readings": {
     "en": "Waiting for readings",
-    "zh-Hans": "等待阅读",
-    "zh-Hant": "等待閱讀",
-    "ja": "読み取りを待っている",
-    "ko": "읽기를 기다리고 있습니다"
+    "zh-Hans": "等待数据",
+    "zh-Hant": "等待資料",
+    "ja": "データを待機中",
+    "ko": "데이터 대기 중"
   },
   "Waiting for registration to {0}…": {
     "en": "Waiting for registration to {0}…",
@@ -12426,10 +12426,10 @@
   },
   "Windows": {
     "en": "Windows",
-    "zh-Hans": "窗户",
-    "zh-Hant": "窗戶",
-    "ja": "窓",
-    "ko": "창문"
+    "zh-Hans": "Windows",
+    "zh-Hant": "Windows",
+    "ja": "Windows",
+    "ko": "Windows"
   },
   "WireGuard .conf contents": {
     "en": "WireGuard .conf contents",
@@ -12475,10 +12475,10 @@
   },
   "Within allowance": {
     "en": "Within allowance",
-    "zh-Hans": "在补贴范围内",
-    "zh-Hant": "在補貼範圍內",
-    "ja": "給与範囲内",
-    "ko": "과금 내"
+    "zh-Hans": "未超出流量额度",
+    "zh-Hant": "未超出流量額度",
+    "ja": "データ容量内",
+    "ko": "데이터 한도 이내"
   },
   "Working with the operator and card": {
     "en": "Working with the operator and card",
@@ -12496,10 +12496,10 @@
   },
   "Write again": {
     "en": "Write again",
-    "zh-Hans": "再写一次.",
-    "zh-Hant": "再寫一次.",
-    "ja": "書き直す",
-    "ko": "다시 써라"
+    "zh-Hans": "重新编写",
+    "zh-Hant": "重新編寫",
+    "ja": "もう一度作成",
+    "ko": "다시 작성"
   },
   "Write each request header as Name: value, one per line.": {
     "en": "Write each request header as Name: value, one per line.",
@@ -12524,10 +12524,10 @@
   },
   "Yes": {
     "en": "Yes",
-    "zh-Hans": "是的.",
-    "zh-Hant": "是的.",
-    "ja": "ええ",
-    "ko": "그래요"
+    "zh-Hans": "是",
+    "zh-Hant": "是",
+    "ja": "はい",
+    "ko": "예"
   },
   "You review the operator’s profile details before installation. A downloaded profile stays disabled until you activate it.": {
     "en": "You review the operator’s profile details before installation. A downloaded profile stays disabled until you activate it.",
@@ -12615,15 +12615,15 @@
   },
   "a Telegram bot token": {
     "en": "a Telegram bot token",
-    "zh-Hans": "一个 Telegram 机器人代号",
-    "zh-Hant": "一個 Telegram 機器人代號",
+    "zh-Hans": "一个 Telegram 机器人令牌",
+    "zh-Hant": "一個 Telegram 機器人令牌",
     "ja": "Telegram ボットトークン",
-    "ko": "Telegram 보트 토큰"
+    "ko": "Telegram 봇 토큰"
   },
   "a chat ID": {
     "en": "a chat ID",
-    "zh-Hans": "聊天身份证",
-    "zh-Hant": "聊天身份證",
+    "zh-Hans": "一个会话 ID",
+    "zh-Hant": "一個會話 ID",
     "ja": "チャット ID",
     "ko": "채팅 ID"
   },
@@ -12657,9 +12657,9 @@
   },
   "an ntfy topic": {
     "en": "an ntfy topic",
-    "zh-Hans": "一个 ntfy的主题",
-    "zh-Hant": "一個 ntfy的主題",
-    "ja": "ntfy テーマ",
+    "zh-Hans": "一个 ntfy 主题",
+    "zh-Hant": "一個 ntfy 主題",
+    "ja": "ntfy トピック",
     "ko": "ntfy 주제"
   },
   "at {0}": {
@@ -12671,10 +12671,10 @@
   },
   "carrier aggregation": {
     "en": "carrier aggregation",
-    "zh-Hans": "运输商集成",
-    "zh-Hant": "運輸商整合",
-    "ja": "運輸業者総集計",
-    "ko": "운항자 집합"
+    "zh-Hans": "载波聚合",
+    "zh-Hant": "載波聚合",
+    "ja": "キャリアアグリゲーション",
+    "ko": "반송파 집성"
   },
   "dB · signal clarity": {
     "en": "dB · signal clarity",
@@ -12713,8 +12713,8 @@
   },
   "eSIM PROFILE": {
     "en": "eSIM PROFILE",
-    "zh-Hans": "eSIM 配置文件",
-    "zh-Hant": "eSIM 配置檔案",
+    "zh-Hans": "eSIM 配置",
+    "zh-Hant": "eSIM 配置",
     "ja": "eSIM プロフィール",
     "ko": "eSIM 프로파일"
   },
@@ -12727,15 +12727,15 @@
   },
   "eSIM management": {
     "en": "eSIM management",
-    "zh-Hans": "管理",
-    "zh-Hant": "管理",
-    "ja": "管理",
+    "zh-Hans": "eSIM 管理",
+    "zh-Hant": "eSIM 管理",
+    "ja": "eSIM 管理",
     "ko": "eSIM 관리"
   },
   "external port": {
     "en": "external port",
-    "zh-Hans": "外部港口",
-    "zh-Hant": "外部港口",
+    "zh-Hans": "外部端口",
+    "zh-Hant": "外部埠",
     "ja": "外部ポート",
     "ko": "외부 포트"
   },
@@ -12755,17 +12755,17 @@
   },
   "internal port": {
     "en": "internal port",
-    "zh-Hans": "内部港口",
-    "zh-Hant": "內部港口",
-    "ja": "内港",
-    "ko": "내부 항구"
+    "zh-Hans": "内部端口",
+    "zh-Hant": "內部埠",
+    "ja": "内部ポート",
+    "ko": "내부 포트"
   },
   "live stream": {
     "en": "live stream",
-    "zh-Hans": "现场直播",
-    "zh-Hant": "現場直播",
-    "ja": "ライブストリーム",
-    "ko": "라이브 스트리밍"
+    "zh-Hans": "实时数据流",
+    "zh-Hant": "即時資料流",
+    "ja": "リアルタイムデータ",
+    "ko": "실시간 데이터 스트림"
   },
   "mihomo configuration": {
     "en": "mihomo configuration",
@@ -12783,10 +12783,10 @@
   },
   "not reported": {
     "en": "not reported",
-    "zh-Hans": "未报告",
-    "zh-Hant": "未報告",
-    "ja": "報告されていない",
-    "ko": "보고되지 않은"
+    "zh-Hans": "未提供",
+    "zh-Hant": "未提供",
+    "ja": "未報告",
+    "ko": "보고되지 않음"
   },
   "ntfy server address": {
     "en": "ntfy server address",
@@ -12797,17 +12797,17 @@
   },
   "ntfy topic": {
     "en": "ntfy topic",
-    "zh-Hans": "问题",
-    "zh-Hant": "問題",
-    "ja": "ntfy テーマ",
+    "zh-Hans": "ntfy 主题",
+    "zh-Hant": "ntfy 主題",
+    "ja": "ntfy トピック",
     "ko": "ntfy 주제"
   },
   "port forwarding": {
     "en": "port forwarding",
-    "zh-Hans": "港口发送",
-    "zh-Hant": "港口傳送",
+    "zh-Hans": "端口转发",
+    "zh-Hant": "埠轉發",
     "ja": "ポート転送",
-    "ko": "항구 송신"
+    "ko": "포트 전달"
   },
   "protocol unreported": {
     "en": "protocol unreported",
@@ -12860,10 +12860,10 @@
   },
   "single carrier": {
     "en": "single carrier",
-    "zh-Hans": "单一运输商",
-    "zh-Hant": "單一運輸商",
-    "ja": "単発輸送機",
-    "ko": "단일 운항자"
+    "zh-Hans": "单载波",
+    "zh-Hant": "單載波",
+    "ja": "単一キャリア",
+    "ko": "단일 반송파"
   },
   "source ↗": {
     "en": "source ↗",
@@ -12874,10 +12874,10 @@
   },
   "subnet mask": {
     "en": "subnet mask",
-    "zh-Hans": "下网面膜",
-    "zh-Hant": "下網面膜",
+    "zh-Hans": "子网掩码",
+    "zh-Hant": "子網掩碼",
     "ja": "サブネットマスク",
-    "ko": "서브네트 마스크"
+    "ko": "서브넷 마스크"
   },
   "the router readback does not match the requested allowance": {
     "en": "the router readback does not match the requested allowance",
@@ -13028,10 +13028,10 @@
   },
   "{0} cell lock": {
     "en": "{0} cell lock",
-    "zh-Hans": "{0} 电池锁",
-    "zh-Hant": "{0} 電池鎖",
-    "ja": "{0} セルロック",
-    "ko": "{0} 셀 잠금"
+    "zh-Hans": "{0} 小区锁定",
+    "zh-Hant": "{0} 小區鎖定",
+    "ja": "{0} セル固定",
+    "ko": "{0} 셀 고정"
   },
   "{0} channel": {
     "en": "{0} channel",
@@ -13147,10 +13147,10 @@
   },
   "{0} pages": {
     "en": "{0} pages",
-    "zh-Hans": "{0} 个页面",
-    "zh-Hant": "{0} 個頁面",
-    "ja": "{0} ページ",
-    "ko": "{0}개 페이지"
+    "zh-Hans": "{0} 页面",
+    "zh-Hant": "{0} 頁面",
+    "ja": "{0} のページ",
+    "ko": "{0} 페이지"
   },
   "{0} percent of monthly allowance used": {
     "en": "{0} percent of monthly allowance used",

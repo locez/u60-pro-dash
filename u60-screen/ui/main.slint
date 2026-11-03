@@ -356,7 +356,7 @@ export component Screen inherits Window {
                     VerticalLayout {
                         padding-top: 8px; padding-bottom: 8px; spacing: 2px;
                         Label { text: "0" + (index + 1); height: 16px; color: root.tab == index ? Palette.accent-ink : Palette.muted; font-size: 12px; horizontal-alignment: center; }
-                        Label { text: name; height: 20px; color: root.tab == index ? Palette.accent-ink : Palette.muted; font-size: 14px; font-weight: root.tab == index ? 650 : 500; horizontal-alignment: center; }
+                        Label { text: name; height: 20px; color: root.tab == index ? Palette.accent-ink : Palette.muted; font-size: root.language == "ja" ? 13px : 14px; font-weight: root.tab == index ? 650 : 500; horizontal-alignment: center; }
                     }
                     if root.tab == index: Rectangle { x: (parent.width - 18px) / 2; y: 0px; height: 2px; width: 18px; background: Palette.accent; }
                     TouchArea { clicked => { root.navigate(index); } }

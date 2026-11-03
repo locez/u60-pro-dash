@@ -288,6 +288,12 @@ mod tests {
             });
         };
         assert!(app.ui.get_locked());
+        app.ui.invoke_set_language("en".into());
+        assert_eq!(
+            app.ui.get_language(),
+            "zh-Hans",
+            "language changes require unlock"
+        );
         tap(120., 450.);
         assert_eq!(app.ui.get_tab(), 0, "navigation must be gated while locked");
         let hold = || {
@@ -542,6 +548,10 @@ mod tests {
             assert_eq!(app.ui.get_heading(), heading);
             assert_eq!(app.state.borrow().prefs.accent, "#d97706");
             assert_eq!(app.state.borrow().prefs.probe_target, "10.20.0.10:443");
+            let restored = Preferences::load(&private.path().join("appearance.json"))?;
+            assert_eq!(restored.language.code(), code);
+            assert_eq!(restored.accent, "#d97706");
+            assert_eq!(restored.probe_target, "10.20.0.10:443");
             assert!(!app.ui.get_locked());
             platform::capture(&window, false);
             save(&format!("language-{code}.png"))?;
