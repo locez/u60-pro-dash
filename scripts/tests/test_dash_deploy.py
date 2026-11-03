@@ -1,4 +1,5 @@
 """Exercise deployment scripts against local fake firmware and real processes."""
+import fcntl
 import hashlib
 import importlib.util
 import os
@@ -43,6 +44,14 @@ class DeviceTests(unittest.TestCase):
         self.tool('ubus','#!/bin/sh\nprintf \'{"noSyncModuleName":"%s"}\\n\' "${TEST_SYNC:-sync success}"\n')
         self.tool('pidof','#!/bin/sh\ntest -f "$TEST_VENDOR" && echo 1\n')
         self.tool('sync','#!/bin/sh\nexit 0\n')
+        # The device applet lacks util-linux's -w; reject unsupported flags in
+        # every lifecycle test instead of silently relying on the host version.
+        self.tool('flock', f'''#!/bin/sh
+for arg in "$@"; do
+    case "$arg" in -s|-x|-u|-n|[0-9]) ;; *) echo 'unsupported flock argument' >&2; exit 2;; esac
+done
+exec {shutil.which('flock')} "$@"
+''')
         self.tool('sleep','#!/usr/bin/python3\nimport sys,time\ntime.sleep(float(sys.argv[1])*0.03)\n')
         self.tool('cut','#!/usr/bin/python3\nimport os,sys,time\nif sys.argv[-1]=="/proc/uptime": print(int(time.monotonic()*30))\nelse: os.execv("/usr/bin/cut",sys.argv)\n')
         self.vendor_script=self.base/'vendor';self.vendor_script.write_text('''#!/bin/sh
@@ -166,5 +175,94 @@ int main(int argc,char**argv){
     def test_checksums_fail_before_any_startup_change(self):
         folder=self.release('bad');(folder/'u60-screen').write_bytes(b'broken')
         r=self.manage('install','bad');self.assertNotEqual(r.returncode,0);self.assertEqual(self.start.read_bytes(),self.original_start);self.assertFalse((self.root/'pending').exists())
+
+    def test_manager_waits_for_a_busy_lock_and_proceeds_after_release(self):
+        with (self.root / 'operation.lock').open('w') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            process = subprocess.Popen(
+                ['sh', str(self.manager), 'restore'], env=self.env,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+            )
+            try:
+                time.sleep(0.2)
+                self.assertIsNone(process.poll())
+                fcntl.flock(lock, fcntl.LOCK_UN)
+                stdout, stderr = process.communicate(timeout=5)
+                self.assertEqual(process.returncode, 0, stdout + stderr)
+                self.assertIn('already selected', stdout)
+            finally:
+                if process.poll() is None:
+                    process.kill()
+                    process.wait()
+
+    def test_busy_lock_times_out_without_starting_installation(self):
+        with (self.root / 'operation.lock').open('w') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            result = self.manage('install', 'missing')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('within 70 seconds', result.stderr)
+        self.assertEqual(self.start.read_bytes(), self.original_start)
+        self.assertFalse((self.root / 'pending').exists())
+
+    def replace_manager(self):
+        candidate = self.root / 'new-manager.sh'
+        candidate.write_text('#!/bin/sh\n# replacement test\n')
+        fixture = self
+
+        class LocalConnection:
+            def remote(self, script):
+                script = script.replace(DEPLOY.REMOTE, str(fixture.root))
+                script = script.replace('/tmp/u60-dash-run', str(fixture.run))
+                script = script.replace('/data/local/tmp/start_zte_agent.sh', str(fixture.start))
+                result = subprocess.run(
+                    ['sh', '-c', DEPLOY.shell(script)], env=fixture.env,
+                    capture_output=True, text=True, timeout=5,
+                )
+                return DEPLOY.decode(result)
+
+        DEPLOY.replace_inactive_manager(LocalConnection(), str(candidate))
+        self.assertEqual(self.manager.read_bytes(), candidate.read_bytes())
+        self.assertEqual(self.manager.stat().st_mode & 0o777, 0o700)
+
+    def test_failed_first_install_manager_can_be_replaced_without_restore(self):
+        self.assertFalse((self.root / 'current').exists())
+        self.replace_manager()
+        self.assertEqual(self.start.read_bytes(), self.original_start)
+        self.assertFalse((self.root / 'current').exists())
+        self.assertIsNone(self.old.poll())
+
+    def test_restored_manager_can_be_replaced(self):
+        (self.root / 'current').write_text('none\n')
+        self.replace_manager()
+        self.assertEqual(self.start.read_bytes(), self.original_start)
+
+    def test_manager_replacement_refuses_active_or_incomplete_deployment(self):
+        original = self.manager.read_bytes()
+        for name, content in [('pending', ''), ('enabled', ''), ('current', ''), ('current', 'one\n')]:
+            with self.subTest(marker=name, content=content):
+                marker = self.root / name
+                marker.write_text(content)
+                with self.assertRaises(DEPLOY.Failure):
+                    self.replace_manager()
+                self.assertEqual(self.manager.read_bytes(), original)
+                marker.unlink()
+        self.run.mkdir()
+        with self.assertRaises(DEPLOY.Failure):
+            self.replace_manager()
+        self.run.rmdir()
+        self.start.write_text(f'#!/bin/sh\nexec sh {self.manager} boot\n')
+        with self.assertRaises(DEPLOY.Failure):
+            self.replace_manager()
+        self.assertEqual(self.manager.read_bytes(), original)
+
+    def test_manager_replacement_does_not_bypass_an_active_operation_lock(self):
+        original = self.manager.read_bytes()
+        with (self.root / 'operation.lock').open('w') as lock:
+            inode = os.fstat(lock.fileno()).st_ino
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            with self.assertRaises(DEPLOY.Failure):
+                self.replace_manager()
+            self.assertEqual((self.root / 'operation.lock').stat().st_ino, inode)
+        self.assertEqual(self.manager.read_bytes(), original)
 
 if __name__=='__main__':unittest.main()

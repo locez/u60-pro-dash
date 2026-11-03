@@ -182,7 +182,15 @@ action=${1:-status}
 [ "$action" != status ] || { status; exit; }
 [ "$(id -u)" = 0 ] || fail 'Run on the router as root.'
 exec 9>"$ROOT/operation.lock"
-flock -w 70 9 || fail 'Another deployment operation is active.'
+# Firmware BusyBox supports -n but not util-linux's -w timeout option.
+lock_wait=0
+while :; do
+    if flock -n 9; then break; else lock_result=$?; fi
+    [ "$lock_result" -eq 1 ] || fail "flock failed (exit $lock_result); deployment was not started."
+    [ "$lock_wait" -lt 70 ] || fail 'Could not acquire the deployment lock within 70 seconds; inspect active operations and any flock errors above.'
+    sleep 1
+    lock_wait=$((lock_wait+1))
+done
 case "$action" in
     install)
         trap 'result=$?; if [ "$result" -ne 0 ] && [ -s "$ROOT/pending" ]; then stop_pair; recover_pending; fi' EXIT

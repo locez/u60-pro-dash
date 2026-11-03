@@ -158,6 +158,11 @@ test ! -e /tmp/u60-native-screen-trial
 test ! -s /data/open-u60/update/pending
 grep -qF /data/local/tmp/start_zte_agent.sh /etc/rc.local
 for tool in flock sha256sum readlink nohup ubus; do command -v "$tool" >/dev/null; done
+# Exercise the BusyBox-compatible flags, using a read-only descriptor.
+exec 8</data/local/tmp/start_zte_agent.sh
+flock -s -n 8
+flock -u 8
+exec 8<&-
 ubus call zwrt_topsw_daemon.sync get_sync_info '{}' | grep -q '"noSyncModuleName"[[:space:]]*:[[:space:]]*"sync success"'
 if test -e /data/u60-dash; then test -d /data/u60-dash && test ! -L /data/u60-dash; fi
 printf 'device=root ARM64; boot=ready; recovery=available\n'
@@ -171,13 +176,38 @@ df -Pk /data | tail -1 | awk '{print "free_kib=" $4}'
     print(result, flush=True)
     return result
 
+def inactive_manager_condition():
+    return (
+        f"test ! -e /tmp/u60-dash-run && test ! -e {REMOTE}/pending "
+        f"&& test ! -e {REMOTE}/enabled "
+        f"&& (test ! -e {REMOTE}/current || test \"$(cat {REMOTE}/current)\" = none) "
+        f"&& test -s /data/local/tmp/start_zte_agent.sh "
+        f"&& ! grep -qF {REMOTE}/manage.sh /data/local/tmp/start_zte_agent.sh"
+    )
+
+def replace_inactive_manager(connection, source):
+    # Recheck under the operation lock: another installer may have started
+    # between preflight and upload. Never replace the lock file itself.
+    connection.remote(f"""
+set -eu
+exec 9>{REMOTE}/operation.lock
+flock -n 9 || {{ echo 'Deployment lock unavailable; retry after the active operation finishes.'; exit 1; }}
+if ! ({inactive_manager_condition()}); then
+    echo 'The project manager is active; run bash dash.sh restore before replacing it.'
+    exit 1
+fi
+cp {shlex.quote(source)} {REMOTE}/manage.sh.new
+chmod 700 {REMOTE}/manage.sh.new
+mv -f {REMOTE}/manage.sh.new {REMOTE}/manage.sh
+""")
+
 def install(connection, args):
     root, identity = package(args)
     check(connection)
     connection.remote(f"umask 077; mkdir -p {REMOTE}/releases; chmod 700 {REMOTE} {REMOTE}/releases")
     existing = connection.remote(f"if test -s {REMOTE}/manage.sh; then sha256sum {REMOTE}/manage.sh; fi")
     if existing and existing.split()[0] != digest(root / "manage.sh"):
-        inactive = connection.remote(f"if test ! -d /tmp/u60-dash-run && test ! -s {REMOTE}/pending && test \"$(cat {REMOTE}/current)\" = none; then echo restored; else echo active; fi")
+        inactive = connection.remote(f"if {inactive_manager_condition()}; then echo restored; else echo active; fi")
         if inactive != "restored":
             raise Failure("设备部署管理器版本不同；请先运行 bash dash.sh restore，再安装新版本。原备份不会被覆盖。")
         existing = ""
@@ -196,7 +226,7 @@ def install(connection, args):
             except (Failure, OSError, subprocess.SubprocessError):
                 print("未能清理未激活的上传目录：" + staging, file=sys.stderr)
     if not existing:
-        connection.remote(f"cp {destination}/manage.sh {REMOTE}/manage.sh.new && chmod 700 {REMOTE}/manage.sh.new && mv {REMOTE}/manage.sh.new {REMOTE}/manage.sh")
+        replace_inactive_manager(connection, destination + "/manage.sh")
     print("文件已传输并校验；开始部署两个程序。30 秒健康观察通过后自动确认。", flush=True)
     operation = f'sh {REMOTE}/manage.sh install {identity}; result=$?; printf "%s\\n" "$result" >{REMOTE}/install.exit.new; mv {REMOTE}/install.exit.new {REMOTE}/install.exit'
     connection.remote(f"rm -f {REMOTE}/install.exit; nohup sh -c {shlex.quote(operation)} >{REMOTE}/install.log 2>&1 </dev/null & sleep 1")
