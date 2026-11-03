@@ -9,6 +9,11 @@ pub(super) enum Service {
     Mihomo(Arc<MihomoService>),
 }
 impl Service {
+    pub fn panel_status(&self) -> Value {
+        match self {
+            Self::Mihomo(s) => s.panel_status(),
+        }
+    }
     pub fn logs(&self) -> Result<Value, String> {
         match self {
             Self::Mihomo(s) => s.logs(),
@@ -48,6 +53,15 @@ pub struct ProxyServices {
     services: BTreeMap<&'static str, Service>,
 }
 impl ProxyServices {
+    #[cfg(test)]
+    pub(crate) fn for_test(root: std::path::PathBuf) -> Self {
+        Self {
+            services: BTreeMap::from([(
+                "mihomo",
+                Service::Mihomo(Arc::new(MihomoService::at(root))),
+            )]),
+        }
+    }
     pub fn new() -> Self {
         // Retain the existing service directory so upgrades preserve its private data.
         Self {

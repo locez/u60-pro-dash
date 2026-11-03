@@ -98,6 +98,12 @@ pub fn tailscale_file(value: &Value) -> Result<(String, String), String> {
 }
 pub fn latest(service: &str) -> Result<Release, String> {
     match service {
+        "metacubexd" => panel_release(
+            &serde_json::from_slice(&get(
+                "https://api.github.com/repos/MetaCubeX/metacubexd/releases/latest",
+            )?)
+            .map_err(|_| "Invalid dashboard release response")?,
+        ),
         "mihomo" => proxy_release(
             &serde_json::from_slice(&get(
                 "https://api.github.com/repos/MetaCubeX/mihomo/releases/latest",
@@ -124,6 +130,33 @@ pub fn latest(service: &str) -> Result<Release, String> {
         }
         _ => Err("Unknown software service".into()),
     }
+}
+
+fn panel_release(value: &Value) -> Result<Release, String> {
+    if value["draft"] == true || value["prerelease"] == true {
+        return Err("A stable dashboard release is required".into());
+    }
+    let raw = value["tag_name"]
+        .as_str()
+        .ok_or("Dashboard version missing")?;
+    let version = version(raw)?;
+    let name = "compressed-dist.tgz";
+    let asset = value["assets"]
+        .as_array()
+        .and_then(|a| a.iter().find(|a| a["name"] == name))
+        .ok_or("No static dashboard archive in this release")?;
+    let url = format!("https://github.com/MetaCubeX/metacubexd/releases/download/{raw}/{name}");
+    if asset["browser_download_url"] != url {
+        return Err("Unexpected dashboard asset location".into());
+    }
+    Ok(Release {
+        version,
+        name: name.into(),
+        url,
+        sha256: digest(asset["digest"].as_str().unwrap_or(""))?,
+        size: asset["size"].as_u64(),
+        architecture: "web",
+    })
 }
 pub fn uploaded_version(
     service: &str,
@@ -170,6 +203,18 @@ mod tests {
     #[ignore = "requires Internet access to official metadata; does not install or download binaries"]
     fn official_tailscale_metadata_has_compatible_package() {
         check_live_release("tailscale");
+    }
+    #[test]
+    fn static_panel_release_requires_the_official_archive_and_digest() {
+        let mut release = json!({"tag_name":"v1.200.0","assets":[{"name":"compressed-dist.tgz","digest":format!("sha256:{}","b".repeat(64)),"size":12345,"browser_download_url":"https://github.com/MetaCubeX/metacubexd/releases/download/v1.200.0/compressed-dist.tgz"}]});
+        let selected = panel_release(&release).unwrap();
+        assert_eq!(selected.version, "1.200.0");
+        assert_eq!(selected.architecture, "web");
+        release["assets"][0]["browser_download_url"] = json!("https://example.invalid/archive.tgz");
+        assert!(panel_release(&release).is_err());
+        release["assets"][0]["browser_download_url"] = json!("https://github.com/MetaCubeX/metacubexd/releases/download/v1.200.0/compressed-dist.tgz");
+        release["assets"][0]["digest"] = Value::Null;
+        assert!(panel_release(&release).is_err());
     }
     #[test]
     fn selects_only_stable_linux_arm64_and_requires_official_digest() {

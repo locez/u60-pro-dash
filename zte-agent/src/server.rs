@@ -158,7 +158,7 @@ pub fn precheck(req: &ReqInfo, env: &PreEnv) -> Pre {
         return refuse(403, "agent password required");
     }
     Pre::Dispatch {
-        body_limit: if matches!(req.path, "/api/software/mihomo/upload/chunk" | "/api/software/tailscale/upload/chunk" | "/api/software/mihomo-geoip/upload/chunk" | "/api/software/mihomo-geosite/upload/chunk" | "/api/software/mihomo-mmdb/upload/chunk" | "/api/software/mihomo-asn/upload/chunk") { crate::software::UPLOAD_BODY_MAX } else if matches!(req.path, "/api/proxy/config" | "/api/proxy/mihomo/config" | "/api/proxy/validate" | "/api/proxy/mihomo/validate" | "/api/proxy/mihomo/geodata") { 4 * 1024 * 1024 } else if live_activity { LIVE_ACTIVITY_BODY_MAX } else { API_BODY_MAX },
+        body_limit: if matches!(req.path, "/api/software/metacubexd/upload/chunk" | "/api/software/mihomo/upload/chunk" | "/api/software/tailscale/upload/chunk" | "/api/software/mihomo-geoip/upload/chunk" | "/api/software/mihomo-geosite/upload/chunk" | "/api/software/mihomo-mmdb/upload/chunk" | "/api/software/mihomo-asn/upload/chunk") { crate::software::UPLOAD_BODY_MAX } else if matches!(req.path, "/api/proxy/config" | "/api/proxy/mihomo/config" | "/api/proxy/validate" | "/api/proxy/mihomo/validate" | "/api/proxy/mihomo/geodata") { 4 * 1024 * 1024 } else if live_activity { LIVE_ACTIVITY_BODY_MAX } else { API_BODY_MAX },
     }
 }
 
@@ -631,7 +631,7 @@ mod tests {
         let auth = with_password();
         let token = auth.login(PW, Kind::Bearer, peer(1), &[]).unwrap();
         let t = Some(token.token.expose());
-        for service in ["mihomo", "tailscale", "mihomo-geoip", "mihomo-geosite", "mihomo-mmdb", "mihomo-asn"] {
+        for service in ["metacubexd", "mihomo", "tailscale", "mihomo-geoip", "mihomo-geosite", "mihomo-mmdb", "mihomo-asn"] {
             let chunk = format!("/api/software/{service}/upload/chunk");
             assert_eq!(run(&open, &info(Method::Post, &chunk, None, None, h)), reply(403, "agent password required"));
             assert_eq!(run(&auth, &info(Method::Post, &chunk, None, None, h)), reply(401, "unauthorized"));

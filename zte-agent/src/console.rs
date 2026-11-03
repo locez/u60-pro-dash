@@ -14,6 +14,7 @@ use axum::{
 
 pub fn router() -> Router<Ctx> {
     Router::new()
+        .merge(crate::proxy::panel_http::router())
         .route("/", get(serve).fallback(api::api_entry))
         .route("/ui", any(serve))
         .route("/ui/", any(serve))

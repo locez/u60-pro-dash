@@ -53,6 +53,7 @@ struct State {
     received: u64,
     total: Option<u64>,
     package_limit: u64,
+    architecture: &'static str,
     upload: Option<Upload>,
 }
 impl State {
@@ -73,7 +74,7 @@ impl State {
         json!({"available":self.available,"checked_at":self.checked_at,"checking":self.checking,
             "busy":self.busy,"phase":if self.phase.is_empty(){"idle"}else{self.phase},"error":self.error,
             "version":self.version,"sha256":self.sha256,"bytes_received":self.received,"bytes_total":self.total,
-            "architecture":"linux-arm64","upload_limit":self.package_limit,"chunk_size":CHUNK_MAX})
+            "architecture":self.architecture,"upload_limit":self.package_limit,"chunk_size":CHUNK_MAX})
     }
 }
 pub struct Manager {
@@ -90,6 +91,7 @@ enum Source {
     Uploaded(Upload),
 }
 enum Target {
+    Panel(Arc<crate::proxy::MihomoService>),
     Proxy(Arc<crate::proxy::MihomoService>),
     ProxyData(Arc<crate::proxy::MihomoService>, DataKind),
     Tailscale(Arc<crate::tailscale::TailscaleManager>),
@@ -97,6 +99,7 @@ enum Target {
 impl Target {
     fn install(&self, package: &Path, version: &str) -> Result<(), String> {
         match self {
+            Self::Panel(service) => service.install_panel(package, version),
             Self::Proxy(service) => service.install_package(package, version),
             Self::ProxyData(service, kind) => service.install_geodata(*kind, package),
             Self::Tailscale(service) => {
@@ -123,6 +126,7 @@ impl Manager {
             slots: [
                 "mihomo",
                 "tailscale",
+                "metacubexd",
                 "mihomo-geoip",
                 "mihomo-geosite",
                 "mihomo-mmdb",
@@ -139,6 +143,11 @@ impl Manager {
                             crate::proxy::BINARY_LIMIT
                         } else {
                             PACKAGE_MAX
+                        },
+                        architecture: if s == "metacubexd" {
+                            "web"
+                        } else {
+                            "linux-arm64"
                         },
                         ..State::default()
                     })),
@@ -246,7 +255,17 @@ impl Manager {
             .as_str()
             .filter(|v| v.len() <= 180 && !v.contains(['/', '\\']))
             .ok_or("Invalid package filename")?;
-        let version = if let Some(kind) = DataKind::from_service(service) {
+        let version = if service == "metacubexd" {
+            if !name.ends_with(".tgz") && !name.ends_with(".tar.gz") {
+                return Err("Choose the dashboard .tgz archive".into());
+            }
+            body["version"]
+                .as_str()
+                .filter(|s| !s.is_empty())
+                .map(releases::version)
+                .transpose()?
+                .unwrap_or_else(|| "manual".into())
+        } else if let Some(kind) = DataKind::from_service(service) {
             if !kind.accepts(name) {
                 return Err(format!("Choose {} for this database", kind.filename()));
             }
@@ -330,6 +349,7 @@ impl Manager {
         let target = match service {
             "mihomo" => Target::Proxy(Arc::clone(app.proxy.legacy())),
             "tailscale" => Target::Tailscale(Arc::clone(&app.tailscale)),
+            "metacubexd" => Target::Panel(Arc::clone(app.proxy.legacy())),
             s if uploaded && DataKind::from_service(s).is_some() => Target::ProxyData(
                 Arc::clone(app.proxy.legacy()),
                 DataKind::from_service(s).unwrap(),
@@ -532,6 +552,27 @@ pub fn route(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn static_panel_upload_accepts_archives_without_engine_version_or_restart() {
+        let root = std::env::temp_dir().join(format!("u60-panel-upload-{}", random_id().unwrap()));
+        let manager = Manager::at(root.clone());
+        assert!(manager
+            .begin_upload("metacubexd", &json!({"name":"engine.gz","size":4}))
+            .is_err());
+        let upload = manager
+            .begin_upload(
+                "metacubexd",
+                &json!({"name":"compressed-dist.tgz","size":4}),
+            )
+            .unwrap();
+        assert!(
+            !manager.slot("mihomo").unwrap().lock().unwrap().snapshot()["busy"]
+                .as_bool()
+                .unwrap()
+        );
+        manager.cancel_upload("metacubexd", &upload).unwrap();
+        fs::remove_dir_all(root).unwrap();
+    }
     #[test]
     fn database_uploads_have_exact_types_and_do_not_require_a_software_version() {
         let root = std::env::temp_dir().join(format!("u60-data-upload-{}", random_id().unwrap()));

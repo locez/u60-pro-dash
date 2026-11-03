@@ -3,6 +3,8 @@
 mod configuration;
 pub(crate) mod geodata;
 mod logs;
+pub(crate) mod panel_http;
+mod panel_install;
 mod settings;
 mod validation;
 use validation::run_checked;
@@ -45,6 +47,7 @@ pub struct MihomoService {
     settings: Mutex<Settings>,
     runtime: Mutex<Runtime>,
     operation: Mutex<()>,
+    panel: panel_http::PanelState,
 }
 
 pub fn https_url(text: &str) -> Result<reqwest::Url, String> {
@@ -165,6 +168,7 @@ impl MihomoService {
                 error: None,
             }),
             operation: Mutex::new(()),
+            panel: panel_http::PanelState::default(),
         }
     }
     fn prepare(&self) -> Result<(), String> {
@@ -724,6 +728,7 @@ pub fn service_route(
             }
             reply(service.logs())
         }
+        (Method::Get, "panel") => reply(Ok(service.panel_status())),
         (Method::Get, "config") => {
             if !state.auth.has_password() {
                 return (403, json!({"ok":false,"error":"Agent password required"}));
