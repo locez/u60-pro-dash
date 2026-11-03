@@ -61,7 +61,8 @@
   const importOptions=el('details','proxy-import-options'),importTitle=el('summary','',tr('Import a file or subscription'));
   const importFields=el('div','proxy-import-fields');importOptions.append(importTitle,importFields);imported.append(importOptions);
   const upload=input(importFields,'proxy-file',tr('Configuration file'),{type:'file'});upload.accept='.yaml,.yml,.json';
-  const subURL=input(importFields,'proxy-source-url',tr('Subscription / configuration URL'),{type:'password',help:tr('HTTPS subscription for this service. The address is cleared after a confirmed import.')});
+  const applyFile=button(tr('Import and apply file'),()=>applyConfiguration('config'));applyFile.id='proxy-import-file';importFields.append(applyFile);
+  const subURL=input(importFields,'proxy-source-url',tr('Subscription / configuration URL'),{type:'url',help:tr('HTTPS URL returning native YAML or JSON, including direct configuration links. The address is cleared after a confirmed import.')});subURL.inputMode='url';subURL.spellcheck=false;subURL.autocapitalize='none';
   const fetchSubscription=button(tr('Import and apply subscription'),()=>applyConfiguration('subscription'));fetchSubscription.id='proxy-import-subscription';importFields.append(fetchSubscription);
   const config=input(imported,'proxy-config',tr('YAML / JSON'),{multiline:true,help:tr('Up to 512 KiB. Edits remain a draft until saved. Leaving this page or locking the console clears the editor.')});config.maxLength=512*1024;config.rows=12;
   imported.addEventListener('submit',event=>{event.preventDefault();});
@@ -72,6 +73,7 @@
     read.disabled=!ready||editorLoading||fileLoading;
     validate.disabled=!ready||!installed||!editorLoaded||editorLoading||fileLoading||!config.value.trim();
     save.disabled=validate.disabled||!editorDirty;
+    applyFile.disabled=save.disabled||!upload.files.length;
     reload.disabled=!ready||!installed||!proxy.data?.running||!proxy.data?.configured||!editorLoaded||editorLoading||fileLoading;
     fetchSubscription.disabled=!ready||!installed||!editorLoaded||editorLoading||fileLoading||!subURL.value.trim();
     save.textContent=proxy.data?.running?tr('Save and reload'):tr('Save configuration');
@@ -98,7 +100,7 @@
     }catch(error){if(editorCurrent(epoch)&&readId===configRead)UI.say(editorFeedback,error.message,true);}
     finally{if(editorCurrent(epoch)){editorLoading=false;syncEditor();}}
   };
-  config.addEventListener('input',()=>{editSequence++;fileRead++;fileLoading=false;editorDirty=true;UI.say(editorFeedback,tr('Unsaved draft. Save to apply these changes.'));syncEditor();});
+  config.addEventListener('input',()=>{editSequence++;fileRead++;fileLoading=false;editorDirty=true;upload.value='';UI.say(editorFeedback,tr('Unsaved draft. Save to apply these changes.'));syncEditor();});
   subURL.addEventListener('input',syncEditor);
   upload.addEventListener('change',async()=>{
     const epoch=fileEpoch,readId=++fileRead,file=upload.files[0];if(!file)return;

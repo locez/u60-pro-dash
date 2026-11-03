@@ -1,6 +1,8 @@
 //! Authenticated proxy service with private configuration and a replaceable
 //! engine adapter. No engine or network is started by constructing the state.
 mod configuration;
+mod validation;
+use validation::run_checked;
 mod engine;
 mod services;
 pub use engine::MihomoSettings as Settings;
@@ -72,7 +74,7 @@ fn download_as(url: &str, limit: u64, user_agent: &str) -> Result<Vec<u8>, Strin
         .get(url)
         .send()
         .and_then(reqwest::blocking::Response::error_for_status)
-        .map_err(|_| "Download failed; verify the URL and network")?
+        .map_err(download_error)?
         .take(limit + 1);
     let mut bytes = Vec::new();
     body.read_to_end(&mut bytes)
@@ -86,39 +88,34 @@ fn private_write(path: &Path, bytes: &[u8], mode: u32) -> Result<(), String> {
     crate::ota::storage::atomic_write(path, bytes, mode)
         .map_err(|_| "Cannot save private proxy file".into())
 }
-fn run_checked(
-    driver: &dyn engine::Engine,
-    binary: &Path,
-    root: &Path,
-    config: &Path,
-) -> Result<(), String> {
-    let mut child = driver
-        .command(binary, root, config, true)
-        .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .spawn()
-        .map_err(|_| "Cannot run installed proxy engine")?;
-    let end = Instant::now() + Duration::from_secs(20);
-    loop {
-        match child.try_wait() {
-            Ok(Some(s)) => {
-                return if s.success() {
-                    Ok(())
-                } else {
-                    Err(
-                        "Proxy engine rejected the configuration; check nodes, groups and rules"
-                            .into(),
-                    )
-                }
-            }
-            Ok(None) if Instant::now() < end => std::thread::sleep(Duration::from_millis(50)),
-            _ => {
-                let _ = child.kill();
-                let _ = child.wait();
-                return Err("Proxy validation timed out".into());
-            }
-        }
+fn download_error(error: reqwest::Error) -> String {
+    if let Some(status) = error.status() {
+        return format!("Download returned HTTP {status}");
+    }
+    if error.is_timeout() {
+        return "Download timed out".into();
+    }
+    if error.is_redirect() {
+        return "Download was redirected too many times or to an unsupported address".into();
+    }
+    // Preserve the useful network cause, never the subscription URL/query.
+    let mut cause: &dyn std::error::Error = &error;
+    let mut details = String::new();
+    while let Some(next) = cause.source() {
+        details.push_str(&next.to_string().to_ascii_lowercase());
+        cause = next;
+    }
+    if details.contains("certificate") || details.contains("tls") {
+        "Download failed TLS verification; check the server certificate and router clock".into()
+    } else if details.contains("dns")
+        || details.contains("resolve")
+        || details.contains("name or service")
+    {
+        "Download failed because DNS resolution failed".into()
+    } else if error.is_connect() {
+        "Download could not connect to the server".into()
+    } else {
+        "Download failed before a complete response was received".into()
     }
 }
 pub(crate) fn elf(bytes: &[u8]) -> bool {
@@ -832,7 +829,25 @@ mod tests {
         let root = std::env::temp_dir().join(format!("u60-proxy-contract-{}", std::process::id()));
         fs::create_dir_all(&root).unwrap();
         let driver = engine::adapter("compatible-v1").unwrap();
-        let source = driver.normalize("proxies: [{name: Example, type: socks5, server: 192.0.2.2, port: 1080}]\nproxy-groups: [{name: Primary, type: select, proxies: [Example, DIRECT]}]\nrules: ['MATCH,DIRECT']\ndns: {nameserver: ['https://dns.google/dns-query'], enhanced-mode: fake-ip}\nsniffer: {enable: true, sniff: {TLS: {ports: [443]}}}\n").unwrap();
+        let source = driver
+            .normalize(
+                r#"
+proxies: [{name: Example, type: anytls, server: 192.0.2.2, port: 443, password: example-only}]
+url-test: &common
+  type: url-test
+  include-all-proxies: true
+  url: https://example.com/generate_204
+  interval: 300
+proxy-groups:
+  - {name: Primary, type: select, proxies: [Auto, Example, DIRECT]}
+  - name: Auto
+    <<: *common
+rules: ['MATCH,DIRECT']
+dns: {nameserver: ['https://dns.google/dns-query'], enhanced-mode: fake-ip}
+sniffer: {enable: true, sniff: {TLS: {ports: [443]}}}
+"#,
+            )
+            .unwrap();
         for capture in ["local", "hotspot"] {
             let settings = Settings {
                 capture: capture.into(),

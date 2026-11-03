@@ -13816,5 +13816,19 @@
     "en": "Validate configuration",
     "ja": "設定を検証",
     "ko": "설정 검증"
+  },
+  "Import and apply file": {
+    "zh-Hans": "导入并应用文件",
+    "zh-Hant": "匯入並套用檔案",
+    "en": "Import and apply file",
+    "ja": "ファイルを取り込んで適用",
+    "ko": "파일을 가져와 적용"
+  },
+  "HTTPS URL returning native YAML or JSON, including direct configuration links. The address is cleared after a confirmed import.": {
+    "zh-Hans": "支持直接返回原生 YAML 或 JSON 的 HTTPS 地址，包括配置文件直链。确认导入成功后清空地址。",
+    "zh-Hant": "支援直接傳回原生 YAML 或 JSON 的 HTTPS 網址，包括設定檔直連網址。確認匯入成功後清空網址。",
+    "en": "HTTPS URL returning native YAML or JSON, including direct configuration links. The address is cleared after a confirmed import.",
+    "ja": "ネイティブの YAML または JSON を返す HTTPS URL。設定ファイルの直接リンクにも対応します。取り込みを確認した後に URL を消去します。",
+    "ko": "YAML 또는 JSON을 직접 반환하는 HTTPS 주소와 설정 파일 직접 링크를 지원합니다. 가져오기를 확인한 후 주소를 지웁니다."
   }
 }

@@ -158,7 +158,7 @@ pub fn precheck(req: &ReqInfo, env: &PreEnv) -> Pre {
         return refuse(403, "agent password required");
     }
     Pre::Dispatch {
-        body_limit: if matches!(req.path, "/api/software/mihomo/upload/chunk" | "/api/software/tailscale/upload/chunk") { crate::software::UPLOAD_BODY_MAX } else if req.path == "/api/proxy/config" || req.path == "/api/proxy/mihomo/config" { 4 * 1024 * 1024 } else if live_activity { LIVE_ACTIVITY_BODY_MAX } else { API_BODY_MAX },
+        body_limit: if matches!(req.path, "/api/software/mihomo/upload/chunk" | "/api/software/tailscale/upload/chunk") { crate::software::UPLOAD_BODY_MAX } else if matches!(req.path, "/api/proxy/config" | "/api/proxy/mihomo/config" | "/api/proxy/validate" | "/api/proxy/mihomo/validate") { 4 * 1024 * 1024 } else if live_activity { LIVE_ACTIVITY_BODY_MAX } else { API_BODY_MAX },
     }
 }
 
@@ -658,6 +658,7 @@ mod tests {
         assert_eq!(run(&auth, &info(Method::Get, "/api/device", None, t, h)), DISPATCH);
         assert_eq!(run(&auth, &info(Method::Get, "/api/proxy/mihomo/config", None, None, h)), reply(401, "unauthorized"));
         assert_eq!(run(&auth, &info(Method::Post, "/api/proxy/mihomo/config", None, t, h)), Pre::Dispatch { body_limit: 4 * 1024 * 1024 });
+        assert_eq!(run(&auth, &info(Method::Post, "/api/proxy/mihomo/validate", None, t, h)), Pre::Dispatch { body_limit: 4 * 1024 * 1024 });
         // With a password the apps' Host is not checked (they may use any name; browsers: below).
         assert_eq!(run(&auth, &info(Method::Get, "/api/device", None, t, host("evil.com"))), DISPATCH);
         assert_eq!(run(&auth, &info(Method::Get, "/api/device", None, t, ReqHeaders::default())), DISPATCH);

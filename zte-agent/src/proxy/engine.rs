@@ -113,7 +113,7 @@ impl Engine for Mihomo {
         if text.is_empty() || text.len() > CONFIG_LIMIT {
             return Err("Configuration must be 1–512 KiB".into());
         }
-        let yaml: serde_yaml::Value = serde_yaml::from_str(text).map_err(|error| {
+        let mut yaml: serde_yaml::Value = serde_yaml::from_str(text).map_err(|error| {
             error.location().map_or_else(
                 || "Invalid YAML configuration".to_string(),
                 |at| {
@@ -125,6 +125,11 @@ impl Engine for Mihomo {
                 },
             )
         })?;
+        // serde_yaml resolves aliases but does not apply YAML merge keys by
+        // default. Expand them before converting to JSON or inherited group
+        // fields (especially `type`) never reach the engine.
+        yaml.apply_merge()
+            .map_err(|_| "Invalid YAML merge mapping")?;
         let source = serde_json::to_value(yaml)
             .map_err(|_| "Configuration must use string keys and plain values")?;
         let object = source
@@ -339,6 +344,41 @@ impl Engine for Mihomo {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn native_yaml_merges_preserve_group_defaults_and_explicit_overrides() {
+        let source = Mihomo
+            .normalize(
+                r#"
+proxies: [{name: Example HK, type: anytls, server: 192.0.2.1, port: 443, password: example-only}]
+url-test: &common
+  type: url-test
+  include-all-proxies: true
+  url: https://example.com/generate_204
+  interval: 300
+  lazy: true
+proxy-groups:
+  - name: HK
+    <<: *common
+    interval: 600
+    filter: HK
+  - name: Auto
+    <<: [*common, {tolerance: 50}]
+rules: ['MATCH,Auto']
+"#,
+            )
+            .unwrap();
+        assert_eq!(source["proxy-groups"][0]["type"], "url-test");
+        assert_eq!(source["proxy-groups"][0]["interval"], 600);
+        assert_eq!(source["proxy-groups"][1]["interval"], 300);
+        assert_eq!(source["proxy-groups"][1]["tolerance"], 50);
+        assert!(source["proxy-groups"][0].get("<<").is_none());
+        let serialized = serde_json::to_string(&source).unwrap();
+        assert_eq!(Mihomo.normalize(&serialized).unwrap(), source);
+        assert!(Mihomo
+            .normalize("proxies: []\nproxy-groups: [{<<: invalid}]")
+            .unwrap_err()
+            .contains("merge"));
+    }
     #[test]
     fn imported_configuration_cannot_own_listeners_routes_or_paths() {
         let a = Mihomo;
