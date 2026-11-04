@@ -47,6 +47,15 @@ pub fn number(value: &Value) -> Option<f64> {
         .or_else(|| value.as_str()?.parse().ok())
         .filter(|v| v.is_finite())
 }
+pub(super) fn signal_offline(signal: &Value) -> bool {
+    matches!(
+        signal["network_type"].as_str(),
+        Some("NO_SERVICE" | "OFFLINE" | "DISCONNECTED" | "SEARCH" | "SEARCHING")
+    )
+}
+pub(super) fn signal_metric(signal: &Value, key: &str, min: f64, max: f64) -> Option<f64> {
+    number(&signal[key]).filter(|n| !signal_offline(signal) && (min..=max).contains(n))
+}
 pub fn quantity(value: &Value, divisor: f64, unit: &str) -> String {
     number(value)
         .map(|n| format!("{:.1} {unit}", n / divisor))
@@ -82,51 +91,55 @@ pub fn page(id: &str, readings: &Data) -> Page {
             if let Some(name) = s["network_provider"].as_str() {
                 p.rows[1].1 = crate::carrier::label(name).into();
             }
-            for (prefix, name, band, pci, ch) in [
+            p.table.headings = [
+                crate::i18n::tr("指标").into(),
+                "5G NR".into(),
+                "4G LTE".into(),
+            ];
+            for (suffix, label, min, max) in [
+                ("rsrp", "RSRP / dBm", -160., -20.),
+                ("rsrq", "RSRQ / dB", -50., 0.),
+                ("snr", "SINR / dB", -30., 60.),
+                ("rssi", "RSSI / dBm", -140., 0.),
+            ] {
+                let value = |prefix| {
+                    signal_metric(s, &format!("{prefix}_{suffix}"), min, max)
+                        .map(|v| format!("{v:.1}"))
+                        .unwrap_or_else(|| "—".into())
+                };
+                p.table.rows.push(super::visual::row(
+                    suffix,
+                    label,
+                    value("nr5g"),
+                    value("lte"),
+                    "",
+                ));
+            }
+            for (id, label, nr, lte) in [
                 (
-                    "nr5g",
-                    "5G NR",
+                    "band",
+                    crate::i18n::tr("频段"),
                     "nr5g_action_band",
-                    "nr5g_pci",
-                    "nr5g_action_channel",
-                ),
-                (
-                    "lte",
-                    "4G LTE",
                     "wan_active_band",
-                    "lte_pci",
+                ),
+                ("pci", "PCI", "nr5g_pci", "lte_pci"),
+                (
+                    "channel",
+                    crate::i18n::tr("信道"),
+                    "nr5g_action_channel",
                     "wan_active_channel",
                 ),
             ] {
-                let rsrp =
-                    number(&s[format!("{prefix}_rsrp")]).filter(|n| (-160.0..=-20.0).contains(n));
-                p.rows.push((
-                    format!("{name} RSRP"),
-                    rsrp.map(|v| format!("{v:.0} dBm"))
-                        .unwrap_or_else(|| crate::i18n::tr("未提供").into()),
-                ));
-                for (suffix, label, unit, min, max) in [
-                    ("rsrq", "RSRQ", "dB", -50., 0.),
-                    ("snr", "SINR", "dB", -30., 60.),
-                    ("rssi", "RSSI", "dBm", -140., 0.),
-                ] {
-                    let n = number(&s[format!("{prefix}_{suffix}")])
-                        .filter(|n| (min..=max).contains(n));
-                    p.rows.push((
-                        format!("{name} {label}"),
-                        n.map(|n| format!("{n:.1} {unit}"))
-                            .unwrap_or_else(|| crate::i18n::tr("未提供").into()),
-                    ));
-                }
-                p.row(
-                    &crate::i18n::format("{0} 频段", &[name.to_string()]),
-                    &s[band],
-                );
-                p.row(&format!("{name} PCI"), &s[pci]);
-                p.row(
-                    &crate::i18n::format("{0} 信道", &[name.to_string()]),
-                    &s[ch],
-                );
+                let value = |key: &str| {
+                    if signal_offline(s) || s[key].is_null() {
+                        "—".into()
+                    } else {
+                        shown(&s[key])
+                    }
+                };
+                p.table
+                    .rows
+                    .push(super::visual::row(id, label, value(nr), value(lte), ""));
             }
             p.row(
                 crate::i18n::tr("网络授予下行 / Mbps"),
@@ -280,20 +293,7 @@ pub fn page(id: &str, readings: &Data) -> Page {
             p.row(crate::i18n::tr("蜂窝 MTU"), &data(readings, "rmnet")["mtu"]);
         }
         "resources" => {
-            let cpu = data(readings, "cpu");
             let mem = data(readings, "memory");
-            p.rows.push((
-                crate::i18n::tr("CPU 使用率").into(),
-                quantity(&cpu["overall"], 1., "%"),
-            ));
-            if let Some(cores) = cpu["cores"].as_array() {
-                for (i, v) in cores.iter().enumerate() {
-                    p.rows.push((
-                        crate::i18n::format("核心 {0}", &[format!("{}", i + 1)]),
-                        quantity(v, 1., "%"),
-                    ));
-                }
-            }
             for (key, label) in [
                 ("total_kb", crate::i18n::tr("内存总量")),
                 ("available_kb", crate::i18n::tr("可用内存")),
@@ -317,20 +317,11 @@ pub fn page(id: &str, readings: &Data) -> Page {
         }
         "battery-details" => {
             let b = data(readings, "battery");
-            p.row(crate::i18n::tr("剩余电量 %"), &b["capacity"]);
             p.rows
                 .push((crate::i18n::tr("充电状态").into(), state(&b["status"])));
             p.rows.push((
-                crate::i18n::tr("电池温度").into(),
-                quantity(&b["temperature"], 10., "°C"),
-            ));
-            p.rows.push((
                 crate::i18n::tr("电池电压").into(),
                 quantity(&b["voltage_uv"], 1_000_000., "V"),
-            ));
-            p.rows.push((
-                crate::i18n::tr("电池电流").into(),
-                quantity(&b["current_ua"], 1000., "mA"),
             ));
             let charger = data(readings, "charger");
             if !charger["charger_type"].is_null() {
@@ -364,35 +355,12 @@ pub fn page(id: &str, readings: &Data) -> Page {
         }
         "traffic" => {
             let t = data(readings, "traffic");
-            p.rows.push((
-                crate::i18n::tr("蜂窝下行速率").into(),
-                quantity(&t["real_rx_speed"], 125_000., "Mbps"),
-            ));
-            p.rows.push((
-                crate::i18n::tr("蜂窝上行速率").into(),
-                quantity(&t["real_tx_speed"], 125_000., "Mbps"),
-            ));
             for (key, label) in [
                 ("real_rx_bytes", crate::i18n::tr("本次下载")),
                 ("real_tx_bytes", crate::i18n::tr("本次上传")),
             ] {
                 p.rows
                     .push((label.into(), quantity(&t[key], 1_000_000., "MB")));
-            }
-            if let Some(ifaces) = data(readings, "interfaces").as_array() {
-                for iface in ifaces {
-                    p.rows.push((
-                        crate::i18n::format(
-                            "{0} · 下载 / 上传",
-                            &[shown(&iface["name"]).to_string()],
-                        ),
-                        format!(
-                            "{} / {}",
-                            quantity(&iface["rx_bytes"], 1_000_000., "MB"),
-                            quantity(&iface["tx_bytes"], 1_000_000., "MB")
-                        ),
-                    ));
-                }
             }
             p.note = crate::i18n::tr("接口计数自接口启动累计，不能与运营商账单直接等同。").into();
         }
@@ -635,7 +603,7 @@ pub fn plan(id: &str, action: &str, page: &Page, readings: &Data) -> Result<Plan
     }
 }
 type Carrier = (String, String, Vec<(String, String)>);
-fn carriers(signal: &Value) -> Vec<Carrier> {
+pub(super) fn carriers(signal: &Value) -> Vec<Carrier> {
     let mut out = vec![];
     for (name, list, signals, pci, ch, band) in [
         (
@@ -747,10 +715,23 @@ mod tests {
             Ok(json!({"nr5g_rsrp":"9999","lte_rsrp":"-88"})),
         )]);
         let p = page("signal-live", &readings);
+        assert_eq!(p.table.rows[0].first, "—");
+        assert_eq!(p.table.rows[0].second, "-88.0");
+        let offline = Data::from([(
+            "signal".into(),
+            Ok(json!({"network_type":"NO_SERVICE", "nr5g_rsrp":-86,"lte_rsrp":-88,"nr5g_pci":123})),
+        )]);
         assert!(
-            p.rows
+            page("signal-live", &offline)
+                .table
+                .rows
                 .iter()
-                .any(|(k, v)| k == "5G NR RSRP" && v == "未提供")
+                .all(|r| r.first == "—" && r.second == "—")
+        );
+        assert!(
+            super::super::telemetry::charts("signal-live", &offline)
+                .iter()
+                .all(|c| c.raw.is_none())
         );
     }
 }

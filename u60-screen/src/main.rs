@@ -409,6 +409,61 @@ mod tests {
             }
             Ok(())
         };
+        for code in ["zh-Hans", "zh-Hant", "en", "ja", "ko"] {
+            app.ui.invoke_set_language(code.into());
+            for page in ["resources", "traffic", "signal-live", "battery-details"] {
+                app.open(page)?;
+                assert_eq!(app.ui.get_view(), 7);
+                assert!(app.ui.get_trends().row_count() >= 2);
+                assert!(
+                    app.ui
+                        .get_trends()
+                        .row_data(0)
+                        .unwrap()
+                        .graph
+                        .row_data(0)
+                        .unwrap()
+                        .samples
+                        > 50
+                );
+                for dark in [false, true] {
+                    app.ui.invoke_theme(dark);
+                    save(&format!(
+                        "data-{page}-{code}-{}.png",
+                        if dark { "dark" } else { "light" }
+                    ))?;
+                }
+                if code == "zh-Hans" {
+                    app.ui.set_content_offset(-330.);
+                    save(&format!("data-{page}-details.png"))?;
+                }
+            }
+        }
+        app.ui.invoke_set_language("zh-Hans".into());
+        app.ui.invoke_theme(false);
+        app.feature_data_fixture(
+            "processes",
+            fixture(vec![(
+                "processes",
+                serde_json::json!({
+                    "total_count":2,"bloat_count":0,"processes":[
+                        {"pid":101,"name":"worker","cpu_pct":23.4,"rss_kb":24000},
+                        {"pid":202,"name":"worker","cpu_pct":4.1,"rss_kb":8192}
+                    ]
+                }),
+            )]),
+        );
+        assert_eq!(app.ui.get_data_rows().row_count(), 2);
+        save("data-processes.png")?;
+        platform::capture(&window, false);
+        tap(90., 195.);
+        assert!(
+            app.ui
+                .get_readings()
+                .iter()
+                .any(|r| r.label == "PID" && r.value == "202"),
+            "table taps must select the row identity, including duplicate names"
+        );
         app.open("vpn-services")?;
         save("vpn-services.png")?;
         app.open("tailscale")?;
@@ -592,6 +647,33 @@ mod tests {
             "incoming SMS must preserve the visible record"
         );
         assert!(entries == app.ui.get_entries());
+        // Tables retain record identity and scroll position when live records
+        // arrive above the viewport, just like the message list.
+        let processes = |count: u64| {
+            serde_json::json!({"processes":
+                (1..=count).rev().map(|id| serde_json::json!({
+                    "pid":id,"name":"worker","cpu_pct":10,"rss_kb":4096
+                })).collect::<Vec<_>>()
+            })
+        };
+        app.feature_data_fixture("processes", fixture(vec![("processes", processes(10))]));
+        damage();
+        let step = app.ui.get_feature_entry_step();
+        assert_eq!(step, 44.);
+        let offset = -app.ui.get_feature_list_top() - step * 2. - 5.;
+        app.ui.set_content_offset(offset);
+        damage();
+        let table = app.ui.get_data_rows();
+        app.feature_stream_fixture(&crate::agent::Snapshot::live_fixture(&[(
+            "processes",
+            processes(11),
+        )]));
+        damage();
+        assert!(table == app.ui.get_data_rows());
+        assert!(
+            (app.ui.get_content_offset() - (offset - step)).abs() < 1.,
+            "table arrivals must preserve the visible record"
+        );
         // A numeric stream update must use the same bounded damage path.
         app.feature_data_fixture(
             "signal-live",

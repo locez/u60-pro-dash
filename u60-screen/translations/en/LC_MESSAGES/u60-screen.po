@@ -20,6 +20,9 @@ msgstr "U60 → Tailscale → Goals"
 msgid "U60 · 原生屏幕预览"
 msgstr "U60 · Screen preview"
 
+msgid "−2 分钟"
+msgstr "−2 min"
+
 msgid "信号强度"
 msgstr "Signal strength"
 
@@ -83,6 +86,9 @@ msgstr "Apps"
 msgid "强调色"
 msgstr "Accent color"
 
+msgid "当前"
+msgstr "Current"
+
 msgid "当前读数为演示数据。"
 msgstr "These readings are demo data."
 
@@ -104,11 +110,17 @@ msgstr "Theme, color and brightness apply immediately."
 msgid "显示密码"
 msgstr "Show password"
 
+msgid "暂无有效读数"
+msgstr "No valid reading"
+
 msgid "未开启 · 仅长按解锁"
 msgstr "Unlocked · Long only by unlocking"
 
 msgid "本次 "
 msgstr "Session "
+
+msgid "本页最近 2 分钟的观察记录；断线或暂停处留空。"
+msgstr "Observed on this page over the last 2 minutes. Gaps indicate disconnection or pauses."
 
 msgid "机身屏幕使用本机后台账号连接。也可以输入后台密码重新登录。"
 msgstr "The body screen connects to the home computer's backend account. You can also enter the backend password and log in again."
@@ -124,6 +136,9 @@ msgstr "Test target"
 
 msgid "概览"
 msgstr "Overview"
+
+msgid "正在积累趋势"
+msgstr "Collecting samples"
 
 msgid "正在读取 Wi-Fi…"
 msgstr "Reading Wi-Fi…"

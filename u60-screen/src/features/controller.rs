@@ -41,6 +41,7 @@ pub struct Controller {
     outcome: Option<String>,
     keep_draft: bool,
     history: super::history::History,
+    telemetry: super::telemetry::Telemetry,
 }
 impl Default for Controller {
     fn default() -> Self {
@@ -72,11 +73,40 @@ impl Default for Controller {
             outcome: None,
             keep_draft: false,
             history: Default::default(),
+            telemetry: Default::default(),
         }
     }
 }
 impl Controller {
+    pub fn preview(&mut self, id: &str) -> bool {
+        let Some(samples) = super::demo::timeline(id) else {
+            return false;
+        };
+        self.open(id);
+        self.queue.clear();
+        self.telemetry = Default::default();
+        let now = Instant::now();
+        for (i, sample) in samples.into_iter().enumerate() {
+            let charts = super::telemetry::charts(id, &sample);
+            let sources = sample.keys().cloned().collect::<Vec<_>>();
+            self.telemetry.record(
+                &charts,
+                &sources,
+                now - Duration::from_secs(120 - i as u64 * 2),
+            );
+            self.data = sample;
+        }
+        self.finish_reads();
+        for action in &mut self.page.actions {
+            action.enabled = false;
+        }
+        self.notice = crate::i18n::tr("当前读数为演示数据。").into();
+        true
+    }
     pub fn open(&mut self, id: &str) -> bool {
+        if id != self.id {
+            self.telemetry = Default::default();
+        }
         self.cancel();
         self.reads.clear();
         self.id = id.into();
@@ -113,6 +143,7 @@ impl Controller {
             .is_some_and(|t| t.elapsed() < Duration::from_secs(60))
     }
     pub fn cancel(&mut self) {
+        self.telemetry.interrupt();
         for value in self.draft.values_mut() {
             value.zeroize();
         }
@@ -186,6 +217,7 @@ impl Controller {
     fn finish_reads(&mut self) {
         // Commit the batch together; neither blank nor half-updated pages are
         // exposed while sequential endpoints are still returning.
+        let sampled_sources = self.incoming.keys().cloned().collect::<Vec<_>>();
         self.data.append(&mut self.incoming);
         self.read_revision += 1;
         self.background = false;
@@ -194,6 +226,9 @@ impl Controller {
                 .insert("__history".into(), Ok(self.history.value()));
         }
         let mut page = super::page(&self.id, &self.data);
+        self.telemetry
+            .record(&page.charts, &sampled_sources, Instant::now());
+        self.telemetry.decorate(&mut page.charts, Instant::now());
         let restored = !self.draft.is_empty();
         for field in &mut page.fields {
             if let Some(value) = self.draft.remove(&field.key) {
@@ -549,6 +584,7 @@ impl Controller {
             return;
         }
         let mut changed = false;
+        let mut sampled_sources = Vec::new();
         self.live_keys.clear();
         for read in &self.reads {
             let (topic, nested) = match read.request.path.as_str() {
@@ -585,6 +621,7 @@ impl Controller {
                 })
                 .cloned()
                 .ok_or(Error::Unavailable);
+            sampled_sources.push(read.key.clone());
             if value.is_ok() {
                 self.live_keys.insert(read.key.clone());
             }
@@ -593,7 +630,12 @@ impl Controller {
                 changed = true;
             }
         }
-        if changed {
+        let sampled = self.telemetry.record(
+            &super::telemetry::charts(&self.id, &self.data),
+            &sampled_sources,
+            Instant::now(),
+        );
+        if changed || sampled {
             let next_poll = self.next_poll;
             self.finish_reads();
             // High-frequency events must neither postpone other reads nor
@@ -624,7 +666,7 @@ impl Controller {
         self.open(id);
         self.queue.clear();
         self.pending = None;
-        self.data = data;
+        self.incoming = data;
         self.finish_reads();
     }
     #[cfg(test)]

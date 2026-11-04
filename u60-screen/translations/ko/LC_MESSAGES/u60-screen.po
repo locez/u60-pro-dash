@@ -20,6 +20,9 @@ msgstr "U60 → Tailscale → 목표"
 msgid "U60 · 原生屏幕预览"
 msgstr "U60 · 화면 미리보기"
 
+msgid "−2 分钟"
+msgstr "−2분"
+
 msgid "信号强度"
 msgstr "신호 강도"
 
@@ -83,6 +86,9 @@ msgstr "앱"
 msgid "强调色"
 msgstr "강조 색상"
 
+msgid "当前"
+msgstr "전류"
+
 msgid "当前读数为演示数据。"
 msgstr "이 자료는 디모 데이터입니다."
 
@@ -104,11 +110,17 @@ msgstr "테마, 색상, 밝기가 즉시 적용됩니다."
 msgid "显示密码"
 msgstr "암호 표시"
 
+msgid "暂无有效读数"
+msgstr "유효한 측정값 없음"
+
 msgid "未开启 · 仅长按解锁"
 msgstr "열리지 않은 · 잠금 잠금"
 
 msgid "本次 "
 msgstr "이번 연결 "
+
+msgid "本页最近 2 分钟的观察记录；断线或暂停处留空。"
+msgstr "이 페이지에서 관측한 최근 2분 기록입니다. 연결 끊김이나 일시 중지는 공백으로 표시합니다."
 
 msgid "机身屏幕使用本机后台账号连接。也可以输入后台密码重新登录。"
 msgstr "인체 스크린은 본인의 백업 계정을 사용하여 연결됩니다. 또한 백업 암호를 입력하여 다시 로그인할 수 있습니다."
@@ -124,6 +136,9 @@ msgstr "연결 검사 대상"
 
 msgid "概览"
 msgstr "개요"
+
+msgid "正在积累趋势"
+msgstr "데이터 수집 중"
 
 msgid "正在读取 Wi-Fi…"
 msgstr "Wi-Fi 읽는 중…"

@@ -1,5 +1,6 @@
 use crate::{
-    FeatureAction, FeatureInput, MenuEntry, Palette, Reading, Screen,
+    DataRow, FeatureAction, FeatureInput, MenuEntry, Meter, Palette, Reading, Screen, Trend,
+    TrendPlot,
     config::{Preferences, parse_color, readable_accent},
 };
 use anyhow::{Result, bail};
@@ -389,6 +390,13 @@ impl State {
                         } else {
                             note = crate::i18n::tr("正在接入此功能，当前尚不能操作。").into();
                         }
+                    } else if self.features.preview(id) {
+                        view = 7;
+                        self.feature_revision = u64::MAX;
+                        readings.clear();
+                        entries.clear();
+                        actions.clear();
+                        note.clear();
                     }
                 } else {
                     bail!("unknown screen page: {id}");
@@ -422,6 +430,7 @@ impl State {
                 ui,
                 !self.security.locked && !ui.get_asleep() && !ui.get_pin_visible() && view == 0,
             );
+            self.render_features(ui);
         }
         Ok(())
     }
@@ -760,6 +769,70 @@ impl State {
         {
             ui.set_heading(f.title.clone().into());
         }
+        let trends = ui.get_trends();
+        ui.set_trends(crate::ui_model::reconcile(
+            trends.clone(),
+            page.charts
+                .iter()
+                .map(|c| {
+                    let old = trends.iter().find(|t| t.id == c.id).unwrap_or_default();
+                    Trend {
+                        id: c.id.into(),
+                        label: c.label.clone().into(),
+                        unit: c.unit.into(),
+                        reading: crate::ui_model::reconcile(
+                            old.reading,
+                            vec![c.value.clone().into()],
+                            |_| 0,
+                        ),
+                        graph: crate::ui_model::reconcile(
+                            old.graph,
+                            vec![TrendPlot {
+                                path: c.path.clone().into(),
+                                upper: c.upper.clone().into(),
+                                lower: c.lower.clone().into(),
+                                samples: c.samples as i32,
+                            }],
+                            |_| 0,
+                        ),
+                    }
+                })
+                .collect(),
+            |c| c.id.clone(),
+        ));
+        ui.set_meters(crate::ui_model::reconcile(
+            ui.get_meters(),
+            page.meters
+                .iter()
+                .map(|m| Meter {
+                    id: m.id.clone().into(),
+                    label: m.label.clone().into(),
+                    value: m.value.clone().into(),
+                    fraction: m.permille as f32 / 1000.,
+                })
+                .collect(),
+            |m| m.id.clone(),
+        ));
+        ui.set_data_name(page.table.headings[0].clone().into());
+        ui.set_data_first(page.table.headings[1].clone().into());
+        ui.set_data_second(page.table.headings[2].clone().into());
+        ui.set_data_replaces_items(page.table.replaces_items);
+        ui.set_data_rows(crate::ui_model::reconcile(
+            ui.get_data_rows(),
+            page.table
+                .rows
+                .iter()
+                .map(|r| DataRow {
+                    id: r.id.clone().into(),
+                    name: r.name.clone().into(),
+                    detail: r.detail.clone().into(),
+                    first: r.first.clone().into(),
+                    second: r.second.clone().into(),
+                    target: r.target.clone().into(),
+                })
+                .collect(),
+            |r| r.id.clone(),
+        ));
         ui.set_readings(crate::ui_model::reconcile(
             ui.get_readings(),
             page.rows.iter().map(|(k, v)| reading(k, v)).collect(),

@@ -20,6 +20,9 @@ msgstr "U60 → Tailscale → 目標"
 msgid "U60 · 原生屏幕预览"
 msgstr "U60 · 画面プレビュー"
 
+msgid "−2 分钟"
+msgstr "−2 分"
+
 msgid "信号强度"
 msgstr "電波強度"
 
@@ -83,6 +86,9 @@ msgstr "アプリ"
 msgid "强调色"
 msgstr "アクセントカラー"
 
+msgid "当前"
+msgstr "流動"
+
 msgid "当前读数为演示数据。"
 msgstr "これはデモデータです"
 
@@ -104,11 +110,17 @@ msgstr "テーマ・色・明るさは即時反映されます。"
 msgid "显示密码"
 msgstr "パスワードを表示"
 
+msgid "暂无有效读数"
+msgstr "有効な測定値なし"
+
 msgid "未开启 · 仅长按解锁"
 msgstr "未開封 - 解鎖のみ"
 
 msgid "本次 "
 msgstr "今回 "
+
+msgid "本页最近 2 分钟的观察记录；断线或暂停处留空。"
+msgstr "このページで観測した直近2分間の記録です。切断・一時停止は空白で表示します。"
 
 msgid "机身屏幕使用本机后台账号连接。也可以输入后台密码重新登录。"
 msgstr "ボディスクリーンで本機のバックドアのアカウントを接続します. また,バックアップパスワードを入力してログインすることもできます."
@@ -124,6 +136,9 @@ msgstr "接続テスト先"
 
 msgid "概览"
 msgstr "概要"
+
+msgid "正在积累趋势"
+msgstr "データを収集中"
 
 msgid "正在读取 Wi-Fi…"
 msgstr "Wi-Fi を読み込み中…"

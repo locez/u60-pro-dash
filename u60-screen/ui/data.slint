@@ -1,0 +1,95 @@
+import { Palette, Label } from "components.slint";
+export struct Reading { label: string, value: string }
+export struct TrendPlot { path: string, upper: string, lower: string, samples: int }
+// Independent models keep a new reading from invalidating labels and paths.
+export struct Trend { id: string, label: string, unit: string, reading: [string], graph: [TrendPlot] }
+export struct Meter { id: string, label: string, value: string, fraction: float }
+export struct DataRow { id: string, name: string, detail: string, first: string, second: string, target: string }
+
+export component ReadingTable inherits Rectangle {
+    in property <[Reading]> rows;
+    background: Palette.surface; border-radius: 10px;
+    height: body.preferred-height;
+    body := VerticalLayout {
+        padding-left: 12px; padding-right: 12px; padding-top: 4px; padding-bottom: 4px; spacing: 0px;
+        for row[index] in root.rows: Rectangle {
+            height: max(38px, max(key.preferred-height, val.preferred-height) + 16px);
+            key := Label {
+                x: 0px; y: 8px; width: 106px; height: self.preferred-height;
+                text: row.label; horizontal-alignment: left; font-size: 12px; color: Palette.muted; wrap: word-wrap; overflow: clip;
+            }
+            val := Label {
+                x: 116px; y: 8px; width: parent.width - 116px; height: self.preferred-height;
+                text: row.value; font-size: 14px; wrap: char-wrap; overflow: clip; horizontal-alignment: right;
+            }
+            if index < root.rows.length - 1: Rectangle { y: parent.height - 1px; width: parent.width; height: 1px; background: Palette.line; }
+        }
+    }
+}
+
+export component TrendCard inherits Rectangle {
+    in property <Trend> data;
+    property <string> value: root.data.reading[0];
+    property <TrendPlot> graph: root.data.graph[0];
+    height: 132px; background: Palette.surface; border-radius: 10px;
+    Label { x: 12px; y: 9px; width: root.width - 24px; height: 19px; text: root.data.label; horizontal-alignment: left; font-size: 13px; color: Palette.muted; }
+    reading := Label { x: 12px; y: 29px; width: min(155px, self.preferred-width); height: 32px; text: root.value; font-size: 26px; font-weight: 650; color: Palette.accent-ink; horizontal-alignment: left; }
+    Label { x: reading.x + reading.width + 5px; y: 42px; width: 42px; text: root.data.unit; font-size: 12px; color: Palette.muted; horizontal-alignment: left; }
+    plot := Rectangle {
+        x: 12px; y: 60px; width: root.width - 24px; height: 48px; clip: true;
+        for level in [0, 1, 2]: Rectangle { y: 2px + level * 22px; width: parent.width; height: 1px; background: Palette.line; }
+        if root.graph.path != "": Path {
+            width: parent.width; height: parent.height; commands: root.graph.path;
+            viewbox-width: 264; viewbox-height: 60; fit: fill;
+            stroke: Palette.accent-ink; stroke-width: 2px; stroke-line-cap: round; stroke-line-join: round;
+        }
+        if root.graph.samples < 2: Label {
+            text: root.value == "—" ? @tr("暂无有效读数") : @tr("正在积累趋势");
+            font-size: 12px; color: Palette.muted; horizontal-alignment: center; vertical-alignment: center;
+        }
+    }
+    Label { x: root.width - 92px; y: 32px; width: 80px; height: 27px; text: root.graph.lower + "–" + root.graph.upper; color: Palette.muted; font-size: 12px; horizontal-alignment: right; vertical-alignment: center; }
+    Label { x: 12px; y: 114px; text: @tr("−2 分钟"); color: Palette.muted; font-size: 12px; }
+    Label { x: root.width - 100px; y: 114px; width: 88px; text: @tr("当前"); color: Palette.muted; font-size: 12px; horizontal-alignment: right; }
+}
+
+export component MeterGrid inherits Rectangle {
+    in property <[Meter]> rows;
+    height: ceil(root.rows.length / 2) * 56px;
+    for row[index] in root.rows: Rectangle {
+        x: mod(index, 2) * (root.width + 8px) / 2;
+        y: floor(index / 2) * 56px;
+        width: (root.width - 8px) / 2; height: 48px;
+        background: Palette.surface; border-radius: 8px;
+        Label { x: 10px; y: 8px; width: parent.width - 62px; text: row.label; horizontal-alignment: left; font-size: 12px; color: Palette.muted; }
+        Label { x: parent.width - 60px; y: 8px; width: 50px; text: row.value; horizontal-alignment: right; font-size: 13px; }
+        Rectangle { x: 10px; y: 32px; width: parent.width - 20px; height: 4px; border-radius: 2px; background: Palette.line;
+            Rectangle { x: 0px; y: 0px; width: parent.width * clamp(row.fraction,0,1); height: 4px; border-radius: 2px; background: Palette.accent-ink; }
+        }
+    }
+}
+
+export component DataTable inherits Rectangle {
+    in property <string> name;
+    in property <string> first;
+    in property <string> second;
+    in property <[DataRow]> rows;
+    callback selected(string);
+    height: 38px + root.rows.length * 44px;
+    background: Palette.surface; border-radius: 10px;
+    property <length> left-width: root.width * 0.44;
+    property <length> cell-width: (root.width - self.left-width - 24px) / 2;
+    Label { x: 12px; y: 10px; width: root.left-width - 8px; text: root.name; horizontal-alignment: left; font-size: 12px; color: Palette.muted; }
+    Label { x: root.left-width + 12px; y: 10px; width: root.cell-width - 4px; text: root.first; font-size: 12px; color: Palette.muted; horizontal-alignment: right; }
+    Label { x: root.left-width + root.cell-width + 12px; y: 10px; width: root.cell-width - 4px; text: root.second; font-size: 12px; color: Palette.muted; horizontal-alignment: right; }
+    for row[index] in root.rows: Rectangle {
+        x: 12px; y: 38px + index * 44px; width: root.width - 24px; height: 44px;
+        background: touch.pressed && row.target != "" ? Palette.line : transparent;
+        Rectangle { x: 0px; y: 0px; width: parent.width; height: 1px; background: Palette.line; }
+        Label { x: 0px; y: 2px; width: root.left-width - 8px; height: row.detail == "" ? 42px : 21px; text: row.name; horizontal-alignment: left; font-size: 13px; vertical-alignment: center; color: row.target == "" ? Palette.text : Palette.accent-ink; }
+        if row.detail != "": Label { x: 0px; y: 23px; width: root.left-width - 8px; height: 18px; text: row.detail; horizontal-alignment: left; font-size: 12px; color: Palette.muted; }
+        Label { x: root.left-width; width: root.cell-width - 4px; height: 44px; text: row.first; font-size: 13px; vertical-alignment: center; horizontal-alignment: right; }
+        Label { x: root.left-width + root.cell-width; width: root.cell-width - 4px; height: 44px; text: row.second; font-size: 13px; vertical-alignment: center; horizontal-alignment: right; }
+        touch := TouchArea { enabled: row.target != ""; accessible-role: button; accessible-label: row.name; clicked => { root.selected(row.target); } }
+    }
+}

@@ -1,5 +1,6 @@
 //! Native feature contracts. Browser fixtures are never request bodies.
 pub mod controller;
+mod demo;
 mod esim;
 mod forwarding;
 mod history;
@@ -13,6 +14,8 @@ mod scheduler;
 mod services;
 mod settings;
 mod status;
+mod telemetry;
+mod visual;
 pub(crate) mod wifi_share;
 pub use refresh::{manual_refresh, poll_seconds};
 
@@ -295,6 +298,9 @@ pub struct Page {
     pub qr_caption: String,
     pub content: String,
     pub rows: Vec<(String, String)>,
+    pub charts: Vec<telemetry::Chart>,
+    pub table: visual::Table,
+    pub meters: Vec<visual::Meter>,
     pub fields: Vec<Field>,
     pub items: Vec<Item>,
     pub actions: Vec<Action>,
@@ -416,6 +422,8 @@ pub fn reads(id: &str) -> Option<Vec<Read>> {
 }
 pub fn page(id: &str, readings: &Data) -> Page {
     let mut result = feature_page(id, readings);
+    result.charts = telemetry::charts(id, readings);
+    visual::apply(id, readings, &mut result);
     if let Some(reads) = reads(id)
         && !reads.is_empty()
         && !reads.iter().any(|read| {

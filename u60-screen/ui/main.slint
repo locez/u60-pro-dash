@@ -3,11 +3,12 @@ import { LockScreen, PinPad } from "lock.slint";
 import { TextEditor } from "editor.slint";
 import { StatusBar } from "status.slint";
 import { WifiCard } from "wifi.slint";
+import { Reading, Trend, TrendPlot, Meter, DataRow, ReadingTable, TrendCard, MeterGrid, DataTable } from "data.slint";
 import "../assets/U60Sans.ttf";
 import "../assets/U60Hangul.ttf";
 export { Palette }
 export struct MenuEntry { id: string, title: string, subtitle: string, tag: string }
-export struct Reading { label: string, value: string }
+export { Reading, Trend, TrendPlot, Meter, DataRow }
 export struct FeatureAction { id: string, label: string, enabled: bool }
 export struct FeatureInput { index: int, title: string, subtitle: string, tag: string }
 
@@ -25,6 +26,13 @@ export component Screen inherits Window {
     in-out property <bool> can-back: false;
     in-out property <[MenuEntry]> entries;
     in-out property <[Reading]> readings;
+    in-out property <[Trend]> trends;
+    in-out property <[Meter]> meters;
+    in-out property <[DataRow]> data-rows;
+    in-out property <string> data-name;
+    in-out property <string> data-first;
+    in-out property <string> data-second;
+    in-out property <bool> data-replaces-items;
     in-out property <[string]> actions;
     in-out property <[FeatureInput]> feature-fields;
     in-out property <[FeatureAction]> feature-actions;
@@ -33,7 +41,7 @@ export component Screen inherits Window {
     in-out property <bool> feature-refreshing;
     in-out property <length> content-offset <=> scroll.content-y;
     out property <length> feature-list-top;
-    out property <length> feature-entry-step: 76px;
+    out property <length> feature-entry-step: root.data-replaces-items ? 44px : 76px;
     in-out property <string> feature-notice;
     in-out property <image> feature-qr;
     in-out property <string> feature-qr-caption;
@@ -252,14 +260,7 @@ export component Screen inherits Window {
                 if root.view == 2: VerticalLayout {
                     spacing: 10px;
                     if root.description != "": Label { text: root.description; color: Palette.muted; wrap: word-wrap; overflow: clip; }
-                    for reading in root.readings: Rectangle {
-                        background: Palette.surface; border-radius: 8px; min-height: 58px;
-                        VerticalLayout {
-                            padding: 12px; spacing: 4px;
-                            Label { text: reading.label; font-size: 13px; color: Palette.muted; }
-                            Label { text: reading.value; font-size: 14px; wrap: word-wrap; overflow: clip; }
-                        }
-                    }
+                    if root.readings.length > 0: ReadingTable { rows: root.readings; }
                     for entry in root.entries: MenuRow { title: entry.title; subtitle: entry.subtitle; tag: entry.tag; clicked => { root.open(entry.id); } }
                     if root.note != "": Label { text: root.note; color: Palette.muted; font-size: 12px; wrap: word-wrap; overflow: clip; }
                     for action[index] in root.actions: TapButton { text: action; clicked => { root.action(index); } }
@@ -319,14 +320,7 @@ export component Screen inherits Window {
                         }
                     }
                     if !root.demo: MenuRow { title: @tr("检测目标"); subtitle: root.probe-target == "" ? @tr("设置目标 IP 和端口") : root.probe-target; clicked => { root.edit("probe-target"); } }
-                    for row in root.tailnet-readings: Rectangle {
-                        min-height: 64px; background: Palette.surface; border-radius: 8px;
-                        VerticalLayout {
-                            padding: 12px; spacing: 4px;
-                            Label { text: row.label; color: Palette.muted; font-size: 13px; }
-                            Label { text: row.value; wrap: word-wrap; overflow: clip; }
-                        }
-                    }
+                    if root.tailnet-readings.length > 0: ReadingTable { rows: root.tailnet-readings; }
                     if root.demo: TapButton { text: @tr("切换演示场景"); clicked => { root.scenario(); } }
                     if !root.demo: TapButton { text: @tr("刷新连接状态"); clicked => { root.refresh(); } }
                     Label { text: root.demo ? @tr("当前读数为演示数据。") : root.probe-note; color: Palette.muted; font-size: 13px; wrap: word-wrap; }
@@ -350,7 +344,7 @@ export component Screen inherits Window {
                 }
                 if root.view == 7: feature-page := VerticalLayout {
                     property <length> list-top: self.y + feature-list.y;
-                    changed list-top => { root.feature-list-top = self.list-top; }
+                    changed list-top => { if !root.data-replaces-items { root.feature-list-top = self.list-top; } }
                     spacing: 8px;
                     if root.feature-notice != "": Label { text: root.feature-notice; color: Palette.warning; wrap: word-wrap; overflow: clip; font-size: 14px; }
                     if root.feature-has-qr && root.feature-qr-caption != "": Label {
@@ -360,14 +354,19 @@ export component Screen inherits Window {
                         alignment: center;
                         Image { source: root.feature-qr; width: 256px; height: 256px; image-fit: contain; horizontal-stretch: 0; }
                     }
-                    for row in root.readings: Rectangle {
-                        min-height: 62px; background: Palette.surface; border-radius: 8px;
-                        VerticalLayout {
-                            padding: 12px; spacing: 4px;
-                            Label { text: row.label; color: Palette.muted; font-size: 13px; }
-                            Label { text: row.value; wrap: word-wrap; overflow: clip; }
-                        }
+                    for trend[index] in root.trends: VerticalLayout {
+                        spacing: 8px;
+                        TrendCard { data: trend; }
+                        if index == 0 && root.meters.length > 0: MeterGrid { rows: root.meters; }
                     }
+                    if root.trends.length == 0 && root.meters.length > 0: MeterGrid { rows: root.meters; }
+                    if root.data-rows.length > 0: data-table := DataTable {
+                        rows: root.data-rows; name: root.data-name; first: root.data-first; second: root.data-second;
+                        property <length> list-top: feature-page.y + self.y + 38px;
+                        changed list-top => { if root.data-replaces-items { root.feature-list-top = self.list-top; } }
+                        selected(target) => { root.open("feature-item:" + target); }
+                    }
+                    if root.readings.length > 0: ReadingTable { rows: root.readings; }
                     if root.feature-content != "": Rectangle {
                         background: Palette.surface; border-radius: 8px;
                         VerticalLayout { padding: 12px; Label { text: root.feature-content; font-size: 16px; wrap: word-wrap; overflow: clip; } }
@@ -378,13 +377,17 @@ export component Screen inherits Window {
                     }
                     feature-list := VerticalLayout {
                         spacing: 8px;
-                        for entry in root.entries: MenuRow { title: entry.title; subtitle: entry.subtitle; tag: entry.tag; clicked => { root.open(entry.id); } }
+                        if !root.data-replaces-items: VerticalLayout {
+                            spacing: 8px;
+                            for entry in root.entries: MenuRow { title: entry.title; subtitle: entry.subtitle; tag: entry.tag; clicked => { root.open(entry.id); } }
+                        }
                     }
                     for action[index] in root.feature-actions: TapButton {
                         text: action.label; interactive: action.enabled && !root.feature-busy;
                         clicked => { root.feature-action(index); }
                     }
                     if root.feature-can-refresh: TapButton { text: @tr("刷新状态"); interactive: !root.feature-refreshing; clicked => { root.feature-refresh(); } }
+                    if root.trends.length > 0: Label { text: @tr("本页最近 2 分钟的观察记录；断线或暂停处留空。"); font-size: 12px; color: Palette.muted; wrap: word-wrap; }
                     if root.note != "": Label { text: root.note; font-size: 13px; color: Palette.muted; wrap: word-wrap; overflow: clip; }
                 }
             }

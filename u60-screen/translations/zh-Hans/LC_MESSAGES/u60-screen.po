@@ -20,6 +20,9 @@ msgstr "U60   →   Tailscale   →   目标"
 msgid "U60 · 原生屏幕预览"
 msgstr "U60 · 原生屏幕预览"
 
+msgid "−2 分钟"
+msgstr "−2 分钟"
+
 msgid "信号强度"
 msgstr "信号强度"
 
@@ -83,6 +86,9 @@ msgstr "应用"
 msgid "强调色"
 msgstr "强调色"
 
+msgid "当前"
+msgstr "当前"
+
 msgid "当前读数为演示数据。"
 msgstr "当前读数为演示数据。"
 
@@ -104,11 +110,17 @@ msgstr "明暗、配色与亮度即时生效。"
 msgid "显示密码"
 msgstr "显示密码"
 
+msgid "暂无有效读数"
+msgstr "暂无有效读数"
+
 msgid "未开启 · 仅长按解锁"
 msgstr "未开启 · 仅长按解锁"
 
 msgid "本次 "
 msgstr "本次 "
+
+msgid "本页最近 2 分钟的观察记录；断线或暂停处留空。"
+msgstr "本页最近 2 分钟的观察记录；断线或暂停处留空。"
 
 msgid "机身屏幕使用本机后台账号连接。也可以输入后台密码重新登录。"
 msgstr "机身屏幕使用本机后台账号连接。也可以输入后台密码重新登录。"
@@ -124,6 +136,9 @@ msgstr "检测目标"
 
 msgid "概览"
 msgstr "概览"
+
+msgid "正在积累趋势"
+msgstr "正在积累趋势"
 
 msgid "正在读取 Wi-Fi…"
 msgstr "正在读取 Wi-Fi…"
