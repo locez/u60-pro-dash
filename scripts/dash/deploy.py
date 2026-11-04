@@ -21,7 +21,10 @@ FILES = ("zte-agent", "u60-screen", "service.sh", "manage.sh")
 MARKER = "__U60_DASH_RC__"
 # Audited predecessor: same release/lock/recovery protocol; only the exporter
 # fallback changes. Unknown or locally modified managers still require restore.
-COMPATIBLE_MANAGERS = {"e8e7bc1d9c6167686b6f0f4669eae81e903d3f1fe7dec73ac14923ab1694299d"}
+COMPATIBLE_MANAGERS = {
+    "e8e7bc1d9c6167686b6f0f4669eae81e903d3f1fe7dec73ac14923ab1694299d",
+    "152743cd07d21704f57cc27d03126e35c7d8e4dc71f2c9ce7922c135fc674dcb",
+}
 
 class Failure(RuntimeError):
     pass

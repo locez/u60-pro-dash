@@ -74,7 +74,7 @@ int main(int argc,char**argv){
  char root[512];snprintf(root,sizeof root,"%s",getenv("TEST_ROOT"));
  if(argc>1&&!strcmp(argv[1],"--version")){puts("example 1.0");return 0;}
  if(argc>1&&!strcmp(argv[1],"dash-export-env")){if(getenv("TEST_LEGACY_EXPORT")&&strstr(argv[0],"/one/"))return 1;writefile(root,"agent.env","export ZTE_AGENT_PASSWORD='example-only'\n");writefile(root,"health.json","{}");return 0;}
- if(argc>1&&!strcmp(argv[1],"dash-health"))return getenv("TEST_BAD_HEALTH")?1:0;
+ if(argc>1&&!strcmp(argv[1],"dash-health")){if(getenv("TEST_BAD_HEALTH")){fputs("fixture hotspot tunnel not ready\n",stderr);return 1;}return 0;}
  if(argc>1&&!strcmp(argv[1],"dash-wait-ready"))return getenv("TEST_BAD_READY")?1:0;
  if(argc>1&&!strcmp(argv[1],"dash-prepare-network"))return 0;
  if(argc>1&&!strcmp(argv[1],"--probe-agent"))return getenv("TEST_BAD_PROBE")?1:0;
@@ -157,7 +157,17 @@ int main(int argc,char**argv){
         self.release('one');self.manage('install','one');self.installed('one')
         self.release('two');r=self.manage('install','two',env={**self.env,'TEST_BAD_HEALTH':'1'});self.assertEqual(r.returncode,0,r.stdout+r.stderr)
         self.installed('one')
-        self.assertIn('was rolled back',self.manage('status').stdout)
+        status=self.manage('status').stdout
+        self.assertIn('was rolled back',status)
+        self.assertIn('fixture hotspot tunnel not ready',status)
+        self.assertIn('Required network services did not recover',status)
+        evidence=self.root/'last-failure'
+        self.assertEqual((evidence/'release').read_text().strip(),'two')
+        self.assertIn('fixture hotspot tunnel not ready',(evidence/'health.log').read_text())
+        self.assertIn('first frame submitted',(evidence/'screen.log').read_text())
+        self.assertFalse((self.root/'last-error').exists())
+        self.assertEqual(evidence.stat().st_mode & 0o777,0o700)
+        self.assertTrue(all(p.stat().st_size<=65536 for p in evidence.iterdir()))
     def test_frozen_screen_loop_restores_vendor(self):
         self.release('one');self.manage('install','one');self.installed('one')
         agent_pid=int((self.run/'agent').read_text())

@@ -101,6 +101,16 @@ recover_pending() {
     [ -s "$ROOT/pending" ] || return 0
     candidate=$(sed -n '1p' "$ROOT/pending")
     previous=$(sed -n '2p' "$ROOT/pending")
+    # The previous service truncates its live logs on launch. Keep bounded,
+    # private failure evidence before it can overwrite the candidate's cause.
+    rm -rf "$ROOT/last-failure.next"
+    mkdir "$ROOT/last-failure.next"
+    printf '%s\n' "$candidate" > "$ROOT/last-failure.next/release"
+    for name in last-error health.log probe.log screen.log agent.log service.log health.json; do
+        if [ -f "$ROOT/$name" ]; then tail -c 65536 "$ROOT/$name" > "$ROOT/last-failure.next/$name"; fi
+    done
+    rm -rf "$ROOT/last-failure"
+    mv "$ROOT/last-failure.next" "$ROOT/last-failure"
     if [ "$previous" = none ]; then
         restore_original
     else
@@ -109,7 +119,12 @@ recover_pending() {
         rm -f "$ROOT/pending"
         launch
     fi
-    echo "Candidate $candidate was rolled back." > "$ROOT/last-result"
+    {
+        echo "Candidate $candidate was rolled back."
+        if [ -s "$ROOT/last-failure/last-error" ]; then cat "$ROOT/last-failure/last-error"; fi
+        if [ -s "$ROOT/last-failure/health.log" ]; then tail -c 2048 "$ROOT/last-failure/health.log"; fi
+        echo 'Candidate diagnostics preserved in /data/u60-dash/last-failure/.'
+    } > "$ROOT/last-result"
 }
 prepare_original() {
     if [ -d "$ROOT/original" ]; then
