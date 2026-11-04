@@ -1061,6 +1061,7 @@ impl App {
     pub fn new(prefs: Preferences, prefs_path: Option<PathBuf>) -> Result<Self> {
         crate::i18n::select(prefs.language);
         let ui = Screen::new()?;
+        crate::material::install(&ui)?;
         slint::select_bundled_translation(prefs.language.code())?;
         let state = Rc::new(RefCell::new(State {
             agent: None,

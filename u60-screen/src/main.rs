@@ -6,6 +6,7 @@ mod config;
 mod device;
 mod features;
 mod i18n;
+mod material;
 mod platform;
 mod security;
 mod ui_model;

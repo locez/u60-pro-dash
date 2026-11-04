@@ -11,6 +11,8 @@ export global Palette {
     out property <color> rim: dark ? #ffffff18 : #1b202814;
     out property <color> sheen: dark ? #ffffff45 : #ffffff;
     out property <color> glass: dark ? #181818f8 : #fffffff8;
+    in-out property <image> material-light;
+    in-out property <image> material-dark;
     in-out property <color> accent-on: #ffffff;
     out property <color> good: dark ? #95d8a8 : #1f713e;
     out property <color> warning: dark ? #efbf78 : #925d12;
@@ -22,7 +24,7 @@ export component AmbientBackground inherits Rectangle {
     background: Palette.bg;
     Image {
         x: 0px; y: 0px; width: 320px; height: 180px;
-        source: Palette.dark ? @image-url("../assets/material-dark.png") : @image-url("../assets/material-light.png");
+        source: Palette.dark ? Palette.material-dark : Palette.material-light;
     }
 }
 

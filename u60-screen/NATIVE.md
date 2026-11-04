@@ -157,6 +157,7 @@ adb shell /etc/init.d/zte_topsw_devui start
 | `ui/components.slint` | 配色、小屏按钮、列表、亮度控件 |
 | `src/app.rs` | 页面模型、演示状态、本地偏好与休眠计时 |
 | `src/platform.rs` | 无窗口与设备共用的 Slint 软件平台、PNG 输出 |
+| `src/material.rs` | 启动时解码内嵌静态材质，供所有面板共享 |
 | `src/device/display.rs` | 枚举 DRM、RGB565 dumb buffer、按损坏区域复制和 DIRTYFB |
 | `src/device/input.rs` | evdev 触摸、MT 槽位、坐标校准、事件丢失取消、电源键 |
 | `src/device/mod.rs` | 设备事件循环、背光、信号退出和试运行期限 |
