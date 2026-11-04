@@ -291,6 +291,13 @@ mod tests {
             });
         };
         assert!(app.ui.get_locked());
+        app.ui
+            .set_message("Private content beneath the lock".into());
+        assert!(
+            initial == platform::capture(&window, false),
+            "the lock surface must fully cover underlying content"
+        );
+        app.ui.set_message("".into());
         app.ui.invoke_set_language("en".into());
         assert_eq!(
             app.ui.get_language(),
@@ -780,6 +787,44 @@ mod tests {
             } else {
                 "overview-wifi-light.png"
             })?;
+            let mut pixels = platform::capture(&window, false);
+            let mut render_area = || {
+                let mut area = 0u32;
+                window.draw_if_needed(|renderer| {
+                    area = renderer
+                        .render(&mut pixels, 320)
+                        .iter()
+                        .map(|(_, size)| size.width * size.height)
+                        .sum();
+                });
+                area
+            };
+            // capture() switches from a fresh screenshot buffer back to the
+            // reused device buffer. Consume that one full invalidation first.
+            window.request_redraw();
+            render_area();
+            for _ in 0..3 {
+                std::thread::sleep(std::time::Duration::from_millis(210));
+                slint::platform::update_timers_and_animations();
+                assert!(
+                    !app.ui.window().has_active_animations(),
+                    "material layers must be static"
+                );
+                assert_eq!(
+                    render_area(),
+                    0,
+                    "idle surfaces must not repaint on app ticks"
+                );
+            }
+            app.ui.set_download("128.5".into());
+            let area = render_area();
+            eprintln!("material render: dark={dark}, idle=0, speed update={area} pixels");
+            assert!(
+                area > 0 && area < 320 * 100,
+                "one speed update must stay local"
+            );
+            app.ui.set_download("128.6".into());
+            render_area();
         }
         for code in ["en", "zh-Hant", "ja", "ko", "zh-Hans"] {
             app.ui.invoke_set_language(code.into());

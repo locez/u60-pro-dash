@@ -1,4 +1,4 @@
-import { Palette, Label, TapButton, MenuRow, Stat, Brightness, TrafficPanel } from "components.slint";
+import { Palette, Label, TapButton, MenuRow, Stat, Brightness, TrafficPanel, AmbientBackground, GlassPanel, NavigationIcon } from "components.slint";
 import { LockScreen, PinPad } from "lock.slint";
 import { TextEditor } from "editor.slint";
 import { StatusBar } from "status.slint";
@@ -162,6 +162,7 @@ export component Screen inherits Window {
     changed editor-visible => { if !root.editor-visible { focus.focus(); } }
     focus := FocusScope {
         width: parent.width; height: parent.height;
+        AmbientBackground { width: parent.width; height: parent.height; }
         key-pressed(event) => {
             root.activity();
             if root.pin-visible {
@@ -240,8 +241,8 @@ export component Screen inherits Window {
                     toggle-password => { root.wifi-toggle-password(); }
                     switch-band => { root.wifi-switch-band(); }
                 }
-                if root.view == 0: Rectangle {
-                    height: 86px; border-radius: 10px; background: Palette.surface;
+                if root.view == 0: GlassPanel {
+                    height: 86px;
                     HorizontalLayout {
                         padding: 14px; spacing: 8px;
                         VerticalLayout {
@@ -392,32 +393,33 @@ export component Screen inherits Window {
                 }
             }
         }
-        Rectangle {
-            y: 424px; height: 56px; width: parent.width; background: Palette.surface;
-            Rectangle { x: 0px; y: 0px; height: 1px; width: parent.width; background: Palette.line; }
+        GlassPanel {
+            x: 8px; y: 426px; height: 50px; width: parent.width - 16px;
+            translucent: true; border-radius: 17px;
             HorizontalLayout {
                 for name[index] in [@tr("概览"), @tr("网络"), @tr("应用"), @tr("设备")]: Rectangle {
-                    width: 80px;
-                    VerticalLayout {
-                        padding-top: 8px; padding-bottom: 8px; spacing: 2px;
-                        Label { text: "0" + (index + 1); height: 16px; color: root.tab == index ? Palette.accent-ink : Palette.muted; font-size: 12px; horizontal-alignment: center; }
-                        Label { text: name; height: 20px; color: root.tab == index ? Palette.accent-ink : Palette.muted; font-size: root.language == "ja" ? 13px : 14px; font-weight: root.tab == index ? 650 : 500; horizontal-alignment: center; }
+                    width: 76px;
+                    if root.tab == index: Rectangle {
+                        x: 5px; y: 4px; width: 66px; height: 42px; border-radius: 13px;
+                        background: Palette.accent.with-alpha(Palette.dark ? 0.18 : 0.09);
+                        border-width: 1px; border-color: Palette.accent.with-alpha(0.2);
                     }
-                    if root.tab == index: Rectangle { x: (parent.width - 18px) / 2; y: 0px; height: 2px; width: 18px; background: Palette.accent; }
+                    NavigationIcon { x: 28px; y: 6px; kind: index; selected: root.tab == index; }
+                    Label { x: 0px; y: 27px; width: parent.width; height: 19px; text: name; color: root.tab == index ? Palette.text : Palette.muted; font-size: root.language == "ja" ? 12px : 13px; font-weight: root.tab == index ? 650 : 500; horizontal-alignment: center; }
                     TouchArea { clicked => { root.navigate(index); } }
                 }
             }
         }
-        if root.wifi-expanded && root.home-wifi-ready: Rectangle {
-            y: 28px; width: parent.width; height: parent.height - 28px; background: Palette.bg;
+        if root.wifi-expanded && root.home-wifi-ready: AmbientBackground {
+            y: 28px; width: parent.width; height: parent.height - 28px;
             TouchArea { }
             Label { x: 16px; y: 12px; width: 288px; height: 48px; text: root.home-wifi-name; font-size: 18px; font-weight: 600; wrap: char-wrap; horizontal-alignment: center; vertical-alignment: center; }
             Label { x: 16px; y: 65px; width: 288px; text: root.home-wifi-band; font-size: 13px; color: Palette.muted; horizontal-alignment: center; }
             Image { x: 32px; y: 96px; width: 256px; height: 256px; source: root.home-wifi-qr-large; image-fit: contain; }
             TapButton { x: 16px; y: 392px; width: 288px; height: 44px; text: @tr("返回"); clicked => { root.wifi-close(); } }
         }
-        if root.choice-visible: Rectangle {
-            width: parent.width; height: parent.height; background: Palette.bg;
+        if root.choice-visible: AmbientBackground {
+            width: parent.width; height: parent.height;
             TouchArea { }
             Label { x: 12px; y: 12px; width: 296px; height: 36px; text: root.choice-title; font-size: 22px; font-weight: 650; }
             Flickable {
@@ -429,14 +431,16 @@ export component Screen inherits Window {
             }
             TapButton { x: 12px; y: 424px; width: 296px; height: 44px; text: @tr("取消"); clicked => { root.choice-cancel(); } }
         }
-        if root.confirm-visible: Rectangle {
-            width: parent.width; height: parent.height; background: Palette.bg;
+        if root.confirm-visible: AmbientBackground {
+            width: parent.width; height: parent.height;
             TouchArea { }
-            Label { x: 12px; y: 12px; width: 296px; height: 36px; text: @tr("确认操作"); font-size: 22px; font-weight: 650; }
+            GlassPanel { x: 8px; y: 8px; width: 304px; height: 406px; }
+            Rectangle { x: 20px; y: 20px; width: 3px; height: 20px; border-radius: 1.5px; background: Palette.accent; }
+            Label { x: 32px; y: 12px; width: 264px; height: 36px; text: @tr("确认操作"); font-size: 22px; font-weight: 650; }
             Flickable {
-                x: 12px; y: 58px; width: 296px; height: root.confirm-phrase == "" ? 348px : 280px;
+                x: 20px; y: 58px; width: 280px; height: root.confirm-phrase == "" ? 340px : 280px;
                 content-width: self.width; content-height: confirmation-text.height;
-                confirmation-text := Label { width: 296px; text: root.confirm-body; wrap: word-wrap; overflow: clip; font-size: 16px; }
+                confirmation-text := Label { width: 280px; text: root.confirm-body; wrap: word-wrap; overflow: clip; font-size: 16px; }
             }
             if root.confirm-phrase != "": MenuRow {
                 x: 12px; y: 342px; width: 296px;
@@ -452,9 +456,9 @@ export component Screen inherits Window {
         if root.message != "": Rectangle {
             width: parent.width; height: parent.height; background: #000000a0;
             TouchArea { }
-            Rectangle {
+            GlassPanel {
                 x: 16px; y: (parent.height - self.height) / 2; width: 288px;
-                background: Palette.surface; border-radius: 12px;
+                border-radius: 18px;
                 VerticalLayout {
                     padding: 18px; spacing: 16px;
                     Label { text: @tr("提示"); font-size: 20px; font-weight: 600; }

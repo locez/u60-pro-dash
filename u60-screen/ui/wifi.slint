@@ -1,6 +1,6 @@
-import { Palette, Label } from "components.slint";
+import { Palette, Label, GlassPanel } from "components.slint";
 
-export component WifiCard inherits Rectangle {
+export component WifiCard inherits GlassPanel {
     in property <image> qr;
     in property <bool> ready;
     in property <string> ssid;
@@ -15,7 +15,6 @@ export component WifiCard inherits Rectangle {
     callback switch-band;
     height: max(164px, password-row.y + password-row.height + 32px);
     min-width: 296px; horizontal-stretch: 1; vertical-stretch: 0;
-    background: Palette.surface; border-radius: 10px;
     Rectangle {
         x: 8px; y: 8px; width: 148px; height: 148px;
         background: root.ready ? #ffffff : Palette.bg;

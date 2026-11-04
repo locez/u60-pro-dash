@@ -1,8 +1,8 @@
-import { Palette, Label, TapButton } from "components.slint";
+import { Palette, Label, TapButton, AmbientBackground } from "components.slint";
 
 // The same editor works with touch and a desktop keyboard. Touch keys are
 // dispatched to TextInput, preserving its cursor and selection behavior.
-export component TextEditor inherits Rectangle {
+export component TextEditor inherits AmbientBackground {
     in property <string> title;
     in property <string> hint;
     in property <string> error;
