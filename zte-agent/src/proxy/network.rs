@@ -3,6 +3,54 @@
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
+const TUN_DEVICE: &str = "/sys/class/net/u60proxy0";
+
+fn tunnel_ready(device: &std::path::Path) -> Result<bool, String> {
+    let flags = |name| -> Result<Option<u32>, String> {
+        match std::fs::read_to_string(device.join(name)) {
+            Ok(value) => u32::from_str_radix(value.trim().trim_start_matches("0x"), 16)
+                .map(Some)
+                .map_err(|_| "Cannot read proxy tunnel flags".into()),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+            Err(_) => Err("Cannot inspect proxy tunnel".into()),
+        }
+    };
+    // TUN appears asynchronously after the controller accepts requests. A
+    // present but still-down interface is not ready to carry hotspot traffic.
+    Ok(
+        flags("tun_flags")?.is_some_and(|flags| flags & libc::IFF_TUN as u32 != 0)
+            && flags("flags")?.is_some_and(|flags| flags & libc::IFF_UP as u32 != 0),
+    )
+}
+
+fn wait_tunnel_at(
+    device: &std::path::Path,
+    timeout: Duration,
+    mut alive: impl FnMut() -> bool,
+) -> Result<(), String> {
+    let deadline = Instant::now() + timeout;
+    loop {
+        if !alive() {
+            return Err("Proxy engine stopped before its tunnel became ready".into());
+        }
+        if tunnel_ready(device)? {
+            return Ok(());
+        }
+        if Instant::now() >= deadline {
+            return Err("Proxy tunnel u60proxy0 did not become ready within 20 seconds; inspect the service logs".into());
+        }
+        std::thread::sleep(Duration::from_millis(100));
+    }
+}
+
+pub fn wait_tunnel(alive: impl FnMut() -> bool) -> Result<(), String> {
+    wait_tunnel_at(
+        std::path::Path::new(TUN_DEVICE),
+        Duration::from_secs(20),
+        alive,
+    )
+}
+
 // The service lease is inherited by both agent and supervisor. A separate
 // independently opened flock serializes their network changes with each other.
 pub fn locked<T>(
@@ -152,6 +200,9 @@ fn fw(tool: &str, table: &str, args: &[&str]) -> Result<(), String> {
 }
 
 pub fn preflight() -> Result<(), String> {
+    if std::path::Path::new(TUN_DEVICE).exists() {
+        return Err("Proxy tunnel u60proxy0 is already in use".into());
+    }
     for (family, tool) in [("-4", "iptables"), ("-6", "ip6tables")] {
         let output = Command::new("ip")
             .args([family, "route", "show", "table", TABLE])
@@ -351,6 +402,9 @@ pub fn prepare() -> Result<(), String> {
 }
 
 pub fn activate() -> Result<(), String> {
+    if !tunnel_ready(std::path::Path::new(TUN_DEVICE))? {
+        return Err("Proxy tunnel u60proxy0 is not ready; routing was not activated".into());
+    }
     for family in ["-4", "-6"] {
         ip(
             family,
@@ -391,6 +445,40 @@ pub fn disable() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn delayed_tunnel_must_be_up_before_hotspot_routes_can_be_activated() {
+        let root = std::env::temp_dir().join(format!("u60-tunnel-ready-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let (send, receive) = std::sync::mpsc::channel();
+        let device = root.clone();
+        let waiter = std::thread::spawn(move || {
+            send.send(wait_tunnel_at(&device, Duration::from_secs(3), || true))
+                .unwrap();
+        });
+        // A responsive controller does not imply that the interface exists.
+        assert!(receive.recv_timeout(Duration::from_millis(150)).is_err());
+        std::fs::create_dir_all(&root).unwrap();
+        std::fs::write(root.join("tun_flags"), "0x1001\n").unwrap();
+        std::fs::write(root.join("flags"), "0x1000\n").unwrap();
+        assert!(receive.recv_timeout(Duration::from_millis(150)).is_err());
+        std::fs::write(root.join("flags"), "0x1001\n").unwrap();
+        receive
+            .recv_timeout(Duration::from_secs(2))
+            .unwrap()
+            .unwrap();
+        waiter.join().unwrap();
+        assert!(wait_tunnel_at(&root, Duration::ZERO, || false)
+            .unwrap_err()
+            .contains("stopped"));
+        std::fs::remove_file(root.join("flags")).unwrap();
+        assert!(wait_tunnel_at(&root, Duration::ZERO, || true)
+            .unwrap_err()
+            .contains("did not become ready"));
+        std::fs::write(root.join("flags"), "0x1001\n").unwrap();
+        std::fs::write(root.join("tun_flags"), "0x1002\n").unwrap();
+        assert!(!tunnel_ready(&root).unwrap());
+        std::fs::remove_dir_all(root).unwrap();
+    }
     #[test]
     fn local_dns_addresses_are_normalized_deduplicated_and_family_specific() {
         let addresses = br#"[{"addr_info":[{"local":"127.0.0.1"},{"local":"192.0.2.1"},{"local":"192.0.2.1"},{"local":"2001:db8::1"},{"local":"fe80::1"},{"local":"::1"},{"local":"bad; command"}]}]"#;

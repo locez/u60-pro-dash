@@ -348,11 +348,23 @@ impl MihomoService {
         let result = if !ready {
             Err("Proxy controller did not become ready".into())
         } else if settings.capture == "hotspot" {
-            network::locked(&self.root, || {
-                if !self.root.join("capture-owned").exists() {
-                    return Err("Proxy engine stopped during startup".into());
-                }
-                network::activate()
+            // Controller readiness precedes asynchronous TUN creation. Wait
+            // outside the network lock so an exited engine can finish cleanup.
+            network::wait_tunnel(|| {
+                self.runtime
+                    .lock()
+                    .unwrap()
+                    .child
+                    .as_mut()
+                    .is_some_and(|child| matches!(child.try_wait(), Ok(None)))
+            })
+            .and_then(|()| {
+                network::locked(&self.root, || {
+                    if !self.root.join("capture-owned").exists() {
+                        return Err("Proxy engine stopped during startup".into());
+                    }
+                    network::activate()
+                })
             })
             .map(|()| self.runtime.lock().unwrap().capturing = true)
         } else {

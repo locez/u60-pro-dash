@@ -118,7 +118,7 @@ fn export_environment() -> Result<(), String> {
     let tailscale = read_status(&client, &address, &token, "/api/tailscale/status")?;
     let proxy = read_status(&client, &address, &token, "/api/proxy/status")
         .unwrap_or(serde_json::Value::Null);
-    let required = serde_json::json!({"tailscale":tailscale["healthy"]==true,"gateway":tailscale["gateway_mode"]==true,"proxy":proxy["running"]==true});
+    let required = service_baseline(&tailscale, &proxy);
     crate::ota::storage::atomic_write(
         &root.join("health.json"),
         &serde_json::to_vec(&required).unwrap(),
@@ -196,6 +196,37 @@ fn read_status(
     }
     Ok(v["data"].clone())
 }
+
+fn service_baseline(tailscale: &serde_json::Value, proxy: &serde_json::Value) -> serde_json::Value {
+    serde_json::json!({
+        "tailscale": tailscale["healthy"] == true,
+        "gateway": tailscale["gateway_mode"] == true,
+        // A failed start must not erase the user's persistent service intent
+        // when exporting the next upgrade's baseline.
+        "proxy": proxy["running"] == true || proxy["enabled"] == true,
+        "proxy_capture": proxy["capture"]
+    })
+}
+
+fn proxy_health(required: &serde_json::Value, proxy: &serde_json::Value) -> Result<(), String> {
+    if required["proxy"] != true {
+        return Ok(());
+    }
+    if proxy["running"] == true
+        && (required["proxy_capture"] != "hotspot" || proxy["capturing"] == true)
+    {
+        return Ok(());
+    }
+    let mut message = "Waiting for existing proxy service".to_string();
+    if let Some(error) = proxy["last_error"].as_str().filter(|s| !s.is_empty()) {
+        message.push_str(": ");
+        message.extend(error.chars().filter(|c| !c.is_control()).take(800));
+    } else if required["proxy_capture"] == "hotspot" {
+        message.push_str(": hotspot routing is not ready");
+    }
+    Err(message)
+}
+
 fn health() -> Result<(), String> {
     let required: serde_json::Value = serde_json::from_slice(
         &fs::read("/data/u60-dash/health.json")
@@ -216,10 +247,7 @@ fn health() -> Result<(), String> {
         return Err("Waiting for existing Tailscale connectivity and mode".into());
     }
     let proxy = read_status(&client, &address, &token, "/api/proxy/status")?;
-    if required["proxy"] == true && proxy["running"] != true {
-        return Err("Waiting for existing proxy service".into());
-    }
-    Ok(())
+    proxy_health(&required, &proxy)
 }
 pub fn health_cli() -> i32 {
     match health() {
@@ -319,6 +347,30 @@ pub fn cli() -> i32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn enabled_hotspot_service_remains_required_after_a_failed_start() {
+        use serde_json::json;
+        let required = service_baseline(
+            &json!({"healthy":true,"gateway_mode":true}),
+            &json!({"enabled":true,"running":false,"capture":"hotspot"}),
+        );
+        assert_eq!(required["proxy"], true);
+        assert!(proxy_health(&required, &json!({"running":true,"capturing":false})).is_err());
+        assert!(proxy_health(&required, &json!({"running":true,"capturing":true})).is_ok());
+        let error = proxy_health(
+            &required,
+            &json!({"running":false,"last_error":"Tunnel not ready\n"}),
+        )
+        .unwrap_err();
+        assert!(error.ends_with("Tunnel not ready"));
+        assert!(!error.contains('\n'));
+        assert!(proxy_health(&json!({"proxy":true}), &json!({"running":true})).is_ok());
+        assert!(proxy_health(&json!({"proxy":false}), &json!({"running":false})).is_ok());
+        assert_eq!(
+            service_baseline(&json!({}), &json!({"enabled":false,"running":false}))["proxy"],
+            false
+        );
+    }
     #[test]
     fn environment_values_remain_literal_shell_data() {
         let value = "example ' quoted $HOME `false`\nsecond line";
