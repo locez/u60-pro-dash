@@ -1,5 +1,6 @@
 mod agent;
 mod app;
+mod carrier;
 mod config;
 #[cfg(feature = "device")]
 mod device;
@@ -700,6 +701,8 @@ mod tests {
         }
         for code in ["en", "zh-Hant", "ja", "ko", "zh-Hans"] {
             app.ui.invoke_set_language(code.into());
+            app.ui
+                .set_carrier_label(crate::carrier::label("China Mobile").into());
             app.wifi_fixture(home_data.clone());
             assert_eq!(app.ui.get_home_wifi_key(), "********");
             save(&format!("overview-wifi-{code}.png"))?;
@@ -738,6 +741,7 @@ mod tests {
             serde_json::json!("U60 Demo 5G");
         app.wifi_fixture(split);
         assert!(app.ui.get_home_wifi_switchable());
+        save("overview-wifi-separate-2g.png")?;
         app.ui.invoke_wifi_switch_band();
         assert_eq!(app.ui.get_home_wifi_name(), "U60 Demo 5G");
         save("overview-wifi-separate.png")?;

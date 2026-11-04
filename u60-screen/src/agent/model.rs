@@ -199,6 +199,7 @@ impl Dashboard {
                     .as_str()
                     .map(str::trim)
                     .filter(|name| !name.is_empty() && !matches!(*name, "—" | "--"))
+                    .map(crate::carrier::label)
                     .unwrap_or(crate::i18n::tr("运营商未提供"))
                     .into()
             },

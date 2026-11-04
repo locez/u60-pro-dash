@@ -138,6 +138,7 @@ pub(crate) struct HomeJoin {
     pub selection: &'static str,
     pub switchable: bool,
     pub protected: bool,
+    pub qr_version: u8,
 }
 /// One credential set identifies a network; Wi-Fi QR has no frequency field.
 /// Never pretend different names/passwords/security settings are one network.
@@ -145,6 +146,14 @@ pub(crate) fn home(readings: &Data, preferred: &str) -> Result<HomeJoin, &'stati
     let (a, b) = (network(readings, "2g"), network(readings, "5g"));
     let both = a.is_ok() && b.is_ok();
     let merged = matches!((&a,&b),(Ok(a),Ok(b)) if shared(readings,a,b));
+    // Match QR density across bands. Text length may change the required QR
+    // version, but switching bands must not change its apparent footprint.
+    let qr_version = [&a, &b]
+        .into_iter()
+        .filter_map(|n| n.as_ref().ok())
+        .filter_map(|n| super::qr_version(&n.payload()))
+        .max()
+        .unwrap_or(1);
     let (network, selection, band) = if merged {
         (a?, "dual", "2.4 + 5 GHz")
     } else if (preferred == "5g" && b.is_ok()) || a.is_err() && b.is_ok() {
@@ -160,6 +169,7 @@ pub(crate) fn home(readings: &Data, preferred: &str) -> Result<HomeJoin, &'stati
         selection,
         switchable: both && !merged,
         protected: network.auth != "nopass",
+        qr_version,
     })
 }
 
@@ -266,6 +276,10 @@ mod tests {
         let mut d = readings();
         assert!(home(&d, "2g").unwrap().switchable);
         assert_eq!(home(&d, "5g").unwrap().selection, "5g");
+        assert_eq!(
+            home(&d, "2g").unwrap().qr_version,
+            home(&d, "5g").unwrap().qr_version
+        );
         let wifi = d.get_mut("wifi").unwrap().as_mut().unwrap();
         for key in ["ssid", "key", "encryption", "hidden"] {
             wifi[format!("{key}_5g")] = wifi[format!("{key}_2g")].clone();

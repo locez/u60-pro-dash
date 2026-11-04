@@ -535,11 +535,29 @@ pub fn qr_image(value: &str) -> Option<slint::Image> {
     qr_image_sized(value, 256)
 }
 pub fn qr_image_sized(value: &str, size: u32) -> Option<slint::Image> {
+    qr_image_version(value, size, 1)
+}
+pub fn qr_version(value: &str) -> Option<u8> {
     use qrcodegen::{QrCode, QrCodeEcc};
+    (value.len() <= 2048)
+        .then(|| QrCode::encode_text(value, QrCodeEcc::Medium).ok())
+        .flatten()
+        .map(|qr| qr.version().value())
+}
+pub fn qr_image_version(value: &str, size: u32, min_version: u8) -> Option<slint::Image> {
+    use qrcodegen::{QrCode, QrCodeEcc, QrSegment, Version};
     if value.len() > 2048 {
         return None;
     }
-    let qr = QrCode::encode_text(value, QrCodeEcc::Medium).ok()?;
+    let qr = QrCode::encode_segments_advanced(
+        &QrSegment::make_segments(value),
+        QrCodeEcc::Medium,
+        Version::new(min_version.clamp(1, 40)),
+        Version::MAX,
+        None,
+        true,
+    )
+    .ok()?;
     let modules = qr.size() + 8;
     let scale = size as i32 / modules;
     if scale < 2 {

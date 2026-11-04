@@ -73,11 +73,12 @@ impl WifiHome {
                     old.payload.as_str() != join.payload.as_str()
                         || old.band != join.band
                         || old.switchable != join.switchable
+                        || old.qr_version != join.qr_version
                 });
                 if changed {
                     self.revealed_until = None;
-                    let small = features::qr_image_sized(&join.payload, 148);
-                    let large = features::qr_image(&join.payload);
+                    let small = features::qr_image_version(&join.payload, 148, join.qr_version);
+                    let large = features::qr_image_version(&join.payload, 256, join.qr_version);
                     ui.set_home_wifi_ready(small.is_some() && large.is_some());
                     ui.set_home_wifi_qr(small.unwrap_or_default());
                     ui.set_home_wifi_qr_large(large.unwrap_or_default());

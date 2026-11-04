@@ -79,6 +79,9 @@ pub fn page(id: &str, readings: &Data) -> Page {
                     ("network_provider", crate::i18n::tr("运营商")),
                 ],
             );
+            if let Some(name) = s["network_provider"].as_str() {
+                p.rows[1].1 = crate::carrier::label(name).into();
+            }
             for (prefix, name, band, pci, ch) in [
                 (
                     "nr5g",
@@ -409,6 +412,9 @@ pub fn page(id: &str, readings: &Data) -> Page {
                     ("puknumber", crate::i18n::tr("剩余 PUK 次数")),
                 ],
             );
+            if let Some(name) = s["Operator"].as_str() {
+                p.rows[1].1 = crate::carrier::label(name).into();
+            }
             p.row("IMEI", &data(readings, "imei")["imei"]);
         }
         "sms-storage" => {
