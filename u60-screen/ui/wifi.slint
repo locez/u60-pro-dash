@@ -13,7 +13,7 @@ export component WifiCard inherits Rectangle {
     callback expand;
     callback toggle-password;
     callback switch-band;
-    height: root.revealed ? 176px + credential.preferred-height : 164px;
+    height: max(164px, password-row.y + password-row.height + 32px);
     min-width: 296px; horizontal-stretch: 1; vertical-stretch: 0;
     background: Palette.surface; border-radius: 10px;
     Rectangle {
@@ -36,11 +36,17 @@ export component WifiCard inherits Rectangle {
         text: root.ready ? root.ssid : root.message; font-size: 15px; font-weight: 600;
         wrap: char-wrap; overflow: elide; vertical-alignment: center;
     }
-    if root.ready: Rectangle {
-        x: 164px; y: 88px; width: parent.width - 172px; height: 44px;
-        Label { width: parent.width - (root.protected ? 46px : 0px); text: root.protected ? "********" : root.password; font-size: 14px; vertical-alignment: center; }
+    password-row := Rectangle {
+        x: 164px; y: 88px; width: parent.width - 172px;
+        height: max(44px, credential.preferred-height + 12px); visible: root.ready;
+        credential := Label {
+            x: 0px; y: (parent.height - self.height) / 2;
+            width: parent.width - (root.protected ? 46px : 0px); height: self.preferred-height;
+            text: !root.ready ? "" : root.protected && !root.revealed ? "********" : root.password;
+            font-size: 14px; wrap: char-wrap; overflow: clip; horizontal-alignment: left;
+        }
         if root.protected: Rectangle {
-            x: parent.width - 44px; width: 44px; height: 44px;
+            x: parent.width - 44px; y: 0px; width: 44px; height: 44px;
             border-radius: 7px; background: eye.pressed ? Palette.line : Palette.surface;
             Path {
                 x: 10px; y: 14px; width: 24px; height: 16px;
@@ -54,10 +60,5 @@ export component WifiCard inherits Rectangle {
             eye := TouchArea { accessible-role: button; accessible-label: root.revealed ? @tr("隐藏密码") : @tr("显示密码"); clicked => { root.toggle-password(); } }
         }
     }
-    if root.ready: Label { x: 164px; y: 134px; width: parent.width - 172px; height: 22px; text: @tr("点二维码放大"); font-size: 12px; color: Palette.muted; }
-    credential := Label {
-        x: 12px; y: 164px; width: parent.width - 24px; height: self.preferred-height;
-        visible: root.ready && root.revealed; text: root.revealed ? root.password : "";
-        font-size: 15px; wrap: char-wrap; overflow: clip;
-    }
+    if root.ready: Label { x: 164px; y: password-row.y + password-row.height + 2px; width: parent.width - 172px; height: 22px; text: @tr("点二维码放大"); font-size: 12px; color: Palette.muted; }
 }
