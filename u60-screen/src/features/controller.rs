@@ -124,6 +124,7 @@ impl Controller {
         self.busy() && !self.background
     }
     pub fn pause_background(&mut self) {
+        self.telemetry.interrupt();
         if self.background {
             self.queue.clear();
             self.pending = None;
@@ -782,6 +783,23 @@ mod tests {
         c.settle_until = Some(Instant::now() - Duration::from_secs(1));
         c.schedule_poll();
         assert!(c.next_poll.is_none());
+    }
+    #[test]
+    fn pausing_for_an_editor_or_confirmation_breaks_the_trace() {
+        let mut c = Controller::default();
+        c.seed_data(
+            "resources",
+            Data::from([("cpu".into(), Ok(json!({"overall":25})))]),
+        );
+        c.pause_background();
+        c.stream(&crate::agent::Snapshot::live_fixture(&[(
+            "health",
+            json!({"cpu":{"overall":30},"thermal":{}}),
+        )]));
+        let chart = &c.page.charts[0];
+        assert_eq!(chart.samples, 2);
+        assert_eq!(chart.path.matches('M').count(), 2);
+        assert!(!chart.path.contains('L'));
     }
     #[test]
     fn live_samples_skip_duplicate_http_reads_without_postponing_other_updates() {
