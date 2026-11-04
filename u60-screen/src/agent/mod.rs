@@ -68,6 +68,29 @@ pub struct Snapshot {
     instance: Option<u64>,
 }
 impl Snapshot {
+    #[cfg(test)]
+    pub fn live_fixture(values: &[(&str, Value)]) -> Self {
+        Self {
+            status: Status::Live,
+            authenticated: true,
+            packet_at: Some(Instant::now()),
+            values: values
+                .iter()
+                .map(|(name, data)| {
+                    (
+                        name.to_string(),
+                        Sample {
+                            data: data.clone(),
+                            age_ms: 0,
+                            failed: false,
+                            seq: 1,
+                        },
+                    )
+                })
+                .collect(),
+            ..Default::default()
+        }
+    }
     pub fn get(&self, topic: &str) -> Option<&Value> {
         let sample = self.values.get(topic)?;
         // Unchanged sampled values need not be sent again. A healthy stream and

@@ -125,9 +125,6 @@ msgstr "Test target"
 msgid "概览"
 msgstr "Overview"
 
-msgid "正在处理…"
-msgstr "Working…"
-
 msgid "正在读取 Wi-Fi…"
 msgstr "Reading Wi-Fi…"
 

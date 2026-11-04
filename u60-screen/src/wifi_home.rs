@@ -126,11 +126,16 @@ impl WifiHome {
         {
             self.clear_display(ui);
         }
-        if !self.controller.busy() && self.revision != self.controller.revision {
-            self.revision = self.controller.revision;
+        self.render_reading(ui);
+        self.mask_expired(ui);
+    }
+    fn render_reading(&mut self, ui: &Screen) {
+        // Fresh reads can carry unchanged data. The generic page revision
+        // intentionally does not advance in that case, but expiry must renew.
+        if !self.controller.busy() && self.revision != self.controller.read_revision {
+            self.revision = self.controller.read_revision;
             self.apply(ui, wifi_share::home(&self.controller.data, self.preferred));
         }
-        self.mask_expired(ui);
     }
     pub fn demo(&mut self, ui: &Screen, active: bool) {
         if !active {
@@ -171,6 +176,17 @@ impl WifiHome {
         self.demo_data = data;
         self.current = None;
         self.demo(ui, true);
+    }
+    #[cfg(test)]
+    pub fn poll_fixture(&mut self, ui: &Screen, wifi: Value) {
+        self.controller.poll_fixture();
+        self.controller.reply_fixture(Ok(wifi));
+        self.render_reading(ui);
+        assert!(
+            self.sampled
+                .is_some_and(|at| at.elapsed() < Duration::from_secs(1))
+        );
+        self.sampled = Some(Instant::now() - Duration::from_secs(61));
     }
     #[cfg(test)]
     pub fn expire_reveal(&mut self, ui: &Screen) {

@@ -7,6 +7,7 @@ mod features;
 mod i18n;
 mod platform;
 mod security;
+mod ui_model;
 mod wifi_home;
 
 use anyhow::{Context, Result, bail};
@@ -516,6 +517,109 @@ mod tests {
         ]));
         assert!(app.ui.get_feature_content().contains("中文正文"));
         save("live-sms.png")?;
+        // Use the same persistent RGB565 buffer and damage reporting as DRM.
+        // Full screenshot captures would mask accidental whole-page repaints.
+        let messages = |count: u64, changed: bool| {
+            serde_json::json!({"messages":
+                (1..=count).rev().map(|id| serde_json::json!({
+                    "id":id,"number":"+15555550100","tag":0,
+                    "content":if changed && id == 8 { "Changed text" } else { "Message text" }
+                })).collect::<Vec<_>>()
+            })
+        };
+        app.feature_data_fixture(
+            "sms-inbox",
+            fixture(vec![
+                ("internal", messages(8, false)),
+                ("card", serde_json::json!({"messages":[]})),
+            ]),
+        );
+        assert!(!app.ui.get_feature_can_refresh());
+        let entries = app.ui.get_entries();
+        let readings = app.ui.get_readings();
+        let mut pixels = vec![slint::platform::software_renderer::Rgb565Pixel(0); 320 * 480];
+        let mut damage = || {
+            let mut area = 0u32;
+            window.draw_if_needed(|renderer| {
+                area = renderer
+                    .render(&mut pixels, 320)
+                    .iter()
+                    .map(|(_, size)| size.width * size.height)
+                    .sum();
+            });
+            area
+        };
+        window.request_redraw();
+        damage();
+        for _ in 0..2 {
+            app.feature_poll_start();
+            assert!(!app.ui.get_feature_busy());
+            assert_eq!(damage(), 0, "background poll must not blank the page");
+            app.feature_reply(messages(8, false));
+            assert_eq!(damage(), 0, "partial replies must not move content");
+            app.feature_reply(serde_json::json!({"messages":[]}));
+            assert_eq!(damage(), 0, "unchanged data must not repaint pixels");
+            assert!(entries == app.ui.get_entries());
+            assert!(readings == app.ui.get_readings());
+        }
+        app.feature_poll_start();
+        app.feature_reply(messages(8, true));
+        app.feature_reply(serde_json::json!({"messages":[]}));
+        let changed_area = damage();
+        eprintln!(
+            "incremental render: unchanged SMS = 0 pixels; changed SMS row = {changed_area} pixels"
+        );
+        assert!(
+            changed_area > 0 && changed_area < 320 * 160,
+            "one changed row damaged {changed_area} pixels"
+        );
+        let step = app.ui.get_feature_entry_step();
+        let offset = -app.ui.get_feature_list_top() - step * 2. - 10.;
+        app.ui.set_content_offset(offset);
+        damage();
+        app.feature_poll_start();
+        app.feature_reply(messages(8, true));
+        app.feature_reply(serde_json::json!({"messages":[]}));
+        assert_eq!(damage(), 0);
+        assert_eq!(app.ui.get_content_offset(), offset);
+        app.feature_poll_start();
+        app.feature_reply(messages(9, true));
+        app.feature_reply(serde_json::json!({"messages":[]}));
+        damage();
+        assert!(
+            (app.ui.get_content_offset() - (offset - step)).abs() < 1.,
+            "incoming SMS must preserve the visible record"
+        );
+        assert!(entries == app.ui.get_entries());
+        // A numeric stream update must use the same bounded damage path.
+        app.feature_data_fixture(
+            "signal-live",
+            fixture(vec![("signal", serde_json::json!({"nr5g_rsrp":-88}))]),
+        );
+        damage();
+        app.feature_stream_fixture(&crate::agent::Snapshot::live_fixture(&[(
+            "signal",
+            serde_json::json!({"nr5g_rsrp":-88}),
+        )]));
+        assert_eq!(damage(), 0);
+        app.feature_stream_fixture(&crate::agent::Snapshot::live_fixture(&[(
+            "signal",
+            serde_json::json!({"nr5g_rsrp":-89}),
+        )]));
+        let numeric_area = damage();
+        eprintln!(
+            "incremental render: changed signal value = {numeric_area} pixels (full frame = 153600)"
+        );
+        assert!(numeric_area > 0 && numeric_area < 320 * 160);
+        app.feature_data_fixture(
+            "sms-inbox",
+            fixture(vec![
+                ("internal", messages(9, true)),
+                ("card", serde_json::json!({"messages":[]})),
+            ]),
+        );
+        app.ui.invoke_open("feature-item:1".into());
+        assert_eq!(app.ui.get_feature_content(), "Message text");
         app.ui.invoke_open("feature-item:reply:1".into());
         app.ui.invoke_feature_edit(1);
         assert!(app.ui.get_editor_multiline());
@@ -532,6 +636,13 @@ mod tests {
         app.ui.invoke_confirm_cancel();
         app.feature_data_fixture("tailscale-service",fixture(vec![("status",serde_json::json!({"installed":true,"enabled":true,"enrolled":false,"backend_state":"NeedsLogin","login_url":"https://example.com/authorize/demonstration"}))]));
         assert!(app.ui.get_feature_has_qr());
+        let qr = app.ui.get_feature_qr();
+        app.feature_poll_start();
+        app.feature_reply(serde_json::json!({"installed":true,"enabled":true,"enrolled":false,"backend_state":"NeedsLogin","health":["demonstration"],"login_url":"https://example.com/authorize/demonstration"}));
+        assert!(
+            qr == app.ui.get_feature_qr(),
+            "unchanged QR payload must retain its image"
+        );
         save("live-tailscale-qr.png")?;
         app.feature_data_fixture("proxy-service", fixture(vec![("status",serde_json::json!({"installed":true,"version":"1.0.0","configured":true,"running":true,"capturing":true,"mode":"rule","capture":"hotspot"}))]));
         assert_eq!(app.ui.get_feature_fields().row_count(), 0);
@@ -559,6 +670,26 @@ mod tests {
         assert_eq!(app.ui.get_home_wifi_band(), "2.4 + 5 GHz");
         assert!(!app.ui.get_home_wifi_switchable());
         assert_eq!(app.ui.get_home_wifi_key(), "********");
+        let home_qr = app.ui.get_home_wifi_qr();
+        let wifi = home_data["wifi"].as_ref().unwrap().clone();
+        for _ in 0..3 {
+            app.wifi_poll_fixture(wifi.clone());
+            assert!(app.ui.get_home_wifi_ready());
+            assert!(
+                home_qr == app.ui.get_home_wifi_qr(),
+                "renewing freshness must not regenerate the QR"
+            );
+        }
+        let mut changed_wifi = wifi.clone();
+        for suffix in ["2g", "5g"] {
+            changed_wifi[format!("key_{suffix}")] = serde_json::json!("changed-example-passphrase");
+        }
+        app.wifi_poll_fixture(changed_wifi);
+        assert!(
+            home_qr != app.ui.get_home_wifi_qr(),
+            "saved password changes must replace the QR even if page labels are unchanged"
+        );
+        app.wifi_poll_fixture(wifi);
         for dark in [false, true] {
             app.ui.invoke_theme(dark);
             save(if dark {

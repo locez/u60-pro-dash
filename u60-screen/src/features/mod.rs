@@ -8,11 +8,13 @@ mod messages;
 mod network;
 mod proxy;
 mod radio;
+mod refresh;
 mod scheduler;
 mod services;
 mod settings;
 mod status;
 pub(crate) mod wifi_share;
+pub use refresh::{manual_refresh, poll_seconds};
 
 use crate::agent::{Error, Request};
 use anyhow::{Result, ensure};
@@ -75,18 +77,19 @@ impl Read {
         }
     }
 }
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Wire {
     String,
     Integer,
     Boolean,
     Strings,
 }
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Choice {
     pub value: String,
     pub label: String,
 }
+#[derive(PartialEq, Eq)]
 pub struct Field {
     pub key: String,
     pub label: String,
@@ -260,11 +263,13 @@ impl Field {
         })
     }
 }
+#[derive(PartialEq, Eq)]
 pub struct Item {
     pub id: String,
     pub title: String,
     pub subtitle: String,
 }
+#[derive(PartialEq, Eq)]
 pub struct Action {
     pub id: String,
     pub label: String,
@@ -283,7 +288,7 @@ impl Action {
         }
     }
 }
-#[derive(Default)]
+#[derive(Default, PartialEq, Eq)]
 pub struct Page {
     pub title: Option<String>,
     pub qr: Option<String>,
@@ -563,21 +568,7 @@ pub fn topics(id: &str) -> &'static [&'static str] {
         "esim-profiles" => &["esim_switch"],
         "speedtest" => &["speedtest"],
         "usb" => &["usb", "charger"],
-        "stk" => &["stk"],
         _ => &[],
-    }
-}
-pub fn poll_seconds(id: &str) -> Option<u64> {
-    match id {
-        "battery-details" | "clients" | "sms-inbox" | "sms-forward-log" | "scheduler"
-        | "esim-profiles" | "esim-receipts" => Some(10),
-        "esim-download" => Some(3),
-        "dns-cache" | "operators" | "neighbors" => Some(5),
-        "signal-test" | "speedtest" | "phone" | "stk" => Some(2),
-        "proxy-service" | "proxy-groups" | "tailscale-service" | "tailscale-version"
-        | "agent-update" | "https" | "usb" => Some(5),
-        "resources" | "wan" | "device-info" | "wifi-share" | "wifi-home" => Some(30),
-        _ => None,
     }
 }
 

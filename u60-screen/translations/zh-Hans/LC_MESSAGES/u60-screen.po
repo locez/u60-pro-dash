@@ -125,9 +125,6 @@ msgstr "检测目标"
 msgid "概览"
 msgstr "概览"
 
-msgid "正在处理…"
-msgstr "正在处理…"
-
 msgid "正在读取 Wi-Fi…"
 msgstr "正在读取 Wi-Fi…"
 

@@ -5,7 +5,7 @@ use crate::{
 use anyhow::{Result, bail};
 use serde::Deserialize;
 use serde_json::Value;
-use slint::{Color, ComponentHandle, ModelRc, SharedString, VecModel};
+use slint::{Color, ComponentHandle, Model, ModelRc, SharedString, VecModel};
 use std::{
     cell::RefCell,
     path::PathBuf,
@@ -108,6 +108,7 @@ pub struct State {
     editor: Option<Editor>,
     features: crate::features::controller::Controller,
     feature_revision: u64,
+    feature_qr_text: Option<zeroize::Zeroizing<String>>,
     choice_field: Option<usize>,
     pub security: crate::security::ScreenLock,
     pub prefs: Preferences,
@@ -160,6 +161,7 @@ fn text<'a>(v: &'a Value, key: &str) -> &'a str {
 impl State {
     fn show(&mut self, ui: &Screen, id: &str, push: bool) -> Result<()> {
         if id != self.page {
+            self.feature_qr_text = None;
             self.wifi.suspend(ui);
             self.features.cancel();
             ui.set_feature_has_qr(false);
@@ -450,6 +452,7 @@ impl State {
             || ui.get_asleep()
         {
             self.wifi.suspend(ui);
+            self.feature_qr_text = None;
             self.close_editor(ui);
             ui.set_feature_has_qr(false);
             ui.set_feature_qr(Default::default());
@@ -700,8 +703,10 @@ impl State {
         let rows = self.network.rows(&self.prefs.probe_target);
         if rows != self.network_rows {
             self.network_rows = rows.clone();
-            ui.set_tailnet_readings(model(
+            ui.set_tailnet_readings(crate::ui_model::reconcile(
+                ui.get_tailnet_readings(),
                 rows.into_iter().map(|(k, v)| reading(&k, &v)).collect(),
+                |row| row.label.clone(),
             ));
         }
         ui.set_probe_note(crate::i18n::tr("仅在此页亮屏解锁时检测，每 30 秒更新，结果有效期 60 秒。TCP 检测从 U60 发起；热点客户端仍需实际访问验证。").into());
@@ -711,16 +716,38 @@ impl State {
         if ui.get_view() != 7 {
             return;
         }
-        ui.set_feature_busy(self.features.busy());
+        ui.set_feature_busy(self.features.blocking());
+        ui.set_feature_refreshing(self.features.busy());
+        ui.set_feature_can_refresh(self.features.can_refresh());
         ui.set_feature_notice(self.features.notice.clone().into());
         if self.feature_revision == self.features.revision {
             return;
         }
         self.feature_revision = self.features.revision;
         let page = &self.features.page;
-        let qr = page.qr.as_deref().and_then(crate::features::qr_image);
-        ui.set_feature_has_qr(qr.is_some());
-        ui.set_feature_qr(qr.unwrap_or_default());
+        let old_entries = ui.get_entries();
+        let offset = ui.get_content_offset();
+        let list_top = ui.get_feature_list_top();
+        let step = ui.get_feature_entry_step();
+        // Keep the same visible record at the same offset when new messages
+        // arrive above it. At the top, show arrivals normally.
+        let anchor = (offset < -list_top && step > 0.)
+            .then(|| {
+                let first = ((-offset - list_top) / step) as usize;
+                (first..old_entries.row_count()).find_map(|index| {
+                    let old = old_entries.row_data(index)?;
+                    let id = old.id.strip_prefix("feature-item:")?;
+                    let next = page.items.iter().position(|item| item.id == id)?;
+                    Some((index, next))
+                })
+            })
+            .flatten();
+        if self.feature_qr_text.as_ref().map(|v| v.as_str()) != page.qr.as_deref() {
+            let qr = page.qr.as_deref().and_then(crate::features::qr_image);
+            ui.set_feature_has_qr(qr.is_some());
+            ui.set_feature_qr(qr.unwrap_or_default());
+            self.feature_qr_text = page.qr.clone().map(zeroize::Zeroizing::new);
+        }
         ui.set_feature_qr_caption(page.qr_caption.clone().into());
         ui.set_feature_content(page.content.clone().into());
         if let Some(title) = &page.title {
@@ -733,10 +760,13 @@ impl State {
         {
             ui.set_heading(f.title.clone().into());
         }
-        ui.set_readings(model(
+        ui.set_readings(crate::ui_model::reconcile(
+            ui.get_readings(),
             page.rows.iter().map(|(k, v)| reading(k, v)).collect(),
+            |row| row.label.clone(),
         ));
-        ui.set_feature_fields(model(
+        ui.set_feature_fields(crate::ui_model::reconcile(
+            ui.get_feature_fields(),
             page.fields
                 .iter()
                 .enumerate()
@@ -753,17 +783,22 @@ impl State {
                     .into(),
                 })
                 .collect(),
+            |row| row.index,
         ));
-        ui.set_feature_actions(model(
+        ui.set_feature_actions(crate::ui_model::reconcile(
+            ui.get_feature_actions(),
             page.actions
                 .iter()
                 .map(|a| FeatureAction {
+                    id: a.id.clone().into(),
                     label: a.label.clone().into(),
                     enabled: a.enabled,
                 })
                 .collect(),
+            |row| row.id.clone(),
         ));
-        ui.set_entries(model(
+        ui.set_entries(crate::ui_model::reconcile(
+            ui.get_entries(),
             page.items
                 .iter()
                 .map(|item| {
@@ -775,10 +810,15 @@ impl State {
                     )
                 })
                 .collect(),
+            |row| row.id.clone(),
         ));
+        if let Some((old, next)) = anchor {
+            ui.set_content_offset(offset - (next as f32 - old as f32) * step);
+        }
         ui.set_note(page.note.clone().into());
     }
     fn edit_feature(&mut self, ui: &Screen, index: usize) {
+        self.features.pause_background();
         if self.features.busy() {
             return;
         }
@@ -959,6 +999,7 @@ impl App {
             editor: None,
             features: crate::features::controller::Controller::default(),
             feature_revision: u64::MAX,
+            feature_qr_text: None,
             choice_field: None,
             security: crate::security::ScreenLock::load(prefs_path.as_ref().map(|p| {
                 p.with_file_name(".screen-private")
@@ -1018,9 +1059,10 @@ impl App {
             if let Some(id) = id.strip_prefix("feature-item:") {
                 if let Err(error) = s.features.select(id) {
                     u.set_message(error.to_string().into());
+                } else {
+                    u.set_page_revision(u.get_page_revision().wrapping_add(1));
                 }
                 s.render_features(&u);
-                u.set_page_revision(u.get_page_revision().wrapping_add(1));
                 return;
             }
             if let Some(n) = id
@@ -1351,6 +1393,10 @@ impl App {
         self.state.borrow_mut().wifi.expire_reveal(&self.ui);
     }
     #[cfg(test)]
+    pub fn wifi_poll_fixture(&self, wifi: Value) {
+        self.state.borrow_mut().wifi.poll_fixture(&self.ui, wifi);
+    }
+    #[cfg(test)]
     pub fn feature_fixture(&self, id: &str, value: Value) {
         let mut state = self.state.borrow_mut();
         state.features.seed(id, value);
@@ -1367,6 +1413,24 @@ impl App {
         self.ui.set_demo(false);
         self.ui
             .set_page_revision(self.ui.get_page_revision().wrapping_add(1));
+        state.render_features(&self.ui);
+    }
+    #[cfg(test)]
+    pub fn feature_poll_start(&self) {
+        let mut state = self.state.borrow_mut();
+        state.features.poll_fixture();
+        state.render_features(&self.ui);
+    }
+    #[cfg(test)]
+    pub fn feature_reply(&self, value: Value) {
+        let mut state = self.state.borrow_mut();
+        state.features.reply_fixture(Ok(value));
+        state.render_features(&self.ui);
+    }
+    #[cfg(test)]
+    pub fn feature_stream_fixture(&self, snapshot: &crate::agent::Snapshot) {
+        let mut state = self.state.borrow_mut();
+        state.features.stream(snapshot);
         state.render_features(&self.ui);
     }
     #[cfg(feature = "device")]

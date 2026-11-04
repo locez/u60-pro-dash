@@ -8,7 +8,7 @@ import "../assets/U60Hangul.ttf";
 export { Palette }
 export struct MenuEntry { id: string, title: string, subtitle: string, tag: string }
 export struct Reading { label: string, value: string }
-export struct FeatureAction { label: string, enabled: bool }
+export struct FeatureAction { id: string, label: string, enabled: bool }
 export struct FeatureInput { index: int, title: string, subtitle: string, tag: string }
 
 export component Screen inherits Window {
@@ -29,6 +29,11 @@ export component Screen inherits Window {
     in-out property <[FeatureInput]> feature-fields;
     in-out property <[FeatureAction]> feature-actions;
     in-out property <bool> feature-busy;
+    in-out property <bool> feature-can-refresh;
+    in-out property <bool> feature-refreshing;
+    in-out property <length> content-offset <=> scroll.content-y;
+    out property <length> feature-list-top;
+    out property <length> feature-entry-step: 76px;
     in-out property <string> feature-notice;
     in-out property <image> feature-qr;
     in-out property <string> feature-qr-caption;
@@ -343,7 +348,9 @@ export component Screen inherits Window {
                     Label { text: @tr("启动与熄屏后自动锁定。开启密码后，更改或关闭密码需要先验证当前密码。"); font-size: 14px; color: Palette.muted; wrap: word-wrap; }
                     if root.pin-message != "": Label { text: root.pin-message; color: Palette.good; wrap: word-wrap; }
                 }
-                if root.view == 7: VerticalLayout {
+                if root.view == 7: feature-page := VerticalLayout {
+                    property <length> list-top: self.y + feature-list.y;
+                    changed list-top => { root.feature-list-top = self.list-top; }
                     spacing: 8px;
                     if root.feature-notice != "": Label { text: root.feature-notice; color: Palette.warning; wrap: word-wrap; overflow: clip; font-size: 14px; }
                     if root.feature-has-qr && root.feature-qr-caption != "": Label {
@@ -369,12 +376,15 @@ export component Screen inherits Window {
                         title: field.title; subtitle: field.subtitle; tag: field.tag;
                         clicked => { root.feature-edit(field.index); }
                     }
-                    for entry in root.entries: MenuRow { title: entry.title; subtitle: entry.subtitle; tag: entry.tag; clicked => { root.open(entry.id); } }
+                    feature-list := VerticalLayout {
+                        spacing: 8px;
+                        for entry in root.entries: MenuRow { title: entry.title; subtitle: entry.subtitle; tag: entry.tag; clicked => { root.open(entry.id); } }
+                    }
                     for action[index] in root.feature-actions: TapButton {
                         text: action.label; interactive: action.enabled && !root.feature-busy;
                         clicked => { root.feature-action(index); }
                     }
-                    TapButton { text: root.feature-busy ? @tr("正在处理…") : @tr("刷新状态"); interactive: !root.feature-busy; clicked => { root.feature-refresh(); } }
+                    if root.feature-can-refresh: TapButton { text: @tr("刷新状态"); interactive: !root.feature-refreshing; clicked => { root.feature-refresh(); } }
                     if root.note != "": Label { text: root.note; font-size: 13px; color: Palette.muted; wrap: word-wrap; overflow: clip; }
                 }
             }

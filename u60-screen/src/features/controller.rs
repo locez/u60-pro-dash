@@ -18,11 +18,15 @@ pub struct Controller {
     pub page: Page,
     pub notice: String,
     pub revision: u64,
+    pub read_revision: u64,
     pub confirmation: Option<Plan>,
     pub data: Data,
     reads: Vec<Read>,
     queue: VecDeque<(Option<String>, Request)>,
     pending: Option<Pending>,
+    incoming: Data,
+    background: bool,
+    live_keys: std::collections::BTreeSet<String>,
     loaded: Option<Instant>,
     resume: bool,
     next_try: Instant,
@@ -32,6 +36,7 @@ pub struct Controller {
     draft: BTreeMap<String, String>,
     pub editing: bool,
     next_poll: Option<Instant>,
+    settle_until: Option<Instant>,
     guards: BTreeMap<String, Guard>,
     outcome: Option<String>,
     keep_draft: bool,
@@ -44,11 +49,15 @@ impl Default for Controller {
             page: Page::default(),
             notice: String::new(),
             revision: 0,
+            read_revision: 0,
             confirmation: None,
             data: Data::new(),
             reads: vec![],
             queue: VecDeque::new(),
             pending: None,
+            incoming: Data::new(),
+            background: false,
+            live_keys: Default::default(),
             loaded: None,
             resume: false,
             next_try: Instant::now(),
@@ -58,6 +67,7 @@ impl Default for Controller {
             draft: BTreeMap::new(),
             editing: false,
             next_poll: None,
+            settle_until: None,
             guards: BTreeMap::new(),
             outcome: None,
             keep_draft: false,
@@ -80,6 +90,24 @@ impl Controller {
     pub fn busy(&self) -> bool {
         self.pending.is_some() || !self.queue.is_empty()
     }
+    pub fn blocking(&self) -> bool {
+        self.busy() && !self.background
+    }
+    pub fn pause_background(&mut self) {
+        if self.background {
+            self.queue.clear();
+            self.pending = None;
+            self.incoming.clear();
+            self.background = false;
+            self.schedule_poll();
+        }
+    }
+    fn replace_page(&mut self, page: Page) {
+        if self.page != page {
+            self.page = page;
+            self.revision += 1;
+        }
+    }
     pub fn fresh(&self) -> bool {
         self.loaded
             .is_some_and(|t| t.elapsed() < Duration::from_secs(60))
@@ -91,7 +119,11 @@ impl Controller {
         self.draft.clear();
         self.queue.clear();
         self.pending = None;
+        self.incoming.clear();
+        self.background = false;
         self.confirmation = None;
+        self.live_keys.clear();
+        self.settle_until = None;
         self.guards.clear();
         self.outcome = None;
         self.page = Page::default();
@@ -117,44 +149,53 @@ impl Controller {
         }
     }
     pub fn refresh(&mut self) {
+        self.begin_reads(false);
+    }
+    fn begin_reads(&mut self, background: bool) {
         if self.writes > 0 {
             return;
         }
         self.queue.clear();
         self.pending = None;
-        let last_result = self.data.remove("last_result");
-        let selection = self.data.remove("__selection");
-        self.data.clear();
-        if let Some(selection) = selection {
-            self.data.insert("__selection".into(), selection);
-        }
-        if let Some(result) = last_result {
-            self.data.insert("last_result".into(), result);
-        }
-        self.loaded = None;
+        self.incoming.clear();
+        self.background = background && self.loaded.is_some();
         self.confirmation = None;
-        self.page = super::page(&self.id, &self.data);
-        self.notice = crate::i18n::tr("正在读取设备…").into();
+        if self.loaded.is_none() {
+            self.replace_page(super::page(&self.id, &self.data));
+        }
+        if !self.background {
+            self.notice = crate::i18n::tr("正在读取设备…").into();
+        }
         self.resume = false;
         for read in &self.reads {
+            if background
+                && (!super::refresh::poll_read(&self.id, &read.key)
+                    || self.live_keys.contains(&read.key))
+            {
+                continue;
+            }
             self.queue
                 .push_back((Some(read.key.clone()), read.request.clone()));
         }
         self.next_try = Instant::now();
         self.attempt = 0;
-        self.revision += 1;
         if self.queue.is_empty() {
             self.finish_reads();
         }
     }
     fn finish_reads(&mut self) {
+        // Commit the batch together; neither blank nor half-updated pages are
+        // exposed while sequential endpoints are still returning.
+        self.data.append(&mut self.incoming);
+        self.read_revision += 1;
+        self.background = false;
         if self.id == "history" {
             self.data
                 .insert("__history".into(), Ok(self.history.value()));
         }
-        self.page = super::page(&self.id, &self.data);
+        let mut page = super::page(&self.id, &self.data);
         let restored = !self.draft.is_empty();
-        for field in &mut self.page.fields {
+        for field in &mut page.fields {
             if let Some(value) = self.draft.remove(&field.key) {
                 field.value = value;
             }
@@ -163,13 +204,10 @@ impl Controller {
             value.zeroize();
         }
         self.draft.clear();
-        super::visibility(&self.id, &mut self.page);
+        super::visibility(&self.id, &mut page);
+        self.replace_page(page);
         self.loaded = Some(Instant::now());
-        self.next_poll = if self.id.starts_with("esim-") && !super::esim::can_poll(&self.data) {
-            None
-        } else {
-            super::poll_seconds(&self.id).map(|s| Instant::now() + Duration::from_secs(s))
-        };
+        self.schedule_poll();
         let errors = self
             .data
             .values()
@@ -191,7 +229,20 @@ impl Controller {
                     .to_string()],
             )
         };
-        self.revision += 1;
+    }
+    fn schedule_poll(&mut self) {
+        self.next_poll = super::poll_seconds(&self.id, &self.data)
+            .or_else(|| {
+                (self
+                    .settle_until
+                    .is_some_and(|until| Instant::now() < until)
+                    && !super::refresh::paused(&self.id, &self.data))
+                .then_some(3)
+            })
+            .map(|s| Instant::now() + Duration::from_secs(s));
+    }
+    pub fn can_refresh(&self) -> bool {
+        super::manual_refresh(&self.id, &self.data) || self.data.values().any(Result::is_err)
     }
     pub fn tick(&mut self, agent: &Agent, active: bool, authenticated: bool) {
         if !active || !authenticated {
@@ -204,13 +255,16 @@ impl Controller {
         if self.resume {
             self.refresh();
         }
+        if self.editing || self.page.dirty() || self.confirmation.is_some() {
+            self.pause_background();
+        }
         if !self.busy()
             && !self.editing
             && !self.page.dirty()
             && self.confirmation.is_none()
             && self.next_poll.is_some_and(|at| Instant::now() >= at)
         {
-            self.refresh();
+            self.begin_reads(true);
         }
         if self.pending.is_some() || Instant::now() < self.next_try {
             return;
@@ -259,11 +313,13 @@ impl Controller {
                 return true;
             }
             self.attempt = 0;
-            self.data.insert(key, result);
+            self.incoming.insert(key, result);
             if self.queue.is_empty() {
                 self.finish_reads();
             }
         } else {
+            self.settle_until = super::refresh::settle_seconds(&self.id)
+                .map(|s| Instant::now() + Duration::from_secs(s));
             let result = result.and_then(|value| {
                 super::messages::checked(&pending.request.path, &value)?;
                 Ok(value)
@@ -307,6 +363,7 @@ impl Controller {
         true
     }
     pub fn edit(&mut self, index: usize, value: String) -> Result<()> {
+        self.pause_background();
         ensure!(
             !self.busy(),
             "{}",
@@ -335,6 +392,7 @@ impl Controller {
         Ok(())
     }
     pub fn prepare(&mut self, index: usize) -> Result<()> {
+        self.pause_background();
         ensure!(
             !self.busy(),
             "{}",
@@ -443,6 +501,7 @@ impl Controller {
         self.refresh();
     }
     pub fn select(&mut self, id: &str) -> Result<()> {
+        self.pause_background();
         ensure!(!self.busy(), "{}", crate::i18n::tr("正在读取，请稍后。"));
         ensure!(
             !self.page.dirty(),
@@ -459,13 +518,16 @@ impl Controller {
         self.page = super::page(&self.id, &self.data);
         self.confirmation = None;
         self.revision += 1;
+        self.schedule_poll();
         Ok(())
     }
     pub fn back(&mut self) -> bool {
+        self.pause_background();
         if self.data.remove("__selection").is_some() {
             self.page = super::page(&self.id, &self.data);
             self.confirmation = None;
             self.revision += 1;
+            self.schedule_poll();
             true
         } else {
             false
@@ -477,7 +539,8 @@ impl Controller {
         }
     }
     pub fn stream(&mut self, snapshot: &crate::agent::Snapshot) {
-        if self.resume
+        if super::topics(&self.id).is_empty()
+            || self.resume
             || self.busy()
             || self.editing
             || self.page.dirty()
@@ -486,6 +549,7 @@ impl Controller {
             return;
         }
         let mut changed = false;
+        self.live_keys.clear();
         for read in &self.reads {
             let (topic, nested) = match read.request.path.as_str() {
                 "/api/network/signal" => ("signal", None),
@@ -503,7 +567,6 @@ impl Controller {
                 "/api/esim/switch" => ("esim_switch", None),
                 "/api/speedtest/progress" => ("speedtest", None),
                 "/api/usb/status" => ("usb", None),
-                "/api/stk/menu" => ("stk", None),
                 _ => continue,
             };
             // An unsupported/newly requested topic must not erase a fresh HTTP
@@ -522,6 +585,9 @@ impl Controller {
                 })
                 .cloned()
                 .ok_or(Error::Unavailable);
+            if value.is_ok() {
+                self.live_keys.insert(read.key.clone());
+            }
             if self.data.get(&read.key) != Some(&value) {
                 self.data.insert(read.key.clone(), value);
                 changed = true;
@@ -530,8 +596,28 @@ impl Controller {
         if changed {
             let next_poll = self.next_poll;
             self.finish_reads();
-            self.next_poll = next_poll;
+            // High-frequency events must neither postpone other reads nor
+            // keep polling after a task reaches its terminal state.
+            self.next_poll = self
+                .next_poll
+                .map(|next| next_poll.map_or(next, |old| old.min(next)));
         }
+    }
+    #[cfg(test)]
+    pub fn poll_fixture(&mut self) {
+        self.begin_reads(true);
+    }
+    #[cfg(test)]
+    pub fn reply_fixture(&mut self, result: Result<Value, Error>) {
+        let (key, request) = self.queue.pop_front().expect("queued read");
+        let id = IDS.fetch_add(1, Ordering::Relaxed);
+        self.pending = Some(Pending {
+            id,
+            key,
+            request,
+            attempt: 0,
+        });
+        assert!(self.receive(id, result));
     }
     #[cfg(test)]
     pub fn seed_data(&mut self, id: &str, data: Data) {
@@ -558,6 +644,150 @@ mod tests {
         c.data.insert("settings".into(),Ok(json!({"charge_limit_enabled":true,"charge_limit":80,"hysteresis":5,"charging_stopped":false})));
         c.finish_reads();
         c
+    }
+    fn inbox() -> Controller {
+        let mut c = Controller::default();
+        c.seed_data(
+            "sms-inbox",
+            Data::from([
+                ("internal".into(), Ok(json!({"messages":[{"id":1,"number":"+15555550100","content":"First message","tag":1}]}))),
+                ("card".into(), Ok(json!({"messages":[]}))),
+            ]),
+        );
+        c
+    }
+    #[test]
+    fn polling_commits_a_complete_batch_without_blanking_or_unchanged_revisions() {
+        let mut c = inbox();
+        let revision = c.revision;
+        let read_revision = c.read_revision;
+        let internal = c.data["internal"].clone();
+        let card = c.data["card"].clone();
+        c.poll_fixture();
+        assert!(c.busy());
+        assert!(!c.blocking());
+        assert!(c.notice.is_empty());
+        assert_eq!(c.page.items.len(), 1);
+        c.reply_fixture(internal.clone());
+        assert_eq!(c.revision, revision, "partial replies are invisible");
+        c.reply_fixture(card.clone());
+        assert_eq!(c.revision, revision, "unchanged readings do not render");
+        assert_eq!(
+            c.read_revision,
+            read_revision + 1,
+            "an unchanged read still renews data freshness"
+        );
+        c.poll_fixture();
+        c.reply_fixture(Ok(
+            json!({"messages":[{"id":2,"number":"+15555550100","content":"Second message"}]}),
+        ));
+        assert_eq!(c.page.items[0].id, "1");
+        assert_eq!(c.data["internal"], internal);
+        c.reply_fixture(card);
+        assert_eq!(c.revision, revision + 1);
+        assert_eq!(c.page.items[0].id, "2");
+        assert!(!c.can_refresh());
+        c.poll_fixture();
+        c.reply_fixture(Err(Error::Unavailable));
+        c.reply_fixture(Ok(json!({"messages":[]})));
+        assert!(c.can_refresh(), "failed reads retain a retry entry");
+    }
+    #[test]
+    fn selecting_a_message_cancels_background_replies_and_freezes_its_contents() {
+        let mut c = inbox();
+        c.poll_fixture();
+        let (key, request) = c.queue.pop_front().unwrap();
+        c.pending = Some(Pending {
+            id: 950,
+            key,
+            request,
+            attempt: 0,
+        });
+        c.select("1").unwrap();
+        assert!(!c.busy());
+        assert!(c.next_poll.is_none());
+        assert_eq!(c.page.content, "First message");
+        assert!(!c.receive(950, Ok(json!({"messages":[]}))));
+        assert_eq!(c.page.content, "First message");
+        c.select("reply:1").unwrap();
+        c.edit(1, "Unsent draft".into()).unwrap();
+        assert!(c.next_poll.is_none());
+        c.loaded = Some(Instant::now() - Duration::from_secs(61));
+        assert!(c.prepare(0).is_err());
+        let internal = c.data["internal"].clone();
+        let card = c.data["card"].clone();
+        c.reply_fixture(internal);
+        c.reply_fixture(card);
+        assert_eq!(c.page.fields[1].value, "Unsent draft");
+        assert!(c.page.fields[1].dirty());
+        assert!(c.confirmation.is_none(), "preflight never sends a message");
+        assert!(c.back());
+        assert!(c.next_poll.is_some());
+    }
+    #[test]
+    fn edits_cancel_background_reads_and_settling_has_a_deadline() {
+        let mut c = charge();
+        c.poll_fixture();
+        c.edit(1, "85".into()).unwrap();
+        assert!(!c.busy());
+        assert_eq!(c.page.fields[1].value, "85");
+        assert!(c.next_poll.is_none());
+        c.seed_data("neighbors", Data::new());
+        assert!(c.next_poll.is_none());
+        c.settle_until = Some(Instant::now() + Duration::from_secs(30));
+        c.schedule_poll();
+        assert!(c.next_poll.is_some());
+        c.settle_until = Some(Instant::now() - Duration::from_secs(1));
+        c.schedule_poll();
+        assert!(c.next_poll.is_none());
+    }
+    #[test]
+    fn live_samples_skip_duplicate_http_reads_without_postponing_other_updates() {
+        use crate::agent::Snapshot;
+        let mut c = Controller::default();
+        c.seed_data("resources", Data::new());
+        let due = c.next_poll.unwrap();
+        let snapshot =
+            Snapshot::live_fixture(&[("health", json!({"cpu":{"usage":10},"thermal":{}}))]);
+        c.stream(&snapshot);
+        let revision = c.revision;
+        assert_eq!(c.next_poll, Some(due));
+        c.stream(&snapshot);
+        assert_eq!(c.revision, revision);
+        c.poll_fixture();
+        let keys = c
+            .queue
+            .iter()
+            .map(|(key, _)| key.as_deref().unwrap())
+            .collect::<Vec<_>>();
+        assert_eq!(keys, ["memory", "system"]);
+        c.pause_background();
+        c.stream(&Snapshot::default());
+        c.poll_fixture();
+        assert_eq!(c.queue.len(), 4, "failed streams must allow HTTP fallback");
+        c.seed_data("speedtest", Data::new());
+        assert!(c.next_poll.is_none());
+        c.stream(&Snapshot::live_fixture(&[(
+            "speedtest",
+            json!({"phase":"download"}),
+        )]));
+        assert!(c.next_poll.is_some());
+        c.stream(&Snapshot::live_fixture(&[(
+            "speedtest",
+            json!({"phase":"complete"}),
+        )]));
+        assert!(c.next_poll.is_none());
+        c.seed("network-mode", json!({"net_select":"Only_LTE"}));
+        let revision = c.revision;
+        c.stream(&Snapshot::live_fixture(&[(
+            "signal",
+            json!({"net_select":"Only_5G"}),
+        )]));
+        assert_eq!(
+            c.revision, revision,
+            "settings do not subscribe to incidental base topics"
+        );
+        assert_eq!(c.page.fields[0].value, "Only_LTE");
     }
     #[test]
     fn bypass_controls_confirm_write_only_the_switch_and_read_back_actual_state() {
@@ -603,9 +833,11 @@ mod tests {
                 attempt: 0,
             });
             c.receive(911, Ok(json!({"charging_stopped":!original})));
-            assert!(
-                c.page.actions.iter().all(|a| !a.enabled),
-                "wait for authoritative readback"
+            assert!(c.blocking(), "wait for authoritative readback");
+            assert!(c.prepare(0).is_err(), "no second write during readback");
+            assert_eq!(
+                c.page.actions[0].id,
+                if original { "bypass-off" } else { "bypass-on" }
             );
             while let Some((key, request)) = c.queue.pop_front() {
                 let result = match key.as_deref().unwrap() {

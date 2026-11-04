@@ -125,9 +125,6 @@ msgstr "接続テスト先"
 msgid "概览"
 msgstr "概要"
 
-msgid "正在处理…"
-msgstr "仕事..."
-
 msgid "正在读取 Wi-Fi…"
 msgstr "Wi-Fi を読み込み中…"
 
