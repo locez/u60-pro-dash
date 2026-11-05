@@ -1722,11 +1722,11 @@
     "ko": "클리닝 에이전트만 정의하는 불필요한 서비스, 미리보기에서는 시뮬레이션 클리닝 결과를 표시합니다."
   },
   "仅清理后台允许列表中的非必要进程，可能暂时影响对应服务。": {
-    "en": "Only clearing the background allows unnecessary processes in the list, which may temporarily affect the corresponding service.",
+    "en": "Stop only optional processes on the agent allowlist. Their services may be temporarily affected.",
     "zh-Hans": "仅清理后台允许列表中的非必要进程，可能暂时影响对应服务。",
     "zh-Hant": "僅清理後臺允許列表中的非必要程序，可能暫時影響對應服務。",
-    "ja": "バックグラウンドを清掃するだけで,リスト内の不必要なプロセスが許可され,対応サービスに一時的な影響を与える可能性があります.",
-    "ko": "백그라운드만 청소하면 목록에 있는 불필요한 프로세스가 일시적으로 해당 서비스에 영향을 미칠 수 있습니다."
+    "ja": "管理サービスの許可リストにある非必須プロセスのみを停止します。該当サービスに一時的な影響が出る場合があります。",
+    "ko": "관리 서비스의 허용 목록에 있는 비필수 프로세스만 중지합니다. 해당 서비스에 일시적인 영향이 있을 수 있습니다."
   },
   "今日": {
     "en": "Today",
@@ -11366,5 +11366,19 @@
     "en": "Traffic",
     "ja": "通信量",
     "ko": "트래픽"
+  },
+  "当前进程": {
+    "zh-Hans": "当前进程",
+    "zh-Hant": "執行中的程序",
+    "en": "Running processes",
+    "ja": "実行中のプロセス",
+    "ko": "실행 중인 프로세스"
+  },
+  "查看运行中的进程及 CPU、内存占用。": {
+    "zh-Hans": "查看运行中的进程及 CPU、内存占用。",
+    "zh-Hant": "查看執行中的程序及 CPU、記憶體用量。",
+    "en": "View running processes and their CPU and memory use.",
+    "ja": "実行中のプロセスと CPU・メモリ使用量を確認します。",
+    "ko": "실행 중인 프로세스와 CPU 및 메모리 사용량을 확인합니다."
   }
 }

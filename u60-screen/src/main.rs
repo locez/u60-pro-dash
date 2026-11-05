@@ -462,6 +462,8 @@ mod tests {
             )]),
         );
         assert_eq!(app.ui.get_data_rows().row_count(), 2);
+        assert_eq!(app.ui.get_heading(), "当前进程");
+        assert_eq!(app.ui.get_feature_actions().row_count(), 1);
         save("data-processes.png")?;
         platform::capture(&window, false);
         tap(90., 195.);
@@ -471,6 +473,11 @@ mod tests {
                 .iter()
                 .any(|r| r.label == "PID" && r.value == "202"),
             "table taps must select the row identity, including duplicate names"
+        );
+        assert_eq!(
+            app.ui.get_feature_actions().row_count(),
+            0,
+            "a process detail must not offer cleanup of unrelated processes"
         );
         app.open("vpn-services")?;
         save("vpn-services.png")?;

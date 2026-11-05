@@ -449,13 +449,17 @@ pub fn page(id: &str, readings: &Data) -> Page {
                         .collect();
                 }
             }
-            let mut action = Action::new(
-                "clean",
-                crate::i18n::tr("清理非必要进程"),
-                crate::i18n::tr("仅清理后台允许列表中的非必要进程，可能暂时影响对应服务。"),
-            );
-            action.enabled = d["bloat_count"].as_u64().is_some_and(|n| n > 0);
-            p.actions.push(action);
+            // Cleanup applies to the whole allowlist, never the selected PID.
+            // Keep that operation on the list page, outside process details.
+            if selected(readings).is_none() {
+                let mut action = Action::new(
+                    "clean",
+                    crate::i18n::tr("清理非必要进程"),
+                    crate::i18n::tr("仅清理后台允许列表中的非必要进程，可能暂时影响对应服务。"),
+                );
+                action.enabled = d["bloat_count"].as_u64().is_some_and(|n| n > 0);
+                p.actions.push(action);
+            }
         }
         "wireguard" => {
             let d = data(readings, "wireguard");

@@ -2852,9 +2852,9 @@
     },
     {
       "id": "processes",
-      "title": "进程管理",
+      "title": "当前进程",
       "group": "tools",
-      "description": "",
+      "description": "查看运行中的进程及 CPU、内存占用。",
       "rows": [],
       "fields": [],
       "actions": [
