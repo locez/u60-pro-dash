@@ -1,4 +1,4 @@
-import { Palette, Label, TapButton, MenuRow, Stat, Brightness, TrafficPanel, AmbientBackground, GlassPanel, NavigationIcon } from "components.slint";
+import { Palette, Label, Paragraph, TapButton, MenuRow, Stat, Brightness, TrafficPanel, AmbientBackground, GlassPanel, NavigationIcon } from "components.slint";
 import { LockScreen, PinPad } from "lock.slint";
 import { TextEditor } from "editor.slint";
 import { StatusBar } from "status.slint";
@@ -218,7 +218,7 @@ export component Screen inherits Window {
             content-width: self.width; content-height: content.height;
             changed content-y => { root.activity(); }
             content := VerticalLayout {
-                width: scroll.width; height: self.preferred-height;
+                x: 0px; y: 0px; width: scroll.width; height: max(self.min-height, self.preferred-height);
                 padding-left: 12px; padding-right: 12px; padding-top: 2px; padding-bottom: 12px; spacing: 10px;
                 if root.view == 0: TrafficPanel {
                     compact: true;
@@ -260,10 +260,10 @@ export component Screen inherits Window {
                 }
                 if root.view == 2: VerticalLayout {
                     spacing: 10px;
-                    if root.description != "": Label { text: root.description; color: Palette.muted; wrap: word-wrap; overflow: clip; }
+                    if root.description != "": Paragraph { text: root.description; color: Palette.muted; }
                     if root.readings.length > 0: ReadingTable { rows: root.readings; }
                     for entry in root.entries: MenuRow { title: entry.title; subtitle: entry.subtitle; tag: entry.tag; clicked => { root.open(entry.id); } }
-                    if root.note != "": Label { text: root.note; color: Palette.muted; font-size: 12px; wrap: word-wrap; overflow: clip; }
+                    if root.note != "": Paragraph { text: root.note; color: Palette.muted; font-size: 12px; }
                     for action[index] in root.actions: TapButton { text: action; clicked => { root.action(index); } }
                 }
                 if root.view == 3: VerticalLayout {
@@ -324,12 +324,12 @@ export component Screen inherits Window {
                     if root.tailnet-readings.length > 0: ReadingTable { rows: root.tailnet-readings; }
                     if root.demo: TapButton { text: @tr("切换演示场景"); clicked => { root.scenario(); } }
                     if !root.demo: TapButton { text: @tr("刷新连接状态"); clicked => { root.refresh(); } }
-                    Label { text: root.demo ? @tr("当前读数为演示数据。") : root.probe-note; color: Palette.muted; font-size: 13px; wrap: word-wrap; }
+                    Paragraph { text: root.demo ? @tr("当前读数为演示数据。") : root.probe-note; color: Palette.muted; font-size: 13px; }
                 }
                 if root.view == 6: VerticalLayout {
                     spacing: 12px;
                     Label { text: @tr("后台连接 · ") + root.connection-label; font-size: 18px; }
-                    Label { text: @tr("机身屏幕使用本机后台账号连接。也可以输入后台密码重新登录。"); color: Palette.muted; wrap: word-wrap; }
+                    Paragraph { text: @tr("机身屏幕使用本机后台账号连接。也可以输入后台密码重新登录。"); color: Palette.muted; }
                     TapButton { text: @tr("输入密码登录"); selected: true; clicked => { root.edit("agent-login"); } }
                     TapButton { text: @tr("重新连接"); clicked => { root.refresh(); } }
                     TapButton { text: @tr("断开并清除本地会话"); clicked => { root.agent-forget(); } }
@@ -340,16 +340,16 @@ export component Screen inherits Window {
                     TapButton { text: root.pin-enabled ? @tr("修改解锁密码") : @tr("设置解锁密码"); clicked => { root.pin-setup(false); } }
                     if root.pin-enabled: TapButton { text: @tr("关闭密码解锁"); clicked => { root.pin-setup(true); } }
                     TapButton { text: @tr("立即锁屏"); clicked => { root.lock-now(); } }
-                    Label { text: @tr("启动与熄屏后自动锁定。开启密码后，更改或关闭密码需要先验证当前密码。"); font-size: 14px; color: Palette.muted; wrap: word-wrap; }
-                    if root.pin-message != "": Label { text: root.pin-message; color: Palette.good; wrap: word-wrap; }
+                    Paragraph { text: @tr("启动与熄屏后自动锁定。开启密码后，更改或关闭密码需要先验证当前密码。"); font-size: 14px; color: Palette.muted; }
+                    if root.pin-message != "": Paragraph { text: root.pin-message; color: Palette.good; }
                 }
                 if root.view == 7: feature-page := VerticalLayout {
                     property <length> list-top: self.y + feature-list.y;
                     changed list-top => { if !root.data-replaces-items { root.feature-list-top = self.list-top; } }
                     spacing: 8px;
-                    if root.feature-notice != "": Label { text: root.feature-notice; color: Palette.warning; wrap: word-wrap; overflow: clip; font-size: 14px; }
-                    if root.feature-has-qr && root.feature-qr-caption != "": Label {
-                        text: root.feature-qr-caption; font-size: 17px; font-weight: 600; horizontal-alignment: center; wrap: word-wrap;
+                    if root.feature-notice != "": Paragraph { text: root.feature-notice; color: Palette.warning; font-size: 14px; }
+                    if root.feature-has-qr && root.feature-qr-caption != "": Paragraph {
+                        text: root.feature-qr-caption; font-size: 17px; font-weight: 600; horizontal-alignment: center;
                     }
                     if root.feature-has-qr: HorizontalLayout {
                         alignment: center;
@@ -369,8 +369,12 @@ export component Screen inherits Window {
                     }
                     if root.readings.length > 0: ReadingTable { rows: root.readings; }
                     if root.feature-content != "": Rectangle {
+                        height: body.preferred-height;
                         background: Palette.surface; border-radius: 8px;
-                        VerticalLayout { padding: 12px; Label { text: root.feature-content; font-size: 16px; wrap: word-wrap; overflow: clip; } }
+                        body := VerticalLayout {
+                            padding: 12px;
+                            Paragraph { text: root.feature-content; font-size: 16px; }
+                        }
                     }
                     for field in root.feature-fields: MenuRow {
                         title: field.title; subtitle: field.subtitle; tag: field.tag;
@@ -388,8 +392,8 @@ export component Screen inherits Window {
                         clicked => { root.feature-action(index); }
                     }
                     if root.feature-can-refresh: TapButton { text: @tr("刷新状态"); interactive: !root.feature-refreshing; clicked => { root.feature-refresh(); } }
-                    if root.trends.length > 0: Label { text: @tr("本页最近 2 分钟的观察记录；断线或暂停处留空。"); font-size: 12px; color: Palette.muted; wrap: word-wrap; }
-                    if root.note != "": Label { text: root.note; font-size: 13px; color: Palette.muted; wrap: word-wrap; overflow: clip; }
+                    if root.trends.length > 0: Paragraph { text: @tr("本页最近 2 分钟的观察记录；断线或暂停处留空。"); font-size: 12px; color: Palette.muted; }
+                    if root.note != "": Paragraph { text: root.note; font-size: 13px; color: Palette.muted; }
                 }
             }
         }
@@ -425,7 +429,7 @@ export component Screen inherits Window {
             Flickable {
                 x: 12px; y: 58px; width: 296px; height: 352px; content-width: self.width; content-height: options.height;
                 options := VerticalLayout {
-                    width: 296px; height: self.preferred-height; spacing: 8px;
+                    x: 0px; y: 0px; width: 296px; height: max(self.min-height, self.preferred-height); spacing: 8px;
                     for choice[index] in root.choices: MenuRow { title: choice.title; subtitle: choice.subtitle; tag: choice.tag; clicked => { root.choose(index); } }
                 }
             }
@@ -440,7 +444,7 @@ export component Screen inherits Window {
             Flickable {
                 x: 20px; y: 58px; width: 280px; height: root.confirm-phrase == "" ? 340px : 280px;
                 content-width: self.width; content-height: confirmation-text.height;
-                confirmation-text := Label { width: 280px; text: root.confirm-body; wrap: word-wrap; overflow: clip; font-size: 16px; }
+                confirmation-text := Paragraph { x: 0px; y: 0px; width: 280px; text: root.confirm-body; font-size: 16px; }
             }
             if root.confirm-phrase != "": MenuRow {
                 x: 12px; y: 342px; width: 296px;
@@ -458,12 +462,16 @@ export component Screen inherits Window {
             TouchArea { }
             GlassPanel {
                 x: 16px; y: (parent.height - self.height) / 2; width: 288px;
-                border-radius: 18px;
-                VerticalLayout {
+                height: message-layout.preferred-height; border-radius: 18px;
+                message-layout := VerticalLayout {
                     padding: 18px; spacing: 16px;
-                    Label { text: @tr("提示"); font-size: 20px; font-weight: 600; }
-                    Label { text: root.message; wrap: word-wrap; overflow: clip; }
-                    TapButton { text: @tr("知道了"); selected: true; clicked => { root.message = ""; } }
+                    Label { height: 28px; text: @tr("提示"); font-size: 20px; font-weight: 600; }
+                    Flickable {
+                        height: min(292px, message-text.preferred-height);
+                        content-width: self.width; content-height: message-text.height;
+                        message-text := Paragraph { x: 0px; y: 0px; width: parent.width; text: root.message; }
+                    }
+                    TapButton { height: 44px; text: @tr("知道了"); selected: true; clicked => { root.message = ""; } }
                 }
             }
         }

@@ -291,6 +291,17 @@ mod tests {
                 button: PointerEventButton::Left,
             });
         };
+        let scroll_end = |x, y| {
+            slint::platform::update_timers_and_animations();
+            platform::capture(&window, false);
+            window.dispatch_event(WindowEvent::PointerScrolled {
+                position: LogicalPosition::new(x, y),
+                delta_x: 0.,
+                delta_y: -100_000.,
+            });
+            slint::platform::update_timers_and_animations();
+            platform::capture(&window, false)
+        };
         assert!(app.ui.get_locked());
         app.ui
             .set_message("Private content beneath the lock".into());
@@ -588,6 +599,113 @@ mod tests {
         ]));
         assert!(app.ui.get_feature_content().contains("中文正文"));
         save("live-sms.png")?;
+        let long_message =
+            "长短信正文，用于检查换行后的高度和底部滚动。\n".repeat(30) + "短信最后一行";
+        app.ui.set_feature_content(long_message.clone().into());
+        slint::platform::update_timers_and_animations();
+        platform::capture(&window, false);
+        // Exercise the same press/move/release sequence as the device input.
+        for _ in 0..12 {
+            window.dispatch_event(WindowEvent::PointerPressed {
+                position: LogicalPosition::new(160., 390.),
+                button: PointerEventButton::Left,
+            });
+            for y in [370., 330., 290., 250., 210., 170., 130., 110.] {
+                std::thread::sleep(std::time::Duration::from_millis(5));
+                slint::platform::update_timers_and_animations();
+                window.dispatch_event(WindowEvent::PointerMoved {
+                    position: LogicalPosition::new(160., y),
+                });
+            }
+            window.dispatch_event(WindowEvent::PointerReleased {
+                position: LogicalPosition::new(160., 110.),
+                button: PointerEventButton::Left,
+            });
+        }
+        std::thread::sleep(std::time::Duration::from_millis(350));
+        slint::platform::update_timers_and_animations();
+        platform::capture(&window, false);
+        let dragged = app.ui.get_content_offset();
+        let bottom = scroll_end(160., 300.);
+        assert!(
+            (dragged - app.ui.get_content_offset()).abs() < 1.,
+            "touch must reach the same bottom as wheel scrolling"
+        );
+        app.ui
+            .set_feature_content(long_message.replace("短信最后一行", "短信底部可见").into());
+        assert!(
+            bottom != platform::capture(&window, false),
+            "the last wrapped SMS line must actually be visible"
+        );
+        app.ui.set_feature_content(long_message.into());
+        save("long-sms-bottom.png")?;
+        tap(160., 390.);
+        assert!(
+            app.ui.get_confirm_visible(),
+            "the last SMS action must be reachable"
+        );
+        assert!(app.ui.get_confirm_body().contains("永久删除"));
+        app.ui.invoke_confirm_cancel();
+
+        let url_message = "https://example.com/".to_owned() + &"a".repeat(600) + "短信最后一行";
+        app.ui.set_feature_content(url_message.clone().into());
+        let bottom = scroll_end(160., 300.);
+        app.ui
+            .set_feature_content(url_message.replace("短信最后一行", "短信底部可见").into());
+        assert!(
+            bottom != platform::capture(&window, false),
+            "an unbroken URL must not widen the page beyond the screen"
+        );
+        save("long-url-bottom.png")?;
+
+        // Notes share the same wrapped-height contract as descriptions and
+        // notices. Modal text also needs its own bounded scrolling region.
+        let long_note =
+            "这是一段会自动换行的说明文字，用于检查页面底部。".repeat(30) + "说明最后一行";
+        app.ui.set_note(long_note.clone().into());
+        let bottom = scroll_end(160., 300.);
+        app.ui
+            .set_note(long_note.replace("说明最后一行", "说明底部可见").into());
+        assert!(
+            bottom != platform::capture(&window, false),
+            "page notes must scroll to their final line"
+        );
+        save("long-note-bottom.png")?;
+        app.ui.set_note("".into());
+
+        app.ui.set_confirm_body(long_note.clone().into());
+        app.ui.set_confirm_visible(true);
+        let bottom = scroll_end(160., 300.);
+        app.ui
+            .set_confirm_body(long_note.replace("说明最后一行", "说明底部可见").into());
+        assert!(
+            bottom != platform::capture(&window, false),
+            "confirmation text must scroll to its final line"
+        );
+        save("long-confirmation-bottom.png")?;
+        tap(70., 445.);
+        assert!(!app.ui.get_confirm_visible());
+
+        app.ui.set_message(long_note.clone().into());
+        let bottom = scroll_end(160., 280.);
+        app.ui
+            .set_message(long_note.replace("说明最后一行", "说明底部可见").into());
+        assert!(
+            bottom != platform::capture(&window, false),
+            "long messages must scroll to their final line"
+        );
+        save("long-message-bottom.png")?;
+        tap(160., 416.);
+        assert!(
+            app.ui.get_message().is_empty(),
+            "long messages must keep their dismiss button visible"
+        );
+
+        for page in ["tools", "screen-prefs", "resources", "wifi2", "sim-pin"] {
+            app.open(page)?;
+            scroll_end(160., 300.);
+            save(&format!("scroll-bottom-{page}.png"))?;
+        }
         // Use the same persistent RGB565 buffer and damage reporting as DRM.
         // Full screenshot captures would mask accidental whole-page repaints.
         let messages = |count: u64, changed: bool| {

@@ -62,6 +62,15 @@ export component Label inherits Text {
     overflow: elide;
 }
 
+// Resolve wrapped height from the assigned width before a parent scroll area
+// measures its extent. Implicit layout hints may measure unwrapped text.
+export component Paragraph inherits Label {
+    min-width: 0px;
+    height: self.preferred-height;
+    wrap: word-wrap;
+    overflow: clip;
+}
+
 export component TapButton inherits Rectangle {
     in property <string> text;
     in property <bool> selected;
