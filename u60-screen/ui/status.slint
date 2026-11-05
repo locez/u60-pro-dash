@@ -19,9 +19,11 @@ export component StatusBar inherits Rectangle {
         running: root.awake && root.charging;
         triggered => { root.charge-pulse = !root.charge-pulse; }
     }
-    Rectangle {
+    identity := Rectangle {
         x: 14px; width: root.locked ? 40px : 25px; height: 28px;
-        Label { text: "U60"; width: 25px; font-size: 12px; font-weight: 700; vertical-alignment: center; }
+        // Slint centers fixed-width children by default. Keep the wordmark
+        // anchored when the lock icon widens this container.
+        Label { x: 0px; y: 0px; text: "U60"; width: 25px; height: parent.height; font-size: 12px; font-weight: 700; horizontal-alignment: left; vertical-alignment: center; }
         if root.locked: Path {
             x: 29px; y: 9px; width: 9px; height: 10px;
             commands: "M 2 4 V 2.5 A 2.5 2.5 0 0 1 7 2.5 V 4 M 0.5 4 H 8.5 V 9.5 H 0.5 Z";
@@ -29,7 +31,7 @@ export component StatusBar inherits Rectangle {
         }
     }
     Label {
-        x: root.locked ? 62px : 47px; width: max(0px, indicators.x - self.x - 8px);
+        x: identity.x + identity.width + 8px; width: max(0px, indicators.x - self.x - 8px);
         height: 28px; text: root.connection; font-size: 12px;
         color: Palette.muted; vertical-alignment: center;
     }
