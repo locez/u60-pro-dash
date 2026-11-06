@@ -92,8 +92,8 @@ export function ServicesPage({ tab }: { tab: string }) {
                           ["最近握手", "32 秒前"],
                         ]
                       : [
-                          ["模式", "规则"],
-                          ["流量范围", "Wi-Fi 热点"],
+                          ["模式", String(m.settings.proxyRuntime.mode)],
+                          ["流量范围", String(m.settings.proxyRuntime.scope)],
                           ["已保存配置", "studio.yaml"],
                         ]
                 }
@@ -597,8 +597,8 @@ function ProxyDesign({ tab }: { tab: string }) {
     <>
       <Stats
         items={[
-          ["运行模式", "规则"],
-          ["流量范围", "Wi-Fi 热点"],
+          ["运行模式", String(m.settings.proxyRuntime.mode)],
+          ["流量范围", String(m.settings.proxyRuntime.scope)],
           ["活动连接", "28"],
           ["当前配置", "studio.yaml"],
         ]}

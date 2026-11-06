@@ -49,14 +49,17 @@ export function accentForeground(color: string) {
     ? "#ffffff"
     : "#000000";
 }
-export function screenAccentStyle(value: string): CSSProperties {
+export function screenAccentStyle(value: string, dark = true): CSSProperties {
   const color = validAccent(value) ? value : accentColors[0].value;
   const chosen = rgb(color);
   let ink = chosen;
   // Match the native preference: preserve the chosen fill, lift text until it
-  // is legible. Use the lightest dark surface in this preview as the reference.
-  for (let n = 0; n < 32 && contrast(ink, [41, 55, 76]) < 4.5; n++) {
-    ink = ink.map((channel) => Math.min(255, channel + 8)) as RGB;
+  // is legible against every surface of the selected theme.
+  const background: RGB = dark ? [41, 55, 76] : [234, 240, 247];
+  for (let n = 0; n < 32 && contrast(ink, background) < 4.5; n++) {
+    ink = ink.map((channel) =>
+      dark ? Math.min(255, channel + 8) : Math.max(0, channel - 8),
+    ) as RGB;
   }
   return {
     "--screen-accent": color,

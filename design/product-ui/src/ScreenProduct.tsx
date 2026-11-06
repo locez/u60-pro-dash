@@ -25,6 +25,8 @@ import { features, serviceNames, useModel } from "./model";
 import { QR } from "./ui";
 import { sampleMessages } from "./ManagementPages";
 import AccentPicker, { screenAccentStyle } from "./AccentPicker";
+import HomeLayoutSettings from "./HomeLayoutSettings";
+import { metricOptions, screenThemes, serviceIds } from "./screenPreferences";
 
 type ScreenRoot = "状态" | "连接" | "管理";
 function Row({
@@ -69,7 +71,7 @@ function NativeChart() {
       role="img"
       aria-label="最近 30 分钟流量趋势"
     >
-      <path d="M0 18H270M0 40H270" stroke="#304154" />
+      <path d="M0 18H270M0 40H270" stroke="var(--screen-line)" />
       <path
         d="M0 44 16 36 32 39 48 29 64 34 80 21 96 30 112 22 128 25 144 15 160 21 176 12 192 18 208 13 224 5 240 12 256 8 270 11"
         fill="none"
@@ -79,7 +81,7 @@ function NativeChart() {
       <path
         d="M0 51 16 49 32 50 48 45 64 48 80 42 96 45 112 40 128 42 144 40 160 41 176 37 192 41 208 36 224 38 240 34 256 36 270 33"
         fill="none"
-        stroke="#72b49e"
+        stroke="var(--screen-good)"
         strokeWidth="1.5"
       />
     </svg>
@@ -98,15 +100,41 @@ export default function ScreenProduct() {
     [sheet, setSheet] = useState<{
       title: string;
       options: string[];
+      selected?: string;
       choose: (s: string) => void;
     } | null>(null),
-    [screenToast, setScreenToast] = useState("");
+    [screenToast, setScreenToast] = useState(""),
+    [systemDark, setSystemDark] = useState(
+      () => matchMedia("(prefers-color-scheme: dark)").matches,
+    ),
+    [runtimeChange, setRuntimeChange] = useState<{
+      key: "mode" | "scope";
+      value: string;
+    } | null>(null);
   const hold = useRef<ReturnType<typeof setTimeout> | null>(null),
     pane = useRef<HTMLDivElement>(null);
   const title = path.at(-1) || root;
   const accent = String(m.settings.security.accent);
+  const dark =
+    m.settings.security.theme === "跟随系统"
+      ? systemDark
+      : m.settings.security.theme !== "浅色";
+  const setTheme = (theme: string) =>
+    m.save("security", { ...m.settings.security, theme });
+  const homeMetrics = m.homeLayout.metrics.flatMap((id) =>
+    metricOptions.filter((metric) => metric.id === id),
+  );
+  const homeServices = serviceIds
+    .map((id, index) => ({ id, index, name: serviceNames[index] }))
+    .filter(({ id }) => m.homeLayout.serviceVisibility[id]);
   const setAccent = (color: string) =>
     m.save("security", { ...m.settings.security, accent: color });
+  useEffect(() => {
+    const query = matchMedia("(prefers-color-scheme: dark)");
+    const update = () => setSystemDark(query.matches);
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
   const open = (s: string) => {
     setPath((p) => [...p, s]);
     setVisible(false);
@@ -164,6 +192,21 @@ export default function ScreenProduct() {
   const serviceIndex = path.findIndex((p) => serviceNames.includes(p));
   const serviceId =
     serviceIndex < 0 ? -1 : serviceNames.indexOf(path[serviceIndex]);
+  const editRuntime = (key: "mode" | "scope") => {
+    setSheet({
+      title: key === "mode" ? "运行模式" : "流量范围",
+      selected: String(m.settings.proxyRuntime[key]),
+      options:
+        key === "mode"
+          ? ["规则", "全局", "直连"]
+          : ["Wi-Fi 热点", "仅本机 HTTP / SOCKS"],
+      choose: (value) => {
+        setSheet(null);
+        if (m.settings.proxyRuntime[key] !== value)
+          setRuntimeChange({ key, value });
+      },
+    });
+  };
   const renderService = () => {
     if (title === "网络设置")
       return (
@@ -304,24 +347,43 @@ export default function ScreenProduct() {
           ))}
         </>
       );
-    if (title === "隧道配置" || title === "配置文件")
+    if (title === "配置文件")
+      return (
+        <>
+          <Facts values={[["已保存配置", "studio.yaml"]]} />
+          <Row
+            title="运行模式"
+            value={String(m.settings.proxyRuntime.mode)}
+            onClick={() => editRuntime("mode")}
+          />
+          <Row
+            title="流量范围"
+            value={String(m.settings.proxyRuntime.scope)}
+            onClick={() => editRuntime("scope")}
+          />
+          <button
+            className="native-primary"
+            onClick={() => setScreenToast("已模拟重新加载配置")}
+          >
+            应用已保存配置
+          </button>
+          <p className="native-note">
+            长配置与密钥可在 Web 管理中编辑：
+            <br />
+            192.0.2.1:2026
+          </p>
+        </>
+      );
+    if (title === "隧道配置")
       return (
         <>
           <Facts
-            values={
-              title === "隧道配置"
-                ? [
-                    ["接口", "wg-office"],
-                    ["本地地址", "10.80.0.2/32"],
-                    ["对端", "1 个"],
-                    ["MTU", "1420"],
-                  ]
-                : [
-                    ["已保存配置", "studio.yaml"],
-                    ["运行模式", "规则"],
-                    ["流量范围", "Wi-Fi 热点"],
-                  ]
-            }
+            values={[
+              ["接口", "wg-office"],
+              ["本地地址", "10.80.0.2/32"],
+              ["对端", "1 个"],
+              ["MTU", "1420"],
+            ]}
           />
           <button
             className="native-primary"
@@ -372,7 +434,7 @@ export default function ScreenProduct() {
                     ["最近握手", "32 秒前"],
                   ]
                 : [
-                    ["运行模式", "规则"],
+                    ["运行模式", String(m.settings.proxyRuntime.mode)],
                     ["当前配置", "studio.yaml"],
                   ]
           }
@@ -667,6 +729,10 @@ export default function ScreenProduct() {
           />
         </>
       );
+    if (title === "首页布局")
+      return (
+        <HomeLayoutSettings value={m.homeLayout} onChange={m.setHomeLayout} />
+      );
     if (title === "强调色")
       return (
         <>
@@ -679,6 +745,17 @@ export default function ScreenProduct() {
     if (title === "屏幕与安全")
       return (
         <>
+          <Row
+            title="首页布局"
+            value="模块、快捷指标与服务摘要"
+            onClick={() => open("首页布局")}
+            icon={<LayoutDashboard size={18} />}
+          />
+          <Row
+            title="界面外观"
+            value={String(m.settings.security.theme)}
+            onClick={() => choose("界面外观", [...screenThemes], setTheme)}
+          />
           <Row
             title="强调色"
             value={accent.toUpperCase()}
@@ -886,6 +963,7 @@ export default function ScreenProduct() {
           <h3>快速查看</h3>
           {[
             ["首页", "状态", []],
+            ["首页布局", "管理", ["屏幕与安全", "首页布局"]],
             ["Wi-Fi 与连接码", "连接", ["Wi-Fi"]],
             ["Tailscale", "连接", ["Tailscale"]],
             ["长短信", "管理", ["短信", "长短信"]],
@@ -914,7 +992,8 @@ export default function ScreenProduct() {
         </aside>
         <div
           className="screen-frame screen-c interactive-screen"
-          style={screenAccentStyle(accent)}
+          data-screen-theme={dark ? "dark" : "light"}
+          style={screenAccentStyle(accent, dark)}
         >
           <div className="screen-hardware">
             <div className="screen-face" data-testid="native-screen">
@@ -1090,73 +1169,93 @@ export default function ScreenProduct() {
                             </div>
                           </div>
                         </button>
-                        <div className="screen-c-signal">
-                          <span>
-                            n78 <b>−86 dBm</b>
-                          </span>
-                          <span>
-                            SINR <b>24 dB</b>
-                          </span>
-                        </div>
-                        <div className="screen-c-summary">
-                          <button onClick={() => quick("连接", ["连接设备"])}>
-                            在线设备<b>6</b>
-                          </button>
-                          <button onClick={() => open("流量套餐")}>
-                            本月 / GB<b>62.8</b>
-                          </button>
-                          <button onClick={() => quick("管理", ["诊断工具"])}>
-                            温度<b>39°</b>
-                          </button>
-                        </div>
-                        <div className="screen-wifi-card">
-                          <button
-                            aria-label="展开连接二维码"
-                            onClick={() =>
-                              quick("连接", ["Wi-Fi", "连接二维码"])
-                            }
-                          >
-                            <QR
-                              size={88}
-                              ssid={String(m.settings.wifi.ssid)}
-                              password={String(m.settings.wifi.password)}
-                            />
-                          </button>
-                          <div>
-                            <b>{String(m.settings.wifi.ssid)}</b>
+                        {m.homeLayout.signal && (
+                          <div className="screen-c-signal">
                             <span>
-                              {m.settings.wifi.unified ? "双频合一" : "2.4 GHz"}{" "}
-                              · 6 台在线
+                              n78 <b>−86 dBm</b>
                             </span>
-                            <div className="screen-password">
-                              <span>
-                                {visible
-                                  ? String(m.settings.wifi.password)
-                                  : "••••••••••"}
-                              </span>
+                            <span>
+                              SINR <b>24 dB</b>
+                            </span>
+                          </div>
+                        )}
+                        {homeMetrics.length > 0 && (
+                          <div
+                            className="screen-c-summary"
+                            style={{
+                              gridTemplateColumns: `repeat(${homeMetrics.length}, minmax(0, 1fr))`,
+                            }}
+                          >
+                            {homeMetrics.map((metric) => (
                               <button
-                                aria-label={
-                                  visible ? "屏幕隐藏密码" : "屏幕显示密码"
+                                key={metric.id}
+                                onClick={() =>
+                                  quick(metric.root, [...metric.path])
                                 }
-                                onClick={() => setVisible(!visible)}
                               >
-                                {visible ? (
-                                  <EyeOff size={16} />
-                                ) : (
-                                  <Eye size={16} />
-                                )}
+                                {metric.label}
+                                <b>{metric.value}</b>
                               </button>
+                            ))}
+                          </div>
+                        )}
+                        {m.homeLayout.wifi && (
+                          <div className="screen-wifi-card">
+                            <button
+                              aria-label="展开连接二维码"
+                              onClick={() =>
+                                quick("连接", ["Wi-Fi", "连接二维码"])
+                              }
+                            >
+                              <QR
+                                size={88}
+                                ssid={String(m.settings.wifi.ssid)}
+                                password={String(m.settings.wifi.password)}
+                              />
+                            </button>
+                            <div>
+                              <b>{String(m.settings.wifi.ssid)}</b>
+                              <span>
+                                {m.settings.wifi.unified
+                                  ? "双频合一"
+                                  : "2.4 GHz"}{" "}
+                                · 6 台在线
+                              </span>
+                              <div className="screen-password">
+                                <span>
+                                  {visible
+                                    ? String(m.settings.wifi.password)
+                                    : "••••••••••"}
+                                </span>
+                                <button
+                                  aria-label={
+                                    visible ? "屏幕隐藏密码" : "屏幕显示密码"
+                                  }
+                                  onClick={() => setVisible(!visible)}
+                                >
+                                  {visible ? (
+                                    <EyeOff size={16} />
+                                  ) : (
+                                    <Eye size={16} />
+                                  )}
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="native-home-services">
-                          {serviceNames.map((s, i) => (
-                            <button key={s} onClick={() => quick("连接", [s])}>
-                              <i className={m.enabled[i] ? "on" : ""} />
-                              {s}
-                            </button>
-                          ))}
-                        </div>
+                        )}
+                        {m.homeLayout.services && homeServices.length > 0 && (
+                          <div className="native-home-services">
+                            {homeServices.map(({ id, index, name }) => (
+                              <button
+                                key={id}
+                                onClick={() => quick("连接", [name])}
+                              >
+                                <i className={m.enabled[index] ? "on" : ""} />
+                                {name}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </>
                     ) : root === "连接" ? (
                       <>
@@ -1239,7 +1338,11 @@ export default function ScreenProduct() {
               )}
               {sheet && (
                 <div className="native-sheet-backdrop">
-                  <section className="native-sheet">
+                  <section
+                    className="native-sheet"
+                    role="dialog"
+                    aria-label={sheet.title}
+                  >
                     <header>
                       <b>{sheet.title}</b>
                       <button
@@ -1250,11 +1353,61 @@ export default function ScreenProduct() {
                       </button>
                     </header>
                     {sheet.options.map((s) => (
-                      <button key={s} onClick={() => sheet.choose(s)}>
+                      <button
+                        key={s}
+                        aria-pressed={
+                          sheet.selected === undefined
+                            ? undefined
+                            : sheet.selected === s
+                        }
+                        onClick={() => sheet.choose(s)}
+                      >
                         {s}
-                        <ChevronRight size={14} />
+                        {sheet.selected === s ? (
+                          <Check size={14} />
+                        ) : (
+                          <ChevronRight size={14} />
+                        )}
                       </button>
                     ))}
+                  </section>
+                </div>
+              )}
+              {runtimeChange && (
+                <div className="native-sheet-backdrop">
+                  <section
+                    className="native-sheet"
+                    role="dialog"
+                    aria-label="应用运行设置"
+                  >
+                    <header>
+                      <b>应用运行设置</b>
+                    </header>
+                    <p className="native-note">
+                      {runtimeChange.key === "mode" ? "运行模式" : "流量范围"}：
+                      {runtimeChange.value}
+                    </p>
+                    <p className="native-note">
+                      {m.enabled[2]
+                        ? runtimeChange.key === "scope"
+                          ? `需要重启 ${serviceNames[2]}，当前代理连接会短暂中断。`
+                          : `将重新加载 ${serviceNames[2]} 的运行模式。`
+                        : "设置将在下次启动服务时使用。"}
+                    </p>
+                    <button
+                      className="native-primary"
+                      onClick={() => {
+                        m.save("proxyRuntime", {
+                          ...m.settings.proxyRuntime,
+                          [runtimeChange.key]: runtimeChange.value,
+                        });
+                        setRuntimeChange(null);
+                        setScreenToast("已应用示例运行设置");
+                      }}
+                    >
+                      确认应用
+                    </button>
+                    <button onClick={() => setRuntimeChange(null)}>取消</button>
                   </section>
                 </div>
               )}
@@ -1267,6 +1420,27 @@ export default function ScreenProduct() {
           </div>
         </div>
         <aside className="screen-principles">
+          <fieldset className="screen-theme-picker">
+            <legend>屏幕外观</legend>
+            <div>
+              {screenThemes.map((theme) => (
+                <button
+                  key={theme}
+                  aria-pressed={m.settings.security.theme === theme}
+                  onClick={() => setTheme(theme)}
+                >
+                  {theme}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+          <details className="screen-layout-preview">
+            <summary>首页布局</summary>
+            <HomeLayoutSettings
+              value={m.homeLayout}
+              onChange={m.setHomeLayout}
+            />
+          </details>
           <AccentPicker value={accent} onChange={setAccent} />
           <span>阅读与操作</span>
           <h3>紧凑，但不拥挤。</h3>
