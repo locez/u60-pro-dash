@@ -90,6 +90,8 @@ pub enum Pre {
     Login,
     LanDownload { size: usize },
     LanUpload,
+    /// Authenticated JPEG/PNG upload for the bounded eSIM QR decoder.
+    EsimQr,
     /// `GET /api/events`: a stream for this bearer token.
     Events { owner: SessionId },
     Dashboard,
@@ -140,6 +142,13 @@ pub fn precheck(req: &ReqInfo, env: &PreEnv) -> Pre {
             return Pre::LanDownload { size: size.min(LAN_DOWNLOAD_MAX) };
         }
         (Method::Post, "/api/lan/upload") => return Pre::LanUpload,
+        (Method::Post, "/api/esim/qr") => {
+            return if principal.is_some() {
+                Pre::EsimQr
+            } else {
+                refuse(403, "agent password required")
+            };
+        }
         // Streams belong to a token (their expiry and per-token cap), so
         // they need a password.
         (Method::Get, "/api/dashboard/events") => {
@@ -685,6 +694,7 @@ mod tests {
         );
         assert_eq!(run(&auth, &info(Method::Get, "/api/lan/ping", None, t, h)), Pre::Reply(200, json!({"ok": true})));
         assert_eq!(run(&auth, &info(Method::Post, "/api/lan/upload", None, t, h)), Pre::LanUpload);
+        assert_eq!(run(&auth, &info(Method::Post, "/api/esim/qr", None, t, h)), Pre::EsimQr);
         assert_eq!(run(&auth, &info(Method::Other, "/", None, t, h)), DISPATCH);
         // Event streams carry the token's session.
         assert_eq!(
@@ -730,6 +740,10 @@ mod tests {
     fn precheck_without_password() {
         let auth = AuthState::new();
         let h = host("192.168.0.1:9090");
+        assert_eq!(
+            run(&auth, &info(Method::Post, "/api/esim/qr", None, None, h)),
+            reply(403, "agent password required")
+        );
         // Open, but Host-checked.
         assert_eq!(run(&auth, &info(Method::Get, "/api/device", None, None, h)), DISPATCH);
         assert_eq!(run(&auth, &info(Method::Get, "/api/device", None, None, host("u60-pro:9090"))), DISPATCH);
@@ -794,5 +808,11 @@ mod tests {
         assert_eq!(Method::from(&M::HEAD), Method::Other);
         assert_eq!(Method::from(&M::PATCH), Method::Other);
         assert_eq!(Method::from(&M::from_bytes(b"get").unwrap()), Method::Other);
+    }
+
+    #[test]
+    fn ota_download_uses_the_slow_lane_without_blocking_status() {
+        assert_eq!(lane(Method::Post, "/api/update/download"), Lane::Slow);
+        assert_eq!(lane(Method::Get, "/api/update/status"), Lane::General);
     }
 }

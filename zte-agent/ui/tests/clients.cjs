@@ -13,6 +13,7 @@ const {chromium}=require('playwright');
     if(req.url.startsWith('/api/')){
       requests.push({url:req.url,method:req.method});
       if(req.url.startsWith('/api/dashboard/events')){if(offline){res.destroy();return;}res.topic=new URL(req.url,'http://localhost').searchParams.get('topics');res.writeHead(200,{'Content-Type':'text/event-stream'});streams.add(res);res.on('close',()=>streams.delete(res));frame(res,'snapshot',res.topic==='clients');return;}
+      if(req.url==='/api/esim/profiles' && req.method==='GET'){res.writeHead(200,{'Content-Type':'application/json'});res.end(JSON.stringify({ok:true,data:{profiles:[],stale:false,updating:false}}));return;}
       res.writeHead(404);res.end();return;
     }
     const file=req.url==='/' ? 'index.html' : /^\/(?:ui|console\/a)\/[\w.-]+$/.test(req.url) ? req.url.split('/').pop() : '',full=path.join(__dirname,'..',file);
@@ -49,7 +50,7 @@ const {chromium}=require('playwright');
     await go('dashboard/overview');assert.equal(await page.locator('.client-detail-view').isVisible(),false);await go('network/clients');await page.locator('#device-search').fill('Phone');await go('settings/about');await go('network/clients');assert.equal(await page.locator('#device-search').inputValue(),'Phone');await page.locator('#device-search').fill('');
     offline=true;for(const res of streams)res.destroy();await page.waitForFunction(()=>document.querySelector('#stream-state').textContent==='Reconnecting');assert.equal(await metric(phone,'download').textContent(),'—');assert.equal(await metric(phone,'downloadPeak').textContent(),'45.00 Mbps');offline=false;await page.waitForFunction(()=>document.querySelector('#stream-state').textContent==='Live');
     for(const res of streams)res.write('event: auth\ndata: {}\n\n');await page.waitForFunction(()=>document.querySelector('#login-dialog').open);assert.equal(await page.locator('.client-card').count(),0);assert.equal(await page.locator('#client-detail-list').textContent().then(text=>text.includes('fe80::1')),false);
-    assert.ok(requests.every(item=>item.method==='GET' && item.url.startsWith('/api/dashboard/events')));assert.deepEqual(errors,[]);
+    assert.deepEqual(requests.filter(item=>!item.url.startsWith('/api/dashboard/events')),[{url:'/api/esim/profiles',method:'GET'}],'overview loads profile inventory once; client readings and animations only use SSE');assert.deepEqual(errors,[]);
     console.log('Passed: streamed identity, MAC/IPv4/IPv6, confirmed/known devices, distinct current/peak/cap/link rates, zero/missing values, stable animated cards, partial/stalled/offline readings, filters/search, read-only/no polling, lock clearing and both themes at four widths.');
   }finally{await browser.close();clearInterval(heart);for(const res of streams)res.destroy();server.closeAllConnections();server.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

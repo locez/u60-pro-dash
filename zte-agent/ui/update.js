@@ -16,6 +16,18 @@
     return `${(n / ({MB:1048576,KB:1024,B:1}[unit])).toFixed(unit === 'B' ? 0 : 1)} ${unit}`;
   };
   const title = value => String(value || 'idle').replaceAll('_',' ').replace(/^./,letter=>letter.toUpperCase());
+  const numeric = value => value !== null && value !== undefined && Number.isFinite(Number(value));
+  const progressValue = (progress,phase) => {
+    const total = numeric(progress?.total) ? Math.max(0,Number(progress.total)) : 0;
+    const received = numeric(progress?.received) ? Math.max(0,Number(progress.received)) : 0;
+    if (!total) return {total:0,received:0,percent:0,verifying:false};
+    const bounded = Math.min(received,total), exact = Math.floor(bounded / total * 100), reported = numeric(progress?.percent) ? Math.floor(Number(progress.percent)) : exact;
+    // The progress block represents download + signature/probe verification. Do
+    // not announce 100% while those final checks are still running.
+    const verifying = phase === 'downloading' && bounded >= total;
+    const percent = verifying ? 99 : Math.max(0,Math.min(100,exact,reported));
+    return {total,received:bounded,percent,verifying};
+  };
   const currentSettings = () => JSON.stringify({channel:channel.value,automatic_checks:autoCheck.checked,automatic_downloads:autoDownload.checked});
   function setBusy(value) {
     busy = value; form.inert = value; check.disabled = value;
@@ -30,6 +42,12 @@
     $('update-channel-state').textContent = status.channel === 'beta' ? tr('Beta') : tr('Stable');
     $('update-check-time').textContent = status.last_check ? tr("Last checked {0}", new Date(status.last_check * 1000).toLocaleString(globalThis.OpenU60I18n?.locale)) : tr('Not checked yet');
     $('update-phase').textContent = status.trial_in_progress ? tr('Health trial') : title(status.phase);
+    const readiness = status.install_readiness || {};
+    $('update-ready').textContent = readiness.ready ? tr('Ready') : tr('Waiting');
+    const battery = numeric(readiness.battery_percent) ? `${readiness.battery_percent}%${readiness.external_power ? tr(' · charging') : ''}` : tr('battery unavailable');
+    const signalValue = numeric(readiness.signal_bars) && readiness.signal_bars > 0 ? tr(' · {0} signal bars',readiness.signal_bars) : numeric(readiness.signal_dbm) ? ` · ${readiness.signal_dbm} dBm` : '';
+    const signal = readiness.network_type ? `${readiness.network_type}${signalValue}` : tr('cellular unavailable');
+    $('update-ready-detail').textContent = readiness.reason || tr('{0} · {1} · WAN online',battery,signal);
     $('update-guard').textContent = managed ? tr('Agent + screen deployment') : status.bootstrap_ready ? tr('A/B recovery ready') : tr('Bootstrap required');
     $('update-slot').textContent = managed ? tr('Managed by the project deployment script') : status.active_slot ? tr("Active slot {0} · agent-only restart", status.active_slot.toUpperCase()) : tr('Install once over SSH to enable OTA');
     const release = status.available, staged = status.staged;
@@ -40,12 +58,11 @@
       $('update-release-copy').textContent = release.channel === 'beta' ? tr('Signed Beta release. Review the notes before installing.') : tr('Signed Stable release available for this device.');
       $('update-notes').href = release.notes_url;
     }
-    const total = Number(progress.total || 0), received = Number(progress.received || 0);
-    const percent = total > 0 ? Math.min(100,Math.round(received / total * 100)) : 0;
+    const {total,received,percent,verifying} = progressValue(progress,status.phase);
     $('update-progress').hidden = status.phase !== 'downloading' && !(total && received);
     OpenU60Numbers.set($('update-percent'),percent);
     $('update-progress-bar').style.width = `${percent}%`;
-    $('update-bytes').textContent = tr("{0} of {1} received and verified", bytes(received), bytes(total));
+    $('update-bytes').textContent = verifying ? tr('{0} received · verifying signed binary…',bytes(total)) : status.phase === 'staged' && received >= total ? tr('{0} downloaded and verified',bytes(total)) : tr('{0} of {1} downloaded',bytes(received),bytes(total));
     if (!fields.matches(':focus-within') && !busy) {
       channel.value = status.settings?.channel || status.channel || 'stable';
       autoCheck.checked = status.settings?.automatic_checks !== false;
@@ -56,7 +73,7 @@
     save.disabled = managed || busy || currentSettings() === baseline;
     check.disabled = managed || busy || !status.signing_configured;
     download.disabled = managed || busy || !release || staged?.version === release.version;
-    install.disabled = managed || busy || !staged || !status.bootstrap_ready || status.trial_in_progress;
+    install.disabled = managed || busy || !staged || !status.bootstrap_ready || status.trial_in_progress || readiness.ready !== true;
     rollback.disabled = managed || busy || !status.bootstrap_ready || !status.rollback_available || status.trial_in_progress;
   }
   form.addEventListener('input',()=>{ save.disabled = busy || currentSettings() === baseline; });

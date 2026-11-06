@@ -6,6 +6,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 (async()=>{
   const streams = new Set(), requests = [], errors = [];
+  // Profile inventory refreshes on explicit overview visits and reconnection.
+  let expectedProfileReads = 1;
   const data = {
     device:{hostname:'OpenU60',uptime_secs:1234,kernel:'test',load_avg:[0,0,0]},
     speed:{rx_speed:12500000,tx_speed:1250000,rx_bytes:999000000,tx_bytes:1200000000},
@@ -19,6 +21,7 @@ const path = require('node:path');
   const server=http.createServer((req,res)=>{
     if(req.url.startsWith('/api/')) requests.push(req.url);
     if(req.url.startsWith('/api/dashboard/events')){res.writeHead(200,{'Content-Type':'text/event-stream'});streams.add(res);res.on('close',()=>streams.delete(res));const initial=Object.fromEntries(Object.entries(data).map(([name,data])=>[name,{ok:true,data}]));if(req.url.includes('topics=health'))initial.resources={ok:true,data:resources};frame(res,'snapshot',initial);return;}
+    if(req.url==='/api/esim/profiles' && req.method==='GET'){res.writeHead(200,{'Content-Type':'application/json'});res.end(JSON.stringify({ok:true,data:{profiles:[],stale:false,updating:false}}));return;}
     const file=req.url==='/'?'index.html':/^\/(?:ui|console\/a)\/[\w.-]+$/.test(req.url)?req.url.split('/').pop():'',full=path.join(__dirname,'..',file);
     if(!file||!fs.existsSync(full)){res.writeHead(404);res.end();return;}
     res.setHeader('Content-Type',file.endsWith('.css')?'text/css':file.endsWith('.js')?'text/javascript':'text/html');res.setHeader('Content-Security-Policy',"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'");res.end(fs.readFileSync(full));
@@ -32,7 +35,7 @@ const path = require('node:path');
     const original=Element.prototype.animate;
     Element.prototype.animate=function(...args){if(this.classList.contains('number-current'))window.__numberAnimations++;return original.apply(this,args);};
   });
-  const go=async key=>{await page.evaluate(key=>OpenU60Navigation.go(key),key);await page.waitForFunction(key=>document.documentElement.dataset.route===key,key);await page.waitForFunction(()=>document.querySelector('#stream-state').textContent==='Live');};
+  const go=async key=>{if(key==='dashboard/overview')expectedProfileReads++;await page.evaluate(key=>OpenU60Navigation.go(key),key);await page.waitForFunction(key=>document.documentElement.dataset.route===key,key);await page.waitForFunction(()=>document.querySelector('#stream-state').textContent==='Live');};
   const settled=()=>page.waitForFunction(()=>!document.querySelector('[data-number-animating]'));
   await page.goto(`http://127.0.0.1:${server.address().port}/`);await page.waitForFunction(()=>document.querySelector('#download').textContent==='100.00');
   assert.equal(await page.evaluate(()=>window.__numberAnimations),0,'initial readings never count from invented zeroes');
@@ -81,9 +84,10 @@ const path = require('node:path');
   // Hiding the tab settles active visuals and never starts background animations.
   data.speed.rx_speed+=125000;push(['speed']);await page.waitForFunction(()=>document.querySelector('#download').hasAttribute('data-number-animating'));
   await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});document.dispatchEvent(new Event('visibilitychange'));});await settled();
+  expectedProfileReads++;
   await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>false});document.dispatchEvent(new Event('visibilitychange'));});await page.waitForFunction(()=>document.querySelector('#stream-state').textContent==='Live');
   data.speed.rx_speed+=125000;push(['speed']);await page.waitForFunction(()=>document.querySelector('#download').hasAttribute('data-number-animating'));for(const stream of streams)stream.write('event: auth\ndata: {}\n\n');await page.waitForFunction(()=>document.querySelector('#login-dialog').open);await settled();await page.waitForTimeout(450);assert.equal(await page.locator('#download').textContent(),'—','no animation can restore values after locking');assert.equal(await page.locator('#diagnostic-health dd').first().textContent(),'—');
-  assert.ok(requests.every(url=>url.startsWith('/api/dashboard/events')),'animations add no requests or polling');assert.deepEqual(errors,[]);
+  assert.deepEqual(requests.filter(url=>!url.startsWith('/api/dashboard/events')),Array(expectedProfileReads).fill('/api/esim/profiles'),'only explicit overview visits and reconnection read profiles; animations add no requests or polling');assert.deepEqual(errors,[]);
   await browser.close();clearInterval(heartbeat);for(const stream of streams)stream.destroy();server.close();
   console.log('Passed: real-value digit rolls, immediate current text and accessible labels, stable line height, unchanged and interrupted SSE updates, unit changes, stable carrier/sensor/process nodes, IDs and inputs excluded, reduced-motion changes, hidden tabs, lock cancellation, no added requests, and both themes across phone/tablet/desktop.');
 })().catch(error=>{console.error(error);process.exit(1);});

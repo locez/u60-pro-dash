@@ -71,12 +71,28 @@ git push -u origin feat/my-screen
 
 - Rust 改动遵循 `CONTRIBUTING.md`：格式、Clippy、相关测试和 ARM64 musl release 构建。网关相关至少运行 `cargo test --locked -p zte-agent tailscale::tests`；发布构建还要检查 section 总大小和 gzip 大小。
 - 同步脚本可运行 `python3 scripts/tests/test_sync_upstream.py`，测试使用临时本地仓库，不访问 GitHub 或设备。
-- 小屏预览：`bash u60-screen/preview.sh`，见 [预览说明](u60-screen/README.md)。浏览器的 76 个入口以 `03f86da` API 为设计基线；原生版本补充 WireGuard、agent OTA 和本地锁屏，共 79 个功能入口。真实接口接入范围见 [原生开发说明](u60-screen/NATIVE.md)。
+- 小屏预览：`bash u60-screen/preview.sh`，见 [预览说明](u60-screen/README.md)。浏览器原型以 `03f86da` API 为设计基线；原生版本现有 82 个功能入口。真实接口接入范围见 [原生开发说明](u60-screen/NATIVE.md)。
 - 网关的旧版布局部署与验证范围见 [工具说明](local-tools/tailscale-gateway/README.md)。同步 Git、编译和推送不会更新真实设备。
 - `setup.sh` 下载上游二进制的选项仍指向官方 release；需要 fork 功能时选择从本 fork 源码构建，不能用官方二进制代替。
 - 上游新增的 OTA 使用签名发布；普通本地构建没有签名公钥，OTA 不可用。将来给 fork 发布 OTA 前，还需配置自己的发布地址、签名密钥和分支流程。本次只推送源码分支，不推送 release tag。
 
-## 本次整合的检查记录
+## 最近整合的检查记录
+
+2026-11-06：先将 `feat/native-screen` 合入 `main`（`042b7e1`），再合入上游 `5596b8d`，接收自 `72d75ff` 以来的 23 个提交。保留两次独立 merge 和全部功能提交，便于追踪与后续同步。
+
+本次接入上游的 eSIM 二维码图片导入、蜂窝流量计数、信号与设备温度展示，以及 OTA 安装条件检查、备用槽初始化和恢复改进。合并时保留本 fork 的 2026 管理端口、五种语言、旧版 ADB 执行结果校验，以及成对部署时禁止单独 OTA 更新 agent 的保护。新增界面文案已补齐简体中文、繁体中文、英语、日语和韩语。
+
+检查结果：
+
+- 工作区 Rust 测试 1,227 项通过；8 项依赖外部服务、测试样本或专用环境的测试按原有配置忽略。
+- 原生屏幕 69 项 Rust 测试、7 项恢复脚本测试通过；安装、网关与 Git 同步脚本共 43 项测试通过。新安装用例覆盖旧版 ADB 吞掉退出码时的探测失败、备用槽写入失败和正常初始化。
+- 29 个 Web 测试脚本通过，包括五语言认证与切换、eSIM 图片导入、更新进度和成对部署保护；另通过 Chrome 移动导航、键盘与横竖屏检查。WebKit 测试因本机缺少其系统依赖而未完成。
+- 原生屏幕严格 Clippy 检查通过。agent 的 Clippy 没有比纯上游新增告警；全仓格式检查仍有上游既存差异，在纯 `5596b8d` 上也能复现，没有批量重排上游文件。
+- 翻译资源与功能目录校验通过，Gitleaks 对待推送功能历史和合并差异未发现秘密。
+
+成对构建使用 `bash dash.sh build --offline`，产物在 `target/dash/`；设备部署另行执行 `bash dash.sh install --no-build`。同步和构建不会自动安装到设备。
+
+## 上一次上游整合记录
 
 合入上游 `72d75ff` 后，16 项安装 / 网关保护 / 同步流程测试、12 项 Tailscale 单元测试、ARM64 musl release 构建均通过。该构建的 section 总大小为 6,873,752 字节，gzip（level 9、mtime 0）为 3,323,089 字节。小屏交互与动态配色已在本地 Chrome 验证。
 

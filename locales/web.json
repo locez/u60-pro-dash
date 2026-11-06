@@ -14110,5 +14110,229 @@
     "zh-Hant": "面板連線已準備好。服務重新啟動或工作階段到期後，請從這裡重新開啟。",
     "ja": "接続を準備しました。サービスの再起動やセッションの期限切れ後は、ここから開き直してください。",
     "ko": "대시보드 연결이 준비되었습니다. 서비스 재시작 또는 세션 만료 후 여기서 다시 여세요."
+  },
+  " · charging": {
+    "en": " · charging",
+    "zh-Hans": " · 充电中",
+    "zh-Hant": " · 充電中",
+    "ja": " · 充電中",
+    "ko": " · 충전 중"
+  },
+  " · {0} signal bars": {
+    "en": " · {0} signal bars",
+    "zh-Hans": " · 信号 {0} 格",
+    "zh-Hant": " · 訊號 {0} 格",
+    "ja": " · 電波強度 {0} 本",
+    "ko": " · 신호 {0}칸"
+  },
+  "Battery, signal and WAN are checked before installation.": {
+    "en": "Battery, signal and WAN are checked before installation.",
+    "zh-Hans": "安装前检查电量、蜂窝信号和外网连接。",
+    "zh-Hant": "安裝前檢查電量、行動網路訊號及外網連線。",
+    "ja": "インストール前にバッテリー残量、携帯電波、WAN 接続を確認します。",
+    "ko": "설치 전에 배터리 잔량, 셀룰러 신호 및 WAN 연결을 확인합니다."
+  },
+  "Cellular signal unavailable": {
+    "en": "Cellular signal unavailable",
+    "zh-Hans": "蜂窝信号不可用",
+    "zh-Hant": "行動網路訊號無法取得",
+    "ja": "携帯電波を取得できません",
+    "ko": "셀룰러 신호를 확인할 수 없음"
+  },
+  "Cellular signal {0} of 5 bars": {
+    "en": "Cellular signal {0} of 5 bars",
+    "zh-Hans": "蜂窝信号 {0}/5 格",
+    "zh-Hant": "行動網路訊號 {0}/5 格",
+    "ja": "携帯電波強度 {0}/5 本",
+    "ko": "셀룰러 신호 {0}/5칸"
+  },
+  "Choose QR image": {
+    "en": "Choose QR image",
+    "zh-Hans": "选择二维码图片",
+    "zh-Hant": "選擇 QR 碼圖片",
+    "ja": "QR コード画像を選択",
+    "ko": "QR 코드 이미지 선택"
+  },
+  "Choose a JPEG or PNG image.": {
+    "en": "Choose a JPEG or PNG image.",
+    "zh-Hans": "请选择 JPEG 或 PNG 图片。",
+    "zh-Hant": "請選擇 JPEG 或 PNG 圖片。",
+    "ja": "JPEG または PNG 画像を選択してください。",
+    "ko": "JPEG 또는 PNG 이미지를 선택하세요."
+  },
+  "Choose your operator’s QR image or enter its activation code. The router downloads the profile using its mobile connection.": {
+    "en": "Choose your operator’s QR image or enter its activation code. The router downloads the profile using its mobile connection.",
+    "zh-Hans": "选择运营商提供的二维码图片，或输入激活码。路由器通过蜂窝网络下载配置。",
+    "zh-Hant": "選擇電信業者提供的 QR 碼圖片，或輸入啟用碼。路由器會透過行動網路下載設定檔。",
+    "ja": "通信事業者の QR コード画像を選択するか、アクティベーションコードを入力してください。ルーターのモバイル接続でプロファイルをダウンロードします。",
+    "ko": "통신사의 QR 코드 이미지를 선택하거나 활성화 코드를 입력하세요. 라우터의 모바일 연결로 프로필을 다운로드합니다."
+  },
+  "DEVICE TEMPERATURE": {
+    "en": "DEVICE TEMPERATURE",
+    "zh-Hans": "设备温度",
+    "zh-Hant": "裝置溫度",
+    "ja": "デバイス温度",
+    "ko": "장치 온도"
+  },
+  "Hottest reported sensor": {
+    "en": "Hottest reported sensor",
+    "zh-Hans": "传感器报告的最高温度",
+    "zh-Hant": "感測器回報的最高溫度",
+    "ja": "センサーが報告した最高温度",
+    "ko": "센서가 보고한 최고 온도"
+  },
+  "INSTALL READINESS": {
+    "en": "INSTALL READINESS",
+    "zh-Hans": "安装条件",
+    "zh-Hant": "安裝條件",
+    "ja": "インストール準備状況",
+    "ko": "설치 준비 상태"
+  },
+  "JPEG or PNG · up to 8 MB · decoded only by this U60": {
+    "en": "JPEG or PNG · up to 8 MB · decoded only by this U60",
+    "zh-Hans": "JPEG 或 PNG · 最大 8 MB · 仅在这台 U60 上识别",
+    "zh-Hant": "JPEG 或 PNG · 最大 8 MB · 僅在這台 U60 上辨識",
+    "ja": "JPEG / PNG · 最大 8 MB · この U60 内でのみ読み取り",
+    "ko": "JPEG 또는 PNG · 최대 8 MB · 이 U60에서만 판독"
+  },
+  "No image selected": {
+    "en": "No image selected",
+    "zh-Hans": "尚未选择图片",
+    "zh-Hant": "尚未選擇圖片",
+    "ja": "画像が選択されていません",
+    "ko": "선택한 이미지 없음"
+  },
+  "Only the agent restarts; Wi-Fi and the cellular modem stay up. Installation waits for safe battery, cellular signal and WAN conditions. Manual rollback remains available during a carrier outage.": {
+    "en": "Only the agent restarts; Wi-Fi and the cellular modem stay up. Installation waits for safe battery, cellular signal and WAN conditions. Manual rollback remains available during a carrier outage.",
+    "zh-Hans": "仅重启后台服务，Wi-Fi 与蜂窝模块保持运行。电量、蜂窝信号和外网连接满足条件后才能安装；运营商网络中断时仍可手动回滚。",
+    "zh-Hant": "僅重新啟動後台服務，Wi-Fi 與行動網路模組持續運作。電量、行動網路訊號及外網連線符合條件後才能安裝；電信網路中斷時仍可手動回復。",
+    "ja": "エージェントのみ再起動し、Wi-Fi と携帯モデムは動作を続けます。バッテリー残量、携帯電波、WAN の条件を満たしてからインストールします。通信事業者の障害中も手動ロールバックは可能です。",
+    "ko": "에이전트만 다시 시작하며 Wi-Fi와 셀룰러 모뎀은 계속 작동합니다. 배터리, 셀룰러 신호 및 WAN 조건을 충족해야 설치할 수 있습니다. 통신사 장애 중에도 수동 롤백은 가능합니다."
+  },
+  "QR code read. Enter the separate confirmation code from your operator.": {
+    "en": "QR code read. Enter the separate confirmation code from your operator.",
+    "zh-Hans": "二维码已识别，请输入运营商另行提供的确认码。",
+    "zh-Hant": "QR 碼已辨識，請輸入電信業者另外提供的確認碼。",
+    "ja": "QR コードを読み取りました。通信事業者から別途届いた確認コードを入力してください。",
+    "ko": "QR 코드를 읽었습니다. 통신사가 별도로 제공한 확인 코드를 입력하세요."
+  },
+  "QR code read. The activation code is ready for review.": {
+    "en": "QR code read. The activation code is ready for review.",
+    "zh-Hans": "二维码已识别，请核对激活码。",
+    "zh-Hant": "QR 碼已辨識，請核對啟用碼。",
+    "ja": "QR コードを読み取りました。アクティベーションコードを確認してください。",
+    "ko": "QR 코드를 읽었습니다. 활성화 코드를 확인하세요."
+  },
+  "Reading QR image on the router…": {
+    "en": "Reading QR image on the router…",
+    "zh-Hans": "正在路由器上识别二维码…",
+    "zh-Hant": "正在路由器上辨識 QR 碼…",
+    "ja": "ルーターで QR コードを読み取り中…",
+    "ko": "라우터에서 QR 코드 읽는 중…"
+  },
+  "Reading image…": {
+    "en": "Reading image…",
+    "zh-Hans": "正在识别图片…",
+    "zh-Hant": "正在辨識圖片…",
+    "ja": "画像を読み取り中…",
+    "ko": "이미지 읽는 중…"
+  },
+  "Reading this QR image will replace the activation and confirmation codes currently in the form.": {
+    "en": "Reading this QR image will replace the activation and confirmation codes currently in the form.",
+    "zh-Hans": "识别此二维码将替换表单中现有的激活码和确认码。",
+    "zh-Hant": "辨識此 QR 碼將取代表單中現有的啟用碼與確認碼。",
+    "ja": "この QR コードを読み取ると、フォーム内のアクティベーションコードと確認コードが置き換わります。",
+    "ko": "이 QR 코드를 읽으면 양식의 기존 활성화 코드와 확인 코드가 바뀝니다."
+  },
+  "Ready": {
+    "en": "Ready",
+    "zh-Hans": "已就绪",
+    "zh-Hant": "已就緒",
+    "ja": "準備完了",
+    "ko": "준비 완료"
+  },
+  "Replace codes": {
+    "en": "Replace codes",
+    "zh-Hans": "替换代码",
+    "zh-Hant": "取代代碼",
+    "ja": "コードを置き換え",
+    "ko": "코드 바꾸기"
+  },
+  "Replace the current activation codes?": {
+    "en": "Replace the current activation codes?",
+    "zh-Hans": "替换现有激活码？",
+    "zh-Hant": "取代現有啟用碼？",
+    "ja": "現在のアクティベーションコードを置き換えますか？",
+    "ko": "기존 활성화 코드를 바꾸시겠습니까?"
+  },
+  "The QR image is discarded after decoding. Activation and confirmation codes stay in this tab and are cleared after submission.": {
+    "en": "The QR image is discarded after decoding. Activation and confirmation codes stay in this tab and are cleared after submission.",
+    "zh-Hans": "识别后即丢弃二维码图片。激活码和确认码仅保留在当前标签页，提交后清除。",
+    "zh-Hant": "辨識後即捨棄 QR 碼圖片。啟用碼與確認碼僅保留在目前分頁，提交後清除。",
+    "ja": "読み取り後、QR コード画像は破棄されます。アクティベーションコードと確認コードはこのタブ内のみに保持され、送信後に消去されます。",
+    "ko": "판독 후 QR 코드 이미지는 폐기됩니다. 활성화 코드와 확인 코드는 이 탭에만 보관되며 제출 후 삭제됩니다."
+  },
+  "The router returned an invalid activation code.": {
+    "en": "The router returned an invalid activation code.",
+    "zh-Hans": "路由器返回的激活码无效。",
+    "zh-Hant": "路由器傳回的啟用碼無效。",
+    "ja": "ルーターから無効なアクティベーションコードが返されました。",
+    "ko": "라우터가 유효하지 않은 활성화 코드를 반환했습니다."
+  },
+  "This image is larger than 8 MB. Choose a smaller image.": {
+    "en": "This image is larger than 8 MB. Choose a smaller image.",
+    "zh-Hans": "图片超过 8 MB，请选择更小的图片。",
+    "zh-Hant": "圖片超過 8 MB，請選擇較小的圖片。",
+    "ja": "画像が 8 MB を超えています。より小さい画像を選択してください。",
+    "ko": "이미지가 8 MB를 초과합니다. 더 작은 이미지를 선택하세요."
+  },
+  "Use a QR image": {
+    "en": "Use a QR image",
+    "zh-Hans": "使用二维码图片",
+    "zh-Hant": "使用 QR 碼圖片",
+    "ja": "QR コード画像を使用",
+    "ko": "QR 코드 이미지 사용"
+  },
+  "battery unavailable": {
+    "en": "battery unavailable",
+    "zh-Hans": "无法读取电量",
+    "zh-Hant": "無法讀取電量",
+    "ja": "バッテリー情報なし",
+    "ko": "배터리 정보 없음"
+  },
+  "cellular unavailable": {
+    "en": "cellular unavailable",
+    "zh-Hans": "蜂窝网络不可用",
+    "zh-Hant": "行動網路無法使用",
+    "ja": "携帯接続なし",
+    "ko": "셀룰러 연결 없음"
+  },
+  "{0} downloaded and verified": {
+    "en": "{0} downloaded and verified",
+    "zh-Hans": "已下载并验证 {0}",
+    "zh-Hant": "已下載並驗證 {0}",
+    "ja": "{0} のダウンロードと検証が完了",
+    "ko": "{0} 다운로드 및 검증 완료"
+  },
+  "{0} of {1} downloaded": {
+    "en": "{0} of {1} downloaded",
+    "zh-Hans": "已下载 {0} / {1}",
+    "zh-Hant": "已下載 {0} / {1}",
+    "ja": "{1} 中 {0} をダウンロード済み",
+    "ko": "{1} 중 {0} 다운로드 완료"
+  },
+  "{0} received · verifying signed binary…": {
+    "en": "{0} received · verifying signed binary…",
+    "zh-Hans": "已接收 {0} · 正在验证程序签名…",
+    "zh-Hant": "已接收 {0} · 正在驗證程式簽章…",
+    "ja": "{0} 受信済み · バイナリ署名を検証中…",
+    "ko": "{0} 수신 완료 · 바이너리 서명 검증 중…"
+  },
+  "{0} · {1} · WAN online": {
+    "en": "{0} · {1} · WAN online",
+    "zh-Hans": "{0} · {1} · 外网已连接",
+    "zh-Hant": "{0} · {1} · 外網已連線",
+    "ja": "{0} · {1} · WAN 接続済み",
+    "ko": "{0} · {1} · WAN 연결됨"
   }
 }

@@ -67,6 +67,61 @@ class SetupHelperTests(unittest.TestCase):
             with self.subTest(payload=payload):
                 self.assertNotEqual(self.call_ubus(payload).returncode, 0)
 
+    def test_ota_bootstrap_verifies_both_slots_on_legacy_adb(self):
+        start = SOURCE.index("# A bootstrap is an explicit repair/reset operation.")
+        end = SOURCE.index('ok "OTA bootstrap and rollback supervisor installed."', start)
+        step = SOURCE[start:end]
+        for failure in (None, "probe", "fallback"):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / "slot-a").mkdir()
+                if failure == "fallback":
+                    (root / "slot-b").write_text("not a directory")
+                else:
+                    (root / "slot-b").mkdir()
+                binary = root / "slot-a/zte-agent"
+                binary.write_text('#!/bin/sh\ncase "$1" in\n'
+                                  '--version) printf "zte-agent 2.4.0\\r\\n";;\n'
+                                  'ota-probe) exit "${U60_TEST_PROBE_EXIT:-0}";;\n'
+                                  '*) exit 1;;\nesac\n')
+                binary.chmod(0o755)
+                (root / "active").write_text("b\n")
+                (root / "current").write_text("previous agent")
+                (root / "supervisor-source").write_text("#!/bin/sh\n")
+                harness = '''
+set -e
+info() { :; }; ok() { :; }; fail() { printf '%s' "$1" >&2; exit 1; }
+rcmd() { bash -c "$1"; return 0; }
+rpush() { cp "$1" "$2"; }
+OTA_ROOT=$1
+REMOTE_SLOT=$OTA_ROOT/slot-a/zte-agent
+REMOTE_SLOT_META=$OTA_ROOT/slot-a/release.json
+REMOTE_SLOT_BOOTSTRAP_SHA=$OTA_ROOT/slot-a/bootstrap.sha256
+REMOTE_FALLBACK=$OTA_ROOT/slot-b/zte-agent
+REMOTE_FALLBACK_META=$OTA_ROOT/slot-b/release.json
+REMOTE_FALLBACK_BOOTSTRAP_SHA=$OTA_ROOT/slot-b/bootstrap.sha256
+REMOTE_BIN=$OTA_ROOT/current
+SUPERVISOR=$OTA_ROOT/supervisor
+SUPERVISOR_LOCAL=$OTA_ROOT/supervisor-source
+LOCAL_SHA=$(sha256_file "$REMOTE_SLOT")
+'''
+                result = self.run_shell(harness + step, [str(root)],
+                                        dict(os.environ, U60_TEST_PROBE_EXIT="1" if failure == "probe" else "0"))
+                if failure:
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertEqual((root / "active").read_text(), "b\n")
+                    self.assertEqual((root / "current").read_text(), "previous agent")
+                    self.assertFalse((root / "supervisor").exists())
+                else:
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    expected = hashlib.sha256(binary.read_bytes()).hexdigest() + "\n2.4.0\n"
+                    for slot in ("slot-a", "slot-b"):
+                        self.assertEqual((root / slot / "zte-agent").read_bytes(), binary.read_bytes())
+                        self.assertEqual((root / slot / "bootstrap.sha256").read_text(), expected)
+                        self.assertEqual((root / slot / "bootstrap.sha256").stat().st_mode & 0o777, 0o600)
+                    self.assertEqual((root / "active").read_text(), "a\n")
+                    self.assertEqual((root / "current").resolve(), binary)
+
     def test_ota_startup_migration_preserves_gateway_and_password(self):
         step = SOURCE.split("# ── Step 5:", 1)[1].split("# ── Step 6:", 1)[0]
         step = step.split("\n", 1)[1]
