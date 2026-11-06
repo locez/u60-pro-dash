@@ -98,7 +98,7 @@ impl Summary {
             ),
             (
                 "wireguard",
-                "/api/wireguard/status",
+                "/api/vpn/wireguard",
                 prefs.show_services && prefs.show_wireguard,
             ),
             (

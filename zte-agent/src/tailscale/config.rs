@@ -21,6 +21,10 @@ pub struct TsConfig {
     #[serde(default = "default_true")]
     pub accept_routes: bool,
     #[serde(default)]
+    pub accept_dns: bool,
+    #[serde(default)]
+    pub exit_node: String,
+    #[serde(default)]
     pub pinned_version: String,
 }
 
@@ -42,6 +46,8 @@ impl Default for TsConfig {
             hold_wakelock: true,
             tailscale_ssh: false,
             accept_routes: true,
+            accept_dns: false,
+            exit_node: String::new(),
             pinned_version: String::new(),
         }
     }
@@ -54,13 +60,18 @@ pub struct TsConfigPatch {
     pub hold_wakelock: Option<bool>,
     pub tailscale_ssh: Option<bool>,
     pub accept_routes: Option<bool>,
+    pub accept_dns: Option<bool>,
+    pub exit_node: Option<String>,
 }
 
 impl TsConfig {
     pub fn apply_patch(&mut self, patch: TsConfigPatch) -> Result<(), String> {
         if let Some(v) = patch.hostname {
             let v = v.trim().to_string();
-            if v.is_empty() || v.len() > 63 || !v.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
+            if v.is_empty()
+                || v.len() > 63
+                || !v.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')
+            {
                 return Err("hostname must be 1-63 chars, alphanumeric or '-'".into());
             }
             self.hostname = v;
@@ -76,11 +87,34 @@ impl TsConfig {
         if let Some(v) = patch.hold_wakelock {
             self.hold_wakelock = v;
         }
-        if let Some(v) = patch.accept_routes { self.accept_routes = v; }
+        if let Some(v) = patch.accept_routes {
+            self.accept_routes = v;
+        }
+        if let Some(v) = patch.accept_dns {
+            self.accept_dns = v;
+        }
+        if let Some(v) = patch.exit_node {
+            let v = v.trim();
+            if !v.is_empty() && !tailnet_ip(v) {
+                return Err("Exit node must be a Tailscale IP address".into());
+            }
+            self.exit_node = v.into();
+        }
         if let Some(v) = patch.tailscale_ssh {
             self.tailscale_ssh = v;
         }
         Ok(())
+    }
+}
+
+pub fn tailnet_ip(value: &str) -> bool {
+    match value.parse::<std::net::IpAddr>() {
+        Ok(std::net::IpAddr::V4(ip)) => {
+            let o = ip.octets();
+            o[0] == 100 && (64..128).contains(&o[1])
+        }
+        Ok(std::net::IpAddr::V6(ip)) => ip.segments()[..3] == [0xfd7a, 0x115c, 0xa1e0],
+        _ => false,
     }
 }
 
@@ -105,6 +139,24 @@ pub fn load() -> TsConfig {
 }
 
 pub fn save(config: &TsConfig) -> Result<(), String> {
+    use std::io::Write;
+    use std::os::unix::fs::OpenOptionsExt;
     let json = serde_json::to_string_pretty(config).map_err(|e| format!("serialize: {e}"))?;
-    std::fs::write(CONFIG_PATH, json).map_err(|e| format!("write {CONFIG_PATH}: {e}"))
+    let temporary = format!("{CONFIG_PATH}.{}.new", std::process::id());
+    let mut file = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .mode(0o600)
+        .open(&temporary)
+        .map_err(|e| format!("stage config: {e}"))?;
+    let result = (|| {
+        file.write_all(json.as_bytes())?;
+        file.sync_all()?;
+        std::fs::rename(&temporary, CONFIG_PATH)
+    })()
+    .map_err(|e| format!("save config: {e}"));
+    if result.is_err() {
+        let _ = std::fs::remove_file(&temporary);
+    }
+    result
 }

@@ -499,6 +499,7 @@ fn route_inner(method: &Method, path: &str, state: &AppState, body: &[u8]) -> (u
         (&Method::Put, "/api/screen/preferences") => crate::screen::put(body),
         (&Method::Get, "/api/tailscale/status") => tailscale::status(state),
         (&Method::Get, "/api/tailscale/network") => tailscale::diagnostics::network(state),
+        (&Method::Get, "/api/tailscale/peers") => tailscale::diagnostics::peers(state),
         (&Method::Get, "/api/tailscale/logs") => tailscale::diagnostics::logs(state),
         (&Method::Post, "/api/tailscale/probe") => tailscale::diagnostics::probe(state, body),
         // LAN HTTPS (docs/web-ui.md, "LAN HTTPS"): read-only for the apps.

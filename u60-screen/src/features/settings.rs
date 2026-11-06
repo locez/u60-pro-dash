@@ -320,6 +320,20 @@ pub fn page(id: &str, readings: &Data) -> Page {
                     &d["accept_routes"],
                 ),
             ];
+            if d["gateway_mode"] == true {
+                p.fields.push(Field::boolean(
+                    "accept_dns",
+                    crate::i18n::tr("接收 Tailscale DNS"),
+                    &d["accept_dns"],
+                ));
+                let mut exit = Field::text(
+                    "exit_node",
+                    crate::i18n::tr("退出节点 IP（留空关闭）"),
+                    &d["exit_node"],
+                );
+                exit.max = 45;
+                p.fields.push(exit);
+            }
             let mut routes = Field::text(
                 "advertise_routes",
                 crate::i18n::tr("此设备发布的子网"),
@@ -332,7 +346,7 @@ pub fn page(id: &str, readings: &Data) -> Page {
             routes.multiline = true;
             p.fields.push(routes);
             p.note = crate::i18n::tr(
-                "发布的路由仍需在 Tailscale 管理端批准。接收远端子网路由在内核网关模式下生效。",
+                "发布的路由需在 Tailscale 管理端批准。DNS 与退出节点作用于路由器，热点转发范围保持原配置。",
             )
             .into();
         }

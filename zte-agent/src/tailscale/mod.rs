@@ -842,6 +842,9 @@ impl TailscaleManager {
             "gateway_mode": gateway_mode(),
             "management_port": if gateway_mode() { management::remote_port(crate::httpd::http_port()) } else { crate::httpd::http_port() },
             "accept_routes": cfg.accept_routes,
+            "accept_dns": cfg.accept_dns,
+            "exit_node": cfg.exit_node,
+            "exit_node_online": Value::Null,
             "accept_routes_effective": false,
         });
 
@@ -893,6 +896,7 @@ impl TailscaleManager {
         payload["key_expiry"] = self_obj["KeyExpiry"].clone();
         payload["expired"] = json!(self_obj["Expired"].as_bool().unwrap_or(false));
         payload["client_version"] = status["Version"].clone();
+        payload["exit_node_online"] = status["ExitNodeStatus"]["Online"].clone();
 
         if backend == "Running" {
             // Enrollment done — any cached interactive-login URL is stale
@@ -1117,7 +1121,9 @@ fn pref_args_for(cfg: &TsConfig, verb: &str) -> Vec<String> {
 fn pref_args_for_mode(cfg: &TsConfig, verb: &str, gateway: bool) -> Vec<String> {
     let mut args = vec![
         verb.to_string(),
-        "--accept-dns=false".to_string(),
+        format!("--accept-dns={}", gateway && cfg.accept_dns),
+        format!("--exit-node={}", if gateway { cfg.exit_node.as_str() } else { "" }),
+        format!("--exit-node-allow-lan-access={}", gateway && !cfg.exit_node.is_empty()),
         format!("--accept-routes={}", gateway && cfg.accept_routes),
         format!("--hostname={}", cfg.hostname),
         format!("--advertise-routes={}", cfg.advertise_routes.join(",")),
@@ -1362,9 +1368,13 @@ pub fn config_set(state: &AppState, body: &[u8]) -> (u16, Value) {
 
     // Apply to a candidate first; persist only after the daemon accepted it
     // (otherwise saved config silently diverges from live prefs).
-    let mut candidate = mgr.config.lock().unwrap().clone();
+    let mut current = mgr.config.lock().unwrap();
+    let mut candidate = current.clone();
     if let Err(e) = candidate.apply_patch(patch) {
         return (400, json!({"ok": false, "error": e}));
+    }
+    if !gateway_mode() && (candidate.accept_dns || !candidate.exit_node.is_empty()) {
+        return (409, json!({"ok":false,"error":"DNS and exit nodes require kernel gateway mode"}));
     }
 
     let daemon_up = mgr.child_pid.lock().unwrap().is_some();
@@ -1376,14 +1386,18 @@ pub fn config_set(state: &AppState, body: &[u8]) -> (u16, Value) {
         }
     }
 
-    let (enabled, hold) = {
-        let mut cfg = mgr.config.lock().unwrap();
-        *cfg = candidate;
-        if let Err(e) = config::save(&cfg) {
-            return (500, json!({"ok": false, "error": e}));
+    if let Err(e) = config::save(&candidate) {
+        if candidate.enabled && daemon_up && state_file_exists() {
+            let previous = pref_args_for(&current, "set");
+            if cli(&previous.iter().map(String::as_str).collect::<Vec<_>>(), CLI_TIMEOUT_SECS).is_err() {
+                return (500, json!({"ok":false,"error":"Preferences could not be persisted or restored. Check the service before retrying."}));
+            }
         }
-        (cfg.enabled, cfg.hold_wakelock)
-    };
+        return (500, json!({"ok":false,"error":e}));
+    }
+    let (enabled, hold) = (candidate.enabled, candidate.hold_wakelock);
+    *current = candidate;
+    drop(current);
 
     if enabled {
         if hold {
@@ -1715,7 +1729,8 @@ mod tests {
             for expected in ["--accept-routes=true", "--netfilter-mode=off", "--accept-dns=false"] {
                 assert!(flags.iter().any(|f| f == expected), "{verb}: {expected}");
             }
-            assert!(!flags.iter().any(|f| f.contains("auth-key") || f.contains("exit-node")));
+            assert!(!flags.iter().any(|f| f.contains("auth-key")));
+            assert!(flags.contains(&"--exit-node=".into()));
             assert_eq!(flags.iter().any(|f| f == "--reset"), verb == "up");
         }
         assert_eq!(tun_name(true), "tailscale0");
@@ -1738,6 +1753,25 @@ mod tests {
         assert!(flags.iter().any(|f| f == "--accept-routes=false"));
         assert!(!flags.iter().any(|f| f.starts_with("--netfilter-mode=")));
         assert_eq!(tun_name(false), "userspace-networking");
+    }
+
+    #[test]
+    fn dns_and_exit_node_preferences_keep_lan_access_and_reset_explicitly() {
+        let mut cfg: TsConfig = serde_json::from_str(r#"{"enabled":false}"#).unwrap();
+        assert!(!cfg.accept_dns && cfg.exit_node.is_empty());
+        cfg.apply_patch(serde_json::from_value(json!({"accept_dns":true,"exit_node":"100.64.0.8"})).unwrap()).unwrap();
+        for verb in ["up", "set"] {
+            let flags = pref_args_for_mode(&cfg, verb, true);
+            assert!(flags.contains(&"--accept-dns=true".into()));
+            assert!(flags.contains(&"--exit-node=100.64.0.8".into()));
+            assert!(flags.contains(&"--exit-node-allow-lan-access=true".into()));
+            assert!(flags.contains(&"--netfilter-mode=off".into()));
+        }
+        for invalid in ["192.0.2.1","127.0.0.1","100.128.0.1","example.org","--reset"] {
+            assert!(cfg.apply_patch(serde_json::from_value(json!({"exit_node":invalid})).unwrap()).is_err());
+        }
+        cfg.apply_patch(serde_json::from_value(json!({"exit_node":""})).unwrap()).unwrap();
+        assert!(pref_args_for_mode(&cfg,"set",true).contains(&"--exit-node=".into()));
     }
 
     #[test]

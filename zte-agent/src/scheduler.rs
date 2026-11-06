@@ -376,9 +376,15 @@ pub fn jobs_list(state: &AppState) -> (u16, Value) {
 #[derive(Deserialize)]
 struct CreateJobRequest {
     name: String,
+    #[serde(default = "default_job_enabled")]
+    enabled: bool,
     schedule: Schedule,
     action: Action,
     restore: Option<Restore>,
+}
+
+fn default_job_enabled() -> bool {
+    true
 }
 
 pub fn jobs_create(state: &AppState, body: &[u8]) -> (u16, Value) {
@@ -399,7 +405,7 @@ pub fn jobs_create(state: &AppState, body: &[u8]) -> (u16, Value) {
     let job = Job {
         id: next_id,
         name: req.name,
-        enabled: true,
+        enabled: req.enabled,
         schedule: req.schedule,
         action: req.action,
         restore: req.restore,
@@ -509,6 +515,20 @@ pub fn jobs_toggle(state: &AppState, body: &[u8]) -> (u16, Value) {
 mod tests {
     use super::*;
     use std::sync::mpsc;
+
+    #[test]
+    fn create_preserves_explicit_disabled_state_and_legacy_default() {
+        let mut body = json!({
+            "name": "Scheduled restart",
+            "schedule": {"type": "once", "at": 1_800_000_000},
+            "action": {"method": "POST", "path": "/api/device/reboot"}
+        });
+        let legacy: CreateJobRequest = serde_json::from_value(body.clone()).unwrap();
+        assert!(legacy.enabled);
+        body["enabled"] = json!(false);
+        let disabled: CreateJobRequest = serde_json::from_value(body).unwrap();
+        assert!(!disabled.enabled);
+    }
 
     fn job(id: u32, enabled: bool) -> Job {
         Job {

@@ -11611,5 +11611,26 @@
     "en": "Web: Networking & services → Mihomo. Edit long configurations and subscriptions in the browser. Services run independently.",
     "ja": "Web：ネットワークとサービス → Mihomo。長い設定やサブスクリプションはブラウザーで編集できます。各サービスは独立して動作します。",
     "ko": "웹: 네트워크 및 서비스 → Mihomo. 긴 설정과 구독은 브라우저에서 편집하세요. 서비스는 독립적으로 실행됩니다."
+  },
+  "接收 Tailscale DNS": {
+    "zh-Hans": "接收 Tailscale DNS",
+    "zh-Hant": "接收 Tailscale DNS",
+    "en": "Accept Tailscale DNS",
+    "ja": "Tailscale DNS を使用",
+    "ko": "Tailscale DNS 사용"
+  },
+  "退出节点 IP（留空关闭）": {
+    "zh-Hans": "退出节点 IP（留空关闭）",
+    "zh-Hant": "出口節點 IP（留空關閉）",
+    "en": "Exit node IP (empty to disable)",
+    "ja": "出口ノード IP（空欄で無効）",
+    "ko": "출구 노드 IP (비우면 해제)"
+  },
+  "发布的路由需在 Tailscale 管理端批准。DNS 与退出节点作用于路由器，热点转发范围保持原配置。": {
+    "zh-Hans": "发布的路由需在 Tailscale 管理端批准。DNS 与退出节点作用于路由器，热点转发范围保持原配置。",
+    "zh-Hant": "發布的路由需在 Tailscale 管理端批准。DNS 與出口節點作用於路由器，熱點轉發範圍保持原設定。",
+    "en": "Advertised routes need admin approval. DNS and exit nodes apply to this router; hotspot forwarding keeps its configured scope.",
+    "ja": "公開ルートは管理画面で承認が必要です。DNS と出口ノードはルーターに適用され、ホットスポット転送の範囲は維持されます。",
+    "ko": "광고한 경로는 관리자 승인이 필요합니다. DNS와 출구 노드는 라우터에 적용되며 핫스팟 전달 범위는 유지됩니다."
   }
 }

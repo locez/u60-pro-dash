@@ -25,6 +25,21 @@ fn routes(text: &str) -> Vec<Value> {
         Some(json!({"destination":destination,"interface":"tailscale0","source":word(&words,"src"),"table":word(&words,"table")}))
     }).take(2048).collect()
 }
+fn exit_nodes(status: &Value) -> Vec<Value> {
+    status["Peer"].as_object().into_iter().flat_map(|peers| peers.values())
+        .filter(|peer| peer["ExitNodeOption"] == true)
+        .filter_map(|peer| {
+            let address = peer["TailscaleIPs"].as_array()?.iter().filter_map(Value::as_str)
+                .find(|ip| config::tailnet_ip(ip))?;
+            Some(json!({"address":address,"name":peer["HostName"],"online":peer["Online"],"selected":peer["ExitNode"]}))
+        }).take(2048).collect()
+}
+pub fn peers(_state: &AppState) -> (u16, Value) {
+    reply(
+        cli_json(&["status", "--json"], STATUS_CLI_TIMEOUT_SECS)
+            .map(|status| json!({"exit_nodes":exit_nodes(&status)})),
+    )
+}
 pub fn network(_state: &AppState) -> (u16, Value) {
     let result = (|| {
         let mut entries = routes(&output(&["-4", "route", "show", "table", "all"])?);
@@ -116,7 +131,7 @@ pub fn logs(_state: &AppState) -> (u16, Value) {
         let mut file = match std::fs::File::open(LOG_FILE) {
             Ok(f) => f,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-                return Ok(json!({"text":"","truncated":false}))
+                return Ok(json!({"text":"","truncated":false}));
             }
             Err(_) => return Err("Cannot read the service log".into()),
         };
@@ -148,8 +163,21 @@ fn reply(result: Result<Value, String>) -> (u16, Value) {
 mod tests {
     use super::*;
     #[test]
+    fn exit_node_choices_are_advertised_tailnet_peers_without_private_fields() {
+        let nodes = exit_nodes(&json!({"Peer":{
+            "a":{"ExitNodeOption":true,"TailscaleIPs":["100.64.0.9"],"HostName":"gateway","Online":true,"PublicKey":"not-needed"},
+            "b":{"ExitNodeOption":false,"TailscaleIPs":["100.64.0.10"]},
+            "c":{"ExitNodeOption":true,"TailscaleIPs":["192.0.2.1"]}
+        }}));
+        assert_eq!(nodes.len(), 1);
+        assert_eq!(nodes[0]["address"], "100.64.0.9");
+        assert!(nodes[0].get("PublicKey").is_none());
+    }
+    #[test]
     fn route_inventory_excludes_other_interfaces_and_route_types() {
-        let got = routes("192.0.2.0/24 dev tailscale0 table 52\n10.0.0.0/24 dev bridge0\nunreachable default dev lo table 52\n100.64.0.1 dev tailscale0 table 52\n");
+        let got = routes(
+            "192.0.2.0/24 dev tailscale0 table 52\n10.0.0.0/24 dev bridge0\nunreachable default dev lo table 52\n100.64.0.1 dev tailscale0 table 52\n",
+        );
         assert_eq!(got.len(), 2);
         assert_eq!(got[0]["destination"], "192.0.2.0/24");
         assert_eq!(got[1]["table"], "52");
