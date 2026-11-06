@@ -1,15 +1,16 @@
 # 小屏功能清单
 
-对应仓库基线 `03f86da` 及当前本地网关补丁。按 `zte-agent/src/server.rs` 的生产路由核对，共 198 个方法/路径组合；76 个页面入口，13 个分类。
+本清单的浏览器设计对应仓库基线 `03f86da` 及本地网关补丁，当时有 198 个方法/路径组合；76 个页面入口，13 个分类。当前后台已有 208 个方法/路径组合，原生屏幕直接接入 192 个，统计口径与剩余接口见 [API-COVERAGE.md](API-COVERAGE.md)。
 
-此清单记录原型的界面设计和将来接入的接口。当前交互全部在浏览器内模拟，字段需要在实体接入阶段逐项对照请求/响应契约。
+此清单保留浏览器原型的界面设计与接口映射。原生 Rust/Slint 已实现 80 个入口，真实请求契约在 `src/features/`，能力和验证结果以 [LIVE.md](LIVE.md) 为准；浏览器仍仅作模拟，不能把其展示字段直接提交给后台。
 
-一级导航：概览、网络、应用、设备。页面中的“返回”回到上层；长内容向上滚动。
+一级导航：概览、网络、应用、设备。页面中的“返回”回到上层；长内容向上滚动。Tailscale 和 WireGuard 统一放在「网络 → VPN 与组网」；代理位于「网络 → 代理 → 具体服务」，每个服务有独立的运行与配置、代理组入口。
 
 ## Wi-Fi 与局域网
 
 | 页面 | 交互 | 接口映射 |
 | --- | --- | --- |
+| 分享 Wi-Fi（原生） | 概览直接显示二维码、名称及可临时查看的掩码密码；相同配置的双频热点共用连接码，不同配置可切换；Wi-Fi 分类另可选择访客网络 | `GET /api/wifi/status`<br>`GET /api/wifi/guest` |
 | [2.4 GHz 热点](preview/index.html#wifi2) | 保存热点设置 | `GET /api/wifi/status`<br>`PUT /api/wifi/settings` |
 | [5 GHz 热点](preview/index.html#wifi5) | 保存热点设置 | `GET /api/wifi/status`<br>`PUT /api/wifi/settings` |
 | [访客网络](preview/index.html#guest) | 保存访客设置 | `GET /api/wifi/guest`<br>`PUT /api/wifi/guest` |
@@ -69,7 +70,7 @@
 
 | 页面 | 交互 | 接口映射 |
 | --- | --- | --- |
-| [家庭内网](preview/index.html#tailscale-home) | 连接状态、拓扑、家庭连通性检测 | `GET /api/tailscale/status` |
+| [远端网络](preview/index.html#tailscale-network) | 连接状态、拓扑、目标连通性检测 | `GET /api/tailscale/status` |
 | [连接与服务](preview/index.html#tailscale-service) | 显示登录指引、启用 Tailscale、停止 Tailscale、退出登录 | `GET /api/tailscale/status`<br>`POST /api/tailscale/setup`<br>`POST /api/tailscale/login-url`<br>`POST /api/tailscale/enable`<br>`POST /api/tailscale/disable`<br>`POST /api/tailscale/logout` |
 | [Tailscale 设置](preview/index.html#tailscale-config) | 保存 Tailscale 设置 | `PUT /api/tailscale/config` |
 | [Tailscale 版本](preview/index.html#tailscale-version) | 安装指定版本 | `POST /api/tailscale/update` |
@@ -149,10 +150,10 @@
 
 ## 接入边界
 
-- `Tailscale 在线`、`家庭节点在线`、`子网路由已接受`、`家庭地址探测成功`应分别建模；当前首页可达状态为场景模拟。
-- PIN/PUK、锁网、恢复出厂、eSIM 删除等动作目前只有交互预演。真实版本需使用后端读取的最新状态并处理剩余尝试次数、超时及中途断连。
+- `Tailscale 在线`、`子网路由节点在线`、`子网路由已接受`、`目标地址探测成功`应分别建模；当前首页可达状态为场景模拟。
+- 浏览器中的 PIN/PUK、锁网、恢复出厂、eSIM 删除仍是交互预演。原生版本已接入真实确认、次数核对、过期检查和提交前复核；真实写入不会自动重试。
 - 手机端扫码/输入激活码、Tailscale 授权、证书安装和局域网测速等跨设备流程，保持与配套端协作。
 - 备份/恢复只有指引；没有添加一个实际上不存在的 agent API。
-- 屏幕亮度、主题配色和熄屏为新增屏幕功能；预览支持运行时换色，实体版本需要接入设备显示、配置存储与背光驱动。
+- 屏幕亮度、主题配色和熄屏为新增屏幕功能；预览支持运行时换色，实体版本已接入显示、配置存储与背光驱动。
 
-本次对照没有发现未映射的生产路由；这不等于所有接口字段及硬件执行结果已经验收。
+早期设计对照覆盖了当时的生产路由；“已映射”包括配套端指引，不代表原生直接调用，也不代表所有接口字段及硬件执行结果已经验收。当前原生接入情况以 [API-COVERAGE.md](API-COVERAGE.md) 为准。

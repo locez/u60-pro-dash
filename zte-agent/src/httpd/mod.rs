@@ -9,6 +9,8 @@ pub mod gate;
 pub mod guard;
 pub mod mobile;
 pub mod tls;
+#[cfg(test)]
+pub(crate) use wire_tests::start as test_start;
 
 use std::io::ErrorKind;
 use std::net::IpAddr;
@@ -181,9 +183,9 @@ pub fn serve(bind: &str, threads: usize, state: Arc<AppState>) {
 }
 
 /// The plain-http listener's port (`ZTE_AGENT_BIND`), set once it is bound.
-static HTTP_PORT: std::sync::atomic::AtomicU16 = std::sync::atomic::AtomicU16::new(9090);
+static HTTP_PORT: std::sync::atomic::AtomicU16 = std::sync::atomic::AtomicU16::new(crate::management::HTTP_PORT);
 
-/// The port the plain-http UI and API answer on (9090 unless
+/// The port the plain-http UI and API answer on (2026 unless
 /// `ZTE_AGENT_BIND` says otherwise), for texts that name it.
 pub fn http_port() -> u16 {
     HTTP_PORT.load(std::sync::atomic::Ordering::Relaxed)
@@ -298,7 +300,8 @@ where
         .timer(hyper_util::rt::TokioTimer::new())
         .header_read_timeout(idle)
         .max_buf_size(MAX_BUF)
-        .serve_connection(io, svc);
+        .serve_connection(io, svc)
+        .with_upgrades();
     let mut conn = std::pin::pin!(conn);
     let stopped = matches!(futures_util::future::select(conn.as_mut(), std::pin::pin!(stop)).await, futures_util::future::Either::Right(_));
     if stopped {
@@ -602,7 +605,7 @@ mod wire_tests {
     /// A listener on 127.0.0.1:0 with its own runtime thread and AppState
     /// (so its own limiter), left running for the test process. Every test
     /// client is 127.0.0.1 (loopback: no per-peer cap, no reserved slots).
-    fn start(ctx: Ctx, max_conns: usize, idle: Duration) -> SocketAddr {
+    pub(crate) fn start(ctx: Ctx, max_conns: usize, idle: Duration) -> SocketAddr {
         start_with(ctx, Limits { conns: max_conns, per_peer: max_conns, idle, reserved: 0, shared: IpAddr::is_loopback })
     }
 

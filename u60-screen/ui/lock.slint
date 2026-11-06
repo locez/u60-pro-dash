@@ -1,0 +1,113 @@
+import { Palette, Label, TapButton, TrafficPanel, Stat, AmbientBackground, GlassPanel } from "components.slint";
+import { StatusBar } from "status.slint";
+
+export component LockScreen inherits AmbientBackground {
+    in property <bool> pin-enabled;
+    in property <bool> awake: true;
+    in property <float> progress;
+    in property <string> battery;
+    in property <int> battery-level;
+    in property <bool> charging;
+    in property <bool> external-power;
+    in property <bool> bypass-power;
+    in property <string> power-label;
+    in property <string> network-badge;
+    in property <int> signal-level;
+    in property <string> connection-label;
+    in property <string> radio-label;
+    in property <string> carrier-label;
+    in property <string> signal-strength;
+    in property <string> traffic-total;
+    in property <bool> network-online;
+    in property <string> download;
+    in property <string> upload;
+    callback hold-start;
+    callback hold-tick;
+    callback hold-end(bool);
+    callback hold-cancel;
+    background: Palette.bg;
+    TouchArea { }
+    StatusBar {
+        x: 0px; y: 0px; width: parent.width; awake: root.awake; locked: true;
+        connection: root.connection-label; network: root.network-badge; signal-level: root.signal-level;
+        battery: root.battery; battery-level: root.battery-level;
+        charging: root.charging; external-power: root.external-power; bypass-power: root.bypass-power;
+        power-label: root.power-label;
+    }
+    Label { x: 14px; y: 32px; height: 18px; text: @tr("NETWORK / 网络状态"); font-size: 12px; color: Palette.muted; }
+    Label { x: 14px; y: 52px; width: parent.width - 28px; height: 32px; text: root.carrier-label; font-size: 22px; font-weight: 650; }
+    TrafficPanel { x: 12px; y: 92px; width: parent.width - 24px; online: root.network-online; download: root.download; upload: root.upload; network-label: root.radio-label; total: root.traffic-total; }
+    HorizontalLayout {
+        x: 12px; y: 244px; width: parent.width - 24px; height: 72px; spacing: 10px;
+        Stat { label: @tr("信号强度"); value: root.signal-strength; unit: "dBm"; }
+        Stat { label: root.power-label; value: root.battery; unit: ""; }
+    }
+    GlassPanel {
+        x: 118px; y: 332px; width: 84px; height: 84px;
+        border-radius: 42px;
+        background: hold.pressed ? Palette.line : Palette.surface;
+        Path {
+            x: 1px; y: 1px; width: 82px; height: 82px; viewbox-width: 82; viewbox-height: 82;
+            commands: "M 4 57 A 40 40 0 0 1 57 4";
+            stroke: Palette.sheen; stroke-width: 1.5px; stroke-line-cap: round;
+        }
+        Rectangle { x: 5px; y: 5px; width: 74px; height: 74px; border-radius: 37px; border-width: 1px; border-color: Palette.rim; }
+        // Short segments give crisp feedback on the device's RGB565 display.
+        for segment in 32: Rectangle {
+            x: 40px + sin(segment * 360deg / 32) * 38px;
+            y: 40px - cos(segment * 360deg / 32) * 38px;
+            width: 4px; height: 4px; border-radius: 2px;
+            background: Palette.accent-ink;
+            visible: root.progress > 0 && segment < root.progress * 32;
+        }
+        Path {
+            x: 28px; y: 25px; width: 28px; height: 32px;
+            commands: root.progress >= 1
+                ? "M 5 17 L 12 24 L 25 8"
+                : "M 7 14 V 8 A 7 7 0 0 1 21 8 V 14 M 3 14 H 25 V 31 H 3 Z M 14 20 V 25";
+            stroke: root.progress > 0 ? Palette.accent-ink : Palette.text;
+            stroke-width: 2px;
+        }
+        hold := TouchArea {
+            accessible-role: button; accessible-label: @tr("长按解锁");
+            pointer-event(event) => {
+                if event.kind == PointerEventKind.down { root.hold-start(); }
+                if event.kind == PointerEventKind.up { root.hold-end(self.mouse-x >= 0px && self.mouse-x <= self.width && self.mouse-y >= 0px && self.mouse-y <= self.height); }
+            }
+            moved => {
+                if self.mouse-x < 0px || self.mouse-x > self.width || self.mouse-y < 0px || self.mouse-y > self.height { root.hold-cancel(); }
+            }
+        }
+        Timer { interval: 50ms; running: hold.pressed && root.awake; triggered => { root.hold-tick(); } }
+    }
+    Label { x: 16px; y: 420px; width: parent.width - 32px; height: 24px; text: root.progress >= 1 ? @tr("松开继续") : @tr("长按解锁"); font-size: 15px; font-weight: 600; horizontal-alignment: center; }
+    Label { x: 16px; y: 448px; width: parent.width - 32px; height: 24px; text: root.pin-enabled ? @tr("查看设置与操作需要密码") : @tr("长按 1 秒，松开后解锁"); font-size: 12px; color: Palette.muted; horizontal-alignment: center; }
+}
+
+export component PinPad inherits AmbientBackground {
+    in property <string> title;
+    in property <string> message;
+    in property <string> masked;
+    in property <bool> busy;
+    in property <int> remaining;
+    callback digit(int);
+    callback backspace;
+    callback submit;
+    callback cancel;
+    background: Palette.bg;
+    TouchArea { }
+    Label { x: 16px; y: 30px; width: parent.width - 32px; height: 36px; text: root.title; font-size: 22px; font-weight: 600; horizontal-alignment: center; }
+    Label { x: 20px; y: 76px; width: parent.width - 40px; height: 44px; text: root.remaining > 0 ? root.remaining + @tr(" 秒后可以重试") : root.message; font-size: 14px; color: Palette.muted; horizontal-alignment: center; wrap: word-wrap; }
+    Label { x: 16px; y: 126px; width: parent.width - 32px; height: 36px; text: root.masked == "" ? "—" : root.masked; font-size: 21px; color: Palette.accent-ink; horizontal-alignment: center; letter-spacing: 2px; }
+    for digit in [1,2,3,4,5,6,7,8,9]: TapButton {
+        x: 16px + mod(digit - 1, 3) * 100px;
+        y: 180px + floor((digit - 1) / 3) * 58px;
+        width: 88px; height: 50px; text: "" + digit; text-size: 24px;
+        interactive: !root.busy && root.remaining == 0;
+        clicked => { root.digit(digit); }
+    }
+    TapButton { x: 16px; y: 354px; width: 88px; height: 50px; text: @tr("删除"); interactive: !root.busy; clicked => { root.backspace(); } }
+    TapButton { x: 116px; y: 354px; width: 88px; height: 50px; text: "0"; text-size: 24px; interactive: !root.busy && root.remaining == 0; clicked => { root.digit(0); } }
+    TapButton { x: 216px; y: 354px; width: 88px; height: 50px; text: root.busy ? @tr("处理中") : @tr("确认"); selected: true; interactive: !root.busy && root.remaining == 0; clicked => { root.submit(); } }
+    TapButton { x: 16px; y: 424px; width: 288px; height: 44px; text: @tr("取消"); clicked => { root.cancel(); } }
+}

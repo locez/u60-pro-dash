@@ -42,7 +42,7 @@ Native companion apps for the ZTE U60 Pro 5G mobile router. Connect to the `zte-
 ## Architecture
 
 - **Pattern**: MVVM
-- **Transport**: HTTP to `zte-agent` REST API (`http://<router>:9090/api/...`)
+- **Transport**: HTTP to `zte-agent` REST API (`http://<router>:2026/api/...`)
 - **Auth**: Token-based (password → bearer token)
 
 The iOS app communicates with `zte-agent`, a lightweight Rust HTTP server deployed on the router. The agent exposes dedicated typed REST endpoints that internally call the router's ubus subsystem and return JSON responses.
@@ -134,7 +134,7 @@ ios/OpenU60/
 3. Run `cd mobile/ios/OpenU60 && xcodegen generate` from the repository root
 4. Open `OpenU60.xcodeproj` in Xcode. The checked-in `Resources/Info.plist` already enables local HTTP access to the router.
 5. Build and run on device or simulator
-6. Connect to the router's WiFi and set the agent URL (default: `http://192.168.0.1:9090`)
+6. Connect to the router's WiFi and set the agent URL (default: `http://192.168.0.1:2026`)
 
 ## Agent REST API
 

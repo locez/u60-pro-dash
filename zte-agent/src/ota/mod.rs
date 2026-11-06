@@ -139,6 +139,9 @@ impl OtaManager {
     }
 
     pub fn start(self: &Arc<Self>) {
+        if crate::deployment::paired() {
+            return;
+        }
         if std::env::var("ZTE_OTA_TRIAL").as_deref() == Ok("1") {
             let manager = Arc::clone(self);
             crate::system::spawn_named("ota-trial-state", move || {
@@ -199,12 +202,13 @@ impl OtaManager {
             "last_error":state.persistent.last_error,
             "progress":{"received":state.bytes_received,"total":state.bytes_total},
             "signing_configured":self.verifier.configured(),
-            "bootstrap_ready":self.paths.bootstrap_ready(),
-            "rollback_available":rollback_available,
+            "bootstrap_ready":self.paths.bootstrap_ready() && !crate::deployment::paired(),
+            "deployment_mode":if crate::deployment::paired(){"paired"}else{"agent"},
+            "rollback_available":rollback_available && !crate::deployment::paired(),
             "active_slot":active.map(Slot::as_str),
             "trial_in_progress":trial_in_progress,
             "automatic_install_supported":false,
-            "restart_scope":"agent_only"
+            "restart_scope":if crate::deployment::paired(){"agent_and_screen"}else{"agent_only"}
         }})
     }
 
@@ -806,14 +810,7 @@ fn wait_for_exit(pid: u32, timeout: Duration) -> bool {
 }
 
 fn bind_address() -> SocketAddr {
-    let mut address: SocketAddr = std::env::var("ZTE_AGENT_BIND")
-        .ok()
-        .and_then(|value| value.parse().ok())
-        .unwrap_or_else(|| "127.0.0.1:9090".parse().expect("static socket address"));
-    if address.ip().is_unspecified() {
-        address.set_ip(std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST));
-    }
-    address
+    crate::management::local_address().expect("agent bind address was validated at startup")
 }
 
 pub fn unix_now() -> u64 {

@@ -1,0 +1,469 @@
+use super::*;
+use serde_json::json;
+pub fn reads(id: &str) -> Option<Vec<Read>> {
+    let list: &[(&str, &str)] = match id {
+        "esim-profiles" => &[
+            ("chip", "/api/esim/chip"),
+            ("inventory", "/api/esim/profiles"),
+            ("switch", "/api/esim/switch"),
+        ],
+        "esim-download" => &[
+            ("inventory", "/api/esim/profiles"),
+            ("download", "/api/esim/download"),
+        ],
+        "esim-receipts" => &[("receipts", "/api/esim/notifications")],
+        _ => return None,
+    };
+    Some(list.iter().map(|(k, p)| Read::get(k, p)).collect())
+}
+fn fresh(d: &Value) -> bool {
+    d["profiles"].is_array() && d["stale"] == false && d["updating"] == false
+}
+fn profile(readings: &Data) -> Option<&Value> {
+    let selected = selected(readings)?;
+    data(readings, "inventory")["profiles"]
+        .as_array()?
+        .iter()
+        .find(|p| p["iccid"] == selected)
+}
+pub fn can_poll(readings: &Data) -> bool {
+    !readings.values().any(|v| {
+        matches!(
+            v,
+            Err(Error::EsimUnavailable | Error::EsimNotConfigured | Error::Unsupported)
+        )
+    })
+}
+fn unavailable(id: &str, readings: &Data) -> Option<Page> {
+    let key = if id == "esim-receipts" {
+        "receipts"
+    } else {
+        "inventory"
+    };
+    let error = readings.get(key)?.as_ref().err()?;
+    // Keep an in-progress download visible even when a separate inventory
+    // read fails. Its own expected-instance checks still govern all actions.
+    if id == "esim-download"
+        && ["running", "confirm", "cancelling"]
+            .contains(&text(&data(readings, "download")["state"]).as_str())
+    {
+        return None;
+    }
+    let content = match error {
+        Error::EsimUnavailable => crate::i18n::tr(
+            "未能读取到可管理的 eUICC 卡片。U60 Pro 没有内置 eSIM，普通运营商 SIM 卡无法下载或管理 eSIM 套餐。",
+        ),
+        Error::EsimReloading => {
+            crate::i18n::tr("卡片切换后需要重新加载。请等待 SIM 与蜂窝网络恢复，再刷新配置列表。")
+        }
+        Error::EsimBusy => {
+            crate::i18n::tr("卡片正在处理其他请求。请等待当前操作结束，再刷新状态。")
+        }
+        Error::EsimNotConfigured => {
+            crate::i18n::tr("后台无法使用当前 eSIM 通信配置。请检查后台的卡槽与调制解调器配置。")
+        }
+        Error::Unsupported => {
+            crate::i18n::tr("当前后台没有提供此 eSIM 接口。请使用支持 eSIM 管理的后台版本。")
+        }
+        _ => crate::i18n::tr("eSIM 状态读取失败。请检查后台连接，并在卡片就绪后刷新。"),
+    };
+    let mut page = Page::default();
+    page.content = content.into();
+    page.note = if *error == Error::EsimUnavailable {
+        crate::i18n::tr("需要支持管理的 eUICC 卡，例如兼容的 9eSIM / 5ber。若已插入此类卡，管理通道也可能暂时不可用；确认卡片就绪后手动刷新。").into()
+    } else {
+        String::new()
+    };
+    Some(page)
+}
+pub fn page(id: &str, readings: &Data) -> Page {
+    if let Some(page) = unavailable(id, readings) {
+        return page;
+    }
+    let mut p = Page::default();
+    let inventory = data(readings, "inventory");
+    match id {
+        "esim-profiles" => {
+            let sw = data(readings, "switch");
+            p.row(crate::i18n::tr("切换阶段"), &sw["state"]);
+            p.row(crate::i18n::tr("列表过期"), &inventory["stale"]);
+            if selected(readings).is_some() {
+                if let Some(v) = profile(readings) {
+                    p.title = Some(
+                        super::network::first(v, &["nickname", "name", "provider"])
+                            .as_str()
+                            .filter(|s| !s.is_empty())
+                            .unwrap_or(crate::i18n::tr("eSIM 配置"))
+                            .into(),
+                    );
+                    for (k, l) in [
+                        ("iccid", "ICCID"),
+                        ("provider", crate::i18n::tr("运营商")),
+                        ("name", crate::i18n::tr("套餐")),
+                        ("state", crate::i18n::tr("配置状态")),
+                        ("class", crate::i18n::tr("配置类型")),
+                    ] {
+                        p.row(l, &v[k]);
+                    }
+                    let mut f = Field::text(
+                        "nickname",
+                        crate::i18n::tr("自定义名称"),
+                        &json!(text(&v["nickname"])),
+                    );
+                    f.max = 64;
+                    p.fields.push(f);
+                    for (a, l, w) in [
+                        (
+                            "nickname",
+                            crate::i18n::tr("保存名称"),
+                            crate::i18n::tr("空名称将清除自定义名称。"),
+                        ),
+                        (
+                            "enable",
+                            crate::i18n::tr("启用此 eSIM"),
+                            crate::i18n::tr(
+                                "切换 SIM 身份并重新注册网络，蜂窝数据、通话与短信会暂时中断。新套餐可能要求不同 APN 或漫游设置。",
+                            ),
+                        ),
+                        (
+                            "delete",
+                            crate::i18n::tr("删除此 eSIM"),
+                            crate::i18n::tr(
+                                "永久删除此套餐配置，激活码通常不能再次使用。请确认已具备运营商的恢复方式。",
+                            ),
+                        ),
+                    ] {
+                        let mut a =
+                            Action::new(a, l, &format!("ICCID：{}\n{}", shown(&v["iccid"]), w));
+                        a.enabled =
+                            fresh(inventory) && (a.id == "nickname" || v["state"] == "disabled");
+                        if a.id == "delete" {
+                            a.phrase = Some("DELETE".into());
+                        }
+                        p.actions.push(a);
+                    }
+                } else {
+                    p.note = crate::i18n::tr("配置已不存在，请返回并刷新。").into();
+                }
+            } else {
+                p.row("eSIM EID", &data(readings, "chip")["eid"]);
+                p.row(
+                    crate::i18n::tr("芯片版本"),
+                    &data(readings, "chip")["firmware"],
+                );
+                p.rows.push((
+                    crate::i18n::tr("剩余存储").into(),
+                    super::status::quantity(
+                        &data(readings, "chip")["free_nvm_bytes"],
+                        1024.,
+                        "KiB",
+                    ),
+                ));
+                if let Some(profiles) = inventory["profiles"].as_array() {
+                    p.items = profiles
+                        .iter()
+                        .filter_map(|v| {
+                            Some(Item {
+                                id: v["iccid"].as_str()?.into(),
+                                title: super::network::first(v, &["nickname", "name", "provider"])
+                                    .as_str()
+                                    .filter(|s| !s.is_empty())
+                                    .unwrap_or(crate::i18n::tr("eSIM 配置"))
+                                    .into(),
+                                subtitle: format!(
+                                    "{} · {}",
+                                    shown(&v["provider"]),
+                                    shown(&v["state"])
+                                ),
+                            })
+                        })
+                        .collect();
+                }
+                p.note=crate::i18n::tr("点击配置查看、重命名、启用或删除。下载新配置请进入「下载 eSIM」。运营商回执由后台自动重试。").into();
+            }
+        }
+        "esim-download" => {
+            let d = data(readings, "download");
+            let phase = text(&d["state"]);
+            for (k, l) in [
+                ("state", crate::i18n::tr("下载阶段")),
+                ("step", crate::i18n::tr("当前步骤")),
+                ("provider", crate::i18n::tr("运营商")),
+                ("name", crate::i18n::tr("套餐名称")),
+                ("iccid", crate::i18n::tr("配置 ICCID")),
+                ("error", crate::i18n::tr("错误信息")),
+            ] {
+                p.row(l, &d[k]);
+            }
+            if ["idle", "done", "failed", "cancelled"].contains(&phase.as_str()) {
+                p.fields.push(Field::password(
+                    "activation_code",
+                    crate::i18n::tr("激活码 LPA:1$…"),
+                    true,
+                ));
+                p.fields.push(Field::password(
+                    "confirmation_code",
+                    crate::i18n::tr("运营商确认码（可选）"),
+                    true,
+                ));
+                let mut a = Action::new(
+                    "start",
+                    crate::i18n::tr("获取套餐预览"),
+                    crate::i18n::tr(
+                        "连接运营商服务器读取套餐信息，之后仍需确认才安装。预览需要在两分钟内确认或取消。",
+                    ),
+                );
+                a.enabled = !d.is_null() && inventory["agent_instance"].is_u64();
+                p.actions.push(a);
+            }
+            if phase == "confirm" {
+                let mut a = Action::new(
+                    "confirm",
+                    crate::i18n::tr("确认安装此套餐"),
+                    &crate::i18n::format(
+                        "运营商：{0}\n套餐：{1}\nICCID：{2}\n安装可能消耗一次性激活码。",
+                        &[
+                            shown(&d["provider"]).to_string(),
+                            shown(&d["name"]).to_string(),
+                            shown(&d["iccid"]).to_string(),
+                        ],
+                    ),
+                );
+                a.enabled = inventory["agent_instance"].is_u64();
+                p.actions.push(a);
+            }
+            if ["running", "confirm"].contains(&phase.as_str()) {
+                let mut a = Action::new(
+                    "cancel",
+                    crate::i18n::tr("取消当前下载"),
+                    crate::i18n::tr("请求在可取消阶段停止。已经写入芯片的安装过程无法靠取消撤回。"),
+                );
+                a.enabled = !text(&d["step"]).starts_with("es10b_load_bound_profile_package");
+                p.actions.push(a);
+            }
+            if !["idle", "running", "confirm", "cancelling", ""].contains(&phase.as_str()) {
+                p.actions.push(Action::new(
+                    "dismiss",
+                    crate::i18n::tr("清除结果显示"),
+                    crate::i18n::tr("只关闭本次结果，不删除已安装的套餐。"),
+                ));
+            }
+            p.note=crate::i18n::tr("安装完成不代表已启用或联网；请到配置列表启用，并分别核对卡片切换、调制解调器身份与网络注册。").into();
+        }
+        "esim-receipts" => {
+            let d = data(readings, "receipts");
+            p.row(crate::i18n::tr("待处理回执"), &d["count"]);
+            p.row(crate::i18n::tr("状态过期"), &d["stale"]);
+            if let Some(pending) = d["pending"].as_array() {
+                for v in pending {
+                    p.rows.push((
+                        format!("{} · {}", shown(&v["seq"]), shown(&v["operation"])),
+                        crate::i18n::format(
+                            "{0}\n尝试 {1} 次 · {2}",
+                            &[
+                                shown(&v["address"]).to_string(),
+                                shown(&v["attempts"]).to_string(),
+                                shown(&v["last_error"]).to_string(),
+                            ],
+                        ),
+                    ));
+                }
+            }
+            let mut a = Action::new(
+                "process",
+                crate::i18n::tr("重试待处理回执"),
+                crate::i18n::tr(
+                    "向运营商发送待处理的配置安装、启用或删除回执。后台会继续按策略重试。",
+                ),
+            );
+            a.enabled = d["count"].as_u64().is_some_and(|n| n > 0);
+            p.actions.push(a);
+        }
+        _ => {}
+    }
+    p
+}
+pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
+    let inventory = data(readings, "inventory");
+    match id {
+        "esim-profiles" => {
+            ensure!(
+                fresh(inventory),
+                "{}",
+                crate::i18n::tr("配置列表正在更新或已过期，请刷新。")
+            );
+            let v = profile(readings)
+                .ok_or_else(|| anyhow::anyhow!("{}", crate::i18n::tr("配置已不存在。")))?;
+            ensure!(
+                ["nickname", "enable", "delete"].contains(&action),
+                "{}",
+                crate::i18n::tr("操作不存在。")
+            );
+            ensure!(
+                action == "nickname" || v["state"] == "disabled",
+                "{}",
+                crate::i18n::tr("请选择未启用的配置。")
+            );
+            let mut body = json!({"iccid":v["iccid"]});
+            if action == "nickname" {
+                body["nickname"] = p.value("nickname")?;
+                ensure!(
+                    !text(&body["nickname"]).chars().any(char::is_control),
+                    "{}",
+                    crate::i18n::tr("名称不能包含控制字符。")
+                );
+            }
+            let mut plan = Plan::one(Method::POST, &format!("/api/esim/{action}"), body);
+            plan.guards.push(Guard::new(
+                Read::get("chip", "/api/esim/chip"),
+                data(readings, "chip"),
+                &["/eid"],
+            ));
+            plan.guards.push(Guard::new(
+                Read::get("inventory", "/api/esim/profiles"),
+                inventory,
+                &[
+                    "/agent_instance",
+                    "/generation",
+                    "/profiles",
+                    "/stale",
+                    "/updating",
+                ],
+            ));
+            Ok(plan)
+        }
+        "esim-download" => {
+            if action == "start" {
+                let code = text(&p.value("activation_code")?);
+                let parts = code.split('$').collect::<Vec<_>>();
+                ensure!(
+                    parts.len() >= 3
+                        && parts[0].eq_ignore_ascii_case("LPA:1")
+                        && parts[1].len() <= 253
+                        && !code.chars().any(char::is_whitespace),
+                    "{}",
+                    crate::i18n::tr("激活码格式应为 LPA:1$服务器$激活标识。")
+                );
+                let url = reqwest::Url::parse(&format!("https://{}", parts[1]))?;
+                ensure!(
+                    url.host_str().is_some()
+                        && url.username().is_empty()
+                        && url.password().is_none()
+                        && url.path() == "/"
+                        && url.query().is_none()
+                        && url.fragment().is_none(),
+                    "{}",
+                    crate::i18n::tr("激活服务器地址无效。")
+                );
+                let confirmation = p.value("confirmation_code")?;
+                if parts.get(4) == Some(&"1") {
+                    ensure!(
+                        !text(&confirmation).is_empty(),
+                        "{}",
+                        crate::i18n::tr("该套餐需要运营商确认码。")
+                    );
+                }
+                return Ok(Plan::one(
+                    Method::POST,
+                    "/api/esim/download",
+                    json!({"activation_code":code,"confirmation_code":confirmation,"preview":true}),
+                ));
+            }
+            let d = data(readings, "download");
+            let instance = inventory["agent_instance"].as_u64().ok_or_else(|| {
+                anyhow::anyhow!("{}", crate::i18n::tr("无法核对后台实例，请刷新。"))
+            })?;
+            let started = d["started_at"]
+                .as_u64()
+                .filter(|n| *n > 0)
+                .ok_or_else(|| anyhow::anyhow!("{}", crate::i18n::tr("没有可操作的下载记录。")))?;
+            let mut body = json!({"expected":{"agent_instance":instance,"started_at":started}});
+            let (method, path) = match action {
+                "confirm" => {
+                    ensure!(
+                        d["state"] == "confirm",
+                        "{}",
+                        crate::i18n::tr("套餐不再等待确认。")
+                    );
+                    body["accept"] = json!(true);
+                    (Method::POST, "/api/esim/download/confirm")
+                }
+                "cancel" => (Method::POST, "/api/esim/download/cancel"),
+                "dismiss" => (Method::DELETE, "/api/esim/download"),
+                _ => anyhow::bail!("{}", crate::i18n::tr("操作不存在。")),
+            };
+            Ok(Plan::one(method, path, body))
+        }
+        "esim-receipts" if action == "process" => Ok(Plan::one(
+            Method::POST,
+            "/api/esim/notifications/process",
+            json!({}),
+        )),
+        _ => anyhow::bail!("{}", crate::i18n::tr("操作不存在。")),
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn unavailable_card_explains_requirements_without_offering_configuration() {
+        let mut d = Data::from([
+            ("chip".into(), Err(Error::EsimUnavailable)),
+            ("inventory".into(), Err(Error::EsimUnavailable)),
+            ("receipts".into(), Err(Error::EsimUnavailable)),
+            ("switch".into(), Ok(json!({"state":"idle"}))),
+            ("download".into(), Ok(json!({"state":"idle"}))),
+        ]);
+        for id in ["esim-profiles", "esim-download", "esim-receipts"] {
+            let p = page(id, &d);
+            assert!(p.content.contains("普通运营商 SIM"));
+            assert!(p.fields.is_empty() && p.actions.is_empty() && p.items.is_empty());
+        }
+        assert!(!can_poll(&d));
+        d.insert(
+            "download".into(),
+            Ok(json!({"state":"running","step":"connecting"})),
+        );
+        assert!(
+            page("esim-download", &d)
+                .rows
+                .iter()
+                .any(|(_, value)| value == "running")
+        );
+        let d = Data::from([("inventory".into(), Err(Error::EsimReloading))]);
+        assert!(can_poll(&d));
+        assert!(page("esim-profiles", &d).content.contains("重新加载"));
+    }
+    #[test]
+    fn confirmation_identifies_the_reviewed_download_and_deletion_refuses_active_profile() {
+        let d = Data::from([
+            (
+                "inventory".into(),
+                Ok(json!({"agent_instance":12,"profiles":[],"stale":false,"updating":false})),
+            ),
+            (
+                "download".into(),
+                Ok(json!({"state":"confirm","started_at":1234,"provider":"Example"})),
+            ),
+        ]);
+        let p = page("esim-download", &d);
+        let b = plan("esim-download", "confirm", &p, &d).unwrap().requests[0]
+            .body
+            .clone()
+            .unwrap();
+        assert_eq!(
+            b,
+            json!({"accept":true,"expected":{"agent_instance":12,"started_at":1234}})
+        );
+        let d = Data::from([
+            (
+                "inventory".into(),
+                Ok(
+                    json!({"profiles":[{"iccid":"example","state":"enabled"}],"stale":false,"updating":false}),
+                ),
+            ),
+            ("__selection".into(), Ok(json!("example"))),
+        ]);
+        assert!(plan("esim-profiles", "delete", &page("esim-profiles", &d), &d).is_err());
+    }
+}

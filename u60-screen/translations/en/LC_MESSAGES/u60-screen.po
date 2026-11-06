@@ -1,0 +1,237 @@
+# Generated from locales/screen.json; do not edit.
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\nLanguage: en\nPlural-Forms: nplurals=1; plural=0;\n"
+
+msgid " 确认"
+msgstr " Confirm"
+
+msgid " 秒后可以重试"
+msgstr " seconds until retry"
+
+msgid "60 秒"
+msgstr "60 seconds"
+
+msgid "NETWORK / 网络状态"
+msgstr "NETWORK STATUS"
+
+msgid "U60   →   Tailscale   →   目标"
+msgstr "U60 → Tailscale → Goals"
+
+msgid "U60 · 原生屏幕预览"
+msgstr "U60 · Screen preview"
+
+msgid "−2 分钟"
+msgstr "−2 min"
+
+msgid "信号强度"
+msgstr "Signal strength"
+
+msgid "修改解锁密码"
+msgstr "Change unlock PIN"
+
+msgid "关闭密码解锁"
+msgstr "Disable PIN lock"
+
+msgid "切换 Wi-Fi 频段"
+msgstr "Switch Wi-Fi band"
+
+msgid "切换演示场景"
+msgstr "Switch demo scenario"
+
+msgid "删除"
+msgstr "Delete"
+
+msgid "刷新状态"
+msgstr "Refresh status"
+
+msgid "刷新连接状态"
+msgstr "Refresh connection status"
+
+msgid "取消"
+msgstr "Cancel"
+
+msgid "台设备"
+msgstr "devices"
+
+msgid "后台连接 · "
+msgstr "Agent · "
+
+msgid "启动与熄屏后自动锁定。开启密码后，更改或关闭密码需要先验证当前密码。"
+msgstr "Activate and lock automatically after screening. After opening the password, changing or closing the password requires verification of the current password."
+
+msgid "处理中"
+msgstr "Working"
+
+msgid "子网路由与连通性检测"
+msgstr "Subnet connectivity"
+
+msgid "完成"
+msgstr "Done"
+
+msgid "密码解锁"
+msgstr "PIN unlock"
+
+msgid "屏幕亮度  "
+msgstr "Brightness  "
+
+msgid "已开启 · 6–12 位数字密码"
+msgstr "Enabled · 6–12 digit PIN"
+
+msgid "已连接"
+msgstr "Connected"
+
+msgid "应用"
+msgstr "Apps"
+
+msgid "强调色"
+msgstr "Accent color"
+
+msgid "当前"
+msgstr "Current"
+
+msgid "当前读数为演示数据。"
+msgstr "These readings are demo data."
+
+msgid "换行"
+msgstr "Enter"
+
+msgid "提示"
+msgstr "Notice"
+
+msgid "放大连接二维码"
+msgstr "Enlarge Wi-Fi QR code"
+
+msgid "断开并清除本地会话"
+msgstr "Disconnect and clear local session"
+
+msgid "明暗、配色与亮度即时生效。"
+msgstr "Theme, color and brightness apply immediately."
+
+msgid "显示密码"
+msgstr "Show password"
+
+msgid "暂无有效读数"
+msgstr "No valid reading"
+
+msgid "未开启 · 仅长按解锁"
+msgstr "Unlocked · Long only by unlocking"
+
+msgid "本次 "
+msgstr "Session "
+
+msgid "本页最近 2 分钟的观察记录；断线或暂停处留空。"
+msgstr "Observed on this page over the last 2 minutes. Gaps indicate disconnection or pauses."
+
+msgid "机身屏幕使用本机后台账号连接。也可以输入后台密码重新登录。"
+msgstr "The body screen connects to the home computer's backend account. You can also enter the backend password and log in again."
+
+msgid "松开继续"
+msgstr "Release to continue"
+
+msgid "查看设置与操作需要密码"
+msgstr "PIN required for settings"
+
+msgid "检测目标"
+msgstr "Test target"
+
+msgid "概览"
+msgstr "Overview"
+
+msgid "正在积累趋势"
+msgstr "Collecting samples"
+
+msgid "正在读取 Wi-Fi…"
+msgstr "Reading Wi-Fi…"
+
+msgid "浅色"
+msgstr "Light"
+
+msgid "深色"
+msgstr "Dark"
+
+msgid "清空"
+msgstr "Clear"
+
+msgid "演示"
+msgstr "Demo"
+
+msgid "演示运营商"
+msgstr "Example Mobile"
+
+msgid "点二维码放大"
+msgstr "Tap QR to enlarge"
+
+msgid "熄屏"
+msgstr "Screen off"
+
+msgid "电池供电"
+msgstr "Battery powered"
+
+msgid "界面主题"
+msgstr "Theme"
+
+msgid "知道了"
+msgstr "Got it"
+
+msgid "确认"
+msgstr "Confirm"
+
+msgid "确认执行"
+msgstr "Confirm action"
+
+msgid "确认操作"
+msgstr "Confirm action"
+
+msgid "空格"
+msgstr "Space"
+
+msgid "立即锁屏"
+msgstr "Lock now"
+
+msgid "网络"
+msgstr "Network"
+
+msgid "自动熄屏"
+msgstr "Automatic sleep"
+
+msgid "自定义颜色"
+msgstr "Custom color"
+
+msgid "设备"
+msgstr "Device"
+
+msgid "设置目标 IP 和端口"
+msgstr "Set the target IP and port"
+
+msgid "设置解锁密码"
+msgstr "Set unlock PIN"
+
+msgid "输入 "
+msgstr "Enter "
+
+msgid "输入密码登录"
+msgstr "Sign in with password"
+
+msgid "返回"
+msgstr "Back"
+
+msgid "连接设备"
+msgstr "Connected devices"
+
+msgid "退格"
+msgstr "Backspace"
+
+msgid "重新连接"
+msgstr "Reconnect"
+
+msgid "长按 1 秒，松开后解锁"
+msgstr "Hold 1s, then release"
+
+msgid "长按解锁"
+msgstr "Hold to unlock"
+
+msgid "随身网络"
+msgstr "Mobile hotspot"
+
+msgid "隐藏密码"
+msgstr "Hide password"

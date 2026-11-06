@@ -31,6 +31,10 @@ const assert=require('node:assert/strict'),http=require('node:http'),fs=require(
     await page.locator('#update-download').click();await page.waitForFunction(()=>document.querySelector('#update-feedback').textContent.includes('staged'));assert.equal(await page.locator('#update-install').isDisabled(),false);assert.equal(await page.locator('#update-rollback').isDisabled(),true);assert.equal(await page.locator('#update-percent').textContent(),'100');
     await page.locator('#update-install').click();await confirm('Install agent');await page.waitForFunction(()=>document.querySelector('#update-feedback').textContent.includes('reconnect automatically'));assert.deepEqual(requests.find(request=>request.url==='/api/update/install').body,{confirm:true});
     const before=requests.length;await page.waitForTimeout(1200);assert.equal(requests.length,before,'the update page receives live SSE and never polls while idle');
+    status={...status,deployment_mode:'paired',bootstrap_ready:false,rollback_available:false,restart_scope:'agent_and_screen'};patchStatus();
+    await page.waitForFunction(()=>document.querySelector('#update-state-detail').textContent.includes('bash dash.sh install'));
+    for(const id of ['update-channel','update-auto-check','update-auto-download','update-save','update-check','update-download','update-install','update-rollback'])assert.equal(await page.locator('#'+id).isDisabled(),true,`${id} must not split a paired deployment`);
+    assert.doesNotMatch(await page.locator('#update-slot').textContent(),/agent-only|Install once/);
     for(const width of [320,390,820,1440]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,`update page overflow at ${width}px`);}
     assert.deepEqual(errors,[]);console.log('Passed: signed update channel settings, staging, confirmation, SSE-only live status and responsive layout.');
   }finally{await browser.close();clearInterval(heartbeat);for(const stream of streams)stream.destroy();server.closeAllConnections();server.close();}

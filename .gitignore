@@ -60,3 +60,7 @@ __pycache__/
 /ota-public.pem
 /ota-key-info.txt
 
+
+# Locally built gateway packages.
+/local-tools/*/zte-agent
+/local-tools/*/zte-agent.sha256

@@ -1,4 +1,5 @@
 pub mod config;
+mod management;
 
 pub use config::TsConfig;
 
@@ -30,10 +31,23 @@ const LOG_FILE: &str = "/tmp/tailscaled.log";
 // The companion script owns narrowly scoped forwarding/NAT rules; Tailscale
 // must not install netfilter rules on the firmware-owned cellular firewall.
 const GATEWAY_ENV: &str = "ZTE_AGENT_TAILSCALE_GATEWAY";
-const GATEWAY_SCRIPT: &str = "/data/local/tmp/u60-home-network.sh";
+const GATEWAY_SCRIPT: &str = "/data/local/tmp/tailscale-gateway.sh";
+// Existing devices continue to work until their rules script is migrated.
+const LEGACY_GATEWAY_SCRIPT: &str = "/data/local/tmp/u60-home-network.sh";
 
 fn gateway_mode() -> bool {
     std::env::var(GATEWAY_ENV).as_deref() == Ok("1")
+}
+
+pub fn prepare_management() -> Result<(), String> {
+    prepare_management_for(crate::management::local_address()?.port())
+}
+
+pub(crate) fn prepare_management_for(http_port: u16) -> Result<(), String> {
+    if gateway_mode() && Path::new(SOCK).exists() {
+        management::configure(http_port)?;
+    }
+    Ok(())
 }
 
 fn tun_name(gateway: bool) -> &'static str {
@@ -726,7 +740,12 @@ impl TailscaleManager {
             if !self.running.load(Ordering::SeqCst) || self.paused.load(Ordering::SeqCst) {
                 return;
             }
-            if daemon_status(5).is_ok() {
+            // The socket can answer while the backend is still NoState;
+            // applying Serve then fails before persisted identity is loaded.
+            if daemon_status(5).is_ok_and(|status| matches!(
+                status["BackendState"].as_str(),
+                Some("Running" | "NeedsLogin" | "NeedsMachineAuth" | "Stopped")
+            )) {
                 break;
             }
             thread::sleep(Duration::from_secs(1));
@@ -746,7 +765,7 @@ impl TailscaleManager {
             // Native TUN delivers real peer IPs, whereas the agent's browser
             // guards expect remote management to arrive on loopback. Serve's
             // tailnet TCP handler retains that path without weakening them.
-            if let Err(e) = cli(&["serve", "--bg", "--yes", "--tcp=9090", "tcp://127.0.0.1:9090"], 20) {
+            if let Err(e) = management::configure(crate::httpd::http_port()) {
                 eprintln!("[tailscale] gateway management proxy: {e}");
             }
         }
@@ -758,7 +777,8 @@ impl TailscaleManager {
             return;
         }
         let mut cmd = Command::new("sh");
-        cmd.args([GATEWAY_SCRIPT, "apply"]);
+        let script = if Path::new(GATEWAY_SCRIPT).is_file() { GATEWAY_SCRIPT } else { LEGACY_GATEWAY_SCRIPT };
+        cmd.args([script, "apply"]);
         match run_with_timeout(cmd, 20) {
             Ok(output) if output.status.success() => {}
             Ok(output) => eprintln!("[tailscale] gateway rules failed: {}", String::from_utf8_lossy(&output.stderr)),
@@ -819,6 +839,9 @@ impl TailscaleManager {
             "hold_wakelock": cfg.hold_wakelock,
             "pinned_version": cfg.pinned_version,
             "gateway_mode": gateway_mode(),
+            "management_port": if gateway_mode() { management::remote_port(crate::httpd::http_port()) } else { crate::httpd::http_port() },
+            "accept_routes": cfg.accept_routes,
+            "accept_routes_effective": false,
         });
 
         if !installed() {
@@ -860,6 +883,7 @@ impl TailscaleManager {
         let online = self_obj["Online"].as_bool().unwrap_or(false);
 
         payload["backend_state"] = json!(backend);
+        payload["accept_routes_effective"] = json!(gateway_mode() && cfg.accept_routes && backend == "Running");
         payload["health"] = json!(health);
         payload["tailscale_ips"] = status["TailscaleIPs"].clone();
         payload["dns_name"] = self_obj["DNSName"].clone();
@@ -1093,7 +1117,7 @@ fn pref_args_for_mode(cfg: &TsConfig, verb: &str, gateway: bool) -> Vec<String> 
     let mut args = vec![
         verb.to_string(),
         "--accept-dns=false".to_string(),
-        format!("--accept-routes={gateway}"),
+        format!("--accept-routes={}", gateway && cfg.accept_routes),
         format!("--hostname={}", cfg.hostname),
         format!("--advertise-routes={}", cfg.advertise_routes.join(",")),
         format!("--ssh={}", cfg.tailscale_ssh),
@@ -1462,9 +1486,47 @@ pub fn update(state: &AppState, body: &[u8]) -> (u16, Value) {
 }
 
 fn run_update(mgr: &Arc<TailscaleManager>, version: &str, sha256: &str) -> Result<(), String> {
+    run_update_from(mgr, version, sha256, None)
+}
+
+pub(crate) fn install_package(
+    mgr: &Arc<TailscaleManager>,
+    package: &Path,
+    version: &str,
+) -> Result<(), String> {
+    let sha256 = sha256_file(package.to_str().ok_or("Invalid package path")?)?;
+    if mgr
+        .updating
+        .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+        .is_err()
+    {
+        return Err("Tailscale update already in progress".into());
+    }
+    struct UpdateGuard<'a>(&'a TailscaleManager);
+    impl Drop for UpdateGuard<'_> {
+        fn drop(&mut self) {
+            self.0.updating.store(false, Ordering::SeqCst);
+            self.0.refresh_status();
+        }
+    }
+    let _guard = UpdateGuard(mgr);
+    mgr.refresh_status();
+    let result = run_update_from(mgr, version, &sha256, Some(package));
+    *mgr.last_update.lock().unwrap() = Some(
+        json!({"version":version,"ok":result.is_ok(),"error":result.as_ref().err(),"finished_at":unix_now()}),
+    );
+    result
+}
+
+fn run_update_from(
+    mgr: &Arc<TailscaleManager>,
+    version: &str,
+    sha256: &str,
+    package: Option<&Path>,
+) -> Result<(), String> {
     let tgz_path = "/tmp/tailscale-update.tgz";
     let extract_dir = "/tmp/tailscale-update";
-    let result = run_update_inner(mgr, version, sha256, tgz_path, extract_dir);
+    let result = run_update_inner(mgr, version, sha256, tgz_path, extract_dir, package);
     // Never leak tmpfs space, whatever the exit path
     let _ = std::fs::remove_file(tgz_path);
     let _ = std::fs::remove_dir_all(extract_dir);
@@ -1480,21 +1542,30 @@ fn run_update_inner(
     sha256: &str,
     tgz_path: &str,
     extract_dir: &str,
+    package: Option<&Path>,
 ) -> Result<(), String> {
     use std::os::unix::fs::PermissionsExt;
 
     let url = format!("https://pkgs.tailscale.com/stable/tailscale_{version}_arm64.tgz");
 
     // 1. Download (streamed to tmpfs, 120 MB cap)
-    let agent: ureq::Agent = ureq::Agent::config_builder()
-        .timeout_global(Some(Duration::from_secs(600)))
-        .build()
-        .into();
-    let resp = agent.get(&url).call().map_err(|e| format!("download {url}: {e}"))?;
-    let mut reader = resp.into_body().into_reader().take(120 * 1024 * 1024);
-    let mut out = std::fs::File::create(tgz_path).map_err(|e| format!("create {tgz_path}: {e}"))?;
-    std::io::copy(&mut reader, &mut out).map_err(|e| format!("download stream: {e}"))?;
-    drop(out);
+    if let Some(package) = package {
+        std::fs::copy(package, tgz_path).map_err(|_| "Cannot stage uploaded package")?;
+    } else {
+        let agent: ureq::Agent = ureq::Agent::config_builder()
+            .timeout_global(Some(Duration::from_secs(600)))
+            .build()
+            .into();
+        let resp = agent
+            .get(&url)
+            .call()
+            .map_err(|e| format!("download {url}: {e}"))?;
+        let mut reader = resp.into_body().into_reader().take(120 * 1024 * 1024);
+        let mut out =
+            std::fs::File::create(tgz_path).map_err(|e| format!("create {tgz_path}: {e}"))?;
+        std::io::copy(&mut reader, &mut out).map_err(|e| format!("download stream: {e}"))?;
+        drop(out);
+    }
 
     // 2. Verify sha256
     let actual = sha256_file(tgz_path)?;
@@ -1502,16 +1573,11 @@ fn run_update_inner(
         return Err(format!("sha256 mismatch: expected {sha256}, got {actual}"));
     }
 
-    // 3. Extract via busybox tar
+    // 3. Extract only bounded, regular ARM64 binaries; never follow archive links.
     let _ = std::fs::remove_dir_all(extract_dir);
     std::fs::create_dir_all(extract_dir).map_err(|e| format!("mkdir {extract_dir}: {e}"))?;
-    let mut tar = Command::new("tar");
-    tar.args(["-xzf", tgz_path, "-C", extract_dir]);
-    let out = run_with_timeout(tar, 120)?;
-    if !out.status.success() {
-        return Err(format!("tar extract failed: {}", String::from_utf8_lossy(&out.stderr)));
-    }
-    let src_dir = format!("{extract_dir}/tailscale_{version}_arm64");
+    crate::software::extract_tailscale(Path::new(tgz_path), version, Path::new(extract_dir))?;
+    let src_dir = extract_dir;
 
     // 4. Stage new binaries next to the current ones (same filesystem for
     //    atomic rename) and smoke-test before touching the live install.
@@ -1531,6 +1597,13 @@ fn run_update_inner(
     let smoke_out = run_with_timeout(smoke, 15)?;
     if !smoke_out.status.success() {
         return Err("staged tailscaled failed --version smoke test".into());
+    }
+    if String::from_utf8_lossy(&smoke_out.stdout)
+        .split_whitespace()
+        .next()
+        != Some(version)
+    {
+        return Err("The package executable version does not match the selected version".into());
     }
 
     // 5. Quiesce the supervisor — a real handshake, not a best-effort wait:
@@ -1645,6 +1718,17 @@ mod tests {
             assert_eq!(flags.iter().any(|f| f == "--reset"), verb == "up");
         }
         assert_eq!(tun_name(true), "tailscale0");
+    }
+
+    #[test]
+    fn remote_route_preference_is_persistent_and_gateway_scoped() {
+        let mut cfg: TsConfig = serde_json::from_str(r#"{"enabled":true}"#).unwrap();
+        assert!(cfg.accept_routes, "older gateway configurations retain route acceptance");
+        cfg.apply_patch(serde_json::from_str(r#"{"accept_routes":false}"#).unwrap()).unwrap();
+        for verb in ["up", "set"] {
+            assert!(pref_args_for_mode(&cfg,verb,true).contains(&"--accept-routes=false".into()));
+        }
+        assert!(!serde_json::from_slice::<TsConfig>(&serde_json::to_vec(&cfg).unwrap()).unwrap().accept_routes);
     }
 
     #[test]

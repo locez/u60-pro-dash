@@ -1,5 +1,6 @@
 'use strict';
 (() => {
+  const tr = globalThis.OpenU60I18n?.t || ((s,...v)=>s.replace(/\{(\d+)\}/g,(match,i)=>Number(i)<v.length?String(v[i]):match));
   const icons = {
     dashboard: '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18M9 10h12"/>',
     network: '<path d="M3 9a15 15 0 0 1 18 0M6 13a10 10 0 0 1 12 0m-9 4a5 5 0 0 1 6 0"/><circle cx="12" cy="21" r=".5"/>',
@@ -8,51 +9,53 @@
     settings: '<path d="m10 3-1 3-3 1-3 3 2 3-1 3 3 3 3-1 3 2 3-3 1-3 3-1-1-4-3-1-1-3Z"/><circle cx="12" cy="12" r="3"/>'
   };
   const groups = [
-    {id:'dashboard',label:'Dashboard',pages:[
-      {id:'overview',label:'Overview',title:'Router overview',description:'A clear view of your connection and the devices on it.'},
-      {id:'history',label:'Connection history',title:'Connection history',description:'Interruptions and recovery observed during this tab session.'}
+    {id:'dashboard',label:tr('Dashboard'),pages:[
+      {id:'overview',label:tr('Overview'),title:tr('Router overview'),description:tr('A clear view of your connection and the devices on it.')},
+      {id:'history',label:tr('Connection history'),title:tr('Connection history'),description:tr('Interruptions and recovery observed during this tab session.')}
     ]},
-    {id:'network',label:'Network',pages:[
-      {id:'signal',label:'Signal & Cells',title:'Signal & Cells',description:'Every reported LTE and NR carrier, with clear SA and NSA status.'},
-      {id:'wifi',label:'Wi-Fi',title:'Wi-Fi networks',description:'Your local wireless networks and radio status.'},
-      {id:'clients',label:'Connected Devices',title:'Connected devices',description:'Your devices, live traffic, observed peaks and reported speed limits.'},
-      {id:'dns',label:'DNS & Privacy',title:'DNS & privacy',description:'Choose how names are resolved, test encrypted DNS and recover safely from bad settings.'},
-      {id:'dns-cache',label:'Live DNS Cache',title:'Live DNS cache',description:'Watch answers enter the router cache, count down and disappear when they expire.'},
-      {id:'vpn',label:'WireGuard VPN',title:'WireGuard VPN',description:'Import a split-tunnel profile and inspect native kernel handshakes and traffic.'},
-      {id:'lan',label:'LAN & DHCP',title:'LAN & DHCP',description:'The router’s local address and the addresses it assigns to your devices.'},
-      {id:'firewall',label:'Firewall & DMZ',title:'Firewall & DMZ',description:'Control inbound protection, address translation and automatic port access.'},
-      {id:'ports',label:'Port forwarding',title:'Port forwarding',description:'Direct specific incoming connections to a device on your local network.'},
-      {id:'qos',label:'Quality of service',title:'Quality of service',description:'Manage the router’s built-in traffic prioritization.'},
-      {id:'mobile',label:'Mobile Network',title:'Mobile network',description:'The cellular data connection and modem radio state.'},
-      {id:'ttl',label:'Packet TTL',title:'Packet TTL',description:'Adjust outbound IPv4 TTL and IPv6 hop limit on the cellular software path.'},
-      {id:'esim',label:'eSIM management',title:'eSIM management',description:'Profiles, activation codes and connection status for the eSIM card in your router.'},
-      {id:'operators',label:'Network operators',title:'Network operators',description:'Find available mobile networks and choose automatic or manual registration.'},
-      {id:'apn',label:'APN profiles',title:'APN profiles',description:'Manage the access-point profiles used for mobile data.'},
-      {id:'bands',label:'Bands & Cell Lock',title:'Bands & Cell Lock',description:'Choose preferred LTE and NR bands or a specific serving cell.'}
+    {id:'network',label:tr('Network'),pages:[
+      {id:'signal',label:tr('Signal & Cells'),title:tr('Signal & Cells'),description:tr('Every reported LTE and NR carrier, with clear SA and NSA status.')},
+      {id:'wifi',label:tr('Wi-Fi'),title:tr('Wi-Fi networks'),description:tr('Your local wireless networks and radio status.')},
+      {id:'clients',label:tr('Connected Devices'),title:tr('Connected devices'),description:tr('Your devices, live traffic, observed peaks and reported speed limits.')},
+      {id:'dns',label:tr('DNS & Privacy'),title:tr('DNS & privacy'),description:tr('Choose how names are resolved, test encrypted DNS and recover safely from bad settings.')},
+      {id:'dns-cache',label:tr('Live DNS Cache'),title:tr('Live DNS cache'),description:tr('Watch answers enter the router cache, count down and disappear when they expire.')},
+      {id:'proxy',label:tr('Proxies'),title:tr('Proxy services'),description:tr('Independent services, each with its own configuration and controls.')},
+      {id:'tailscale',label:tr('Tailscale'),title:tr('Tailscale'),description:tr('Remote access and private subnet connectivity.')},
+      {id:'vpn',label:tr('WireGuard VPN'),title:tr('WireGuard VPN'),description:tr('Import a split-tunnel profile and inspect native kernel handshakes and traffic.')},
+      {id:'lan',label:tr('LAN & DHCP'),title:tr('LAN & DHCP'),description:tr('The router’s local address and the addresses it assigns to your devices.')},
+      {id:'firewall',label:tr('Firewall & DMZ'),title:tr('Firewall & DMZ'),description:tr('Control inbound protection, address translation and automatic port access.')},
+      {id:'ports',label:tr('Port forwarding'),title:tr('Port forwarding'),description:tr('Direct specific incoming connections to a device on your local network.')},
+      {id:'qos',label:tr('Quality of service'),title:tr('Quality of service'),description:tr('Manage the router’s built-in traffic prioritization.')},
+      {id:'mobile',label:tr('Mobile Network'),title:tr('Mobile network'),description:tr('The cellular data connection and modem radio state.')},
+      {id:'ttl',label:tr('Packet TTL'),title:tr('Packet TTL'),description:tr('Adjust outbound IPv4 TTL and IPv6 hop limit on the cellular software path.')},
+      {id:'esim',label:tr('eSIM management'),title:tr('eSIM management'),description:tr('Profiles, activation codes and connection status for the eSIM card in your router.')},
+      {id:'operators',label:tr('Network operators'),title:tr('Network operators'),description:tr('Find available mobile networks and choose automatic or manual registration.')},
+      {id:'apn',label:tr('APN profiles'),title:tr('APN profiles'),description:tr('Manage the access-point profiles used for mobile data.')},
+      {id:'bands',label:tr('Bands & Cell Lock'),title:tr('Bands & Cell Lock'),description:tr('Choose preferred LTE and NR bands or a specific serving cell.')}
     ]},
     {id:'sms',label:'SMS',pages:[
-      {id:'inbox',label:'Messages',title:'Messages',description:'Read, reply to and manage messages on your router and SIM.'},
-      {id:'compose',label:'Compose',title:'New message',description:'Send a text message through the router’s SIM.'},
-      {id:'forwarding',label:'Forwarding rules',title:'SMS forwarding',description:'Route incoming messages to the destinations you choose.'},
-      {id:'storage',label:'Message storage',title:'Message storage',description:'Capacity and unread message counts reported by the modem.'}
+      {id:'inbox',label:tr('Messages'),title:tr('Messages'),description:tr('Read, reply to and manage messages on your router and SIM.')},
+      {id:'compose',label:tr('Compose'),title:tr('New message'),description:tr('Send a text message through the router’s SIM.')},
+      {id:'forwarding',label:tr('Forwarding rules'),title:tr('SMS forwarding'),description:tr('Route incoming messages to the destinations you choose.')},
+      {id:'storage',label:tr('Message storage'),title:tr('Message storage'),description:tr('Capacity and unread message counts reported by the modem.')}
     ]},
-    {id:'tools',label:'Tools',pages:[
-      {id:'device',label:'Device Info',title:'Device information',description:'System details reported by the on-device agent.'},
-      {id:'battery',label:'Battery & Power',title:'Battery & power',description:'Battery condition, charging, runtime estimates and measured power.'},
-      {id:'diagnostics',label:'System diagnostics',title:'System diagnostics',description:'Live resource use, temperatures, processes and interface details.'},
-      {id:'radio',label:'Radio diagnostics',title:'Radio diagnostics',description:'Inspect neighboring cells and run a signal quality sweep.'},
-      {id:'speedtest',label:'Internet speed test',title:'Internet speed test',description:'Measure the router’s internet connection, with live progress.'},
-      {id:'data',label:'Data usage',title:'Data usage',description:'Track router-measured usage and set a monthly allowance, warning and billing cycle.'},
-      {id:'terminal',label:'AT terminal',title:'AT terminal',description:'Send an explicit modem command and inspect its response.'},
-      {id:'traffic',label:'Traffic monitor',title:'Traffic monitor',description:'Live transfer rates and interface totals, streamed from the router.'}
+    {id:'tools',label:tr('Tools'),pages:[
+      {id:'device',label:tr('Device Info'),title:tr('Device information'),description:tr('System details reported by the on-device agent.')},
+      {id:'battery',label:tr('Battery & Power'),title:tr('Battery & power'),description:tr('Battery condition, charging, runtime estimates and measured power.')},
+      {id:'diagnostics',label:tr('System diagnostics'),title:tr('System diagnostics'),description:tr('Live resource use, temperatures, processes and interface details.')},
+      {id:'radio',label:tr('Radio diagnostics'),title:tr('Radio diagnostics'),description:tr('Inspect neighboring cells and run a signal quality sweep.')},
+      {id:'speedtest',label:tr('Internet speed test'),title:tr('Internet speed test'),description:tr('Measure the router’s internet connection, with live progress.')},
+      {id:'data',label:tr('Data usage'),title:tr('Data usage'),description:tr('Track router-measured usage and set a monthly allowance, warning and billing cycle.')},
+      {id:'terminal',label:tr('AT terminal'),title:tr('AT terminal'),description:tr('Send an explicit modem command and inspect its response.')},
+      {id:'traffic',label:tr('Traffic monitor'),title:tr('Traffic monitor'),description:tr('Live transfer rates and interface totals, streamed from the router.')}
     ]},
-    {id:'settings',label:'Settings',pages:[
-      {id:'device',label:'Device & Power',title:'Device & power',description:'Charging, power settings and device maintenance.'},
-      {id:'https',label:'HTTPS & Install',title:'HTTPS & install',description:'Secure local access and install this console on your devices.'},
-      {id:'appearance',label:'Appearance',title:'Appearance',description:'A comfortable view, in any light.'},
-      {id:'connection',label:'Console connection',title:'Console connection',description:'Connection status and access to this local console.'},
-      {id:'update',label:'Agent Update',title:'Agent update',description:'Signed Stable and Beta releases with automatic rollback protection.'},
-      {id:'about',label:'About',title:'About OpenU60',description:'A local console for your ZTE U60 Pro.'}
+    {id:'settings',label:tr('Settings'),pages:[
+      {id:'device',label:tr('Device & Power'),title:tr('Device & power'),description:tr('Charging, power settings and device maintenance.')},
+      {id:'https',label:tr('HTTPS & Install'),title:tr('HTTPS & install'),description:tr('Secure local access and install this console on your devices.')},
+      {id:'appearance',label:tr('Appearance'),title:tr('Appearance'),description:tr('A comfortable view, in any light.')},
+      {id:'connection',label:tr('Console connection'),title:tr('Console connection'),description:tr('Connection status and access to this local console.')},
+      {id:'update',label:tr('Agent Update'),title:tr('Agent update'),description:tr('Signed Stable and Beta releases with automatic rollback protection.')},
+      {id:'about',label:tr('About'),title:tr('About OpenU60'),description:tr('A local console for your ZTE U60 Pro.')}
     ]}
   ];
   const aliases = {overview:'dashboard/overview',cellular:'network/signal',wireless:'network/wifi',devices:'network/clients',system:'tools/device'};
@@ -62,7 +65,7 @@
   const primary = document.querySelector('#primary-navigation');
   const sidebarToggle = document.querySelector('#sidebar-toggle');
   const mobileHost = document.querySelector('#mobile-navigation-host');
-  const navigationSlot = document.createComment('Desktop navigation');
+  const navigationSlot = document.createComment(tr('Desktop navigation'));
   primary.before(navigationSlot);
   const mobileLayout = matchMedia('(max-width:767px), (max-width:1023px) and (max-height:500px) and (hover:none) and (pointer:coarse)');
   const desktopLayout = matchMedia('(min-width:768px)');
@@ -80,7 +83,7 @@
       navigationMotionTimer = setTimeout(()=>delete root.dataset.navigationMotion,320);
     } else delete root.dataset.navigationMotion;
     root.dataset.navigation = navigationCollapsed ? 'collapsed' : 'expanded';
-    const action = navigationCollapsed ? 'Expand navigation' : 'Collapse navigation';
+    const action = navigationCollapsed ? tr('Expand navigation') : tr('Collapse navigation');
     sidebarToggle.setAttribute('aria-expanded',String(!navigationCollapsed));
     sidebarToggle.setAttribute('aria-label',action);
     sidebarToggle.title = action;
@@ -153,7 +156,7 @@
     current = resolve(location.hash.slice(1));
     remembered.set(current.group.id,current.key);
     document.documentElement.dataset.route = current.key;
-    document.title = `${current.page.title} · OpenU60`;
+    document.title = tr("{0} · OpenU60", current.page.title);
     const title = document.querySelector('#page-title');
     title.textContent = current.page.title;
     const dot = document.createElement('span'); dot.textContent = '.'; title.append(dot);
@@ -176,10 +179,10 @@
     const subtabs = document.querySelector('#section-tabs'); subtabs.replaceChildren();
     const picker = document.createElement('label'); picker.className = 'section-tabs-picker';
     const pickerLabel = document.createElement('span'); pickerLabel.className = 'section-tabs-picker-label';
-    pickerLabel.textContent = `${current.group.label} pages`;
+    pickerLabel.textContent = tr("{0} pages", current.group.label);
     const pickerControl = document.createElement('span'); pickerControl.className = 'section-tabs-picker-control';
     const select = document.createElement('select'); select.id = 'section-page-picker';
-    select.setAttribute('aria-label',`${current.group.label} pages`);
+    select.setAttribute('aria-label',tr("{0} pages", current.group.label));
     const links = document.createElement('div'); links.className = 'section-tab-links';
     for (const page of current.group.pages) {
       const route = `${current.group.id}/${page.id}`;

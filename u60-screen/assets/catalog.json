@@ -1,0 +1,3852 @@
+{
+  "groups": [
+    {
+      "id": "wifi",
+      "title": "Wi-Fi 与局域网",
+      "subtitle": "热点、访客与连接设备",
+      "root": "network-menu",
+      "icon": "wifi"
+    },
+    {
+      "id": "mobile",
+      "title": "移动网络",
+      "subtitle": "选网、APN 与流量套餐",
+      "root": "network-menu",
+      "icon": "network"
+    },
+    {
+      "id": "radio",
+      "title": "信号与锁频",
+      "subtitle": "载波、小区与无线诊断",
+      "root": "network-menu",
+      "icon": "network"
+    },
+    {
+      "id": "routing",
+      "title": "路由与防火墙",
+      "subtitle": "转发、访问规则与 QoS",
+      "root": "network-menu",
+      "icon": "network"
+    },
+    {
+      "id": "dns",
+      "title": "DNS 与隐私",
+      "subtitle": "解析、加密 DNS 与缓存",
+      "root": "network-menu",
+      "icon": "network"
+    },
+    {
+      "id": "vpn-services",
+      "title": "VPN 与组网",
+      "subtitle": "Tailscale、WireGuard 与远端网络",
+      "root": "network-menu",
+      "icon": "tailnet"
+    },
+    {
+      "id": "tailscale",
+      "title": "Tailscale",
+      "subtitle": "连接、路由与连通性检测",
+      "root": "vpn-services",
+      "icon": "tailnet"
+    },
+    {
+      "id": "proxy",
+      "title": "代理",
+      "subtitle": "独立管理各代理服务",
+      "root": "network-menu",
+      "icon": "network"
+    },
+    {
+      "id": "mihomo",
+      "title": "mihomo",
+      "subtitle": "运行、配置与代理组",
+      "root": "proxy",
+      "icon": "network"
+    },
+    {
+      "id": "sms",
+      "title": "短信",
+      "subtitle": "收件箱、发送与自动转发",
+      "root": "apps",
+      "icon": "message"
+    },
+    {
+      "id": "sim",
+      "title": "SIM 与 eSIM",
+      "subtitle": "卡片安全、套餐与配置文件",
+      "root": "apps",
+      "icon": "sim"
+    },
+    {
+      "id": "voice",
+      "title": "通话与卡片服务",
+      "subtitle": "拨号、USSD 与 SIM 菜单",
+      "root": "apps",
+      "icon": "phone"
+    },
+    {
+      "id": "tools",
+      "title": "诊断工具",
+      "subtitle": "测速、进程与 AT 终端",
+      "root": "apps",
+      "icon": "tools"
+    },
+    {
+      "id": "automation",
+      "title": "自动化",
+      "subtitle": "计划任务与实时活动",
+      "root": "apps",
+      "icon": "clock"
+    },
+    {
+      "id": "power",
+      "title": "电池与电源",
+      "subtitle": "充电、休眠与 USB",
+      "root": "device-settings",
+      "icon": "power"
+    },
+    {
+      "id": "system",
+      "title": "系统设置",
+      "subtitle": "屏幕、HTTPS 与设备维护",
+      "root": "device-settings",
+      "icon": "device"
+    }
+  ],
+  "features": [
+    {
+      "id": "wifi2",
+      "title": "2.4 GHz 热点",
+      "group": "wifi",
+      "description": "设置这一路无线网络。",
+      "rows": [],
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "开启热点",
+          "value": true,
+          "type": "toggle"
+        },
+        {
+          "key": "ssid",
+          "label": "网络名称",
+          "value": "OpenU60",
+          "type": "text",
+          "required": true,
+          "maxLength": 32
+        },
+        {
+          "key": "security",
+          "label": "安全方式",
+          "value": "WPA2 / WPA3",
+          "type": "select",
+          "options": [
+            "WPA2",
+            "WPA2 / WPA3",
+            "WPA3"
+          ]
+        },
+        {
+          "key": "password",
+          "label": "新密码",
+          "value": "",
+          "type": "password",
+          "placeholder": "留空保留原密码",
+          "minLength": 8,
+          "maxLength": 63
+        },
+        {
+          "key": "channel",
+          "label": "信道",
+          "value": "自动",
+          "type": "select",
+          "options": [
+            "自动",
+            "1",
+            "6",
+            "11"
+          ]
+        },
+        {
+          "key": "width",
+          "label": "信道带宽",
+          "value": "40 MHz",
+          "type": "select",
+          "options": [
+            "20 MHz",
+            "40 MHz"
+          ]
+        },
+        {
+          "key": "power",
+          "label": "发射功率 %",
+          "value": 100,
+          "type": "number",
+          "min": 1,
+          "max": 100
+        },
+        {
+          "key": "hidden",
+          "label": "隐藏网络名称",
+          "value": false,
+          "type": "toggle"
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存热点设置",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/wifi/status",
+        "PUT /api/wifi/settings"
+      ],
+      "warning": "应用后连接到此热点的设备需要重新连接。"
+    },
+    {
+      "id": "wifi5",
+      "title": "5 GHz 热点",
+      "group": "wifi",
+      "description": "设置这一路无线网络。",
+      "rows": [],
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "开启热点",
+          "value": true,
+          "type": "toggle"
+        },
+        {
+          "key": "ssid",
+          "label": "网络名称",
+          "value": "OpenU60-5G",
+          "type": "text",
+          "required": true,
+          "maxLength": 32
+        },
+        {
+          "key": "security",
+          "label": "安全方式",
+          "value": "WPA2 / WPA3",
+          "type": "select",
+          "options": [
+            "WPA2",
+            "WPA2 / WPA3",
+            "WPA3"
+          ]
+        },
+        {
+          "key": "password",
+          "label": "新密码",
+          "value": "",
+          "type": "password",
+          "placeholder": "留空保留原密码",
+          "minLength": 8,
+          "maxLength": 63
+        },
+        {
+          "key": "channel",
+          "label": "信道",
+          "value": "自动",
+          "type": "select",
+          "options": [
+            "自动",
+            "36",
+            "44",
+            "149",
+            "161"
+          ]
+        },
+        {
+          "key": "width",
+          "label": "信道带宽",
+          "value": "160 MHz",
+          "type": "select",
+          "options": [
+            "20 MHz",
+            "40 MHz",
+            "80 MHz",
+            "160 MHz"
+          ]
+        },
+        {
+          "key": "power",
+          "label": "发射功率 %",
+          "value": 100,
+          "type": "number",
+          "min": 1,
+          "max": 100
+        },
+        {
+          "key": "hidden",
+          "label": "隐藏网络名称",
+          "value": false,
+          "type": "toggle"
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存热点设置",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/wifi/status",
+        "PUT /api/wifi/settings"
+      ],
+      "warning": "应用后连接到此热点的设备需要重新连接。"
+    },
+    {
+      "id": "guest",
+      "title": "访客网络",
+      "group": "wifi",
+      "description": "给访客提供单独的 Wi-Fi。",
+      "rows": [],
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "开启访客网络",
+          "value": false,
+          "type": "toggle"
+        },
+        {
+          "key": "ssid",
+          "label": "网络名称",
+          "value": "OpenU60-Guest",
+          "type": "text",
+          "required": true,
+          "maxLength": 32
+        },
+        {
+          "key": "password",
+          "label": "新密码",
+          "value": "",
+          "type": "password",
+          "minLength": 8,
+          "maxLength": 63,
+          "placeholder": "留空保留原密码"
+        },
+        {
+          "key": "security",
+          "label": "加密方式",
+          "value": "WPA2",
+          "type": "select",
+          "options": [
+            "WPA2",
+            "WPA2 / WPA3"
+          ]
+        },
+        {
+          "key": "isolation",
+          "label": "隔离访客",
+          "value": true,
+          "type": "toggle"
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存访客设置",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/wifi/guest",
+        "PUT /api/wifi/guest"
+      ]
+    },
+    {
+      "id": "clients",
+      "title": "连接设备",
+      "group": "wifi",
+      "description": "查看连接方式、信号与设备流量。",
+      "rows": [],
+      "fields": [],
+      "actions": [
+        {
+          "label": "刷新设备",
+          "effect": "refresh"
+        }
+      ],
+      "apis": [
+        "GET /api/network/clients",
+        "GET /api/network/client-details"
+      ],
+      "kind": "list",
+      "items": [
+        {
+          "title": "工作电脑",
+          "subtitle": "192.168.0.102 · 5 GHz",
+          "rows": [
+            [
+              "在线时长",
+              "38 分钟"
+            ],
+            [
+              "下载 / 上传",
+              "24.8 / 3.2 Mbps"
+            ],
+            [
+              "链路速率",
+              "1,201 Mbps"
+            ],
+            [
+              "信号",
+              "−45 dBm"
+            ],
+            [
+              "限速",
+              "固件未报告"
+            ],
+            [
+              "MAC",
+              "••:••:••:••:A1:02"
+            ]
+          ]
+        },
+        {
+          "title": "随身手机",
+          "subtitle": "192.168.0.104 · 5 GHz",
+          "rows": [
+            [
+              "在线时长",
+              "12 分钟"
+            ],
+            [
+              "下载 / 上传",
+              "3.6 / 0.8 Mbps"
+            ],
+            [
+              "信号",
+              "−52 dBm"
+            ],
+            [
+              "已下载",
+              "128 MB"
+            ]
+          ]
+        },
+        {
+          "title": "平板电脑",
+          "subtitle": "192.168.0.108 · 2.4 GHz",
+          "rows": [
+            [
+              "在线时长",
+              "8 分钟"
+            ],
+            [
+              "下载 / 上传",
+              "1.2 / 0.2 Mbps"
+            ],
+            [
+              "信号",
+              "−57 dBm"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lan",
+      "title": "LAN 与 DHCP",
+      "group": "wifi",
+      "description": "",
+      "rows": [],
+      "fields": [
+        {
+          "key": "address",
+          "label": "网关地址",
+          "value": "192.168.0.1",
+          "type": "text",
+          "format": "ipv4",
+          "required": true
+        },
+        {
+          "key": "mask",
+          "label": "子网掩码",
+          "value": "255.255.255.0",
+          "type": "text",
+          "format": "ipv4",
+          "required": true
+        },
+        {
+          "key": "dhcp",
+          "label": "DHCP 服务",
+          "value": true,
+          "type": "toggle"
+        },
+        {
+          "key": "start",
+          "label": "地址池起始位",
+          "value": 100,
+          "type": "number",
+          "min": 2,
+          "max": 254
+        },
+        {
+          "key": "limit",
+          "label": "地址池大小",
+          "value": 100,
+          "type": "number",
+          "min": 1,
+          "max": 253
+        },
+        {
+          "key": "lease",
+          "label": "租约时间",
+          "value": "12h",
+          "type": "text",
+          "required": true
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存局域网设置",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/router/lan",
+        "PUT /api/router/lan",
+        "GET /api/network/lan-status"
+      ],
+      "warning": "修改网关地址后，需要通过新地址访问后台。"
+    },
+    {
+      "id": "mobile-data",
+      "title": "蜂窝数据",
+      "group": "mobile",
+      "description": "",
+      "rows": [
+        [
+          "数据连接",
+          "已连接"
+        ],
+        [
+          "网络制式",
+          "5G SA"
+        ]
+      ],
+      "fields": [
+        {
+          "key": "data",
+          "label": "移动数据",
+          "value": true,
+          "type": "toggle"
+        },
+        {
+          "key": "roaming",
+          "label": "允许数据漫游",
+          "value": false,
+          "type": "toggle"
+        },
+        {
+          "key": "dial",
+          "label": "连接方式",
+          "value": "自动拨号",
+          "type": "select",
+          "options": [
+            "自动拨号",
+            "手动拨号"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存连接设置",
+          "effect": "save"
+        },
+        {
+          "label": "开启飞行模式",
+          "effect": "airplane",
+          "danger": true,
+          "confirm": "蜂窝数据、通话和短信将不可用。"
+        },
+        {
+          "label": "恢复蜂窝联网",
+          "effect": "online"
+        }
+      ],
+      "apis": [
+        "GET /api/modem/status",
+        "GET /api/modem/data",
+        "PUT /api/modem/data",
+        "POST /api/modem/airplane",
+        "POST /api/modem/online"
+      ],
+      "warning": "应用后蜂窝或局域网连接可能短暂中断。"
+    },
+    {
+      "id": "network-mode",
+      "title": "首选网络",
+      "group": "mobile",
+      "description": "根据覆盖情况选择制式。",
+      "rows": [],
+      "fields": [
+        {
+          "key": "mode",
+          "label": "网络模式",
+          "value": "自动 5G / 4G",
+          "type": "select",
+          "options": [
+            "自动 5G / 4G",
+            "5G NSA",
+            "仅 5G SA",
+            "仅 4G LTE",
+            "4G / 3G",
+            "仅 3G"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "label": "应用网络模式",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "PUT /api/modem/network-mode"
+      ],
+      "warning": "应用后蜂窝或局域网连接可能短暂中断。"
+    },
+    {
+      "id": "operators",
+      "title": "运营商选择",
+      "group": "mobile",
+      "description": "扫描附近网络并选择注册方式。",
+      "rows": [
+        [
+          "上次扫描",
+          "3 个可用网络"
+        ]
+      ],
+      "fields": [
+        {
+          "key": "registration",
+          "label": "注册方式",
+          "value": "自动",
+          "type": "select",
+          "options": [
+            "自动",
+            "手动"
+          ]
+        },
+        {
+          "key": "operator",
+          "label": "运营商",
+          "value": "示例运营商 A",
+          "type": "select",
+          "options": [
+            "示例运营商 A",
+            "示例运营商 B",
+            "示例运营商 C"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "label": "扫描运营商",
+          "effect": "scan"
+        },
+        {
+          "label": "注册所选网络",
+          "effect": "save",
+          "confirm": "应用后蜂窝或局域网连接可能短暂中断。"
+        }
+      ],
+      "apis": [
+        "POST /api/modem/scan",
+        "GET /api/modem/scan/status",
+        "GET /api/modem/scan/results",
+        "POST /api/modem/register",
+        "GET /api/modem/register/result"
+      ]
+    },
+    {
+      "id": "apn",
+      "title": "APN 配置",
+      "group": "mobile",
+      "description": "管理蜂窝数据接入点。",
+      "rows": [],
+      "fields": [],
+      "actions": [
+        {
+          "label": "添加 APN",
+          "effect": "add"
+        },
+        {
+          "label": "使用自动配置",
+          "effect": "automatic"
+        }
+      ],
+      "apis": [
+        "GET /api/router/apn/mode",
+        "PUT /api/router/apn/mode",
+        "GET /api/router/apn/profiles",
+        "PUT /api/router/apn/profiles",
+        "POST /api/router/apn/profiles",
+        "GET /api/router/apn/auto-profiles",
+        "POST /api/router/apn/profiles/delete",
+        "POST /api/router/apn/profiles/activate"
+      ],
+      "kind": "list",
+      "items": [
+        {
+          "title": "运营商默认",
+          "subtitle": "internet · 当前使用",
+          "rows": [
+            [
+              "IP 协议",
+              "IPv4 + IPv6"
+            ],
+            [
+              "认证",
+              "无"
+            ]
+          ],
+          "editable": true
+        }
+      ],
+      "itemFields": [
+        {
+          "key": "name",
+          "label": "配置名称",
+          "value": "",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "apn",
+          "label": "APN",
+          "value": "internet",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "protocol",
+          "label": "IP 协议",
+          "value": "IPv4 + IPv6",
+          "type": "select",
+          "options": [
+            "IPv4",
+            "IPv6",
+            "IPv4 + IPv6"
+          ]
+        },
+        {
+          "key": "auth",
+          "label": "认证方式",
+          "value": "无",
+          "type": "select",
+          "options": [
+            "无",
+            "PAP",
+            "CHAP"
+          ]
+        },
+        {
+          "key": "username",
+          "label": "用户名",
+          "value": "",
+          "type": "text"
+        },
+        {
+          "key": "password",
+          "label": "密码",
+          "value": "",
+          "type": "password"
+        }
+      ],
+      "itemActions": [
+        {
+          "label": "设为当前 APN",
+          "effect": "activate",
+          "confirm": "应用后蜂窝或局域网连接可能短暂中断。"
+        }
+      ]
+    },
+    {
+      "id": "usage",
+      "title": "流量与套餐",
+      "group": "mobile",
+      "description": "统计可能与运营商计费存在差异。",
+      "rows": [
+        [
+          "本周期已用",
+          "12.48 GB"
+        ],
+        [
+          "下载 / 上传",
+          "10.62 / 1.86 GB"
+        ],
+        [
+          "计量来源",
+          "路由器统计"
+        ]
+      ],
+      "fields": [
+        {
+          "key": "limit",
+          "label": "套餐提醒",
+          "value": true,
+          "type": "toggle"
+        },
+        {
+          "key": "allowance",
+          "label": "每月套餐 GB",
+          "value": 100,
+          "type": "number",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "key": "warning",
+          "label": "提醒阈值 %",
+          "value": 80,
+          "type": "number",
+          "min": 1,
+          "max": 100
+        },
+        {
+          "key": "day",
+          "label": "每月结算日",
+          "value": 1,
+          "type": "number",
+          "min": 1,
+          "max": 28
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存套餐设置",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/data-usage",
+        "PUT /api/data-usage/limit",
+        "PUT /api/data-usage/cycle"
+      ]
+    },
+    {
+      "id": "oos",
+      "title": "无服务省电",
+      "group": "mobile",
+      "description": "",
+      "rows": [],
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "启用无服务省电",
+          "value": false,
+          "type": "toggle"
+        },
+        {
+          "key": "grace",
+          "label": "等待时间 / 分钟",
+          "value": 10,
+          "type": "number",
+          "min": 1,
+          "max": 120
+        },
+        {
+          "key": "interval",
+          "label": "搜索间隔 / 分钟",
+          "value": 30,
+          "type": "number",
+          "min": 1,
+          "max": 240
+        },
+        {
+          "key": "window",
+          "label": "搜索窗口 / 分钟",
+          "value": 2,
+          "type": "number",
+          "min": 1,
+          "max": 30
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存策略",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/modem/oos-policy",
+        "PUT /api/modem/oos-policy"
+      ]
+    },
+    {
+      "id": "watchdog",
+      "title": "断网自动恢复",
+      "group": "mobile",
+      "description": "恢复策略需要有效的联网探测来源。",
+      "rows": [
+        [
+          "当前状态",
+          "正常"
+        ],
+        [
+          "探测来源",
+          "未配置"
+        ]
+      ],
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "启用连接看护",
+          "value": false,
+          "type": "toggle"
+        },
+        {
+          "key": "reboot",
+          "label": "允许最终重启恢复",
+          "value": false,
+          "type": "toggle"
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存恢复策略",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/modem/conn-watchdog",
+        "PUT /api/modem/conn-watchdog"
+      ]
+    },
+    {
+      "id": "signal-live",
+      "title": "实时信号",
+      "group": "radio",
+      "description": "",
+      "rows": [
+        [
+          "当前制式",
+          "5G SA"
+        ],
+        [
+          "NR 频段",
+          "n78"
+        ],
+        [
+          "RSRP",
+          "−86 dBm"
+        ],
+        [
+          "SINR",
+          "21.4 dB"
+        ],
+        [
+          "RSRQ",
+          "−9 dB"
+        ],
+        [
+          "PCI",
+          "231"
+        ],
+        [
+          "ARFCN",
+          "633984"
+        ]
+      ],
+      "fields": [],
+      "actions": [
+        {
+          "label": "刷新信号",
+          "effect": "refresh"
+        }
+      ],
+      "apis": [
+        "GET /api/network/signal"
+      ]
+    },
+    {
+      "id": "carriers",
+      "title": "载波聚合",
+      "group": "radio",
+      "description": "",
+      "rows": [],
+      "fields": [],
+      "actions": [],
+      "apis": [
+        "GET /api/network/signal"
+      ],
+      "kind": "list",
+      "items": [
+        {
+          "title": "NR 主载波 · n78",
+          "subtitle": "100 MHz · PCI 231",
+          "rows": [
+            [
+              "ARFCN",
+              "633984"
+            ],
+            [
+              "RSRP",
+              "−86 dBm"
+            ],
+            [
+              "SINR",
+              "21.4 dB"
+            ]
+          ]
+        },
+        {
+          "title": "NR 辅载波 · n78",
+          "subtitle": "100 MHz · PCI 232",
+          "rows": [
+            [
+              "ARFCN",
+              "641280"
+            ],
+            [
+              "RSRP",
+              "−92 dBm"
+            ],
+            [
+              "SINR",
+              "17.6 dB"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nr-bands",
+      "title": "5G 频段偏好",
+      "group": "radio",
+      "description": "点击选择允许使用的频段。",
+      "rows": [],
+      "fields": [
+        {
+          "key": "bands",
+          "label": "允许的频段",
+          "value": [
+            "n41",
+            "n78"
+          ],
+          "type": "multi",
+          "options": [
+            "n1",
+            "n3",
+            "n5",
+            "n8",
+            "n28",
+            "n41",
+            "n77",
+            "n78",
+            "n79"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "label": "应用频段偏好",
+          "effect": "save"
+        },
+        {
+          "label": "恢复自动选频",
+          "effect": "reset-fields"
+        }
+      ],
+      "apis": [
+        "POST /api/cell/band/nr",
+        "POST /api/cell/band/reset"
+      ],
+      "warning": "频段限制可能导致无法注册网络。"
+    },
+    {
+      "id": "lte-bands",
+      "title": "4G 频段偏好",
+      "group": "radio",
+      "description": "点击选择允许使用的频段。",
+      "rows": [],
+      "fields": [
+        {
+          "key": "bands",
+          "label": "允许的频段",
+          "value": [
+            "B1",
+            "B3",
+            "B8"
+          ],
+          "type": "multi",
+          "options": [
+            "B1",
+            "B3",
+            "B5",
+            "B7",
+            "B8",
+            "B20",
+            "B28",
+            "B38",
+            "B40",
+            "B41"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "label": "应用频段偏好",
+          "effect": "save"
+        },
+        {
+          "label": "恢复自动选频",
+          "effect": "reset-fields"
+        }
+      ],
+      "apis": [
+        "POST /api/cell/band/lte",
+        "POST /api/cell/band/reset"
+      ],
+      "warning": "频段限制可能导致无法注册网络。"
+    },
+    {
+      "id": "nr-lock",
+      "title": "5G 小区锁定",
+      "group": "radio",
+      "description": "",
+      "rows": [],
+      "fields": [
+        {
+          "key": "pci",
+          "label": "PCI",
+          "value": 231,
+          "type": "number",
+          "min": 0,
+          "max": 1007
+        },
+        {
+          "key": "channel",
+          "label": "NR ARFCN",
+          "value": 633984,
+          "type": "number",
+          "min": 0,
+          "max": 3279165
+        },
+        {
+          "key": "band",
+          "label": "频段",
+          "value": "n78",
+          "type": "text",
+          "required": true
+        }
+      ],
+      "actions": [
+        {
+          "label": "锁定小区",
+          "effect": "save"
+        },
+        {
+          "label": "解除小区锁定",
+          "effect": "unlock-cell"
+        }
+      ],
+      "apis": [
+        "POST /api/cell/lock/nr",
+        "POST /api/cell/lock/reset"
+      ],
+      "warning": "锁定错误小区会失去蜂窝服务。"
+    },
+    {
+      "id": "lte-lock",
+      "title": "4G 小区锁定",
+      "group": "radio",
+      "description": "",
+      "rows": [],
+      "fields": [
+        {
+          "key": "pci",
+          "label": "PCI",
+          "value": 231,
+          "type": "number",
+          "min": 0,
+          "max": 503
+        },
+        {
+          "key": "channel",
+          "label": "LTE EARFCN",
+          "value": 1775,
+          "type": "number",
+          "min": 0,
+          "max": 3279165
+        },
+        {
+          "key": "band",
+          "label": "频段",
+          "value": "B3",
+          "type": "text",
+          "required": true
+        }
+      ],
+      "actions": [
+        {
+          "label": "锁定小区",
+          "effect": "save"
+        },
+        {
+          "label": "解除小区锁定",
+          "effect": "unlock-cell"
+        }
+      ],
+      "apis": [
+        "POST /api/cell/lock/lte",
+        "POST /api/cell/lock/reset"
+      ],
+      "warning": "锁定错误小区会失去蜂窝服务。"
+    },
+    {
+      "id": "neighbors",
+      "title": "邻区扫描",
+      "group": "radio",
+      "description": "",
+      "rows": [],
+      "fields": [],
+      "actions": [
+        {
+          "label": "重新扫描邻区",
+          "effect": "scan"
+        }
+      ],
+      "apis": [
+        "POST /api/cell/neighbors/scan",
+        "GET /api/cell/neighbors/nr",
+        "GET /api/cell/neighbors/lte"
+      ],
+      "kind": "list",
+      "items": [
+        {
+          "title": "NR · n78 · PCI 232",
+          "subtitle": "−92 dBm · ARFCN 641280",
+          "rows": [
+            [
+              "制式",
+              "5G NR"
+            ],
+            [
+              "SINR",
+              "17.6 dB"
+            ]
+          ]
+        },
+        {
+          "title": "LTE · B3 · PCI 265",
+          "subtitle": "−95 dBm · EARFCN 1775",
+          "rows": [
+            [
+              "制式",
+              "4G LTE"
+            ],
+            [
+              "SINR",
+              "14.2 dB"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stc",
+      "title": "STC 小区策略",
+      "group": "radio",
+      "description": "",
+      "rows": [
+        [
+          "状态",
+          "未启用"
+        ]
+      ],
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "STC 小区策略",
+          "value": false,
+          "type": "toggle"
+        },
+        {
+          "key": "params",
+          "label": "白名单参数",
+          "value": "",
+          "type": "textarea",
+          "placeholder": "固件支持的参数 JSON",
+          "format": "json"
+        }
+      ],
+      "actions": [
+        {
+          "label": "应用策略",
+          "effect": "save"
+        },
+        {
+          "label": "重置 STC",
+          "effect": "reset-fields",
+          "danger": true
+        }
+      ],
+      "apis": [
+        "GET /api/cell/stc/params",
+        "PUT /api/cell/stc/params",
+        "GET /api/cell/stc/status",
+        "POST /api/cell/stc/enable",
+        "POST /api/cell/stc/disable",
+        "POST /api/cell/stc/reset"
+      ]
+    },
+    {
+      "id": "signal-test",
+      "title": "信号质量检测",
+      "group": "radio",
+      "description": "",
+      "rows": [
+        [
+          "RSRP 平均值",
+          "−87 dBm"
+        ],
+        [
+          "SINR 平均值",
+          "20.8 dB"
+        ]
+      ],
+      "fields": [],
+      "actions": [
+        {
+          "label": "开始检测",
+          "effect": "progress"
+        },
+        {
+          "label": "停止检测",
+          "effect": "stop-progress"
+        }
+      ],
+      "apis": [
+        "POST /api/cell/signal-detect/start",
+        "POST /api/cell/signal-detect/stop",
+        "GET /api/cell/signal-detect/results",
+        "GET /api/cell/signal-detect/progress"
+      ],
+      "kind": "progress"
+    },
+    {
+      "id": "wan",
+      "title": "网络接口",
+      "group": "routing",
+      "description": "",
+      "rows": [
+        [
+          "蜂窝接口",
+          "rmnet_data0"
+        ],
+        [
+          "WAN IPv4",
+          "192.0.2.24"
+        ],
+        [
+          "WAN IPv6",
+          "2001:db8::24"
+        ],
+        [
+          "局域网网关",
+          "192.168.0.1"
+        ],
+        [
+          "MTU",
+          "1400"
+        ],
+        [
+          "连接状态",
+          "已连接"
+        ]
+      ],
+      "fields": [],
+      "actions": [],
+      "apis": [
+        "GET /api/network/wan",
+        "GET /api/network/wan6",
+        "GET /api/network/rmnet",
+        "GET /api/network/lan-status"
+      ]
+    },
+    {
+      "id": "firewall",
+      "title": "防火墙",
+      "group": "routing",
+      "description": "",
+      "rows": [
+        [
+          "过滤规则",
+          "3 条"
+        ]
+      ],
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "开启防火墙",
+          "value": true,
+          "type": "toggle"
+        },
+        {
+          "key": "level",
+          "label": "保护级别",
+          "value": "中",
+          "type": "select",
+          "options": [
+            "低",
+            "中",
+            "高"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存防火墙",
+          "effect": "save"
+        },
+        {
+          "label": "查看过滤规则",
+          "effect": "show-rules"
+        }
+      ],
+      "apis": [
+        "GET /api/router/firewall",
+        "PUT /api/router/firewall/switch",
+        "PUT /api/router/firewall/level",
+        "GET /api/router/firewall/filter-rules"
+      ]
+    },
+    {
+      "id": "nat",
+      "title": "NAT 类型",
+      "group": "routing",
+      "description": "",
+      "rows": [],
+      "fields": [
+        {
+          "key": "mode",
+          "label": "NAT 模式",
+          "value": "对称型",
+          "type": "select",
+          "options": [
+            "对称型",
+            "全锥型"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "label": "应用 NAT 模式",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/router/firewall",
+        "PUT /api/router/firewall/nat"
+      ],
+      "warning": "应用后蜂窝或局域网连接可能短暂中断。"
+    },
+    {
+      "id": "dmz",
+      "title": "DMZ 主机",
+      "group": "routing",
+      "description": "",
+      "rows": [],
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "启用 DMZ",
+          "value": false,
+          "type": "toggle"
+        },
+        {
+          "key": "address",
+          "label": "目标设备 IPv4",
+          "value": "192.168.0.102",
+          "type": "text",
+          "format": "ipv4",
+          "required": true
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存 DMZ",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/router/firewall",
+        "PUT /api/router/firewall/dmz"
+      ],
+      "warning": "DMZ 会将未匹配其他规则的入站连接转给这台设备。"
+    },
+    {
+      "id": "upnp",
+      "title": "UPnP",
+      "group": "routing",
+      "description": "",
+      "rows": [
+        [
+          "活动映射",
+          "0 条"
+        ]
+      ],
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "允许自动端口映射",
+          "value": false,
+          "type": "toggle"
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存 UPnP",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/router/firewall/upnp",
+        "PUT /api/router/firewall/upnp"
+      ]
+    },
+    {
+      "id": "ports",
+      "title": "端口转发",
+      "group": "routing",
+      "description": "",
+      "rows": [],
+      "fields": [],
+      "actions": [
+        {
+          "label": "添加转发规则",
+          "effect": "add"
+        }
+      ],
+      "apis": [
+        "GET /api/router/firewall/port-forward",
+        "POST /api/router/firewall/port-forward",
+        "PUT /api/router/firewall/port-forward/switch"
+      ],
+      "kind": "list",
+      "items": [
+        {
+          "title": "NAS 管理",
+          "subtitle": "TCP 5000 → 192.168.0.120:5000",
+          "editable": true
+        }
+      ],
+      "itemFields": [
+        {
+          "key": "name",
+          "label": "规则名称",
+          "value": "",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "protocol",
+          "label": "协议",
+          "value": "TCP",
+          "type": "select",
+          "options": [
+            "TCP",
+            "UDP",
+            "TCP + UDP"
+          ]
+        },
+        {
+          "key": "external",
+          "label": "外部端口",
+          "value": 5000,
+          "type": "number",
+          "min": 1,
+          "max": 65535
+        },
+        {
+          "key": "address",
+          "label": "内部地址",
+          "value": "192.168.0.120",
+          "type": "text",
+          "format": "ipv4",
+          "required": true
+        },
+        {
+          "key": "internal",
+          "label": "内部端口",
+          "value": 5000,
+          "type": "number",
+          "min": 1,
+          "max": 65535
+        },
+        {
+          "key": "enabled",
+          "label": "启用规则",
+          "value": true,
+          "type": "toggle"
+        }
+      ]
+    },
+    {
+      "id": "qos",
+      "title": "QoS 流量优先级",
+      "group": "routing",
+      "description": "",
+      "rows": [],
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "启用 QoS",
+          "value": false,
+          "type": "toggle"
+        },
+        {
+          "key": "download",
+          "label": "下载带宽 Mbps",
+          "value": 300,
+          "type": "number",
+          "min": 1,
+          "max": 10000
+        },
+        {
+          "key": "upload",
+          "label": "上传带宽 Mbps",
+          "value": 50,
+          "type": "number",
+          "min": 1,
+          "max": 10000
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存 QoS",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/router/qos",
+        "PUT /api/router/qos"
+      ]
+    },
+    {
+      "id": "vpn",
+      "title": "VPN 与 ALG 穿透",
+      "group": "routing",
+      "description": "",
+      "rows": [],
+      "fields": [
+        {
+          "key": "pptp",
+          "label": "PPTP 穿透",
+          "value": true,
+          "type": "toggle"
+        },
+        {
+          "key": "l2tp",
+          "label": "L2TP 穿透",
+          "value": true,
+          "type": "toggle"
+        },
+        {
+          "key": "ipsec",
+          "label": "IPsec 穿透",
+          "value": true,
+          "type": "toggle"
+        },
+        {
+          "key": "sip",
+          "label": "SIP ALG",
+          "value": false,
+          "type": "toggle"
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存穿透设置",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/router/vpn",
+        "PUT /api/router/vpn"
+      ]
+    },
+    {
+      "id": "ttl",
+      "title": "TTL 与跳数",
+      "group": "routing",
+      "description": "用于蜂窝软件转发路径。",
+      "rows": [],
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "启用自定义跳数",
+          "value": false,
+          "type": "toggle"
+        },
+        {
+          "key": "ttl",
+          "label": "IPv4 TTL",
+          "value": 64,
+          "type": "number",
+          "min": 1,
+          "max": 255
+        },
+        {
+          "key": "hop",
+          "label": "IPv6 Hop Limit",
+          "value": 64,
+          "type": "number",
+          "min": 1,
+          "max": 255
+        }
+      ],
+      "actions": [
+        {
+          "label": "应用跳数设置",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/router/ttl",
+        "PUT /api/router/ttl"
+      ]
+    },
+    {
+      "id": "domain",
+      "title": "域名过滤",
+      "group": "routing",
+      "description": "",
+      "rows": [],
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "启用域名过滤",
+          "value": false,
+          "type": "toggle"
+        },
+        {
+          "key": "mode",
+          "label": "过滤方式",
+          "value": "黑名单",
+          "type": "select",
+          "options": [
+            "黑名单",
+            "白名单"
+          ]
+        },
+        {
+          "key": "domains",
+          "label": "域名列表",
+          "value": "example.org",
+          "type": "textarea",
+          "placeholder": "每行一个域名"
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存过滤列表",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/router/domain-filter",
+        "PUT /api/router/domain-filter"
+      ]
+    },
+    {
+      "id": "dns-config",
+      "title": "DNS 解析",
+      "group": "dns",
+      "description": "",
+      "rows": [],
+      "fields": [
+        {
+          "key": "mode",
+          "label": "解析方式",
+          "value": "运营商自动",
+          "type": "select",
+          "options": [
+            "运营商自动",
+            "手动 DNS",
+            "加密 DoH"
+          ]
+        },
+        {
+          "key": "primary",
+          "label": "首选 DNS",
+          "value": "1.1.1.1",
+          "type": "text",
+          "format": "ipv4",
+          "required": true
+        },
+        {
+          "key": "secondary",
+          "label": "备用 DNS",
+          "value": "8.8.8.8",
+          "type": "text",
+          "format": "ipv4",
+          "required": true
+        }
+      ],
+      "actions": [
+        {
+          "label": "测试解析",
+          "effect": "dns-test"
+        },
+        {
+          "label": "应用 DNS",
+          "effect": "save",
+          "confirm": "DNS 更改会影响所有热点设备的域名解析。"
+        }
+      ],
+      "apis": [
+        "GET /api/router/dns",
+        "PUT /api/router/dns",
+        "GET /api/dns/status",
+        "POST /api/dns/test",
+        "PUT /api/dns/apply"
+      ]
+    },
+    {
+      "id": "doh",
+      "title": "加密 DNS",
+      "group": "dns",
+      "description": "",
+      "rows": [],
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "开启 DoH",
+          "value": false,
+          "type": "toggle"
+        },
+        {
+          "key": "url",
+          "label": "DoH 地址",
+          "value": "https://cloudflare-dns.com/dns-query",
+          "type": "url",
+          "required": true
+        },
+        {
+          "key": "bootstrap",
+          "label": "引导 DNS",
+          "value": "1.1.1.1",
+          "type": "text",
+          "format": "ipv4",
+          "required": true
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存加密 DNS",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/doh/status",
+        "PUT /api/doh/config",
+        "POST /api/doh/enable",
+        "POST /api/doh/disable"
+      ]
+    },
+    {
+      "id": "dns-cache",
+      "title": "DNS 缓存",
+      "group": "dns",
+      "description": "",
+      "rows": [],
+      "fields": [],
+      "actions": [
+        {
+          "label": "刷新缓存列表",
+          "effect": "refresh"
+        },
+        {
+          "label": "清空缓存",
+          "effect": "clear-list",
+          "confirm": "清除现有解析缓存，后续访问会重新查询。"
+        }
+      ],
+      "apis": [
+        "GET /api/dns/cache",
+        "POST /api/dns/cache/clear",
+        "GET /api/doh/cache",
+        "POST /api/doh/cache/clear"
+      ],
+      "kind": "list",
+      "items": [
+        {
+          "title": "example.org",
+          "subtitle": "A · 192.0.2.10 · TTL 120s",
+          "rows": [
+            [
+              "状态",
+              "有效缓存"
+            ]
+          ]
+        },
+        {
+          "title": "example.net",
+          "subtitle": "AAAA · 2001:db8::10 · TTL 60s",
+          "rows": [
+            [
+              "状态",
+              "有效缓存"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tailscale-service",
+      "title": "连接与登录",
+      "group": "tailscale",
+      "description": "",
+      "rows": [
+        [
+          "当前状态",
+          "已连接"
+        ],
+        [
+          "虚拟 IPv4",
+          "100.64.0.20"
+        ],
+        [
+          "设备名称",
+          "u60-pro"
+        ],
+        [
+          "子网网关",
+          "已启用"
+        ]
+      ],
+      "fields": [],
+      "actions": [
+        {
+          "label": "显示登录指引",
+          "effect": "ts-login"
+        },
+        {
+          "label": "启用 Tailscale",
+          "effect": "ts-enable"
+        },
+        {
+          "label": "停止 Tailscale",
+          "effect": "ts-disable",
+          "confirm": "远程访问和Tailscale 子网连接将中断。"
+        },
+        {
+          "label": "退出登录",
+          "effect": "ts-logout",
+          "danger": true,
+          "confirm": "退出后需要重新绑定 Tailscale 账号。"
+        }
+      ],
+      "apis": [
+        "GET /api/tailscale/status",
+        "POST /api/tailscale/setup",
+        "POST /api/tailscale/login-url",
+        "POST /api/tailscale/enable",
+        "POST /api/tailscale/disable",
+        "POST /api/tailscale/logout"
+      ]
+    },
+    {
+      "id": "tailscale-config",
+      "title": "网络设置",
+      "group": "tailscale",
+      "description": "本机发布子网与接收远端子网是不同设置。",
+      "rows": [],
+      "fields": [
+        {
+          "key": "hostname",
+          "label": "设备名称",
+          "value": "u60-pro",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "enabled",
+          "label": "开机启用",
+          "value": true,
+          "type": "toggle"
+        },
+        {
+          "key": "ssh",
+          "label": "Tailscale SSH",
+          "value": false,
+          "type": "toggle"
+        },
+        {
+          "key": "wakelock",
+          "label": "保持唤醒",
+          "value": true,
+          "type": "toggle"
+        },
+        {
+          "key": "advertise",
+          "label": "本机发布的子网",
+          "value": "",
+          "type": "text",
+          "placeholder": "未发布，不影响接收其他节点发布的路由"
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存 Tailscale 设置",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "PUT /api/tailscale/config"
+      ]
+    },
+    {
+      "id": "tailscale-network",
+      "title": "连通性检测",
+      "group": "tailscale",
+      "description": "查看 Tailscale 连接、子网路由与目标连通性。",
+      "rows": [],
+      "fields": [],
+      "actions": [],
+      "apis": [
+        "GET /api/tailscale/status"
+      ],
+      "view": "tailnet"
+    },
+    {
+      "id": "tailscale-version",
+      "title": "安装与更新",
+      "group": "tailscale",
+      "description": "",
+      "rows": [
+        [
+          "已安装",
+          "1.104.4"
+        ]
+      ],
+      "fields": [
+        {
+          "key": "version",
+          "label": "目标版本",
+          "value": "1.104.4",
+          "type": "text",
+          "required": true,
+          "pattern": "[0-9]+\\.[0-9]+\\.[0-9]+"
+        }
+      ],
+      "actions": [
+        {
+          "label": "安装指定版本",
+          "effect": "progress",
+          "confirm": "安装期间 Tailscale 连接会短暂中断。"
+        }
+      ],
+      "apis": [
+        "POST /api/tailscale/update"
+      ],
+      "kind": "progress"
+    },
+    {
+      "id": "sms-inbox",
+      "title": "收件箱",
+      "group": "sms",
+      "description": "消息内容为虚构演示。",
+      "rows": [],
+      "fields": [],
+      "actions": [
+        {
+          "label": "写短信",
+          "effect": "compose"
+        }
+      ],
+      "apis": [
+        "POST /api/sms/list",
+        "POST /api/sms/read",
+        "POST /api/sms/delete"
+      ],
+      "kind": "list",
+      "items": [
+        {
+          "title": "套餐服务",
+          "subtitle": "09:32 · 本月套餐余量提醒",
+          "body": "您好，您的示例套餐本月剩余流量 87.52 GB。本消息仅用于界面演示。",
+          "unread": true
+        },
+        {
+          "title": "连接通知",
+          "subtitle": "昨天 · 欢迎使用移动网络",
+          "body": "您的设备已接入示例网络。祝您使用愉快。"
+        }
+      ],
+      "itemActions": [
+        {
+          "label": "回复短信",
+          "effect": "reply"
+        },
+        {
+          "label": "删除短信",
+          "effect": "delete-item",
+          "danger": true
+        }
+      ]
+    },
+    {
+      "id": "sms-compose",
+      "title": "发送短信",
+      "group": "sms",
+      "description": "",
+      "rows": [],
+      "fields": [
+        {
+          "key": "number",
+          "label": "收件号码",
+          "value": "",
+          "type": "tel",
+          "required": true,
+          "placeholder": "输入收件人号码",
+          "pattern": "\\+?[0-9]{3,20}"
+        },
+        {
+          "key": "body",
+          "label": "短信内容",
+          "value": "",
+          "type": "textarea",
+          "required": true,
+          "maxLength": 500,
+          "placeholder": "输入短信内容"
+        }
+      ],
+      "actions": [
+        {
+          "label": "发送短信",
+          "effect": "send-sms",
+          "confirm": "短信将由当前 SIM 卡发送，运营商可能收取费用。"
+        }
+      ],
+      "apis": [
+        "POST /api/sms/send"
+      ]
+    },
+    {
+      "id": "sms-storage",
+      "title": "短信存储",
+      "group": "sms",
+      "description": "",
+      "rows": [
+        [
+          "设备存储",
+          "2 / 500 条"
+        ],
+        [
+          "SIM 存储",
+          "0 / 50 条"
+        ],
+        [
+          "未读消息",
+          "1 条"
+        ]
+      ],
+      "fields": [],
+      "actions": [
+        {
+          "label": "刷新容量",
+          "effect": "refresh"
+        }
+      ],
+      "apis": [
+        "GET /api/sms/capacity"
+      ]
+    },
+    {
+      "id": "sms-forward",
+      "title": "自动转发规则",
+      "group": "sms",
+      "description": "",
+      "rows": [],
+      "fields": [],
+      "actions": [
+        {
+          "label": "新增转发规则",
+          "effect": "add"
+        }
+      ],
+      "apis": [
+        "GET /api/sms/forward/config",
+        "PUT /api/sms/forward/config",
+        "POST /api/sms/forward/rules",
+        "PUT /api/sms/forward/rules",
+        "DELETE /api/sms/forward/rules",
+        "PUT /api/sms/forward/rules/toggle",
+        "POST /api/sms/forward/test"
+      ],
+      "kind": "list",
+      "items": [
+        {
+          "title": "个人通知",
+          "subtitle": "Webhook · 已启用",
+          "editable": true
+        }
+      ],
+      "itemFields": [
+        {
+          "key": "name",
+          "label": "规则名称",
+          "value": "",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "enabled",
+          "label": "启用规则",
+          "value": true,
+          "type": "toggle"
+        },
+        {
+          "key": "channel",
+          "label": "转发渠道",
+          "value": "Webhook",
+          "type": "select",
+          "options": [
+            "Webhook",
+            "Telegram",
+            "短信",
+            "ntfy",
+            "Discord",
+            "Slack"
+          ]
+        },
+        {
+          "key": "filterMode",
+          "label": "筛选方式",
+          "value": "所有短信",
+          "type": "select",
+          "options": [
+            "所有短信",
+            "发送号码",
+            "内容关键词",
+            "号码与关键词"
+          ]
+        },
+        {
+          "key": "filter",
+          "label": "号码或关键词",
+          "value": "",
+          "type": "text",
+          "placeholder": "按所选筛选方式填写"
+        },
+        {
+          "key": "target",
+          "label": "接收地址 / 号码 / Chat ID",
+          "value": "",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "topic",
+          "label": "ntfy 主题（如需）",
+          "value": "",
+          "type": "text"
+        },
+        {
+          "key": "method",
+          "label": "Webhook 请求方式",
+          "value": "POST",
+          "type": "select",
+          "options": [
+            "POST",
+            "PUT",
+            "GET"
+          ]
+        },
+        {
+          "key": "secret",
+          "label": "认证密钥",
+          "value": "",
+          "type": "password",
+          "placeholder": "留空保留原密钥"
+        }
+      ],
+      "itemActions": [
+        {
+          "label": "测试转发",
+          "effect": "test-forward"
+        }
+      ]
+    },
+    {
+      "id": "sms-forward-log",
+      "title": "转发记录",
+      "group": "sms",
+      "description": "",
+      "rows": [],
+      "fields": [],
+      "actions": [
+        {
+          "label": "重试暂存消息",
+          "effect": "retry"
+        },
+        {
+          "label": "清空转发记录",
+          "effect": "clear-list",
+          "danger": true
+        }
+      ],
+      "apis": [
+        "GET /api/sms/forward/log",
+        "POST /api/sms/forward/log/clear",
+        "POST /api/sms/forward/retry"
+      ],
+      "kind": "list",
+      "items": [
+        {
+          "title": "09:32 · 转发成功",
+          "subtitle": "个人通知 · Webhook",
+          "rows": [
+            [
+              "结果",
+              "已送达"
+            ]
+          ]
+        },
+        {
+          "title": "昨天 · 等待重试",
+          "subtitle": "网络不可用",
+          "rows": [
+            [
+              "结果",
+              "暂存等待重试"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sim-info",
+      "title": "SIM 卡信息",
+      "group": "sim",
+      "description": "",
+      "rows": [
+        [
+          "卡片状态",
+          "正常"
+        ],
+        [
+          "运营商",
+          "示例运营商"
+        ],
+        [
+          "ICCID 尾号",
+          "0042"
+        ],
+        [
+          "IMEI",
+          "已隐藏"
+        ],
+        [
+          "PIN 剩余次数",
+          "3"
+        ],
+        [
+          "PUK 剩余次数",
+          "10"
+        ]
+      ],
+      "fields": [],
+      "actions": [],
+      "apis": [
+        "GET /api/sim/info",
+        "GET /api/sim/imei",
+        "GET /api/sim/lock-trials"
+      ]
+    },
+    {
+      "id": "sim-verify",
+      "title": "解锁 SIM PIN / PUK",
+      "group": "sim",
+      "description": "仅在 SIM 卡要求解锁时使用。",
+      "rows": [],
+      "fields": [
+        {
+          "key": "kind",
+          "label": "解锁类型",
+          "value": "PIN",
+          "type": "select",
+          "options": [
+            "PIN",
+            "PUK"
+          ]
+        },
+        {
+          "key": "pin",
+          "label": "PIN / 新 PIN",
+          "value": "",
+          "type": "password",
+          "required": true,
+          "pattern": "[0-9]{4,8}",
+          "inputMode": "numeric"
+        },
+        {
+          "key": "puk",
+          "label": "PUK（PIN 解锁时留空）",
+          "value": "",
+          "type": "password",
+          "pattern": "[0-9]{8}",
+          "inputMode": "numeric"
+        }
+      ],
+      "actions": [
+        {
+          "label": "验证并解锁",
+          "effect": "verify-pin"
+        }
+      ],
+      "apis": [
+        "POST /api/sim/pin/verify",
+        "GET /api/sim/lock-trials"
+      ],
+      "warning": "连续输入错误会耗尽卡片解锁次数。"
+    },
+    {
+      "id": "sim-pin",
+      "title": "SIM PIN 保护",
+      "group": "sim",
+      "description": "",
+      "rows": [],
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "开启 PIN 保护",
+          "value": false,
+          "type": "toggle"
+        },
+        {
+          "key": "pin",
+          "label": "当前 PIN",
+          "value": "",
+          "type": "password",
+          "required": true,
+          "pattern": "[0-9]{4,8}",
+          "inputMode": "numeric"
+        }
+      ],
+      "actions": [
+        {
+          "label": "应用 PIN 保护",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "POST /api/sim/pin/mode"
+      ],
+      "warning": "更改保护需要验证 PIN。错误输入会消耗剩余次数。"
+    },
+    {
+      "id": "sim-change-pin",
+      "title": "修改 SIM PIN",
+      "group": "sim",
+      "description": "",
+      "rows": [],
+      "fields": [
+        {
+          "key": "current",
+          "label": "当前 PIN",
+          "value": "",
+          "type": "password",
+          "required": true,
+          "pattern": "[0-9]{4,8}"
+        },
+        {
+          "key": "newpin",
+          "label": "新 PIN",
+          "value": "",
+          "type": "password",
+          "required": true,
+          "pattern": "[0-9]{4,8}"
+        },
+        {
+          "key": "repeat",
+          "label": "再次输入新 PIN",
+          "value": "",
+          "type": "password",
+          "required": true,
+          "pattern": "[0-9]{4,8}",
+          "matches": "newpin"
+        }
+      ],
+      "actions": [
+        {
+          "label": "更改 PIN",
+          "effect": "save",
+          "confirm": "请记住新 PIN。错误输入会消耗卡片的剩余尝试次数。"
+        }
+      ],
+      "apis": [
+        "POST /api/sim/pin/change"
+      ]
+    },
+    {
+      "id": "sim-network-unlock",
+      "title": "网络锁解锁",
+      "group": "sim",
+      "description": "",
+      "rows": [
+        [
+          "当前网络锁",
+          "未锁定"
+        ]
+      ],
+      "fields": [
+        {
+          "key": "nck",
+          "label": "网络解锁码",
+          "value": "",
+          "type": "password",
+          "required": true
+        }
+      ],
+      "actions": [
+        {
+          "label": "提交解锁码",
+          "effect": "action",
+          "danger": true,
+          "confirm": "仅使用运营商提供的正确解锁码。错误输入可能耗尽解锁次数。"
+        }
+      ],
+      "apis": [
+        "POST /api/sim/unlock",
+        "GET /api/sim/lock-trials"
+      ]
+    },
+    {
+      "id": "esim-profiles",
+      "title": "eSIM 配置文件",
+      "group": "sim",
+      "description": "需要安装受支持的 eSIM 实体卡。",
+      "rows": [],
+      "fields": [],
+      "actions": [
+        {
+          "label": "添加 eSIM",
+          "effect": "esim-add"
+        }
+      ],
+      "apis": [
+        "GET /api/esim/profiles",
+        "GET /api/esim/chip",
+        "POST /api/esim/enable",
+        "GET /api/esim/switch",
+        "POST /api/esim/nickname",
+        "POST /api/esim/delete"
+      ],
+      "kind": "list",
+      "items": [
+        {
+          "title": "日常上网",
+          "subtitle": "示例运营商 A · 使用中",
+          "rows": [
+            [
+              "ICCID 尾号",
+              "0042"
+            ],
+            [
+              "状态",
+              "已启用"
+            ]
+          ],
+          "editable": true
+        },
+        {
+          "title": "旅行备用",
+          "subtitle": "示例运营商 B · 已停用",
+          "rows": [
+            [
+              "ICCID 尾号",
+              "0078"
+            ],
+            [
+              "状态",
+              "已停用"
+            ]
+          ],
+          "editable": true
+        }
+      ],
+      "itemFields": [
+        {
+          "key": "name",
+          "label": "配置文件昵称",
+          "value": "",
+          "type": "text",
+          "required": true,
+          "maxLength": 32
+        }
+      ],
+      "itemActions": [
+        {
+          "label": "切换到此配置",
+          "effect": "activate",
+          "confirm": "切换期间蜂窝数据会中断，完成后将重新拨号。"
+        }
+      ]
+    },
+    {
+      "id": "esim-download",
+      "title": "下载 eSIM",
+      "group": "sim",
+      "description": "输入激活码，预览套餐后再确认安装。",
+      "rows": [],
+      "fields": [
+        {
+          "key": "activation",
+          "label": "激活码",
+          "value": "",
+          "type": "textarea",
+          "required": true,
+          "placeholder": "LPA:1$服务器$激活令牌",
+          "pattern": "LPA:1\\$.+"
+        },
+        {
+          "key": "confirmation",
+          "label": "确认码（如有）",
+          "value": "",
+          "type": "password"
+        }
+      ],
+      "actions": [
+        {
+          "label": "预览套餐",
+          "effect": "esim-preview"
+        },
+        {
+          "label": "取消下载",
+          "effect": "stop-progress"
+        },
+        {
+          "label": "清除已完成结果",
+          "effect": "dismiss-progress"
+        }
+      ],
+      "apis": [
+        "POST /api/esim/download",
+        "GET /api/esim/download",
+        "DELETE /api/esim/download",
+        "POST /api/esim/download/confirm",
+        "POST /api/esim/download/cancel"
+      ],
+      "kind": "progress"
+    },
+    {
+      "id": "esim-receipts",
+      "title": "eSIM 通知回执",
+      "group": "sim",
+      "description": "",
+      "rows": [
+        [
+          "待处理回执",
+          "1 条"
+        ],
+        [
+          "最近回执",
+          "配置切换完成"
+        ]
+      ],
+      "fields": [],
+      "actions": [
+        {
+          "label": "发送待处理回执",
+          "effect": "receipts"
+        }
+      ],
+      "apis": [
+        "GET /api/esim/notifications",
+        "POST /api/esim/notifications/process"
+      ]
+    },
+    {
+      "id": "phone",
+      "title": "通话",
+      "group": "voice",
+      "description": "语音支持取决于 SIM、网络及设备音频能力。",
+      "rows": [
+        [
+          "通话状态",
+          "空闲"
+        ]
+      ],
+      "fields": [
+        {
+          "key": "number",
+          "label": "电话号码",
+          "value": "",
+          "type": "tel",
+          "placeholder": "输入号码",
+          "pattern": "\\+?[0-9*#]{3,20}"
+        }
+      ],
+      "actions": [
+        {
+          "label": "拨号",
+          "effect": "dial"
+        },
+        {
+          "label": "接听",
+          "effect": "answer"
+        },
+        {
+          "label": "挂断",
+          "effect": "hangup"
+        },
+        {
+          "label": "静音 / 恢复",
+          "effect": "mute"
+        },
+        {
+          "label": "发送按键音",
+          "effect": "dtmf"
+        }
+      ],
+      "apis": [
+        "POST /api/call/dial",
+        "POST /api/call/hangup",
+        "POST /api/call/answer",
+        "GET /api/call/status",
+        "POST /api/call/dtmf",
+        "POST /api/call/mute"
+      ],
+      "kind": "phone"
+    },
+    {
+      "id": "ussd",
+      "title": "USSD 服务",
+      "group": "voice",
+      "description": "",
+      "rows": [
+        [
+          "会话状态",
+          "未开始"
+        ]
+      ],
+      "fields": [
+        {
+          "key": "code",
+          "label": "服务代码 / 回复",
+          "value": "",
+          "type": "text",
+          "required": true,
+          "placeholder": "例如 *123#"
+        }
+      ],
+      "actions": [
+        {
+          "label": "发送服务代码",
+          "effect": "ussd"
+        },
+        {
+          "label": "回复当前会话",
+          "effect": "ussd-reply"
+        },
+        {
+          "label": "结束会话",
+          "effect": "ussd-cancel"
+        }
+      ],
+      "apis": [
+        "POST /api/ussd/send",
+        "POST /api/ussd/respond",
+        "POST /api/ussd/cancel"
+      ]
+    },
+    {
+      "id": "stk",
+      "title": "SIM 工具菜单",
+      "group": "voice",
+      "description": "",
+      "rows": [],
+      "fields": [
+        {
+          "key": "reply",
+          "label": "菜单回复",
+          "value": "",
+          "type": "text",
+          "placeholder": "按卡片提示输入"
+        }
+      ],
+      "actions": [
+        {
+          "label": "提交回复",
+          "effect": "stk-reply"
+        },
+        {
+          "label": "返回上级菜单",
+          "effect": "stk-back"
+        },
+        {
+          "label": "结束卡片会话",
+          "effect": "stk-cancel"
+        }
+      ],
+      "apis": [
+        "GET /api/stk/menu",
+        "POST /api/stk/select",
+        "GET /api/stk/session",
+        "POST /api/stk/respond",
+        "POST /api/stk/cancel",
+        "POST /api/stk/back"
+      ],
+      "kind": "list",
+      "items": [
+        {
+          "title": "套餐查询",
+          "subtitle": "由 SIM 卡提供",
+          "body": "输入查询选项后提交，可查看卡片返回的结果。"
+        },
+        {
+          "title": "运营商服务",
+          "subtitle": "服务可用性取决于 SIM 卡",
+          "body": "这是 SIM 工具菜单的模拟会话。"
+        }
+      ]
+    },
+    {
+      "id": "resources",
+      "title": "CPU、内存与温度",
+      "group": "tools",
+      "description": "",
+      "rows": [
+        [
+          "CPU 使用率",
+          "12%"
+        ],
+        [
+          "内存使用",
+          "428 MB / 1.6 GB"
+        ],
+        [
+          "CPU 温度",
+          "42 ℃"
+        ],
+        [
+          "电池温度",
+          "32.7 ℃"
+        ],
+        [
+          "系统运行",
+          "2 天 03:16"
+        ]
+      ],
+      "fields": [],
+      "actions": [
+        {
+          "label": "刷新系统状态",
+          "effect": "refresh"
+        }
+      ],
+      "apis": [
+        "GET /api/cpu",
+        "GET /api/memory",
+        "GET /api/device/thermal",
+        "GET /api/device/system"
+      ]
+    },
+    {
+      "id": "processes",
+      "title": "当前进程",
+      "group": "tools",
+      "description": "查看运行中的进程及 CPU、内存占用。",
+      "rows": [],
+      "fields": [],
+      "actions": [
+        {
+          "label": "刷新进程",
+          "effect": "refresh"
+        },
+        {
+          "label": "清理非必要服务",
+          "effect": "clean-processes",
+          "danger": true,
+          "confirm": "仅清理 agent 定义的非必要服务，预览中将展示模拟清理结果。"
+        }
+      ],
+      "apis": [
+        "GET /api/system/top",
+        "POST /api/system/kill-bloat"
+      ],
+      "kind": "list",
+      "items": [
+        {
+          "title": "zte-agent",
+          "subtitle": "8.4 MB · CPU 0.4%",
+          "rows": [
+            [
+              "用途",
+              "设备管理与 Tailscale 看护"
+            ]
+          ]
+        },
+        {
+          "title": "tailscaled",
+          "subtitle": "32.6 MB · CPU 1.1%",
+          "rows": [
+            [
+              "用途",
+              "虚拟网络连接"
+            ]
+          ]
+        },
+        {
+          "title": "原厂非必要服务",
+          "subtitle": "可清理项目见操作说明",
+          "rows": [
+            [
+              "说明",
+              "不包含核心网络和启动同步服务"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "speedtest",
+      "title": "互联网测速",
+      "group": "tools",
+      "description": "",
+      "rows": [
+        [
+          "下载",
+          "— Mbps"
+        ],
+        [
+          "上传",
+          "— Mbps"
+        ],
+        [
+          "延迟",
+          "— ms"
+        ]
+      ],
+      "fields": [
+        {
+          "key": "server",
+          "label": "测速服务器",
+          "value": "自动选择",
+          "type": "select",
+          "options": [
+            "自动选择",
+            "示例节点 A",
+            "示例节点 B"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "label": "开始测速",
+          "effect": "speedtest",
+          "confirm": "测速会消耗蜂窝流量。"
+        },
+        {
+          "label": "停止测速",
+          "effect": "stop-progress"
+        }
+      ],
+      "apis": [
+        "GET /api/speedtest/servers",
+        "POST /api/speedtest/start",
+        "GET /api/speedtest/progress",
+        "POST /api/speedtest/stop"
+      ],
+      "kind": "progress"
+    },
+    {
+      "id": "lan-test",
+      "title": "局域网测速",
+      "group": "tools",
+      "description": "吞吐量需要由连接热点的手机或电脑发起。",
+      "rows": [
+        [
+          "测试范围",
+          "热点客户端 ↔ U60"
+        ],
+        [
+          "测试入口",
+          "192.168.0.1:2026"
+        ]
+      ],
+      "fields": [],
+      "actions": [
+        {
+          "label": "查看测试说明",
+          "effect": "guide"
+        }
+      ],
+      "apis": [
+        "GET /api/lan/ping",
+        "GET /api/lan/download",
+        "POST /api/lan/upload"
+      ],
+      "kind": "guide",
+      "guide": [
+        "手机或电脑连接 U60 热点。",
+        "打开设备网页管理界面的 LAN Test。",
+        "分别测试延迟、下载和上传。"
+      ]
+    },
+    {
+      "id": "at-terminal",
+      "title": "AT 终端",
+      "group": "tools",
+      "description": "",
+      "rows": [
+        [
+          "终端状态",
+          "就绪"
+        ]
+      ],
+      "fields": [
+        {
+          "key": "command",
+          "label": "AT 指令",
+          "value": "AT+CSQ",
+          "type": "text",
+          "required": true
+        }
+      ],
+      "actions": [
+        {
+          "label": "执行指令",
+          "effect": "at",
+          "confirm": "AT 指令会直接交给调制解调器；请确认了解这条指令的作用。"
+        },
+        {
+          "label": "清空显示",
+          "effect": "clear-output"
+        }
+      ],
+      "apis": [
+        "POST /api/at/send",
+        "GET /api/at/port"
+      ],
+      "kind": "terminal"
+    },
+    {
+      "id": "traffic",
+      "title": "流量监视",
+      "group": "tools",
+      "description": "",
+      "rows": [
+        [
+          "当前下载",
+          "128.6 Mbps"
+        ],
+        [
+          "当前上传",
+          "16.4 Mbps"
+        ],
+        [
+          "本次已接收",
+          "8.40 GB"
+        ],
+        [
+          "本次已发送",
+          "1.20 GB"
+        ]
+      ],
+      "fields": [],
+      "actions": [
+        {
+          "label": "刷新统计",
+          "effect": "refresh"
+        }
+      ],
+      "apis": [
+        "GET /api/network/traffic",
+        "GET /api/network/speed",
+        "GET /api/network/speeds"
+      ]
+    },
+    {
+      "id": "history",
+      "title": "连接记录",
+      "group": "tools",
+      "description": "展示当前会话观察到的连接变化。",
+      "rows": [],
+      "fields": [],
+      "actions": [],
+      "apis": [
+        "GET /api/events",
+        "GET /api/dashboard/events"
+      ],
+      "kind": "list",
+      "items": [
+        {
+          "title": "09:41 · 目标服务可达",
+          "subtitle": "Tailscale 连接正常",
+          "rows": [
+            [
+              "探测结果",
+              "192.168.1.1 · 46 ms"
+            ]
+          ]
+        },
+        {
+          "title": "09:40 · 蜂窝网络已连接",
+          "subtitle": "5G SA · 示例运营商",
+          "rows": [
+            [
+              "连接状态",
+              "已恢复"
+            ]
+          ]
+        },
+        {
+          "title": "09:39 · 设备启动完成",
+          "subtitle": "等待连接",
+          "rows": [
+            [
+              "耗时",
+              "32 秒"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scheduler",
+      "title": "计划任务",
+      "group": "automation",
+      "description": "",
+      "rows": [],
+      "fields": [],
+      "actions": [
+        {
+          "label": "新增计划任务",
+          "effect": "add"
+        }
+      ],
+      "apis": [
+        "GET /api/scheduler/jobs",
+        "POST /api/scheduler/jobs",
+        "PUT /api/scheduler/jobs",
+        "DELETE /api/scheduler/jobs",
+        "PUT /api/scheduler/jobs/toggle"
+      ],
+      "kind": "list",
+      "items": [
+        {
+          "title": "夜间省电",
+          "subtitle": "每天 23:30 · 已启用",
+          "editable": true
+        }
+      ],
+      "itemFields": [
+        {
+          "key": "name",
+          "label": "任务名称",
+          "value": "",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "repeat",
+          "label": "重复",
+          "value": "每天",
+          "type": "select",
+          "options": [
+            "一次",
+            "每天",
+            "每周"
+          ]
+        },
+        {
+          "key": "time",
+          "label": "执行时间",
+          "value": "23:30",
+          "type": "time",
+          "required": true
+        },
+        {
+          "key": "operation",
+          "label": "动作",
+          "value": "开启省电",
+          "type": "select",
+          "options": [
+            "开启省电",
+            "关闭省电",
+            "启用 Tailscale",
+            "停止 Tailscale",
+            "重启设备",
+            "自定义 API"
+          ]
+        },
+        {
+          "key": "custom",
+          "label": "自定义 API 路径",
+          "value": "",
+          "type": "text",
+          "placeholder": "/api/..."
+        },
+        {
+          "key": "body",
+          "label": "请求内容（如需）",
+          "value": "",
+          "type": "textarea",
+          "format": "json"
+        },
+        {
+          "key": "enabled",
+          "label": "启用任务",
+          "value": true,
+          "type": "toggle"
+        }
+      ]
+    },
+    {
+      "id": "live-activity",
+      "title": "iPhone 实时活动",
+      "group": "automation",
+      "description": "新增绑定由 iPhone 配套 App 完成。",
+      "rows": [
+        [
+          "注册设备",
+          "1 台"
+        ],
+        [
+          "活动状态",
+          "正在推送"
+        ],
+        [
+          "更新内容",
+          "信号、流量、电量"
+        ]
+      ],
+      "fields": [],
+      "actions": [
+        {
+          "label": "查看绑定说明",
+          "effect": "guide"
+        },
+        {
+          "label": "取消当前绑定",
+          "effect": "unregister",
+          "confirm": "iPhone 锁屏将停止接收本设备的实时活动。"
+        }
+      ],
+      "apis": [
+        "GET /api/live-activity",
+        "PUT /api/live-activity",
+        "DELETE /api/live-activity"
+      ],
+      "guide": [
+        "在 iPhone 安装 OpenU60 配套应用。",
+        "连接设备并登录 agent。",
+        "在应用中启用实时活动。"
+      ]
+    },
+    {
+      "id": "battery-details",
+      "title": "电池详情",
+      "group": "power",
+      "description": "",
+      "rows": [
+        [
+          "剩余电量",
+          "82%"
+        ],
+        [
+          "状态",
+          "电池供电"
+        ],
+        [
+          "温度",
+          "32.7 ℃"
+        ],
+        [
+          "电压",
+          "4.18 V"
+        ],
+        [
+          "电流",
+          "−420 mA"
+        ],
+        [
+          "估算功率",
+          "1.76 W"
+        ],
+        [
+          "充电器",
+          "未连接"
+        ]
+      ],
+      "fields": [],
+      "actions": [
+        {
+          "label": "刷新电池信息",
+          "effect": "refresh"
+        }
+      ],
+      "apis": [
+        "GET /api/battery",
+        "GET /api/device/battery-info",
+        "GET /api/device/charger",
+        "GET /api/device/charge-control",
+        "PUT /api/device/charge-control"
+      ]
+    },
+    {
+      "id": "charge",
+      "title": "充电策略",
+      "group": "power",
+      "description": "达到上限停止，电量下降后按回充差值恢复。",
+      "rows": [],
+      "fields": [
+        {
+          "key": "limit",
+          "label": "启用充电上限",
+          "value": true,
+          "type": "toggle"
+        },
+        {
+          "key": "percent",
+          "label": "充电上限 %",
+          "value": 85,
+          "type": "number",
+          "min": 20,
+          "max": 100
+        },
+        {
+          "key": "hysteresis",
+          "label": "回充差值 %",
+          "value": 5,
+          "type": "number",
+          "min": 1,
+          "max": 20
+        },
+        {
+          "key": "stopped",
+          "label": "直供电模式",
+          "value": false,
+          "type": "toggle"
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存充电策略",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/device/charge-control",
+        "PUT /api/device/charge-control"
+      ]
+    },
+    {
+      "id": "power-save",
+      "title": "省电模式",
+      "group": "power",
+      "description": "",
+      "rows": [],
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "启用省电模式",
+          "value": false,
+          "type": "toggle"
+        }
+      ],
+      "actions": [
+        {
+          "label": "应用省电模式",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "POST /api/device/power-save",
+        "PUT /api/device/power-save"
+      ]
+    },
+    {
+      "id": "fast-boot",
+      "title": "快速启动",
+      "group": "power",
+      "description": "",
+      "rows": [],
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "开启快速启动",
+          "value": false,
+          "type": "toggle"
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存启动设置",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/device/fast-boot",
+        "PUT /api/device/fast-boot"
+      ]
+    },
+    {
+      "id": "auto-sleep",
+      "title": "自动休眠",
+      "group": "power",
+      "description": "设备休眠会影响远程访问。",
+      "rows": [],
+      "fields": [
+        {
+          "key": "enabled",
+          "label": "启用自动休眠",
+          "value": false,
+          "type": "toggle"
+        },
+        {
+          "key": "timeout",
+          "label": "空闲后休眠",
+          "value": "10 分钟",
+          "type": "select",
+          "options": [
+            "5 分钟",
+            "10 分钟",
+            "30 分钟",
+            "60 分钟"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存休眠设置",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/device/auto-sleep",
+        "PUT /api/device/auto-sleep"
+      ]
+    },
+    {
+      "id": "usb",
+      "title": "USB 与反向供电",
+      "group": "power",
+      "description": "",
+      "rows": [
+        [
+          "USB 状态",
+          "已连接"
+        ],
+        [
+          "当前模式",
+          "USB 调试"
+        ]
+      ],
+      "fields": [
+        {
+          "key": "mode",
+          "label": "USB 模式",
+          "value": "USB 调试",
+          "type": "select",
+          "options": [
+            "USB 调试",
+            "USB 网络共享",
+            "仅充电"
+          ]
+        },
+        {
+          "key": "powerbank",
+          "label": "为外部设备供电",
+          "value": false,
+          "type": "toggle"
+        }
+      ],
+      "actions": [
+        {
+          "label": "应用 USB 设置",
+          "effect": "save"
+        }
+      ],
+      "apis": [
+        "GET /api/usb/status",
+        "PUT /api/usb/mode",
+        "PUT /api/usb/powerbank"
+      ],
+      "warning": "切换 USB 模式可能断开 ADB 连接。"
+    },
+    {
+      "id": "device-info",
+      "title": "设备信息",
+      "group": "system",
+      "description": "",
+      "rows": [
+        [
+          "设备型号",
+          "ZTE U60 Pro / MU5250"
+        ],
+        [
+          "固件版本",
+          "B31"
+        ],
+        [
+          "处理器",
+          "Snapdragon X75"
+        ],
+        [
+          "系统",
+          "OpenWrt / aarch64"
+        ],
+        [
+          "内存",
+          "1.6 GB"
+        ],
+        [
+          "屏幕",
+          "320 × 480"
+        ],
+        [
+          "运行时间",
+          "2 天 03:16"
+        ]
+      ],
+      "fields": [],
+      "actions": [],
+      "apis": [
+        "GET /api/device"
+      ]
+    },
+    {
+      "id": "screen-prefs",
+      "title": "屏幕与外观",
+      "group": "system",
+      "description": "明暗与配色分别调整，保存后应用到预览。",
+      "rows": [],
+      "fields": [
+        {
+          "key": "theme",
+          "label": "界面主题",
+          "value": "深色",
+          "type": "select",
+          "options": [
+            "深色",
+            "浅色"
+          ]
+        },
+        {
+          "key": "accent",
+          "label": "强调色",
+          "value": "#2563eb",
+          "type": "color"
+        },
+        {
+          "key": "brightness",
+          "label": "屏幕亮度 %",
+          "value": 80,
+          "type": "number",
+          "min": 20,
+          "max": 100
+        },
+        {
+          "key": "sleep",
+          "label": "自动熄屏",
+          "value": "从不",
+          "type": "select",
+          "options": [
+            "15 秒",
+            "30 秒",
+            "60 秒",
+            "从不"
+          ]
+        },
+        {
+          "key": "refresh",
+          "label": "状态刷新",
+          "value": "2 秒",
+          "type": "select",
+          "options": [
+            "1 秒",
+            "2 秒",
+            "5 秒"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存屏幕偏好",
+          "effect": "screen-prefs"
+        }
+      ],
+      "apis": [],
+      "local": true
+    },
+    {
+      "id": "https",
+      "title": "HTTPS 与证书",
+      "group": "system",
+      "description": "证书安装在访问后台的手机或电脑上完成。",
+      "rows": [
+        [
+          "HTTPS",
+          "未开启"
+        ],
+        [
+          "访问名称",
+          "u60.home.arpa"
+        ],
+        [
+          "证书",
+          "尚未签发"
+        ]
+      ],
+      "fields": [],
+      "actions": [
+        {
+          "label": "开启 HTTPS",
+          "effect": "https-on"
+        },
+        {
+          "label": "更新证书",
+          "effect": "https-renew"
+        },
+        {
+          "label": "重置 HTTPS",
+          "effect": "https-reset",
+          "danger": true,
+          "confirm": "现有 HTTPS 会话将断开，客户端可能需要重新安装证书。"
+        }
+      ],
+      "apis": [
+        "GET /api/https",
+        "POST /api/https/on",
+        "POST /api/https/renew",
+        "POST /api/https/reset"
+      ]
+    },
+    {
+      "id": "account",
+      "title": "后台连接",
+      "group": "system",
+      "description": "机身屏幕将通过本机受控接口访问 agent。",
+      "rows": [
+        [
+          "后台地址",
+          "127.0.0.1:2026"
+        ],
+        [
+          "连接状态",
+          "演示会话"
+        ],
+        [
+          "认证方式",
+          "待实体屏幕接入时配置"
+        ]
+      ],
+      "fields": [],
+      "actions": [
+        {
+          "label": "模拟会话过期",
+          "effect": "expire-session"
+        },
+        {
+          "label": "恢复演示会话",
+          "effect": "resume-session"
+        }
+      ],
+      "apis": [
+        "POST /api/auth/login"
+      ]
+    },
+    {
+      "id": "reboot",
+      "title": "重启设备",
+      "group": "system",
+      "description": "重启会暂时断开热点与远程连接。",
+      "rows": [],
+      "fields": [],
+      "actions": [
+        {
+          "label": "重启设备",
+          "effect": "reboot",
+          "danger": true,
+          "confirm": "确认重启 U60？所有网络连接将暂时中断。"
+        }
+      ],
+      "apis": [
+        "POST /api/device/reboot"
+      ]
+    },
+    {
+      "id": "factory-reset",
+      "title": "恢复出厂设置",
+      "group": "system",
+      "description": "将删除设备的用户配置，重新连接需要原厂信息。",
+      "rows": [],
+      "fields": [
+        {
+          "key": "confirm",
+          "label": "输入 RESET 确认",
+          "value": "",
+          "type": "text",
+          "required": true,
+          "pattern": "RESET",
+          "placeholder": "RESET"
+        }
+      ],
+      "actions": [
+        {
+          "label": "恢复出厂设置",
+          "effect": "factory-reset",
+          "danger": true,
+          "confirm": "确认清除设备设置？预览只演示此流程，不会操作设备。"
+        }
+      ],
+      "apis": [
+        "POST /api/device/factory-reset"
+      ]
+    },
+    {
+      "id": "backup",
+      "title": "配置备份与恢复",
+      "group": "system",
+      "description": "当前 agent 未提供备份 / 恢复 API。",
+      "rows": [
+        [
+          "小屏支持范围",
+          "操作指引"
+        ],
+        [
+          "直接备份 / 恢复",
+          "需要后续新增接口"
+        ]
+      ],
+      "fields": [],
+      "actions": [],
+      "apis": [],
+      "kind": "guide",
+      "external": true,
+      "guide": [
+        "在电脑或手机管理端完成配置导出。",
+        "将备份保存在设备之外。",
+        "恢复前核对机型、固件与备份版本。"
+      ]
+    },
+    {
+      "id": "wifi-share",
+      "title": "分享 Wi-Fi",
+      "group": "wifi",
+      "description": "选择 2.4 GHz、5 GHz 或访客网络，让手机扫码连接。",
+      "guide": [
+        "二维码使用已保存的热点配置，解锁机身后查看。"
+      ],
+      "apis": [
+        "GET /api/wifi/status",
+        "GET /api/wifi/guest"
+      ]
+    },
+    {
+      "id": "proxy-service",
+      "title": "运行与配置",
+      "group": "mihomo",
+      "description": "管理 mihomo 的运行模式与流量范围。",
+      "apis": [
+        "GET /api/proxy/mihomo/status",
+        "PUT /api/proxy/mihomo/settings",
+        "POST /api/proxy/mihomo/enable",
+        "POST /api/proxy/mihomo/disable",
+        "POST /api/proxy/mihomo/restart"
+      ]
+    },
+    {
+      "id": "proxy-groups",
+      "title": "代理组",
+      "group": "mihomo",
+      "description": "选择 mihomo 代理组中的节点。",
+      "apis": [
+        "GET /api/proxy/mihomo/status",
+        "GET /api/proxy/mihomo/groups",
+        "POST /api/proxy/mihomo/select"
+      ]
+    },
+    {
+      "id": "wireguard",
+      "title": "WireGuard",
+      "group": "vpn-services",
+      "description": "管理独立的 WireGuard 隧道。",
+      "rows": [
+        [
+          "隧道状态",
+          "未启用"
+        ],
+        [
+          "配置文件",
+          "尚未导入"
+        ]
+      ],
+      "guide": [
+        "在管理后台导入配置，配置可能包含私钥。机身屏幕用于查看连接状态与启停。"
+      ],
+      "actions": [
+        {
+          "label": "启用隧道"
+        },
+        {
+          "label": "停止隧道"
+        }
+      ],
+      "apis": [
+        "GET /api/vpn/wireguard",
+        "PUT /api/vpn/wireguard",
+        "POST /api/vpn/wireguard/enable",
+        "POST /api/vpn/wireguard/disable"
+      ]
+    },
+    {
+      "id": "agent-update",
+      "title": "后台程序更新",
+      "group": "system",
+      "description": "检查 agent 的更新、下载进度与回退状态。",
+      "rows": [
+        [
+          "更新状态",
+          "尚未检查"
+        ]
+      ],
+      "guide": [
+        "这里更新的是后台程序。原厂固件升级仍由原厂管理端完成。",
+        "自定义网关与官方发布的兼容性需要在安装前核对。"
+      ],
+      "actions": [
+        {
+          "label": "检查更新"
+        },
+        {
+          "label": "下载更新"
+        },
+        {
+          "label": "安装更新"
+        },
+        {
+          "label": "回退版本"
+        }
+      ],
+      "apis": [
+        "GET /api/update/status",
+        "PUT /api/update/settings",
+        "POST /api/update/check",
+        "POST /api/update/download",
+        "POST /api/update/install",
+        "POST /api/update/rollback"
+      ]
+    },
+    {
+      "id": "screen-lock",
+      "title": "锁屏与密码",
+      "group": "system",
+      "local": true,
+      "description": "长按解锁与可选数字密码保护。",
+      "rows": [],
+      "actions": [],
+      "apis": []
+    }
+  ]
+}

@@ -18,6 +18,9 @@ SUPERVISOR_LOCAL=scripts/router/zte-agent-supervisor.sh
 STARTUP_SCRIPT=/data/local/tmp/start_zte_agent.sh
 SSH="ssh -p $SSH_PORT -o StrictHostKeyChecking=no root@$DEVICE"
 
+# A paired deployment owns both executables and its startup wrapper.
+$SSH 'if [ -s /data/u60-dash/current ] && [ "$(cat /data/u60-dash/current)" != none ]; then echo "Use bash dash.sh install to update agent and screen together." >&2; exit 1; fi'
+
 # 1. Build
 echo "Building..."
 cargo build --release --target $TARGET -p zte-agent
@@ -60,6 +63,6 @@ $SSH "sh $STARTUP_SCRIPT"
 # 6. Verify
 echo "Verifying..."
 sleep 2
-TOKEN=$(curl -sf http://$DEVICE:9090/api/auth/login -H 'Content-Type: application/json' -d "{\"password\":\"$PASSWORD\"}" | python3 -c 'import sys,json; print(json.load(sys.stdin)["data"]["token"])')
-curl -sf http://$DEVICE:9090/api/device -H "Authorization: Bearer $TOKEN" > /dev/null
+TOKEN=$(curl -sf http://$DEVICE:2026/api/auth/login -H 'Content-Type: application/json' -d "{\"password\":\"$PASSWORD\"}" | python3 -c 'import sys,json; print(json.load(sys.stdin)["data"]["token"])')
+curl -sf http://$DEVICE:2026/api/device -H "Authorization: Bearer $TOKEN" > /dev/null
 echo "Deploy successful!"

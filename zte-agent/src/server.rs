@@ -18,6 +18,7 @@ use crate::modem_ext;
 use crate::network_ext;
 use crate::oos_policy;
 use crate::ota;
+use crate::proxy;
 use crate::router;
 use crate::sim;
 use crate::sms;
@@ -124,6 +125,9 @@ pub fn precheck(req: &ReqInfo, env: &PreEnv) -> Pre {
     if guard::api_mutation_refused(req.method, &req.headers) {
         return refuse(403, "cross-origin request refused");
     }
+    if req.path.starts_with("/api/software/") && req.method != Method::Get && !has_password {
+        return refuse(403, "agent password required");
+    }
     match (req.method, req.path) {
         (Method::Post, "/api/auth/login") => return Pre::Login,
         // Answered here, without a hand-off, so the RTT measurement stays honest.
@@ -154,7 +158,7 @@ pub fn precheck(req: &ReqInfo, env: &PreEnv) -> Pre {
         return refuse(403, "agent password required");
     }
     Pre::Dispatch {
-        body_limit: if live_activity { LIVE_ACTIVITY_BODY_MAX } else { API_BODY_MAX },
+        body_limit: if matches!(req.path, "/api/software/metacubexd/upload/chunk" | "/api/software/mihomo/upload/chunk" | "/api/software/tailscale/upload/chunk" | "/api/software/mihomo-geoip/upload/chunk" | "/api/software/mihomo-geosite/upload/chunk" | "/api/software/mihomo-mmdb/upload/chunk" | "/api/software/mihomo-asn/upload/chunk") { crate::software::UPLOAD_BODY_MAX } else if matches!(req.path, "/api/proxy/config" | "/api/proxy/mihomo/config" | "/api/proxy/validate" | "/api/proxy/mihomo/validate" | "/api/proxy/mihomo/geodata") { 4 * 1024 * 1024 } else if live_activity { LIVE_ACTIVITY_BODY_MAX } else { API_BODY_MAX },
     }
 }
 
@@ -199,13 +203,14 @@ pub fn encode((status, body): (u16, Value)) -> Encoded {
 pub fn lane(method: Method, path: &str) -> Lane {
     use Method::{Delete, Get, Post, Put};
     let slow = match (method, path) {
+        (Get, p) if p.starts_with("/api/software/") && p.ends_with("/release") => true,
         (Get, "/api/network/client-details") => true,
         (Get, "/api/esim/switch")
         | (Get | Delete, "/api/esim/download")
         | (Post, "/api/esim/download/confirm" | "/api/esim/download/cancel")
         | (Get, "/api/tailscale/status")
         | (Get, "/api/stk/menu" | "/api/stk/session") => false,
-        (_, p) if p.starts_with("/api/esim/") || p.starts_with("/api/tailscale/") || p.starts_with("/api/https/") => true,
+        (_, p) if p.starts_with("/api/proxy/") || p.starts_with("/api/esim/") || p.starts_with("/api/tailscale/") || p.starts_with("/api/https/") => true,
         (Put | Post, p) if p.starts_with("/api/vpn/wireguard") => true,
         (_, p) if p.starts_with("/api/ussd/") || p.starts_with("/api/stk/") => true,
         (Post, p) if p.starts_with("/api/sim/") || p.starts_with("/api/cell/") => true,
@@ -246,6 +251,13 @@ pub fn parse_query_usize(query: Option<&str>, key: &str) -> Option<usize> {
 }
 
 fn route_inner(method: &Method, path: &str, state: &AppState, body: &[u8]) -> (u16, Value) {
+    if crate::deployment::paired()
+        && path.starts_with("/api/update/")
+        && !matches!(method, Method::Get)
+    {
+        return (409, json!({"ok":false,"error":"This installation updates agent and screen together. Use bash dash.sh install or rollback."}));
+    }
+
     crate::httpd::gate::debug_assert_may_block();
     if *method != Method::Get {
         crate::httpd::gate::debug_assert_may_change(path);
@@ -454,7 +466,17 @@ fn route_inner(method: &Method, path: &str, state: &AppState, body: &[u8]) -> (u
         (&Method::Post, "/api/doh/disable") => doh_disable(state),
         (&Method::Get, "/api/doh/cache") => doh_cache_list(state),
         (&Method::Post, "/api/doh/cache/clear") => doh_cache_clear(state),
-        // Tailscale remote management
+        // Independent proxy services; old routes remain aliases for the original service.
+        (&Method::Get, "/api/proxy/services") => proxy::services(state),
+        (method, path) if path.starts_with("/api/software/") => crate::software::route(state, method, path, body),
+        (method, path) if path.strip_prefix("/api/proxy/").is_some_and(|p| p.contains('/')) => proxy::service_route(state, method, path, body),
+        (&Method::Get, "/api/proxy/status") => proxy::status(state),
+        (&Method::Get, "/api/proxy/groups") => proxy::groups(state),
+        (&Method::Put, "/api/proxy/settings") => proxy::change(state, "settings", body),
+        (&Method::Post, path) if matches!(path,
+            "/api/proxy/enable" | "/api/proxy/disable" | "/api/proxy/restart" |
+            "/api/proxy/config" | "/api/proxy/subscription" | "/api/proxy/validate" | "/api/proxy/reload" | "/api/proxy/install" | "/api/proxy/select"
+        ) => proxy::change(state, path.rsplit('/').next().unwrap(), body),
         (&Method::Get, "/api/tailscale/status") => tailscale::status(state),
         // LAN HTTPS (docs/web-ui.md, "LAN HTTPS"): read-only for the apps.
         (&Method::Get, "/api/https") => state.tls.status_json(),
@@ -524,7 +546,7 @@ fn doh_cache_clear(state: &AppState) -> (u16, Value) {
 
 pub fn route(method: &Method, path: &str, state: &AppState, body: &[u8]) -> (u16, Value) {
     let reply = route_inner(method,path,state,body);
-    if reply.0 < 300 && matches!(method,Method::Put|Method::Post|Method::Delete) && path != "/api/auth/login" {
+    if reply.0 < 300 && matches!(method,Method::Put|Method::Post|Method::Delete) && path != "/api/auth/login" && !path.starts_with("/api/software/") {
         state.dashboard.request_refresh();
     }
     reply
@@ -603,6 +625,26 @@ mod tests {
     const DISPATCH: Pre = Pre::Dispatch { body_limit: API_BODY_MAX };
 
     #[test]
+    fn software_uploads_require_auth_and_use_a_bounded_chunk_body() {
+        let h = host("192.168.0.1:9090");
+        let open = AuthState::new();
+        let auth = with_password();
+        let token = auth.login(PW, Kind::Bearer, peer(1), &[]).unwrap();
+        let t = Some(token.token.expose());
+        for service in ["metacubexd", "mihomo", "tailscale", "mihomo-geoip", "mihomo-geosite", "mihomo-mmdb", "mihomo-asn"] {
+            let chunk = format!("/api/software/{service}/upload/chunk");
+            assert_eq!(run(&open, &info(Method::Post, &chunk, None, None, h)), reply(403, "agent password required"));
+            assert_eq!(run(&auth, &info(Method::Post, &chunk, None, None, h)), reply(401, "unauthorized"));
+            assert_eq!(run(&auth, &info(Method::Post, &chunk, None, t, h)), Pre::Dispatch { body_limit: crate::software::UPLOAD_BODY_MAX });
+            let cross = ReqHeaders { origin: Some("http://evil.com"), ..h };
+            assert_eq!(run(&auth, &info(Method::Post, &chunk, None, t, cross)), reply(403, "cross-origin request refused"));
+            let install = format!("/api/software/{service}/install");
+            assert_eq!(run(&auth, &info(Method::Post, &install, None, t, h)), DISPATCH);
+        }
+        assert_eq!(run(&auth, &info(Method::Post, "/api/software/unknown/upload/chunk", None, t, h)), DISPATCH);
+    }
+
+    #[test]
     fn precheck_with_password() {
         let auth = with_password();
         let token = auth.login(PW, Kind::Bearer, peer(1), &[]).unwrap();
@@ -614,6 +656,10 @@ mod tests {
         assert_eq!(run(&auth, &info(Method::Get, "/api/device", None, Some("nope"), h)), reply(401, "unauthorized"));
         assert_eq!(run(&auth, &info(Method::Get, "/api/lan/ping", None, None, h)), reply(401, "unauthorized"));
         assert_eq!(run(&auth, &info(Method::Get, "/api/device", None, t, h)), DISPATCH);
+        assert_eq!(run(&auth, &info(Method::Get, "/api/proxy/mihomo/config", None, None, h)), reply(401, "unauthorized"));
+        assert_eq!(run(&auth, &info(Method::Post, "/api/proxy/mihomo/config", None, t, h)), Pre::Dispatch { body_limit: 4 * 1024 * 1024 });
+        assert_eq!(run(&auth, &info(Method::Post, "/api/proxy/mihomo/validate", None, t, h)), Pre::Dispatch { body_limit: 4 * 1024 * 1024 });
+        assert_eq!(run(&auth, &info(Method::Post, "/api/proxy/mihomo/geodata", None, t, h)), Pre::Dispatch { body_limit: 4 * 1024 * 1024 });
         // With a password the apps' Host is not checked (they may use any name; browsers: below).
         assert_eq!(run(&auth, &info(Method::Get, "/api/device", None, t, host("evil.com"))), DISPATCH);
         assert_eq!(run(&auth, &info(Method::Get, "/api/device", None, t, ReqHeaders::default())), DISPATCH);

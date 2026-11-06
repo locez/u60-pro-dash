@@ -24,7 +24,7 @@ final class AgentClient {
 
     private let session: URLSession
 
-    init(baseURL: String = "http://192.168.0.1:9090") {
+    init(baseURL: String = "http://192.168.0.1:2026") {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 10
         config.timeoutIntervalForResource = 15

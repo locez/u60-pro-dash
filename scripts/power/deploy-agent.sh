@@ -11,6 +11,8 @@ R="root@192.168.0.1"; P=2222
 SSH=(ssh -o BatchMode=yes -o ConnectTimeout=5 -p $P $R)
 cd "$(dirname "$0")/../.."
 
+"${SSH[@]}" 'if [ -s /data/u60-dash/current ] && [ "$(cat /data/u60-dash/current)" != none ]; then echo "Use bash dash.sh install to update agent and screen together." >&2; exit 1; fi'
+
 cargo build --release --target aarch64-unknown-linux-musl -p zte-agent
 BIN=target/aarch64-unknown-linux-musl/release/zte-agent
 SHA=$(shasum -a 256 "$BIN" | cut -d' ' -f1)
@@ -32,7 +34,7 @@ echo "upload verified"
 '
 echo "smoke test:"
 for ep in /api/device /api/live-activity /api/stk/session /api/tailscale/status /api/network/signal /api/wifi/status /api/device/system; do
-  code=$(curl -s -o /dev/null -w "%{http_code}" "http://192.168.0.1:9090$ep")
+  code=$(curl -s -o /dev/null -w "%{http_code}" "http://192.168.0.1:2026$ep")
   echo "  $ep -> $code (401 expected without a token)"
 done
 echo "rollback: ssh -p $P $R 'killall zte-agent; cp /data/zte-agent.bak-$TAG /data/zte-agent; sh /data/local/tmp/start_zte_agent.sh'"

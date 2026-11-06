@@ -20,7 +20,7 @@ snap() {
     echo "== $tid" >> $d/task_sched
     grep -E 'sum_exec_runtime|nr_switches|nr_voluntary|nr_involuntary|nr_wakeups' $t/sched >> $d/task_sched 2>/dev/null
   done
-  awk 'NR>1 && $2 ~ /:2382$/ {print $2, $3, $4}' /proc/net/tcp > $d/tcp9090
+  awk 'NR>1 && $2 ~ /:5078$/ {print $2, $3, $4}' /proc/net/tcp > $d/tcp2026
 }
 TR=/sys/kernel/debug/tracing
 [ -d $TR ] || mount -t debugfs none /sys/kernel/debug 2>/dev/null

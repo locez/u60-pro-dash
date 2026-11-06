@@ -1,5 +1,6 @@
 'use strict';
 (() => {
+  const tr = globalThis.OpenU60I18n?.t || ((s,...v)=>s.replace(/\{(\d+)\}/g,(match,i)=>Number(i)<v.length?String(v[i]):match));
   const $ = id => document.getElementById(id);
   const animated = new Set(['download','upload','battery','temperature','rsrp','sinr','rsrq','lte-count','nr-count','device-count','outage-count','received','sent','sms-count']);
   const text = (id,value) => { if (animated.has(id)) OpenU60Numbers.set($(id),value); else $(id).textContent = value ?? '—'; };
@@ -17,22 +18,24 @@
   text('settings-address', location.origin);
   $('signout').hidden = !token;
 
+  // HTTP authentication is protocol data, independent of the display language.
+  const authHeaders = () => token ? { Authorization: `Bearer ${token}` } : {};
   async function api(path, options = {}) {
     const requestAuthEpoch = authEpoch;
     const {timeoutMs = 8000, ...fetchOptions} = options;
     const response = await fetch(path, {
       ...fetchOptions, cache: 'no-store',
       signal: AbortSignal.timeout(Math.min(Math.max(timeoutMs,1000),600000)),
-      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options.body ? { 'Content-Type': 'application/json' } : {}) }
+      headers: { ...authHeaders(), ...(options.body ? { 'Content-Type': 'application/json' } : {}) }
     });
     if (response.status === 401) {
-      const error = new Error('Enter your agent password to continue.');
+      const error = new Error(tr('Enter your agent password to continue.'));
       error.auth = true;
       error.authEpoch = requestAuthEpoch;
       throw error;
     }
     const result = await response.json();
-    if (!response.ok || !result.ok) { const error = new Error(result.error || 'Reading unavailable'); error.status = response.status; error.details=result; throw error; }
+    if (!response.ok || !result.ok) { const error = new Error(result.error || tr('Reading unavailable')); error.status = response.status; error.details=result; throw error; }
     return result.data ?? result;
   }
   function lock() {
@@ -44,11 +47,11 @@
     outageStarted = null; outageCount = 0; lastOutageDuration = 0; lastOutageReason = '';
     $('availability').hidden = true; $('cellular').dataset.stale = 'false';
     text('last-seen', '—'); text('outage-count', '0'); text('outage-duration', '—');
-    setStreamState('locked', 'Locked');
+    setStreamState('locked', tr('Locked'));
     renderDevice(null); renderWan(null); renderSignal(null); renderModem(null); renderSpeed(null); renderBattery(null); renderWifi(null); renderClients(null);
     $('sms-search').value = ''; renderSMS(null); renderSMSCapacity(null);
-    text('connection-title', 'Console locked');
-    text('updated', 'Console locked'); text('notice', 'Unlock the console to view your network.');
+    text('connection-title', tr('Console locked'));
+    text('updated', tr('Console locked')); text('notice', tr('Unlock the console to view your network.'));
     $('signout').hidden = true;
     window.dispatchEvent(new Event('dashboard:locked'));
     OpenU60Motion.showDialog(dialog);
@@ -60,17 +63,17 @@
     return `${(n / ({ GB: 1e9, MB: 1e6, KB: 1e3, B: 1 }[unit])).toFixed(unit === 'B' ? 0 : 2)} ${unit}`;
   };
   function renderDevice(data) {
-    text('hostname', data?.hostname ?? 'ZTE U60 Pro'); text('kernel', data?.kernel);
+    text('hostname', data?.hostname ?? tr('ZTE U60 Pro')); text('kernel', data?.kernel);
     text('load', Array.isArray(data?.load_avg) ? data.load_avg.join(' / ') : data?.load_avg);
     const seconds = number(data?.uptime_secs);
-    text('uptime', seconds === null ? null : `${Math.floor(seconds / 86400)}d ${Math.floor(seconds % 86400 / 3600)}h ${Math.floor(seconds % 3600 / 60)}m`);
+    text('uptime', seconds === null ? null : tr("{0}d {1}h {2}m", Math.floor(seconds / 86400), Math.floor(seconds % 86400 / 3600), Math.floor(seconds % 3600 / 60)));
   }
   function renderWan(data) {
     const wan=lastGood.get('wan')?.data,wan6=lastGood.get('wan6')?.data;
     const addresses=OpenU60Addresses.collect(wan,wan6);
-    text('wan-ip',addresses.ipv4.join('\n') || (wan || wan6 ? 'Not reported' : '—'));
-    text('wan-ipv6',addresses.ipv6.join('\n') || (wan || wan6 ? 'Not reported' : '—'));
-    text('wan-ipv6-status',addresses.ipv6.length && (readings.get('wan6')?.ok===false || wan6?.up===false) ? 'Last reported IPv6 address' : '');
+    text('wan-ip',addresses.ipv4.join('\n') || (wan || wan6 ? tr('Not reported') : '—'));
+    text('wan-ipv6',addresses.ipv6.join('\n') || (wan || wan6 ? tr('Not reported') : '—'));
+    text('wan-ipv6-status',addresses.ipv6.length && (readings.get('wan6')?.ok===false || wan6?.up===false) ? tr('Last reported IPv6 address') : '');
   }
   function renderModem(data) { text('modem-state', data?.operate_mode); }
   function element(tag, className, value) {
@@ -82,13 +85,13 @@
   function carrierGroup(rat, group, model, historical = false) {
     const list = $(`${rat}-carriers`), existing = new Map([...list.querySelectorAll('.carrier-card')].map(card=>[card.dataset.carrierKey,card]));
     const count = group.carriers.length;
-    let state = !count ? 'Not reported' : `${count} reported · ${count > 1 ? 'carrier aggregation' : 'single carrier'}`;
-    if (group.caInactive && count > 1) state = `${count} reported · CA inactive`;
-    if (rat === 'lte' && model.sa && count) state = `${count} reported · not used in SA`;
-    else if (count && !group.measured) state = `${count} reported · no measured signal`;
-    if (historical && count) state = `Last known · ${count} carriers`;
+    let state = !count ? tr('Not reported') : tr("{0} reported · {1}", count, count > 1 ? tr('carrier aggregation') : tr('single carrier'));
+    if (group.caInactive && count > 1) state = tr("{0} reported · CA inactive", count);
+    if (rat === 'lte' && model.sa && count) state = tr("{0} reported · not used in SA", count);
+    else if (count && !group.measured) state = tr("{0} reported · no measured signal", count);
+    if (historical && count) state = tr("Last known · {0} carriers", count);
     text(`${rat}-status`, state);
-    if (!count) { list.replaceChildren(element('p','carrier-empty',`No ${rat === 'nr' ? 'NR' : 'LTE'} carriers reported by the modem.`)); return; }
+    if (!count) { list.replaceChildren(element('p','carrier-empty',tr("No {0} carriers reported by the modem.", rat === 'nr' ? 'NR' : 'LTE'))); return; }
     const cards = [];
     for (const carrier of group.carriers) {
       const key = JSON.stringify([rat,carrier.pci,carrier.channel,carrier.band,carrier.cellId]);
@@ -98,18 +101,18 @@
         const heading = element('div','carrier-card-heading'), identity = element('div','carrier-identity');
         identity.append(element('strong',''),element('span','carrier-role')); heading.append(identity,element('span','carrier-measurement-state'));
         const facts = element('dl','carrier-facts'), metrics = element('dl','carrier-metrics');
-        for (const label of ['PCI',rat === 'nr' ? 'NR-ARFCN' : 'EARFCN','Bandwidth','Cell ID']) { const fact = element('div'); fact.append(element('dt','',label),element('dd')); facts.append(fact); }
+        for (const label of ['PCI',rat === 'nr' ? 'NR-ARFCN' : 'EARFCN',tr('Bandwidth'),tr('Cell ID')]) { const fact = element('div'); fact.append(element('dt','',label),element('dd')); facts.append(fact); }
         for (const label of ['RSRP','RSRQ','SINR','RSSI']) { const metric = element('div'); metric.append(element('dt','',label),element('dd')); metrics.append(metric); }
         card.append(heading,facts,metrics);
       }
       card.dataset.role = carrier.role;
-      card.querySelector('.carrier-identity strong').textContent = carrier.band || 'Band unreported';
+      card.querySelector('.carrier-identity strong').textContent = carrier.band || tr('Band unreported');
       card.querySelector('.carrier-role').textContent = carrier.role;
-      card.querySelector('.carrier-measurement-state').textContent = carrier.rsrp === null ? 'Measurements unavailable' : 'Signal reported';
-      const facts = [carrier.pci,carrier.channel,carrier.bandwidth ? `${carrier.bandwidth} MHz` : '',carrier.cellId];
+      card.querySelector('.carrier-measurement-state').textContent = carrier.rsrp === null ? tr('Measurements unavailable') : tr('Signal reported');
+      const facts = [carrier.pci,carrier.channel,carrier.bandwidth ? tr("{0} MHz", carrier.bandwidth) : '',carrier.cellId];
       [...card.querySelectorAll('.carrier-facts dd')].forEach((node,index)=>{ node.textContent = facts[index] || '—'; });
       [...card.querySelectorAll('.carrier-metrics dd')].forEach((node,index)=>{
-        const [key,unit] = [['rsrp','dBm'],['rsrq','dB'],['sinr','dB'],['rssi','dBm']][index];
+        const [key,unit] = [['rsrp',tr('dBm')],['rsrq','dB'],['sinr','dB'],['rssi',tr('dBm')]][index];
         OpenU60Numbers.set(node,carrier[key] === null ? '—' : `${carrier[key]} ${unit}`);
       });
       cards.push(card);
@@ -118,14 +121,14 @@
     for (const child of [...list.children]) if (!wanted.has(child)) child.remove();
     cards.forEach((card,index)=>{ if (list.children[index] !== card) list.insertBefore(card,list.children[index] || null); });
   }
-  const signalQuality = rsrp => rsrp == null ? 'Unavailable' : rsrp >= -80 ? 'Excellent' : rsrp >= -95 ? 'Good' : rsrp >= -110 ? 'Fair' : 'Weak';
+  const signalQuality = rsrp => rsrp == null ? tr('Unavailable') : rsrp >= -80 ? tr('Excellent') : rsrp >= -95 ? tr('Good') : rsrp >= -110 ? tr('Fair') : tr('Weak');
   function renderSignal(data) {
     const model = OpenU60Cellular.parse(data || {});
-    text('operator', data?.network_provider ?? 'Operator unavailable'); text('network-type', data ? model.mode : '—');
-    text('access-mode', data ? model.mode : '—'); text('mode-explanation', model.explanation || 'No serving signal reported by the modem.');
+    text('operator', data?.network_provider ?? tr('Operator unavailable')); text('network-type', data ? model.mode : '—');
+    text('access-mode', data ? model.mode : '—'); text('mode-explanation', model.explanation || tr('No serving signal reported by the modem.'));
     text('lte-count', data ? model.lte.carriers.length : '—'); text('nr-count', data ? model.nr.carriers.length : '—');
     const primary = model.primary;
-    text('primary-signal-label', primary ? `MEASURED CARRIER · ${primary.band || 'BAND UNREPORTED'} ${primary.role}` : 'SERVING SIGNAL');
+    text('primary-signal-label', primary ? tr("MEASURED CARRIER · {0} {1}", primary.band || tr('BAND UNREPORTED'), primary.role) : tr('SERVING SIGNAL'));
     text('rsrp', primary?.rsrp); text('sinr', primary?.sinr); text('rsrq', primary?.rsrq);
     text('band', primary?.band); text('pci', primary?.pci);
     const rsrp = primary?.rsrp;
@@ -134,35 +137,35 @@
     const inventory = historical ? OpenU60Cellular.parse(lastServing.data) : model;
     $('cellular').dataset.nrActive = String(inventory.nr.inUse);
     carrierGroup('lte', inventory.lte, inventory, Boolean(historical)); carrierGroup('nr', inventory.nr, inventory, Boolean(historical));
-    text('cellular-freshness', data ? 'Live modem readings · Every reported carrier is listed below.' : 'No modem readings available.');
+    text('cellular-freshness', data ? tr('Live modem readings · Every reported carrier is listed below.') : tr('No modem readings available.'));
   }
   const clock = value => new Date(value).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
   function refreshOutageClock() {
     const seconds = Math.max(0, Math.floor((outageStarted === null ? lastOutageDuration : Date.now() - outageStarted) / 1000));
-    text('outage-duration', `${Math.floor(seconds / 60)}m ${String(seconds % 60).padStart(2,'0')}s`);
+    text('outage-duration', tr("{0}m {1}s", Math.floor(seconds / 60), String(seconds % 60).padStart(2,'0')));
   }
   function updateConnection() {
     if (locked) return;
     const wan = readings.get('wan'), modem = readings.get('modem'), signal = readings.get('signal');
     const radioMode = String(modem?.ok ? modem.data?.operate_mode ?? '' : '').trim().toUpperCase();
     let reason = '';
-    if (!transportLive) reason = lastReceived ? 'Router unreachable' : 'Waiting for router';
-    else if (radioMode && radioMode !== 'ONLINE') reason = `Radio offline · ${radioMode}`;
-    else if (wan?.ok && wan.data?.up === false) reason = 'Mobile data offline';
-    else if (signal?.ok && OpenU60Cellular.parse(signal.data || {}).mode === 'No service') reason = 'Cellular service unavailable';
-    else if (!wan?.ok) reason = 'Mobile data status unavailable';
+    if (!transportLive) reason = lastReceived ? tr('Router unreachable') : tr('Waiting for router');
+    else if (radioMode && radioMode !== 'ONLINE') reason = tr("Radio offline · {0}", radioMode);
+    else if (wan?.ok && wan.data?.up === false) reason = tr('Mobile data offline');
+    else if (signal?.ok && OpenU60Cellular.parse(signal.data || {}).noService) reason = tr('Cellular service unavailable');
+    else if (!wan?.ok) reason = tr('Mobile data status unavailable');
     const interrupted = reason && (transportLive || lastReceived !== null);
     if (interrupted && outageStarted === null) { outageStarted = Date.now(); outageCount++; }
     if (!interrupted && outageStarted !== null) { lastOutageDuration = Date.now() - outageStarted; outageStarted = null; }
     if (interrupted) lastOutageReason = reason;
-    text('connection-title', reason || 'Cellular connection active');
+    text('connection-title', reason || tr('Cellular connection active'));
     document.querySelector('.connection-panel').dataset.state = interrupted ? 'offline' : 'online';
     $('availability').hidden = !outageCount;
     $('history-empty').hidden = Boolean(outageCount);
-    text('availability-title', interrupted ? reason : 'Connection restored');
-    text('offline-cause', !transportLive ? 'Showing last known readings from this tab. Live rates are unavailable.' : interrupted ? 'The router is reachable. Local device statistics continue to update.' : `Recovered from: ${lastOutageReason}. History covers this tab only.`);
+    text('availability-title', interrupted ? reason : tr('Connection restored'));
+    text('offline-cause', !transportLive ? tr('Showing last known readings from this tab. Live rates are unavailable.') : interrupted ? tr('The router is reachable. Local device statistics continue to update.') : tr("Recovered from: {0}. History covers this tab only.", lastOutageReason));
     text('last-seen', lastReceived ? clock(lastReceived) : '—');
-    text('outage-count', outageCount); text('outage-duration-label', interrupted ? 'Current interruption' : 'Last interruption');
+    text('outage-count', outageCount); text('outage-duration-label', interrupted ? tr('Current interruption') : tr('Last interruption'));
     refreshOutageClock();
     document.querySelectorAll('[data-rate-label]').forEach(label => { label.textContent = interrupted ? 'OFFLINE' : 'LIVE'; });
     if (interrupted) { text('download', '—'); text('upload', '—'); }
@@ -171,10 +174,10 @@
     const stale = Boolean(oldSignal && (!transportLive || !signal?.ok || noCurrentSignal || (radioMode && radioMode !== 'ONLINE')));
     $('cellular').dataset.stale = String(stale);
     if (stale) {
-      text('cellular-freshness', `${noCurrentSignal ? 'No current serving signal. Last known carriers' : 'Last known modem readings'} · received ${clock(noCurrentSignal ? lastServing.at : oldSignal.at)}. These are not live measurements.`);
-      text('signal-quality', 'Last known');
+      text('cellular-freshness', tr("{0} · received {1}. These are not live measurements.", noCurrentSignal ? tr('No current serving signal. Last known carriers') : tr('Last known modem readings'), clock(noCurrentSignal ? lastServing.at : oldSignal.at)));
+      text('signal-quality', tr('Last known'));
     } else if (signal?.ok) {
-      text('cellular-freshness', `Modem readings received ${clock(oldSignal.at)} · All reported carriers shown.`);
+      text('cellular-freshness', tr("Modem readings received {0} · All reported carriers shown.", clock(oldSignal.at)));
       text('signal-quality', signalQuality(OpenU60Cellular.parse(signal.data || {}).primary?.rsrp));
     }
   }
@@ -198,17 +201,17 @@
   }
   function renderBattery(data) {
     const raw = number(data?.capacity), capacity = raw !== null && raw >= 0 && raw <= 100 ? raw : null;
-    text('battery', capacity); text('battery-status', data?.status ?? 'Battery data unavailable');
+    text('battery', capacity); text('battery-status', data?.status ?? tr('Battery data unavailable'));
     $('battery-bar').style.width = `${capacity ?? 0}%`;
     const temperature = number(data?.temperature);
-    text('temperature', temperature === null ? null : `${(temperature / 10).toFixed(1)} °C`);
+    text('temperature', temperature === null ? null : tr("{0} °C", (temperature / 10).toFixed(1)));
   }
   function renderWifi(data) {
     for (const band of ['2g', '5g']) {
-      text(`ssid-${band}`, data?.[`ssid_${band}`] || `${band === '2g' ? '2.4' : '5'} GHz network`);
+      text(`ssid-${band}`, data?.[`ssid_${band}`] || tr("{0} GHz network", band === '2g' ? '2.4' : '5'));
       text(`channel-${band}`, data?.[`channel_${band}`]);
       const disabled = data?.[`radio${band === '2g' ? '2' : '5'}_disabled`];
-      text(`radio-${band}`, !data || disabled === undefined ? '—' : String(data.wifi_onoff) === '0' || String(disabled) === '1' ? 'Off' : 'Enabled');
+      text(`radio-${band}`, !data || disabled === undefined ? '—' : String(data.wifi_onoff) === '0' || String(disabled) === '1' ? tr('Off') : tr('Enabled'));
     }
   }
   function renderClients(data) {
@@ -219,17 +222,17 @@
       if (hosts && typeof hosts === 'object') {
         for (const [mac, host] of Object.entries(hosts)) {
           if (!host || typeof host !== 'object') continue;
-          clients.push({ name: host.name || 'Unnamed device', ip: host.ipaddrs?.join(', ') || host.ipv4?.join(', ') || '—', mac, source: 'Host hint' });
+          clients.push({ name: host.name || tr('Unnamed device'), ip: host.ipaddrs?.join(', ') || host.ipv4?.join(', ') || '—', mac, source: tr('Host hint') });
         }
       }
       for (const lease of data.dhcp_leases ?? []) {
         if (!clients.some(client => client.mac.toLowerCase() === String(lease.macaddr).toLowerCase())) {
-          clients.push({ name: lease.hostname || 'Unnamed device', ip: lease.ipaddr || '—', mac: lease.macaddr || '—', source: 'DHCP lease' });
+          clients.push({ name: lease.hostname || tr('Unnamed device'), ip: lease.ipaddr || '—', mac: lease.macaddr || '—', source: tr('DHCP lease') });
         }
       }
     }
     if (OpenU60Navigation.current.key !== 'network/clients') text('device-count', data ? clients.length : '—');
-    drawClients(data ? undefined : 'Device data unavailable.');
+    drawClients(data ? undefined : tr('Device data unavailable.'));
   }
   function drawClients(message) {
     const query = $('device-search').value.trim().toLowerCase();
@@ -239,12 +242,12 @@
       const row = body.insertRow(), cell = row.insertCell();
       row.setAttribute('role', 'row'); cell.setAttribute('role', 'cell');
       cell.colSpan = 4; cell.className = 'empty';
-      cell.textContent = message || (query ? 'No devices match your search.' : 'No devices reported by the router.');
+      cell.textContent = message || (query ? tr('No devices match your search.') : tr('No devices reported by the router.'));
     }
     for (const client of filtered) {
       const row = body.insertRow();
       row.setAttribute('role', 'row');
-      for (const [key, label] of [['name', 'Device'], ['ip', 'IP address'], ['mac', 'MAC address'], ['source', 'Source']]) {
+      for (const [key, label] of [['name', tr('Device')], ['ip', tr('IP address')], ['mac', tr('MAC address')], ['source', tr('Source')]]) {
         const cell = row.insertCell();
         cell.textContent = client[key];
         cell.dataset.label = label;
@@ -262,36 +265,36 @@
   function messageDate(value) {
     const raw = String(value ?? '');
     const parts = raw.split(',').map(Number);
-    if (parts.length < 6 || parts.slice(0,6).some(value => !Number.isFinite(value))) return raw || 'Date unreported';
+    if (parts.length < 6 || parts.slice(0,6).some(value => !Number.isFinite(value))) return raw || tr('Date unreported');
     const [year,month,day,hour,minute,second] = parts;
     const quarters = Number.isFinite(parts[6]) ? parts[6] : 0;
     if (month < 1 || month > 12 || day < 1 || day > 31 || Math.abs(quarters) > 56) return raw;
     const date = new Date(Date.UTC(year < 100 ? year+2000 : year,month-1,day,hour,minute,second) - quarters*15*60*1000);
-    return Number.isNaN(date.getTime()) ? raw : date.toLocaleString();
+    return Number.isNaN(date.getTime()) ? raw : date.toLocaleString(globalThis.OpenU60I18n?.locale);
   }
   function renderSMS(data) {
     messages = Array.isArray(data?.messages) ? data.messages.map(message => ({...message,body:decodeMessage(message.content)})) : [];
     text('sms-count', data ? messages.length : '—');
-    text('sms-status', data ? 'Live messages · Router and SIM storage' : 'Messages unavailable. Open SMS while connected to the router.');
+    text('sms-status', data ? tr('Live messages · Router and SIM storage') : tr('Messages unavailable. Open SMS while connected to the router.'));
     drawMessages();
   }
   function drawMessages() {
     const list = $('message-list'); list.replaceChildren();
     const query = $('sms-search').value.trim().toLowerCase();
     const found = messages.filter(message => `${message.number} ${message.body}`.toLowerCase().includes(query));
-    if (!found.length) list.append(element('p','carrier-empty',query ? 'No messages match your search.' : 'No messages to display.'));
-    const tags = {0:'Read',1:'Unread',2:'Sent',3:'Failed',4:'Draft'};
+    if (!found.length) list.append(element('p','carrier-empty',query ? tr('No messages match your search.') : tr('No messages to display.')));
+    const tags = {0:tr('Read'),1:tr('Unread'),2:tr('Sent'),3:tr('Failed'),4:tr('Draft')};
     for (const message of found) {
       const card = element('article','message-card');
       const heading = element('div','message-card-heading');
-      heading.append(element('strong','',message.number || 'Unknown sender'),element('span','',messageDate(message.date)));
-      card.append(heading,element('p','',message.body),element('small','',`${tags[message.tag] || 'Message'} · ${message.mem_store === 'sim' ? 'SIM' : 'Internal storage'}`));
+      heading.append(element('strong','',message.number || tr('Unknown sender')),element('span','',messageDate(message.date)));
+      card.append(heading,element('p','',message.body),element('small','',`${tags[message.tag] || tr('Message')} · ${message.mem_store === 'sim' ? 'SIM' : tr('Internal storage')}`));
       if (globalThis.OpenU60Controls) OpenU60Controls.decorateMessage(card,message);
       list.append(card);
     }
   }
   function renderSMSCapacity(data) {
-    const capacity = (used,total) => data ? `${data[used] ?? '—'} / ${data[total] ?? '—'} messages` : '—';
+    const capacity = (used,total) => data ? tr("{0} / {1} messages", data[used] ?? '—', data[total] ?? '—') : '—';
     text('sms-internal',capacity('sms_nvused_total','sms_nv_total'));
     text('sms-sim',capacity('sms_simused_total','sms_sim_total'));
     text('sms-unread',data?.sms_dev_unread_num);
@@ -320,7 +323,7 @@
     renderSpeed(null);
     const speed = lastGood.get('speed')?.data;
     text('received', bytes(speed?.rx_bytes)); text('sent', bytes(speed?.tx_bytes));
-    if (streamIncludesSms) text('sms-status','Connection interrupted · Showing the last received messages.');
+    if (streamIncludesSms) text('sms-status',tr('Connection interrupted · Showing the last received messages.'));
     updateConnection();
   }
   function applyReadings(message, snapshot) {
@@ -345,12 +348,12 @@
     if (currentSignal?.ok && radioMode === 'ONLINE' && OpenU60Cellular.parse(currentSignal.data || {}).hasSignal) {
       lastServing = lastGood.get('signal');
     }
-    if (streamIncludesSms && readings.has('sms') && !readings.get('sms')?.ok) text('sms-status','Messages unavailable · Last received messages are retained where available.');
+    if (streamIncludesSms && readings.has('sms') && !readings.get('sms')?.ok) text('sms-status',tr('Messages unavailable · Last received messages are retained where available.'));
     const failures = [...readings.values()].filter(reading => !reading?.ok).length;
-    setStreamState('live', 'Live');
-    text('notice', failures ? `${failures} ${failures === 1 ? 'reading is' : 'readings are'} unavailable. Last known values are retained where available.` : 'Live from your router · Changes arrive automatically');
+    setStreamState('live', tr('Live'));
+    text('notice', failures ? tr("{0} {1} unavailable. Last known values are retained where available.", failures, failures === 1 ? tr('reading is') : tr('readings are')) : tr('Live from your router · Changes arrive automatically'));
     $('notice').classList.toggle('error', failures > 0);
-    text('updated', lastReceived ? `Last received ${clock(lastReceived)}` : 'Waiting for readings');
+    text('updated', lastReceived ? tr("Last received {0}", clock(lastReceived)) : tr('Waiting for readings'));
     updateConnection();
     window.dispatchEvent(new CustomEvent('dashboard:readings',{detail:{readings:message.readings || {},snapshot}}));
   }
@@ -384,18 +387,18 @@
       clearTimeout(watchdog);
       watchdog = setTimeout(() => connection.abort(), 30000);
     };
-    setStreamState('connecting', 'Connecting');
+    setStreamState('connecting', tr('Connecting'));
     try {
       resetWatchdog();
       // Fetch keeps bearer tokens out of URLs while supporting an SSE response body.
       const response = await fetch(`/api/dashboard/events${streamKey}`, {
         cache: 'no-store', signal: connection.signal,
-        headers: { Accept: 'text/event-stream', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+        headers: { Accept: 'text/event-stream', ...authHeaders() }
       });
       if (session !== epoch) return;
       if (response.status === 401) { lock(); return; }
       if (!response.ok || !response.headers.get('content-type')?.includes('text/event-stream') || !response.body) {
-        throw new Error('Live stream unavailable');
+        throw new Error(tr('Live stream unavailable'));
       }
       const reader = response.body.getReader();
       const decoder = new TextDecoder(); let buffer = '';
@@ -414,19 +417,19 @@
             handleFrame(frame);
             if (session !== epoch) return;
           }
-          if (buffer.length > 1024 * 1024) throw new Error('Event frame too large');
+          if (buffer.length > 1024 * 1024) throw new Error(tr('Event frame too large'));
         }
       } finally {
         await reader.cancel().catch(() => {});
         reader.releaseLock();
       }
-      if (session === epoch) throw new Error('Stream disconnected');
+      if (session === epoch) throw new Error(tr('Stream disconnected'));
     } catch (error) {
       if (session !== epoch || locked || document.hidden) return;
       markOffline();
-      setStreamState('retrying', 'Reconnecting');
-      text('notice', 'Live connection interrupted. Reconnecting automatically…');
-      $('notice').classList.add('error'); text('updated', lastReceived ? `Last received ${clock(lastReceived)} · offline` : 'Waiting for live readings');
+      setStreamState('retrying', tr('Reconnecting'));
+      text('notice', tr('Live connection interrupted. Reconnecting automatically…'));
+      $('notice').classList.add('error'); text('updated', lastReceived ? tr("Last received {0} · offline", clock(lastReceived)) : tr('Waiting for live readings'));
       reconnectTimer = setTimeout(connect, retryDelay);
       retryDelay = Math.min(retryDelay * 2, 15000);
     } finally {
@@ -437,11 +440,11 @@
     event.preventDefault(); const button = event.submitter; button.disabled = true; text('login-error', '');
     try {
       const data = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ password: $('password').value }) });
-      if (typeof data.token !== 'string' || !data.token || data.token.length > 2048 || /[\s\x00-\x1f]/.test(data.token)) throw new Error('Invalid session response');
+      if (typeof data.token !== 'string' || !data.token || data.token.length > 2048 || /[\s\x00-\x1f]/.test(data.token)) throw new Error(tr('Invalid session response'));
       token = data.token; authEpoch++;
       try { sessionStorage.setItem(sessionKey,token); } catch { /* Keep the session in memory. */ }
       locked = false; $('password').value = ''; await OpenU60Motion.closeDialog(dialog); $('signout').hidden = false; connect();
-    } catch (error) { text('login-error', error.auth ? 'Incorrect password. Please try again.' : 'Could not unlock the router. Check your connection.'); }
+    } catch (error) { text('login-error', error.auth ? tr('Incorrect password. Please try again.') : tr('Could not unlock the router. Check your connection.')); }
     finally { button.disabled = false; }
   });
   dialog.addEventListener('cancel', event => event.preventDefault());
@@ -452,8 +455,8 @@
     if (document.hidden) {
       stopStream();
       if (!locked) {
-        setStreamState('paused', 'Paused');
-        text('notice', 'Updates paused while this tab is in the background.');
+        setStreamState('paused', tr('Paused'));
+        text('notice', tr('Updates paused while this tab is in the background.'));
       }
     } else connect();
   });
@@ -468,7 +471,7 @@
       renderSMS(null); renderSMSCapacity(null);
     }
     if (options.key !== streamKey) {
-      if (includeSms) text('sms-status','Connecting to message storage…');
+      if (includeSms) text('sms-status',tr('Connecting to message storage…'));
       connect();
     }
   });

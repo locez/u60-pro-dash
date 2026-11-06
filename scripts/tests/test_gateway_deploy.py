@@ -7,7 +7,7 @@ import sys
 import tempfile
 import unittest
 
-DEPLOY = Path(__file__).resolve().parents[2] / "local-tools/u60-home-gateway/deploy.py"
+DEPLOY = Path(__file__).resolve().parents[2] / "local-tools/tailscale-gateway/deploy.py"
 
 
 class GatewayDeployTests(unittest.TestCase):

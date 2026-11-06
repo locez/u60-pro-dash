@@ -77,7 +77,7 @@ class AuthManager @Inject constructor(
         return if (saved.isNotBlank()) saved else detectGateway()
     }
 
-    fun resolveBaseURL(): String = "http://${resolveGateway()}:9090"
+    fun resolveBaseURL(): String = "http://${resolveGateway()}:2026"
 
     suspend fun login(password: String): Result<String> {
         _authState.value = AuthState.LOGGING_IN
@@ -92,7 +92,7 @@ class AuthManager @Inject constructor(
             _authState.value = AuthState.ERROR
             _errorMessage.value = when (e) {
                 is AgentError.Unauthorized -> "Invalid password"
-                is AgentError.ServerUnreachable -> "Cannot reach agent — is it running on port 9090?"
+                is AgentError.ServerUnreachable -> "Cannot reach agent — is it running on port 2026?"
                 is AgentError.Timeout -> "Connection timed out"
                 is AgentError.NetworkError -> "Connection failed: ${e.message}"
                 else -> e.message

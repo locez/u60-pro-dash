@@ -1,0 +1,170 @@
+export global Palette {
+    in-out property <bool> dark: true;
+    in-out property <color> accent: #2563eb;
+    in-out property <color> accent-ink: #87aeff;
+    // These neutral grays also stay neutral after RGB565 quantization.
+    out property <color> bg: dark ? #101010 : #efefef;
+    out property <color> surface: dark ? #181818 : #ffffff;
+    out property <color> text: dark ? #eef0f4 : #1b2028;
+    out property <color> muted: dark ? #bec3cc : #4b525e;
+    out property <color> line: dark ? #303030 : #dedfde;
+    out property <color> rim: dark ? #ffffff18 : #1b202814;
+    out property <color> sheen: dark ? #ffffff45 : #ffffff;
+    out property <color> glass: dark ? #181818f8 : #fffffff8;
+    in-out property <image> material-light;
+    in-out property <image> material-dark;
+    in-out property <color> accent-on: #ffffff;
+    out property <color> good: dark ? #95d8a8 : #1f713e;
+    out property <color> warning: dark ? #efbf78 : #925d12;
+}
+
+// Static material layers. No blur, timers or offscreen composition.
+// The opaque base also prevents locked/credential screens exposing old content.
+export component AmbientBackground inherits Rectangle {
+    background: Palette.bg;
+    Image {
+        x: 0px; y: 0px; width: 320px; height: 180px;
+        source: Palette.dark ? Palette.material-dark : Palette.material-light;
+    }
+}
+
+export component GlassPanel inherits Rectangle {
+    in property <bool> translucent: false;
+    border-radius: 14px; border-width: 1px;
+    border-color: Palette.rim;
+    background: root.translucent ? Palette.glass : Palette.surface;
+    Rectangle {
+        x: root.border-radius; y: 0px; width: max(0px, parent.width - 2 * root.border-radius); height: 1px;
+        background: Palette.sheen;
+    }
+}
+
+export component NavigationIcon inherits Path {
+    in property <int> kind;
+    in property <bool> selected;
+    width: 20px; height: 20px;
+    viewbox-width: 24; viewbox-height: 24;
+    stroke: root.selected ? Palette.text : Palette.muted;
+    stroke-width: 1.7px; stroke-line-cap: round; stroke-line-join: round;
+    commands: root.kind == 0
+        ? "M 3 3 H 10 V 10 H 3 Z M 14 3 H 21 V 10 H 14 Z M 3 14 H 10 V 21 H 3 Z M 14 14 H 21 V 21 H 14 Z"
+        : root.kind == 1
+        ? "M 2 8 Q 12 -1 22 8 M 5 12 Q 12 5.5 19 12 M 8 16 Q 12 12 16 16 M 12 20 h 0.1"
+        : root.kind == 2
+        ? "M 12 2 L 22 8 L 12 14 L 2 8 Z M 2 13 L 12 19 L 22 13 M 2 18 L 12 24 L 22 18"
+        : "M 5 2 V 6 M 5 12 V 22 M 12 2 V 13 M 12 19 V 22 M 19 2 V 6 M 19 12 V 22 M 2 6 H 8 V 12 H 2 Z M 9 13 H 15 V 19 H 9 Z M 16 6 H 22 V 12 H 16 Z";
+}
+
+export component Label inherits Text {
+    color: Palette.text;
+    font-size: 14px;
+    font-weight: 500;
+    overflow: elide;
+}
+
+// Resolve wrapped height from the assigned width before a parent scroll area
+// measures its extent. Implicit layout hints may measure unwrapped text.
+export component Paragraph inherits Label {
+    min-width: 0px;
+    height: self.preferred-height;
+    wrap: word-wrap;
+    overflow: clip;
+}
+
+export component TapButton inherits Rectangle {
+    in property <string> text;
+    in property <bool> selected;
+    in property <bool> interactive: true;
+    in property <length> text-size: 15px;
+    callback clicked;
+    min-height: 44px;
+    border-radius: 11px;
+    background: selected ? Palette.accent : Palette.surface;
+    border-width: 1px;
+    border-color: selected ? Palette.accent : Palette.rim;
+    opacity: !root.interactive ? 0.5 : touch.pressed ? 0.65 : 1;
+    Label {
+        text: root.text;
+        font-size: root.text-size;
+        color: root.selected ? Palette.accent-on : Palette.text;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+        font-weight: 600;
+    }
+    touch := TouchArea { enabled: root.interactive; clicked => { root.clicked(); } }
+}
+
+export component MenuRow inherits GlassPanel {
+    in property <string> title;
+    in property <string> subtitle;
+    in property <string> tag;
+    callback clicked;
+    height: 68px;
+    background: touch.pressed ? Palette.line : Palette.surface;
+    HorizontalLayout {
+        padding: 12px; spacing: 8px;
+        VerticalLayout {
+            spacing: 3px;
+            Label { text: root.title; height: 23px; font-size: 15px; font-weight: 600; }
+            Label { text: root.subtitle; height: 18px; color: Palette.muted; font-size: 13px; }
+        }
+        Label { text: root.tag; color: Palette.accent-ink; font-size: 12px; width: 30px; horizontal-alignment: right; vertical-alignment: center; }
+        Label { text: "›"; color: Palette.muted; font-size: 24px; width: 12px; vertical-alignment: center; }
+    }
+    touch := TouchArea { clicked => { root.clicked(); } }
+}
+
+export component Stat inherits GlassPanel {
+    in property <bool> compact: false;
+    in property <string> label;
+    in property <string> value;
+    in property <string> unit;
+    callback clicked;
+    height: root.compact ? 50px : 72px;
+    background: Palette.surface;
+    VerticalLayout {
+        padding: root.compact ? 5px : 12px; spacing: root.compact ? 1px : 3px;
+        Label { text: root.label; height: root.compact ? 16px : 18px; color: Palette.muted; font-size: 13px; }
+        HorizontalLayout {
+            height: root.compact ? 23px : 27px;
+            spacing: 4px;
+            Label { text: root.value; font-size: root.compact ? 20px : 22px; font-weight: 600; }
+            Label { text: root.unit; color: Palette.muted; font-size: 13px; vertical-alignment: bottom; }
+        }
+    }
+    TouchArea { clicked => { root.clicked(); } }
+}
+
+export component Brightness inherits Rectangle {
+    in property <int> value: 70;
+    callback changed(int);
+    height: 44px;
+    Rectangle { x: 8px; y: 20px; height: 4px; width: parent.width - 16px; background: Palette.line; border-radius: 2px; }
+    Rectangle { x: 8px; y: 20px; height: 4px; width: (parent.width - 16px) * (root.value - 10) / 90; background: Palette.accent; border-radius: 2px; }
+    Rectangle { x: (parent.width - 16px) * (root.value - 10) / 90; y: 14px; width: 16px; height: 16px; background: Palette.text; border-radius: 8px; }
+    touch := TouchArea {
+        function update() { root.changed(round(clamp((self.mouse-x - 8px) / (root.width - 16px), 0, 1) * 90 + 10)); }
+        pointer-event(event) => { if event.kind == PointerEventKind.down { self.update(); } }
+        moved => { if self.pressed { self.update(); } }
+    }
+}
+
+export component TrafficPanel inherits GlassPanel {
+    in property <bool> compact: false;
+    in property <bool> online;
+    in property <string> download;
+    in property <string> upload;
+    in property <string> network-label: "5G SA · n78";
+    in property <string> total: "2.38 GB";
+    in property <bool> interactive: false;
+    callback clicked;
+    height: root.compact ? 96px : 142px;
+    Rectangle { x: 14px; y: root.compact ? 10px : 16px; width: 3px; height: 12px; background: root.online ? Palette.good : Palette.warning; border-radius: 1px; }
+    Label { x: 24px; y: root.compact ? 8px : 14px; text: root.network-label; font-size: 13px; color: Palette.muted; }
+    Label { x: 14px; y: root.compact ? 24px : 34px; height: root.compact ? 42px : 58px; text: root.download; font-size: root.compact ? 34px : 46px; font-weight: 600; color: Palette.accent-ink; }
+    Label { x: 226px; y: root.compact ? 51px : 68px; text: "Mbps ↓"; font-size: 12px; color: Palette.muted; }
+    Rectangle { x: 14px; y: root.compact ? 69px : 103px; width: parent.width - 28px; height: 1px; background: Palette.line; }
+    Label { x: 14px; y: root.compact ? 78px : 115px; text: "↑ " + root.upload + " Mbps"; font-size: 13px; }
+    Label { x: 175px; y: root.compact ? 78px : 115px; text: @tr("本次 ") + root.total; font-size: 12px; color: Palette.muted; }
+    TouchArea { enabled: root.interactive; clicked => { root.clicked(); } }
+}

@@ -1,6 +1,7 @@
 'use strict';
 // Shared by the browser and parser tests; modem field formats match the native apps.
 (() => {
+  const tr = globalThis.OpenU60I18n?.t || ((s,...v)=>s.replace(/\{(\d+)\}/g,(match,i)=>Number(i)<v.length?String(v[i]):match));
   const scalar = value => value == null || /^(?:--|N\/A|NONE|NULL)$/i.test(String(value).trim()) ? '' : String(value).trim();
   const metric = (value, power = false) => {
     const raw = scalar(value), n = Number(raw);
@@ -52,7 +53,7 @@
       const key = `${row.pci}|${row.channel}|${row.band}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      carriers.push({role: `SCC ${carriers.filter(carrier => carrier.role !== 'PCC').length + 1}`, ...row,
+      carriers.push({role: tr("SCC {0}", carriers.filter(carrier => carrier.role !== 'PCC').length + 1), ...row,
         cellId: '', rsrp: null, rsrq: null, sinr: null, rssi: null, ...measurements});
     }
     return {carriers, measured: carriers.some(carrier => carrier.rsrp !== null), caInactive: !nr && scalar(data.lteca_state) === '0'};
@@ -63,22 +64,22 @@
     const nsa = normalized.includes('NSA') || normalized === 'ENDC';
     const sa = !nsa && (normalized === 'SA' || /(?:NR5G|5G|NR)SA/.test(normalized));
     const lteHint = /LTE|4G/.test(normalized);
-    let mode = 'Not reported', explanation = '';
-    if (sa) { mode = '5G SA'; explanation = 'Standalone NR · LTE is not an anchor in this mode.'; }
+    let mode = tr('Not reported'), explanation = '', noService = false;
+    if (sa) { mode = tr('5G SA'); explanation = tr('Standalone NR · LTE is not an anchor in this mode.'); }
     else if (nr.measured && (nsa || lteHint || lte.measured)) {
-      mode = '5G NSA'; explanation = nsa ? 'NR with an LTE anchor.' : 'NSA inferred from the reported LTE and NR measurements.';
+      mode = tr('5G NSA'); explanation = nsa ? tr('NR with an LTE anchor.') : tr('NSA inferred from the reported LTE and NR measurements.');
     } else if (lte.measured || lteHint) {
-      mode = !lte.measured ? '4G · no signal' : lte.carriers.length > 1 && !lte.caInactive ? '4G+' : '4G';
-      explanation = !lte.measured ? 'Reported LTE mode; no serving signal is currently measured.' : nsa ? 'The modem reports NSA, but no NR signal is currently measured.' : 'LTE connection.';
+      mode = !lte.measured ? tr('4G · no signal') : lte.carriers.length > 1 && !lte.caInactive ? '4G+' : '4G';
+      explanation = !lte.measured ? tr('Reported LTE mode; no serving signal is currently measured.') : nsa ? tr('The modem reports NSA, but no NR signal is currently measured.') : tr('LTE connection.');
     } else if (nr.measured) {
-      mode = '5G · mode unreported'; explanation = 'NR is measured; the modem has not confirmed SA or NSA.';
-    } else if (nsa) { mode = '5G NSA · no signal'; explanation = 'Reported access mode; no serving signal is currently measured.'; }
-    else if (/NO.?SERVICE|OFFLINE|DISCONNECTED|SEARCH/.test(normalized)) { mode = 'No service'; }
+      mode = tr('5G · mode unreported'); explanation = tr('NR is measured; the modem has not confirmed SA or NSA.');
+    } else if (nsa) { mode = tr('5G NSA · no signal'); explanation = tr('Reported access mode; no serving signal is currently measured.'); }
+    else if (/NO.?SERVICE|OFFLINE|DISCONNECTED|SEARCH/.test(normalized)) { noService = true; mode = tr('No service'); }
     else if (raw) { mode = raw; }
     lte.inUse = !sa && lte.measured;
     nr.inUse = nr.measured;
     const primary = (nr.inUse ? nr : lte.inUse ? lte : {carriers:[]}).carriers.find(carrier => carrier.rsrp !== null) || null;
-    return {lte, nr, mode, explanation, primary, sa, hasSignal: nr.measured || lte.inUse};
+    return {lte, nr, mode, explanation, primary, sa, noService, hasSignal: nr.measured || lte.inUse};
   }
   const api = {parse};
   if (typeof module === 'object' && module.exports) module.exports = api;

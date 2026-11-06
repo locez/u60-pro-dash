@@ -137,7 +137,7 @@ There are no `id:` lines and `Last-Event-ID` is ignored: the stream carries stat
 Example:
 
 ```sh
-curl -N -H "Authorization: Bearer $TOKEN" 'http://192.168.0.1:9090/api/events?topics=signal,traffic,sms'
+curl -N -H "Authorization: Bearer $TOKEN" 'http://192.168.0.1:2026/api/events?topics=signal,traffic,sms'
 ```
 
 ## Cost on the router

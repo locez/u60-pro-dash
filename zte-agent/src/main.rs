@@ -15,6 +15,7 @@ mod dashboard;
 mod dashboard_extra;
 mod data_usage;
 mod device_ext;
+mod deployment;
 mod dns_control;
 pub mod doh;
 mod esim;
@@ -28,14 +29,17 @@ mod httpd;
 mod key_log;
 mod lan_test;
 mod live_activity;
+mod management;
 mod modem_ext;
 mod network_ext;
 mod oos_policy;
 mod ota;
+mod proxy;
 mod qrtr_uim;
 mod router;
 mod scheduler;
 mod server;
+mod software;
 mod sim;
 mod sim_identity;
 mod sms;
@@ -66,7 +70,6 @@ use std::sync::Arc;
 use event_bus::EventBus;
 use handlers::AppState;
 
-const DEFAULT_BIND: &str = "0.0.0.0:9090";
 // General-lane permits: API calls that may block at once (slow calls such as
 // Tailscale setup have their own 2-permit lane, `httpd::SLOW_PERMITS`).
 const DEFAULT_THREADS: usize = 4;
@@ -74,6 +77,21 @@ const DEFAULT_THREADS: usize = 4;
 fn main() {
     // Diagnostics: `zte-agent esim-native chip info` runs one native eSIM command and exits.
     let args: Vec<String> = std::env::args().collect();
+    if args.get(1).map(String::as_str) == Some("--proxy-watchdog") {
+        std::process::exit(proxy::watchdog_cli(&args[2..]));
+    }
+    if args.get(1).map(String::as_str) == Some("dash-health") {
+        std::process::exit(deployment::health_cli());
+    }
+    if args.get(1).map(String::as_str) == Some("dash-wait-ready") {
+        std::process::exit(deployment::ready_cli());
+    }
+    if args.get(1).map(String::as_str) == Some("dash-prepare-network") {
+        std::process::exit(deployment::network_cli());
+    }
+    if args.get(1).map(String::as_str) == Some("dash-export-env") {
+        std::process::exit(deployment::cli());
+    }
     if args.get(1).map(String::as_str) == Some("--version") {
         println!("zte-agent {}", build_info::display());
         return;
@@ -100,12 +118,18 @@ fn main() {
         std::process::exit(wireguard::cli_smoke());
     }
 
-    let bind = std::env::var("ZTE_AGENT_BIND").unwrap_or_else(|_| DEFAULT_BIND.to_string());
+    let bind = management::bind();
     let threads: usize = std::env::var("ZTE_AGENT_THREADS")
         .ok()
         .and_then(|s| s.parse().ok())
         .unwrap_or(DEFAULT_THREADS);
 
+    // Free the legacy gateway Serve socket before binding the agent. A
+    // surviving tailscaled may otherwise own the same wildcard HTTP port.
+    if let Err(error) = tailscale::prepare_management() {
+        eprintln!("[tailscale] management startup failed: {error}");
+        std::process::exit(1);
+    }
     let state = Arc::new(AppState::new());
 
     // Set password from environment if provided
@@ -162,6 +186,7 @@ fn main() {
         .charge_limit
         .start(charger_rx, Arc::clone(&state.cache));
     state.sms_forward.start(sms_rx, service_rx, wan_status_rx);
+    state.proxy.auto_start();
     state.tailscale.auto_start();
     state.tailscale.start_wan_watch(ts_wan_rx);
     state.ttl.start(ttl_wan_rx);

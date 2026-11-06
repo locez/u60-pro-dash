@@ -77,7 +77,7 @@ final class SettingsViewModel {
     /// `ping()` only proves *something* is listening on the port. Confirm it speaks the agent's
     /// API: either it answers with the JSON envelope, or it rejects us for lack of a session.
     ///
-    /// Session recovery is suppressed for the probe. Port 9090 is a common default for unrelated
+    /// Session recovery is suppressed for the probe. The target port may also be used by unrelated
     /// services, and any of them would answer 401 here; letting the client's hook run would POST
     /// the stored router password to whatever host happened to reply.
     private func isAgentReachable() async -> Bool {
@@ -98,7 +98,7 @@ final class SettingsViewModel {
     }
 
     private static func agentURL(for ip: String) -> String {
-        "http://\(ip):9090"
+        "http://\(ip):2026"
     }
 
     private static func isValidIPv4(_ value: String) -> Bool {
