@@ -239,7 +239,12 @@ const streams = {
   sms: { messages: fixtures["/api/sms/list"].messages },
 };
 (async () => {
-  const browser = await chromium.launch({ channel: "chrome", headless: true });
+  const browser = await chromium.launch({
+    headless: true,
+    ...(process.env.U60_TEST_BROWSER_CHANNEL
+      ? { channel: process.env.U60_TEST_BROWSER_CHANNEL }
+      : {}),
+  });
   try {
     const context = await browser.newContext({
       viewport: { width: 1440, height: 1000 },
@@ -342,7 +347,9 @@ const streams = {
         },
       });
     });
-    await page.goto("http://127.0.0.1:5177/console/");
+    await page.goto(
+      process.env.U60_WEB_TEST_URL || "http://127.0.0.1:5177/console/",
+    );
     await page.getByText("Network topology", { exact: true }).waitFor();
     await page.getByText("China Unicom", { exact: true }).waitFor();
     await page.locator(".language-select").selectOption("zh-Hans");
@@ -534,7 +541,7 @@ const streams = {
     });
     await page.getByRole("button", { name: "Dark mode", exact: true }).click();
     await page.locator(".language-select").selectOption("zh-Hans");
-    await page.getByText("中国联通", {exact: true}).waitFor();
+    await page.getByText("中国联通", { exact: true }).waitFor();
     await page.waitForTimeout(200);
     await page.screenshot({
       path: "/tmp/u60-react-home-dark.png",

@@ -1,4 +1,4 @@
-/target/
+/target
 .claude/
 .agents/
 skills-lock.json
