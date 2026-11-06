@@ -1,0 +1,23 @@
+// Reuse the tested wire-format parsers; their DOM controllers are not imported.
+import "./translation-bridge";
+import "../../zte-agent/ui/cellular.js";
+import "../../zte-agent/ui/clients-model.js";
+import "../../zte-agent/ui/battery-model.js";
+import "../../zte-agent/ui/routing-model.js";
+import "../../zte-agent/ui/data-usage-model.js";
+import "../../zte-agent/ui/dns-model.js";
+import "../../zte-agent/ui/wireguard-model.js";
+import "../../zte-agent/ui/actions.js";
+import "../../zte-agent/ui/advanced.js";
+import { t } from "./i18n";
+const shared = globalThis as typeof globalThis & Record<string, any>;
+shared.U60Translate = t;
+export const cellular = shared.OpenU60Cellular;
+export const clientsModel = shared.OpenU60Clients;
+export const batteryModel = shared.OpenU60Battery;
+export const routingModel = shared.OpenU60Routing;
+export const usageModel = shared.OpenU60DataUsage;
+export const dnsModel = shared.OpenU60DNS;
+export const wireguardModel = shared.OpenU60WireGuard;
+export const actions = shared.OpenU60Actions;
+export const advanced = shared.OpenU60Advanced;
