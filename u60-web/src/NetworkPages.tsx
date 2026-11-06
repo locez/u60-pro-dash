@@ -34,6 +34,7 @@ import { cellular, clientsModel, usageModel } from "./models";
 import { guest, mobile, networkMode, wifiSpec } from "./settings";
 import { go } from "./catalog";
 import { useMutation } from "./mutations";
+import { ServiceSummary } from "./ServicePages";
 export function useClients() {
   const basic = useReading("clients"),
     detail = useResource("/api/network/client-details");
@@ -194,7 +195,11 @@ export function Overview() {
                   ? "Direct power"
                   : battery?.data?.status === "Charging"
                     ? "Charging"
-                    : "Battery power",
+                    : charger?.data?.charger_connect === undefined
+                      ? "Not reported"
+                      : [1, "1", true].includes(charger.data.charger_connect)
+                        ? "External power"
+                        : "Battery power",
               )}
             </Status>
           </Panel>
@@ -238,6 +243,7 @@ export function Overview() {
           />
         </Panel>
       </div>
+      <ServiceSummary />
     </>
   );
 }

@@ -71,7 +71,6 @@ pub fn build(agent: &Path, out: &Path) {
     ] {
         expected.insert(web.join(file));
     }
-    expected.insert(repo.join("locales/web.json"));
     for file in [
         "cellular",
         "clients-model",

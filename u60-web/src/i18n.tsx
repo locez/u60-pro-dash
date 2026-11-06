@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import translations from "../../locales/web.json";
+import productMessages from "./messages.json";
 export const languages = {
   "zh-Hans": "简体中文",
   "zh-Hant": "繁體中文",
@@ -191,16 +191,62 @@ export function useLocale() {
   );
 }
 export function t(source: string, ...values: unknown[]) {
+  if (source == null) return "—";
   const index = ["zh-Hans", "zh-Hant", "ja", "ko"].indexOf(locale);
   const text =
     (index >= 0 ? messages[source]?.[index] : undefined) ||
-    (translations as Record<string, Record<string, string>>)[source]?.[
+    (productMessages as Record<string, Record<string, string>>)[source]?.[
       locale
     ] ||
     source;
   return text.replace(/\{(\d+)\}/g, (match, i) =>
     Number(i) < values.length ? String(values[Number(i)]) : match,
   );
+}
+const states: Record<string, string> = {
+  Running: "Running",
+  Stopped: "Stopped",
+  NeedsLogin: "Sign in required",
+  NeedsMachineAuth: "Admin approval required",
+  NoState: "Not configured",
+  Starting: "Starting",
+  idle: "Idle",
+  running: "Running",
+  starting: "Starting",
+  disabled: "Disabled",
+  enabled: "Enabled",
+  not_installed: "Not installed",
+  updating: "Updating",
+  respawning: "Starting",
+  connected: "Connected",
+  disconnected: "Disconnected",
+  succeeded: "Completed",
+  failed: "Failed",
+  checking: "Checking",
+  downloading: "Downloading",
+  installing: "Installing",
+  verifying: "Verifying",
+  queued: "Queued",
+  rule: "Rule",
+  global: "Global",
+  direct: "Direct",
+  local: "Local HTTP / SOCKS clients",
+  hotspot: "Wi-Fi hotspot traffic",
+  automatic: "Automatic",
+  manual: "Manual",
+  doh: "DNS over HTTPS",
+  dot: "DNS over TLS",
+  kernel: "Kernel gateway",
+  userspace: "Device access only",
+  "sim ready": "Ready",
+  "wait pin": "PIN required",
+  "wait puk": "PUK required",
+  pending: "Pending",
+  success: "Completed",
+  unknown: "Unknown",
+};
+export function stateText(value: unknown) {
+  return typeof value === "string" ? t(states[value] || value) : value;
 }
 export function carrier(value: unknown) {
   const raw = typeof value === "string" ? value.trim() : "";

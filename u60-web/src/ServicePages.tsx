@@ -6,7 +6,7 @@ import {
   Router,
   ShieldCheck,
 } from "lucide-react";
-import { api, type ObjectData } from "./api";
+import { api, sessionStore, type ObjectData } from "./api";
 import { go, type Route } from "./catalog";
 import { useJobPolling, useResource } from "./live";
 import { useMutation } from "./mutations";
@@ -45,6 +45,44 @@ const active = (id: string, d?: ObjectData) =>
     : id === "wireguard"
       ? d?.active === true
       : d?.running === true;
+export function ServiceSummary() {
+  return (
+    <Panel>
+      <PanelTitle title="Service status" />
+      <div className="service-summary">
+        {Object.keys(names).map((id) => (
+          <ServiceSummaryItem key={id} id={id} />
+        ))}
+      </div>
+    </Panel>
+  );
+}
+function ServiceSummaryItem({ id }: { id: string }) {
+  const r = useResource(endpoints[id]);
+  return (
+    <button
+      className="setting-entry"
+      data-service={id}
+      onClick={() => go("services", id)}
+    >
+      <b>{names[id]}</b>
+      <Status on={active(id, r.data)}>
+        {t(
+          r.error
+            ? "Unavailable"
+            : !r.data
+              ? "Loading…"
+              : active(id, r.data)
+                ? "Running"
+                : r.data.installed === false
+                  ? "Not installed"
+                  : "Stopped",
+        )}
+      </Status>
+      <ArrowUpRight size={16} />
+    </button>
+  );
+}
 export function ServicePages({ route }: { route: Route }) {
   const id = route.tab;
   if (!id || !names[id])
@@ -257,39 +295,84 @@ function Tailscale({
   reload: () => void;
 }) {
   const [auth, setAuth] = useState("");
+  const peers = useResource(
+    tab === "network" && d?.gateway_mode ? "/api/tailscale/peers" : null,
+  );
   if (tab === "network")
     return (
-      <SettingsForm
-        onApplied={reload}
-        spec={{
-          id: "tailscale",
-          title: "Network settings",
-          read: "/api/tailscale/status",
-          write: "/api/tailscale/config",
-          decode: (d) => ({
-            ...d,
-            advertise_routes: (d.advertise_routes || []).join(", "),
-          }),
-          fields: [
-            field("hostname", "Device name", { required: true, maxLength: 63 }),
-            field("advertise_routes", "Advertised IPv4 routes"),
-            flag("accept_routes", "Accept remote subnet routes", "boolean"),
-            flag("tailscale_ssh", "Tailscale SSH", "boolean"),
-            flag("hold_wakelock", "Keep network awake", "boolean"),
-          ],
-          body: (c) => ({
-            ...c,
-            ...("advertise_routes" in c
-              ? {
-                  advertise_routes: String(c.advertise_routes)
-                    .split(",")
-                    .map((s) => s.trim())
-                    .filter(Boolean),
-                }
-              : {}),
-          }),
-        }}
-      />
+      <>
+        <ErrorState error={peers.error} retry={peers.reload} />
+        <SettingsForm
+          onApplied={reload}
+          spec={{
+            id: "tailscale",
+            title: "Network settings",
+            read: "/api/tailscale/status",
+            write: "/api/tailscale/config",
+            note: d?.gateway_mode
+              ? "DNS and exit nodes apply to the router. Hotspot forwarding retains its configured subnet scope. Local LAN access remains enabled."
+              : "Subnet routes, DNS and exit nodes require kernel gateway mode.",
+            decode: (d) => ({
+              ...d,
+              advertise_routes: (d.advertise_routes || []).join(", "),
+            }),
+            fields: [
+              field("hostname", "Device name", {
+                required: true,
+                maxLength: 63,
+              }),
+              field("advertise_routes", "Advertised IPv4 routes"),
+              flag("accept_routes", "Accept remote subnet routes", "boolean"),
+              flag("tailscale_ssh", "Tailscale SSH", "boolean"),
+              flag("hold_wakelock", "Keep network awake", "boolean"),
+              ...(d?.gateway_mode
+                ? [
+                    flag("accept_dns", "Accept Tailscale DNS", "boolean"),
+                    options("exit_node", "Exit node", [
+                      ["", "None"],
+                      ...(peers.data?.exit_nodes || []).map(
+                        (peer: ObjectData): [string, string] => [
+                          peer.address,
+                          `${peer.name || peer.address}${peer.online ? "" : ` · ${t("Offline")}`}`,
+                        ],
+                      ),
+                      ...(d.exit_node &&
+                      !(peers.data?.exit_nodes || []).some(
+                        (p: ObjectData) => p.address === d.exit_node,
+                      )
+                        ? [[d.exit_node, d.exit_node] as [string, string]]
+                        : []),
+                    ]),
+                  ]
+                : []),
+            ],
+            interrupt: (c, previous) =>
+              previous.enabled &&
+              Object.keys(c).some((key) =>
+                [
+                  "accept_routes",
+                  "accept_dns",
+                  "exit_node",
+                  "advertise_routes",
+                  "tailscale_ssh",
+                ].includes(key),
+              )
+                ? "Changing routing or remote access may interrupt connections through Tailscale."
+                : undefined,
+            body: (c) => ({
+              ...c,
+              ...("advertise_routes" in c
+                ? {
+                    advertise_routes: String(c.advertise_routes)
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean),
+                  }
+                : {}),
+            }),
+          }}
+        />
+      </>
     );
   if (tab === "routes" || tab === "probe" || tab === "logs")
     return <ServiceNetwork tab={tab} />;
@@ -405,7 +488,7 @@ function ServiceNetwork({ tab }: { tab: string }) {
         <>
           <CommandForm
             title="Connectivity test"
-            note="Test an actual TCP service independently of the node status."
+            note="The router tests an actual TCP service. Hotspot clients still need to verify access from their own devices."
             endpoint="/api/tailscale/probe"
             fields={[
               field("target", "IP address and TCP port", { required: true }),
@@ -423,9 +506,7 @@ function ServiceNetwork({ tab }: { tab: string }) {
                   ["TCP", probe.reachable ? t("Reachable") : t("Unreachable")],
                   [
                     "Latency",
-                    probe.latency_ms === undefined
-                      ? "—"
-                      : probe.latency_ms + " ms",
+                    probe.latency_ms == null ? "—" : probe.latency_ms + " ms",
                   ],
                   [
                     "Hotspot access",
@@ -551,6 +632,12 @@ function Mihomo({
     </>
   );
 }
+let configurationDraft:
+  | { yaml: string; revision: string | null | undefined }
+  | undefined;
+sessionStore.subscribe(() => {
+  configurationDraft = undefined;
+});
 function ProxyEditor({
   data,
   reload,
@@ -560,12 +647,24 @@ function ProxyEditor({
 }) {
   const r = useResource("/api/proxy/mihomo/config"),
     mutation = useMutation();
-  const [yaml, setYaml] = useState(""),
-    [revision, setRevision] = useState<string | null>(),
-    [dirty, setDirty] = useState(false),
+  const [yaml, setYaml] = useState(configurationDraft?.yaml || ""),
+    [revision, setRevision] = useState<string | null | undefined>(
+      configurationDraft?.revision,
+    ),
+    [dirty, setDirty] = useState(!!configurationDraft),
     [url, setURL] = useState(""),
     [error, setError] = useState<Error>(),
     [message, setMessage] = useState("");
+  useEffect(() => {
+    configurationDraft = dirty ? { yaml, revision } : undefined;
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [yaml, revision, dirty]);
   useEffect(() => {
     if (r.data && !dirty) {
       setYaml(r.data.config || "");
@@ -638,6 +737,28 @@ function ProxyEditor({
           onClick={r.reload}
           disabled={r.loading || dirty || mutation.busy}
         />
+        {dirty && (
+          <button
+            className="btn"
+            disabled={mutation.busy}
+            onClick={async () => {
+              if (
+                await mutation.confirm({
+                  title: "Discard draft",
+                  message:
+                    "Discard unsaved edits and load the saved configuration?",
+                })
+              ) {
+                configurationDraft = undefined;
+                setDirty(false);
+                setError(undefined);
+                r.reload();
+              }
+            }}
+          >
+            {t("Discard draft")}
+          </button>
+        )}
         <label className="btn file-button">
           {t("Import file")}
           <input

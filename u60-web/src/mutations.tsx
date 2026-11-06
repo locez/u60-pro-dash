@@ -39,6 +39,11 @@ export function MutationProvider({ children }: { children: ReactNode }) {
     },
     [epoch],
   );
+  useEffect(() => {
+    const cancel = () => finish(false);
+    window.addEventListener("hashchange", cancel);
+    return () => window.removeEventListener("hashchange", cancel);
+  }, []);
   return (
     <Context.Provider
       value={{

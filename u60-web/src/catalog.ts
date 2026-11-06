@@ -119,6 +119,7 @@ export function readRoute(): Route {
     'tools/battery': 'system/power', 'tools/device': 'system/update',
     'tools/traffic': 'internet/usage', 'tools/diagnostics': 'system/diagnostics',
     'tools/terminal': 'system/diagnostics/terminal', 'tools/speedtest': 'system/diagnostics/speedtest',
+    'tools/lan-test': 'system/diagnostics/lan-test',
     'settings/device': 'system/update', 'settings/appearance': 'system/screen',
     'settings/https': 'system/screen', 'settings/connection': 'system/screen',
   };

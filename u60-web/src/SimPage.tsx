@@ -45,9 +45,61 @@ export function SimPage() {
 function SimSecurity({ security }: { security: boolean }) {
   const r = useResource("/api/sim/info"),
     d = r.data;
-  const [reveal, setReveal] = useState(false);
-  const mask = (v: unknown) =>
-    reveal ? scalar(v) : v ? "••••••••" + String(v).slice(-4) : "—";
+  const mutation = useMutation();
+  const mask = (v: unknown) => (v ? "••••••••" + String(v).slice(-4) : "—");
+  const guard =
+    (expected: string, puk = false) =>
+    async () => {
+      const keys = [
+        "sim_states",
+        "modem_main_state",
+        "sim_iccid",
+        "iccid",
+        "sim_epoch",
+        "sim_phase",
+        "agent_instance",
+        "pin_status",
+        "pinnumber",
+        "puknumber",
+      ];
+      const current = await api("/api/sim/info");
+      if (
+        !d ||
+        keys.some(
+          (key) => String(current[key] ?? "") !== String(d[key] ?? ""),
+        ) ||
+        current.sim_states !== expected
+      ) {
+        r.reload();
+        throw new Error(
+          "The SIM state changed. Read the current card before trying again.",
+        );
+      }
+      const remaining = Number(current[puk ? "puknumber" : "pinnumber"]);
+      if (!Number.isInteger(remaining) || remaining < 1)
+        throw new Error("Remaining SIM attempts are unavailable or exhausted.");
+      if (remaining === 1) {
+        if (
+          !(await mutation.confirm({
+            title: "Last SIM attempt",
+            message:
+              "Only one attempt remains. A wrong code can block the SIM.",
+            danger: true,
+            phrase: puk ? "PUK" : "PIN",
+          }))
+        )
+          return false;
+        const fresh = await api("/api/sim/info");
+        if (
+          keys.some(
+            (key) => String(current[key] ?? "") !== String(fresh[key] ?? ""),
+          )
+        )
+          throw new Error(
+            "The SIM state changed. Read the current card before trying again.",
+          );
+      }
+    };
   return (
     <>
       <Panel>
@@ -62,9 +114,6 @@ function SimSecurity({ security }: { security: boolean }) {
             ["IMSI", mask(d?.sim_imsi || d?.imsi)],
           ]}
         />
-        <button className="text-link" onClick={() => setReveal(!reveal)}>
-          {t(reveal ? "Hide identifiers" : "Show identifiers")}
-        </button>
       </Panel>
       {security && (
         <>
@@ -76,6 +125,7 @@ function SimSecurity({ security }: { security: boolean }) {
           {d?.sim_states === "wait pin" && (
             <CommandForm
               title="Unlock SIM"
+              before={guard("wait pin")}
               endpoint="/api/sim/pin/verify"
               fields={[
                 field("pin", "SIM PIN", {
@@ -96,6 +146,7 @@ function SimSecurity({ security }: { security: boolean }) {
           {d?.sim_states === "wait puk" && (
             <CommandForm
               title="Unlock with PUK"
+              before={guard("wait puk", true)}
               endpoint="/api/sim/pin/verify"
               fields={[
                 field("puk", "PUK", {
@@ -127,62 +178,66 @@ function SimSecurity({ security }: { security: boolean }) {
               after={r.reload}
             />
           )}
-          <div className="two-columns">
-            <CommandForm
-              title="SIM PIN protection"
-              endpoint="/api/sim/pin/mode"
-              fields={[
-                options("enabled", "PIN protection", [
-                  ["1", "Enabled"],
-                  ["0", "Disabled"],
-                ]),
-                field("pin", "Current SIM PIN", {
-                  type: "password",
-                  required: true,
-                  maxLength: 8,
-                }),
-              ]}
-              body={(v) => ({
-                pin_num_m: pin(v.pin),
-                pin_mode: Number(v.enabled),
-                pin_encode_flag: "0",
-              })}
-              label="Apply PIN protection"
-              after={r.reload}
-            />
-            <CommandForm
-              title="Change SIM PIN"
-              endpoint="/api/sim/pin/change"
-              fields={[
-                field("pin", "Current SIM PIN", {
-                  type: "password",
-                  required: true,
-                  maxLength: 8,
-                }),
-                field("next", "New PIN", {
-                  type: "password",
-                  required: true,
-                  maxLength: 8,
-                }),
-                field("repeat", "Repeat new PIN", {
-                  type: "password",
-                  required: true,
-                  maxLength: 8,
-                }),
-              ]}
-              body={(v) => {
-                if (v.next !== v.repeat)
-                  throw new Error("The new PIN values do not match.");
-                return {
-                  pin_num: pin(v.pin),
-                  new_pin_num: pin(v.next),
+          {d?.sim_states === "sim ready" && (
+            <div className="two-columns">
+              <CommandForm
+                title="SIM PIN protection"
+                before={guard("sim ready")}
+                endpoint="/api/sim/pin/mode"
+                fields={[
+                  options("enabled", "PIN protection", [
+                    ["1", "Enabled"],
+                    ["0", "Disabled"],
+                  ]),
+                  field("pin", "Current SIM PIN", {
+                    type: "password",
+                    required: true,
+                    maxLength: 8,
+                  }),
+                ]}
+                body={(v) => ({
+                  pin_num_m: pin(v.pin),
+                  pin_mode: Number(v.enabled),
                   pin_encode_flag: "0",
-                };
-              }}
-              label="Change PIN"
-              after={r.reload}
-            />
-          </div>
+                })}
+                label="Apply PIN protection"
+                after={r.reload}
+              />
+              <CommandForm
+                title="Change SIM PIN"
+                before={guard("sim ready")}
+                endpoint="/api/sim/pin/change"
+                fields={[
+                  field("pin", "Current SIM PIN", {
+                    type: "password",
+                    required: true,
+                    maxLength: 8,
+                  }),
+                  field("next", "New PIN", {
+                    type: "password",
+                    required: true,
+                    maxLength: 8,
+                  }),
+                  field("repeat", "Repeat new PIN", {
+                    type: "password",
+                    required: true,
+                    maxLength: 8,
+                  }),
+                ]}
+                body={(v) => {
+                  if (v.next !== v.repeat)
+                    throw new Error("The new PIN values do not match.");
+                  return {
+                    pin_num: pin(v.pin),
+                    new_pin_num: pin(v.next),
+                    pin_encode_flag: "0",
+                  };
+                }}
+                label="Change PIN"
+                after={r.reload}
+              />
+            </div>
+          )}
           <details className="advanced-details">
             <summary>{t("Carrier network unlock")}</summary>
             <CommandForm

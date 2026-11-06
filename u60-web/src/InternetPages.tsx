@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { RadioTools, SimToolkit } from "./AdvancedPages";
 import { api, type ObjectData } from "./api";
 import { type Route, go } from "./catalog";
 import { useJobPolling, useResource } from "./live";
@@ -15,6 +16,7 @@ import {
 import {
   bytes,
   Definition,
+  Disclosure,
   Empty,
   ErrorState,
   Field,
@@ -280,6 +282,9 @@ function Bands() {
           body={() => ({})}
         />
       </div>
+      <Disclosure title="Advanced radio tools">
+        <RadioTools />
+      </Disclosure>
     </>
   );
 }
@@ -288,9 +293,35 @@ function Operators() {
     phase = useResource("/api/modem/scan/status"),
     registration = useResource("/api/modem/register/result"),
     [pending, setPending] = useState(false),
+    [registering, setRegistering] = useState(false),
+    [scanStatus, setScanStatus] = useState("idle"),
+    [registerStatus, setRegisterStatus] = useState("idle"),
     [error, setError] = useState<Error>(),
     mutation = useMutation();
   useJobPolling(phase, pending, 2500);
+  useJobPolling(registration, registering, 2500);
+  const scanJob = useRef(new advanced.Job("scan", 120000)),
+    registerJob = useRef(new advanced.Job("registration", 60000));
+  useEffect(() => {
+    if (!pending || phase.loading) return;
+    const state = scanJob.current.observe(phase.data?.m_netselect_status);
+    setScanStatus(state);
+    if (!scanJob.current.pending) {
+      setPending(false);
+      r.reload();
+    }
+  }, [phase.data, phase.loading, pending]);
+  useEffect(() => {
+    if (!registering || registration.loading) return;
+    const state = registerJob.current.observe(
+      registration.data?.m_netselect_result,
+    );
+    setRegisterStatus(state);
+    if (!registerJob.current.pending) {
+      setRegistering(false);
+      r.reload();
+    }
+  }, [registration.data, registration.loading, registering]);
   const rows = advanced.operators(r.data);
   return (
     <>
@@ -310,18 +341,19 @@ function Operators() {
         <ErrorState error={error || r.error} />
         <Definition
           items={[
-            ["Scan status", scalar(phase.data)],
-            ["Registration", scalar(registration.data)],
+            ["Scan status", t(scanStatus)],
+            ["Registration", t(registerStatus)],
           ]}
         />
         <button
           className="btn"
-          disabled={mutation.busy}
+          disabled={mutation.busy || pending || registering}
           onClick={async () => {
             try {
               if (!(await mutation.confirm({ message: radioWarning }))) return;
               await mutation.run(async () => {
                 await api("/api/modem/scan", { method: "POST", body: {} });
+                scanJob.current.start();
                 setPending(true);
                 phase.reload();
                 r.reload();
@@ -354,7 +386,9 @@ function Operators() {
                   <td>
                     <button
                       className="text-link"
-                      disabled={!n.selectable || mutation.busy}
+                      disabled={
+                        !n.selectable || mutation.busy || pending || registering
+                      }
                       onClick={async () => {
                         try {
                           if (
@@ -364,8 +398,10 @@ function Operators() {
                           await mutation.run(async () => {
                             await api("/api/modem/register", {
                               method: "POST",
-                              body: { mcc_mnc: n.plmn, rat: n.rat },
+                              body: { m_mcc_mnc: n.plmn, m_rat: n.rat },
                             });
+                            registerJob.current.start();
+                            setRegistering(true);
                             registration.reload();
                           });
                         } catch (e) {
@@ -592,14 +628,7 @@ function CarrierServices() {
         path="/api/call/status"
         rows={[["calls", "Calls"]]}
       />
-      <ReadingsPanel
-        title="SIM toolkit"
-        path="/api/stk/menu"
-        rows={[
-          ["menu", "Menu"],
-          ["title", "Title"],
-        ]}
-      />
+      <SimToolkit />
     </>
   );
 }

@@ -14,7 +14,6 @@ function files(dir) {
 const inputs = [
   ...files('src'), ...files('scripts'),
   'index.html', 'package.json', 'package-lock.json', 'tsconfig.json', 'vite.config.ts',
-  '../locales/web.json',
   ...['cellular', 'clients-model', 'battery-model', 'routing-model', 'data-usage-model',
       'dns-model', 'wireguard-model', 'actions', 'advanced'].map(f => `../zte-agent/ui/${f}.js`),
 ];

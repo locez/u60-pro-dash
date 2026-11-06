@@ -4,6 +4,9 @@ import { type Route, go } from "./catalog";
 import { useJobPolling, useReading, useResource } from "./live";
 import { useMutation } from "./mutations";
 import { t } from "./i18n";
+import { DNSSettings } from "./DNSSettings";
+import { LanTest } from "./LanTest";
+import { NetworkPolicies, LiveActivity } from "./AdvancedPages";
 import { advanced, batteryModel, dnsModel, routingModel } from "./models";
 import {
   CommandForm,
@@ -24,6 +27,7 @@ import {
 import {
   bytes,
   Definition,
+  Disclosure,
   ErrorState,
   Field,
   Note,
@@ -48,6 +52,9 @@ export function LanPage({ route }: { route: Route }) {
           ))}
         </div>
         <Ports />
+        <Disclosure title="Advanced network policies">
+          <NetworkPolicies />
+        </Disclosure>
         <div className="two-columns">
           <SettingsForm
             spec={{
@@ -101,31 +108,7 @@ function DNS() {
         />
         <ErrorState error={r.error} />
       </Panel>
-      <SettingsForm
-        onApplied={r.reload}
-        spec={{
-          id: "dns",
-          title: "DNS settings",
-          note: "Every change tests the candidate resolver first. The previous settings are restored if verification fails.",
-          read: "/api/dns/status",
-          write: "/api/dns/apply",
-          fields: [
-            options("mode", "Mode", [
-              ["automatic", "Carrier automatic"],
-              ["manual", "Manual DNS"],
-              ["doh", "DNS over HTTPS"],
-              ["dot", "DNS over TLS"],
-            ]),
-            field("primary", "Primary DNS"),
-            field("secondary", "Secondary DNS"),
-            field("doh_url", "DoH endpoint"),
-            field("dot_endpoint", "DoT server"),
-            field("dot_server_name", "DoT certificate name"),
-          ],
-          body: (_, v) => dnsModel.payload(v),
-          timeout: 40000,
-        }}
-      />
+      <DNSSettings onApplied={r.reload} />
       <Panel>
         <PanelTitle
           title="Local DNS cache"
@@ -408,6 +391,20 @@ function ScreenSettings() {
           id: "screen",
           title: "Screen appearance",
           read: "/api/screen/preferences",
+          decode: (d) => ({
+            ...d,
+            appearance: d.follow_system ? "system" : d.dark ? "dark" : "light",
+          }),
+          body: (changed, _all, previous) =>
+            "appearance" in changed
+              ? {
+                  dark:
+                    changed.appearance === "system"
+                      ? previous.dark
+                      : changed.appearance === "dark",
+                  follow_system: changed.appearance === "system",
+                }
+              : changed,
           fields: [
             options("language", "Language", [
               ["zh-Hans", "简体中文"],
@@ -417,27 +414,36 @@ function ScreenSettings() {
               ["ko", "한국어"],
             ]),
             options(
-              "dark",
+              "appearance",
               "Appearance",
               [
-                ["false", "Light"],
-                ["true", "Dark"],
+                ["light", "Light"],
+                ["dark", "Dark"],
+                ["system", "System theme"],
               ],
-              { wire: "boolean" },
+              {
+                hint: "The firmware has no system theme. System mode keeps the last light or dark appearance.",
+              },
             ),
             field("accent", "Accent color"),
             field("brightness", "Brightness (%)", {
               type: "number",
               wire: "number",
-              min: 5,
+              min: 10,
               max: 100,
             }),
-            field("sleep_seconds", "Screen timeout (seconds)", {
-              type: "number",
-              wire: "number",
-              min: 15,
-              max: 300,
-            }),
+            options(
+              "sleep_seconds",
+              "Screen timeout (seconds)",
+              [
+                ["0", "Never"],
+                ["15", "15"],
+                ["30", "30"],
+                ["60", "60"],
+                ["120", "120"],
+              ],
+              { wire: "number" },
+            ),
           ],
         }}
       />
@@ -453,7 +459,7 @@ function ScreenLayout() {
         id: "screen-layout",
         title: "Home layout",
         read: "/api/screen/preferences",
-        decode: (d) => ({ ...d, ...d.home }),
+        decode: (d) => d.home,
         fields: [
           flag("show_wifi", "Share Wi-Fi", "boolean"),
           flag("show_radio", "Radio details", "boolean"),
@@ -463,6 +469,7 @@ function ScreenLayout() {
           flag("show_mihomo", "Mihomo", "boolean"),
           ...[1, 2, 3].map((i) =>
             options("metric_" + i, t("Metric {0}", i), [
+              ["none", "Hidden"],
               ["clients", "Online devices"],
               ["month", "Monthly data"],
               ["temperature", "Temperature"],
@@ -487,12 +494,9 @@ function HTTPS() {
         <ErrorState error={r.error} />
         <Definition
           items={[
-            ["State", scalar(r.data?.state || r.data?.enabled)],
-            ["Address", scalar(r.data?.url || r.data?.hostname)],
-            [
-              "Certificate",
-              scalar(r.data?.certificate?.expires_at || r.data?.expires_at),
-            ],
+            ["State", scalar(r.data?.enabled)],
+            ["Address", scalar(r.data?.urls || r.data?.name)],
+            ["Certificate", scalar(r.data?.not_after)],
           ]}
         />
         <a className="text-link" href="/ui/https/u60-pro-ca.crt">
@@ -506,6 +510,25 @@ function HTTPS() {
         label="Enable HTTPS"
         after={r.reload}
       />
+      {r.data?.enabled && (
+        <div className="two-columns">
+          <CommandForm
+            title="Renew certificate"
+            endpoint="/api/https/renew"
+            body={() => ({})}
+            label="Renew certificate"
+            after={r.reload}
+          />
+          <CommandForm
+            title="Reset HTTPS"
+            endpoint="/api/https/reset"
+            body={() => ({})}
+            label="Reset HTTPS"
+            warning="Existing HTTPS connections will close. Devices must trust the new certificate after HTTPS is enabled again."
+            after={r.reload}
+          />
+        </div>
+      )}
     </>
   );
 }
@@ -544,6 +567,14 @@ function Updates() {
           ["uptime_secs", "Uptime (seconds)"],
         ]}
       />
+      <Disclosure title="iPhone Live Activity">
+        <LiveActivity />
+      </Disclosure>
+      <Note>
+        {t(
+          "This firmware has no configuration backup API. Keep private backups of configuration and startup files on your computer, together with the installed version.",
+        )}
+      </Note>
       <div className="two-columns">
         <CommandForm
           title="Restart router"
@@ -569,6 +600,7 @@ function Diagnostics({ detail }: { detail?: string }) {
   const [result, setResult] = useState<ObjectData>();
   if (detail === "processes") return <Processes />;
   if (detail === "speedtest") return <Speedtest />;
+  if (detail === "lan-test") return <LanTest />;
   if (detail === "terminal")
     return (
       <>
@@ -605,6 +637,7 @@ function Diagnostics({ detail }: { detail?: string }) {
         {[
           ["processes", "Current processes"],
           ["speedtest", "Internet speed test"],
+          ["lan-test", "Local throughput test"],
           ["terminal", "AT terminal"],
         ].map(([id, label]) => (
           <button
@@ -772,7 +805,11 @@ function Automation() {
               {(r.data || []).map((job) => (
                 <tr key={job.id}>
                   <td>{job.name}</td>
-                  <td>{scalar(job.schedule)}</td>
+                  <td>
+                    {job.schedule?.type === "once"
+                      ? new Date(job.schedule.at * 1000).toLocaleString()
+                      : `${job.schedule?.time || "—"} · ${(job.schedule?.days || []).map((day: number) => t(["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][day])).join(", ")}`}
+                  </td>
                   <td>
                     <Toggle
                       on={job.enabled}

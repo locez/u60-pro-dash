@@ -10,7 +10,16 @@ import {
 } from "react";
 import { Check, Eye, EyeOff, Info, RefreshCw, X } from "lucide-react";
 import QRCode from "qrcode";
-import { t } from "./i18n";
+import { stateText, t } from "./i18n";
+const stateFields = new Set([
+  "Mode",
+  "Traffic scope",
+  "State",
+  "Phase",
+  "Status",
+  "Connection",
+  "Routing",
+]);
 export function Panel({
   children,
   className = "",
@@ -59,6 +68,10 @@ export function Note({
 export function Empty({ children }: { children: ReactNode }) {
   return <p className="empty-state">{children}</p>;
 }
+export function Disclosure({title,children}:{title:string;children:ReactNode}) {
+  const [open,setOpen]=useState(false);
+  return <details className="advanced-details" onToggle={e=>setOpen(e.currentTarget.open)}><summary>{t(title)}</summary>{open&&children}</details>;
+}
 export function ErrorState({
   error,
   retry,
@@ -97,7 +110,11 @@ export function Stats({ items }: { items: [string, ReactNode, string?][] }) {
       {items.map(([name, value, hint]) => (
         <div key={name}>
           <span>{t(name)}</span>
-          <strong>{value ?? "—"}</strong>
+          <strong>
+            {(stateFields.has(name)
+              ? (stateText(value) as ReactNode)
+              : value) ?? "—"}
+          </strong>
           {hint && <small>{t(hint)}</small>}
         </div>
       ))}
@@ -110,7 +127,11 @@ export function Definition({ items }: { items: [string, ReactNode][] }) {
       {items.map(([name, value]) => (
         <div key={name}>
           <dt>{t(name)}</dt>
-          <dd>{value ?? "—"}</dd>
+          <dd>
+            {(stateFields.has(name)
+              ? (stateText(value) as ReactNode)
+              : value) ?? "—"}
+          </dd>
         </div>
       ))}
     </dl>
@@ -394,7 +415,7 @@ export function Chart({
           />
         ))}
       </svg>
-      {!all.length && (
+      {series.every((s) => s.values.length < 2) && (
         <span className="chart-empty">{t("No samples yet")}</span>
       )}
       <div className="chart-legend">

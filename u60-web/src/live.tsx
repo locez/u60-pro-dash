@@ -90,6 +90,8 @@ export function LiveProvider({
           "/api/events?topics=" + encodeURIComponent(topicKey),
           { headers: bearer(), signal, cache: "no-store", credentials: "omit" },
         );
+        if (disposed || signal.aborted || sessionStore.get().epoch !== epoch)
+          return;
         if (response.status === 401) {
           setSession("");
           return;
@@ -110,7 +112,12 @@ export function LiveProvider({
           for (const frame of parser.push(
             decoder.decode(part.value, { stream: true }),
           )) {
-            if (disposed || signal.aborted) return;
+            if (
+              disposed ||
+              signal.aborted ||
+              sessionStore.get().epoch !== epoch
+            )
+              return;
             if (frame.event === "bye") {
               if (
                 (frame.data as ObjectData).reason === "token_expired" ||
@@ -135,21 +142,29 @@ export function LiveProvider({
             }
             if (!topicKey.split(",").includes(frame.event)) continue;
             const value = frame.data as Reading;
-            setLive((s) => ({
-              ...s,
-              state: "live",
-              readings: {
-                ...s.readings,
-                [frame.event]: { ...value, received: Date.now() },
-              },
-              history:
-                frame.event === "traffic" && !value.error && value.data
-                  ? [
-                      ...s.history.slice(-59),
-                      { ...value.data, time: Date.now() },
-                    ]
-                  : s.history,
-            }));
+            setLive((s) =>
+              s.readings[frame.event]?.seq === value.seq &&
+              s.readings[frame.event]?.error === value.error
+                ? s
+                : {
+                    ...s,
+                    state: "live",
+                    readings: {
+                      ...s.readings,
+                      [frame.event]: { ...value, received: Date.now() },
+                    },
+                    history:
+                      frame.event === "traffic"
+                        ? [
+                            ...s.history.slice(-59),
+                            {
+                              ...(value.error ? {} : value.data),
+                              time: Date.now(),
+                            },
+                          ]
+                        : s.history,
+                  },
+            );
           }
         }
       } catch {

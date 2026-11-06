@@ -187,35 +187,72 @@ export function SettingsForm({
       await mutation.run(async () => {
         setError(undefined);
         setMessage("Applying…");
+        const before = await api(spec.read, {
+          method: spec.readMethod,
+          body: spec.readBody,
+        });
+        if (!active.current) return;
+        const current = spec.decode ? spec.decode(before) : before;
+        if (
+          spec.fields.some(
+            (item) =>
+              item.type !== "password" &&
+              !same(
+                current[item.readKey || item.key],
+                base[item.readKey || item.key],
+              ),
+          )
+        ) {
+          setBase(current);
+          throw new Error(
+            "Settings changed elsewhere. Review the current values before trying again.",
+          );
+        }
         await api(spec.write || spec.read, {
           method: spec.method || "PUT",
           body: spec.body ? spec.body(changed, all, previous) : changed,
           timeout: spec.timeout || 30000,
         });
         if (!active.current) return;
-        const fresh = await api(spec.read, {
-          method: spec.readMethod,
-          body: spec.readBody,
-        });
-        if (!active.current) return;
-        const decoded = spec.decode ? spec.decode(fresh) : fresh;
-        const verified = spec.verify
-          ? spec.verify(decoded, changed)
-          : Object.entries(changed).every(([k, v]) =>
-              same(
-                decoded[spec.fields.find((f) => f.key === k)?.readKey || k],
-                v,
-              ),
-            );
+        let decoded: ObjectData = {},
+          verified = false;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          if (attempt) await new Promise((resolve) => setTimeout(resolve, 900));
+          if (!active.current) return;
+          const fresh = await api(spec.read, {
+            method: spec.readMethod,
+            body: spec.readBody,
+          });
+          if (!active.current) return;
+          decoded = spec.decode ? spec.decode(fresh) : fresh;
+          verified = spec.verify
+            ? spec.verify(decoded, changed)
+            : Object.entries(changed).every(([k, v]) =>
+                same(
+                  decoded[
+                    spec.fields.find((item) => item.key === k)?.readKey || k
+                  ],
+                  v,
+                ),
+              );
+          if (verified) break;
+        }
         setBase(decoded);
         if (!verified)
           throw new Error("The router has not confirmed the change.");
         dirty.current.delete(f.key);
-        setDraft((old) => ({
-          ...old,
-          [f.key]:
-            f.type === "password" ? "" : string(decoded[f.readKey || f.key]),
-        }));
+        setDraft((old) =>
+          Object.fromEntries(
+            spec.fields.map((item) => [
+              item.key,
+              dirty.current.has(item.key)
+                ? old[item.key]
+                : item.type === "password"
+                  ? ""
+                  : string(decoded[item.readKey || item.key]),
+            ]),
+          ),
+        );
         setMessage("Applied and verified");
         onApplied?.();
       });
@@ -316,6 +353,20 @@ export function SettingsForm({
         </div>
       )}
       <AutoFeedback busy={mutation.busy} message={message} error={error} />
+      {error && (
+        <button
+          className="text-link"
+          disabled={mutation.busy}
+          onClick={() => {
+            dirty.current.clear();
+            setError(undefined);
+            setMessage("");
+            resource.reload();
+          }}
+        >
+          {t("Discard draft and read current values")}
+        </button>
+      )}
     </Panel>
   );
 }
@@ -331,6 +382,7 @@ export function CommandForm({
   after,
   danger = false,
   phrase,
+  before,
 }: {
   title: string;
   note?: string;
@@ -343,6 +395,7 @@ export function CommandForm({
   after?: (data: ObjectData) => void;
   danger?: boolean;
   phrase?: string;
+  before?: () => Promise<boolean | void>;
 }) {
   const [values, setValues] = useState<ObjectData>(() =>
       Object.fromEntries(fields.map((f) => [f.key, f.options?.[0]?.[0] || ""])),
@@ -350,6 +403,13 @@ export function CommandForm({
     [error, setError] = useState<Error>(),
     [result, setResult] = useState("");
   const mutation = useMutation();
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   return (
     <Panel>
       <PanelTitle title={title} note={note} />
@@ -369,9 +429,12 @@ export function CommandForm({
               return;
             await mutation.run(async () => {
               setError(undefined);
+              const payload = body ? body(values) : values;
+              if (before && (await before()) === false) return;
+              if (!mounted.current) return;
               const data = await api(endpoint, {
                 method,
-                body: body ? body(values) : values,
+                body: payload,
                 timeout: 150000,
               });
               if (data && typeof data === "object" && "result" in data) {

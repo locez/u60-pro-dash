@@ -17,6 +17,7 @@ export async function uploadSoftware(
   progress: (received: number) => void,
   live: () => boolean,
 ) {
+  const epoch = sessionStore.get().epoch;
   const endpoint = "/api/software/" + service;
   let id: string | undefined;
   let started = false;
@@ -46,7 +47,7 @@ export async function uploadSoftware(
       body: { upload_id: id },
     });
   } finally {
-    if (id && !started && live())
+    if (id && !started && sessionStore.get().epoch === epoch)
       await api(endpoint + "/upload/cancel", {
         method: "POST",
         body: { upload_id: id },
@@ -87,6 +88,20 @@ export function Installer({
   }, [resource.data]);
   useJobPolling(resource, !!state?.busy);
   const release = state?.available;
+  const currentVersion = String(
+    installed?.client_version ||
+      installed?.version ||
+      installed?.pinned_version ||
+      "",
+  ).match(/\d+\.\d+\.\d+/)?.[0];
+  const availableVersion = String(release?.version || "").replace(/^v/, "");
+  const upToDate = !!currentVersion && currentVersion === availableVersion;
+  const older =
+    !!currentVersion &&
+    /^\d+\.\d+\.\d+$/.test(availableVersion) &&
+    currentVersion.localeCompare(availableVersion, undefined, {
+      numeric: true,
+    }) > 0;
   const busy = mutation.busy || state?.busy;
   const work = async (fn: () => Promise<ObjectData>) => {
     try {
@@ -144,7 +159,7 @@ export function Installer({
         </button>
         <button
           className="btn primary"
-          disabled={busy || !release}
+          disabled={busy || !release || upToDate}
           onClick={async () => {
             if (
               await mutation.confirm({
@@ -163,7 +178,15 @@ export function Installer({
               );
           }}
         >
-          {t(installed?.installed ? "Upgrade" : "Install release")}
+          {t(
+            upToDate
+              ? "Up to date"
+              : older
+                ? "Install older release"
+                : installed?.installed
+                  ? "Upgrade"
+                  : "Install release",
+          )}
         </button>
       </div>
       {state?.busy && (

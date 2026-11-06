@@ -72,6 +72,8 @@ const fixtures = {
     accept_routes: true,
     gateway_mode: true,
     accept_routes_effective: true,
+    accept_dns: false,
+    exit_node: "",
   },
   "/api/vpn/wireguard": {
     supported: true,
@@ -109,6 +111,9 @@ const fixtures = {
   "/api/proxy/mihomo/logs": { text: "test log" },
   "/api/proxy/mihomo/panel": { installed: false },
   "/api/tailscale/network": { routes: [] },
+  "/api/tailscale/peers": {
+    exit_nodes: [{ address: "100.64.0.8", name: "Test gateway", online: true }],
+  },
   "/api/tailscale/logs": { text: "test log" },
   "/api/router/lan": {
     lan_ipaddr: "192.0.2.1",
@@ -139,6 +144,28 @@ const fixtures = {
   },
   "/api/router/firewall/port-forward": { rule_list: [] },
   "/api/scheduler/jobs": [],
+  "/api/router/vpn": {
+    l2tp_passthrough: "1",
+    pptp_passthrough: "0",
+    ipsec_passthrough: "1",
+    alg_sip_enable: "0",
+  },
+  "/api/router/domain-filter": { enable: 0, rule_list: [] },
+  "/api/router/firewall/filter-rules": { rule_list: [] },
+  "/api/cell/neighbors/nr": {
+    cell_list: [{ band: "n78", pci: 101, earfcn: 632628, rsrp: -88 }],
+  },
+  "/api/cell/neighbors/lte": { cell_list: [] },
+  "/api/cell/signal-detect/progress": { running: false, progress: 0 },
+  "/api/cell/signal-detect/results": { record_list: [] },
+  "/api/stk/menu": {
+    supported: true,
+    busy: false,
+    command_id: "test-menu-1",
+    type: "select",
+    title: "Test SIM menu",
+    items: [{ id: 1, label: "Test service" }],
+  },
   "/api/speedtest/servers": [],
   "/api/esim/profiles": { profiles: [], agent_instance: 1 },
   "/api/esim/download": { state: "idle" },
@@ -167,6 +194,7 @@ const fixtures = {
   "/api/screen/preferences": {
     language: "en",
     dark: true,
+    follow_system: false,
     accent: "#3a9b78",
     brightness: 50,
     sleep_seconds: 60,
@@ -220,6 +248,7 @@ const streams = {
     const page = await context.newPage(),
       errors = [],
       writes = [];
+    let ignoreWrite = false;
     page.on("pageerror", (e) => {
       errors.push(e.message);
       console.error("Browser:", e.message);
@@ -257,18 +286,50 @@ const streams = {
               .join(""),
         });
       }
+      if (path === "/api/lan/download")
+        return route.fulfill({
+          contentType: "application/octet-stream",
+          body: Buffer.alloc(10 * 1024 * 1024),
+        });
+      if (path === "/api/lan/upload") {
+        const size = req.postDataBuffer().byteLength;
+        assert.equal(size, 10 * 1024 * 1024);
+        return route.fulfill({ json: { ok: true, data: { bytes: size } } });
+      }
       if (
         ["POST", "PUT", "DELETE"].includes(req.method()) &&
         !["/api/sms/list", "/api/device/power-save"].includes(path)
       ) {
         writes.push({ path, body: req.postDataJSON() });
-        if (path === "/api/proxy/mihomo/settings")
+        if (path === "/api/proxy/mihomo/settings" && !ignoreWrite)
           Object.assign(
             fixtures["/api/proxy/mihomo/status"],
             req.postDataJSON(),
           );
         if (path === "/api/wifi/settings")
           Object.assign(wifi, req.postDataJSON());
+        if (path === "/api/dns/apply")
+          Object.assign(fixtures["/api/dns/status"], req.postDataJSON());
+        if (path === "/api/tailscale/config")
+          Object.assign(fixtures["/api/tailscale/status"], req.postDataJSON());
+        if (path === "/api/screen/preferences") {
+          const patch = req.postDataJSON(),
+            state = fixtures[path];
+          if (patch.home) {
+            const key = Object.keys(patch.home).find((k) =>
+              k.startsWith("metric_"),
+            );
+            if (key && patch.home[key] !== "none") {
+              const other = ["metric_1", "metric_2", "metric_3"].find(
+                (k) => k !== key && state.home[k] === patch.home[key],
+              );
+              if (other) state.home[other] = state.home[key];
+            }
+            Object.assign(state.home, patch.home);
+            delete patch.home;
+          }
+          Object.assign(state, patch);
+        }
       }
       return route.fulfill({
         json: {
@@ -330,6 +391,7 @@ const streams = {
       "system/diagnostics",
       "system/diagnostics/processes",
       "system/diagnostics/speedtest",
+      "system/diagnostics/lan-test",
       "system/automation",
     ];
     for (const path of paths) {
@@ -338,6 +400,26 @@ const streams = {
       assert.equal(await page.locator("main h1").count(), 1, path);
     }
     assert.deepEqual(writes, [], "navigation must never mutate router state");
+    await page.evaluate(() => (location.hash = "lan/firewall"));
+    await page.getByText("Advanced network policies", { exact: true }).click();
+    await page.getByText("Blocked domains", { exact: true }).waitFor();
+    await page.evaluate(() => (location.hash = "internet/connection/bands"));
+    await page.getByText("Advanced radio tools", { exact: true }).click();
+    await page.getByRole("cell", { name: "632628", exact: true }).waitFor();
+    await page.evaluate(() => (location.hash = "internet/carrier"));
+    await page.getByLabel("Menu item", { exact: true }).waitFor();
+    await page
+      .getByRole("button", { name: "Open menu item", exact: true })
+      .click();
+    await page.getByRole("button", { name: "Cancel change" }).click();
+    assert.deepEqual(
+      writes,
+      [],
+      "cancelled carrier service may not send a SIM command",
+    );
+    await page.evaluate(() => (location.hash = "system/diagnostics/lan-test"));
+    await page.getByRole("button", { name: "Start test", exact: true }).click();
+    await page.getByText("Completed", { exact: true }).waitFor();
     await page.evaluate(() => (location.hash = "services/mihomo"));
     await page.getByLabel("Mode", { exact: true }).selectOption("direct");
     await page.getByText("Applied and verified", { exact: true }).waitFor();
@@ -357,6 +439,78 @@ const streams = {
       1,
       "cancelled disruptive setting must not be written",
     );
+    // A stale editor may not overwrite values changed by the other screen.
+    await page.evaluate(() => (location.hash = "services/mihomo"));
+    await page.getByLabel("Mode", { exact: true }).waitFor();
+    fixtures["/api/proxy/mihomo/status"].mode = "global";
+    await page.getByLabel("Mode", { exact: true }).selectOption("rule");
+    await page
+      .getByText(
+        "Settings changed elsewhere. Review the current values before trying again.",
+        { exact: true },
+      )
+      .waitFor();
+    assert.equal(writes.length, 1);
+    await page
+      .getByText("Discard draft and read current values", { exact: true })
+      .click();
+    await page.waitForTimeout(100);
+    assert.equal(
+      await page.getByLabel("Mode", { exact: true }).inputValue(),
+      "global",
+    );
+    // Accepted writes without matching readback must not report success or retry.
+    ignoreWrite = true;
+    await page.getByLabel("Mode", { exact: true }).selectOption("rule");
+    await page
+      .getByText("The router has not confirmed the change.", { exact: true })
+      .waitFor();
+    assert.equal(writes.length, 2);
+    ignoreWrite = false;
+    await page.evaluate(() => (location.hash = "lan/dns"));
+    await page.getByLabel("Mode", { exact: true }).selectOption("doh");
+    await page.waitForTimeout(100);
+    assert.equal(writes.length, 2, "incomplete resolver may not be applied");
+    await page
+      .getByLabel("DoH endpoint", { exact: true })
+      .fill("https://dns.example.test/dns-query");
+    await page.getByLabel("DoH endpoint", { exact: true }).press("Tab");
+    await page.getByText("Applied and verified", { exact: true }).waitFor();
+    assert.equal(writes.at(-1).path, "/api/dns/apply");
+    await page.evaluate(() => (location.hash = "system/screen"));
+    await page.getByLabel("Metric 1", { exact: true }).selectOption("month");
+    await page.getByText("Applied and verified", { exact: true }).waitFor();
+    assert.equal(
+      await page.getByLabel("Metric 2", { exact: true }).inputValue(),
+      "clients",
+    );
+    await page.evaluate(
+      () => (location.hash = "services/mihomo/configuration"),
+    );
+    await page
+      .getByLabel("YAML / JSON", { exact: true })
+      .fill("# private draft\nproxies: []\nrules: []\n");
+    await page.evaluate(() => (location.hash = "overview"));
+    await page.waitForTimeout(50);
+    await page.evaluate(
+      () => (location.hash = "services/mihomo/configuration"),
+    );
+    assert(
+      (
+        await page.getByLabel("YAML / JSON", { exact: true }).inputValue()
+      ).startsWith("# private draft"),
+    );
+    await page.evaluate(() => (location.hash = "overview"));
+    for (const [locale, name] of [
+      ["zh-Hant", "中國聯通"],
+      ["ja", "中国聯通"],
+      ["ko", "차이나유니콤"],
+      ["zh-Hans", "中国联通"],
+      ["en", "China Unicom"],
+    ]) {
+      await page.locator(".language-select").selectOption(locale);
+      await page.getByText(name, { exact: true }).waitFor();
+    }
     await page.setViewportSize({ width: 390, height: 844 });
     await page.evaluate(() => (location.hash = "overview"));
     await page.waitForTimeout(150);
@@ -366,6 +520,9 @@ const streams = {
       ),
       "mobile shell must fit viewport",
     );
+    await page.addStyleTag({
+      content: '[data-service="mihomo"] { display: none !important; }',
+    });
     await page.screenshot({
       path: "/tmp/u60-react-home-mobile.png",
       fullPage: true,
@@ -375,6 +532,21 @@ const streams = {
       path: "/tmp/u60-react-home-desktop.png",
       fullPage: true,
     });
+    await page.getByRole("button", { name: "Dark mode", exact: true }).click();
+    await page.locator(".language-select").selectOption("zh-Hans");
+    await page.getByText("中国联通", {exact: true}).waitFor();
+    await page.waitForTimeout(200);
+    await page.screenshot({
+      path: "/tmp/u60-react-home-dark.png",
+      fullPage: true,
+    });
+    await page.setViewportSize({ width: 768, height: 1024 });
+    assert(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+      "tablet layout fits",
+    );
     assert.deepEqual(errors, []);
     console.log(
       "Passed: all main routes, localized carrier and rates, no navigation writes, immediate settings and disruptive cancellation, mobile width.",
