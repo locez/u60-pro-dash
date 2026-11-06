@@ -492,7 +492,11 @@ export function LanPage({ tab }: { tab: string }) {
           end: "192.0.2.200",
           lease: "24 小时",
         }}
-        confirm="修改 LAN 地址会改变管理地址。应用后，需要重新连接并使用新地址访问。"
+        confirm={(_, __, key) =>
+          ["address", "mask"].includes(key)
+            ? "修改 LAN 地址或子网掩码会影响当前管理连接。应用后，需要重新连接并使用新地址访问。"
+            : undefined
+        }
       >
         {(v, set) => (
           <>

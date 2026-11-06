@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Check,
   ChevronRight,
@@ -207,7 +207,9 @@ export function ConfigForm({
   title: string;
   note?: string;
   initial?: Fields;
-  confirm?: string;
+  confirm?:
+    | string
+    | ((next: Fields, previous: Fields, key: string) => string | undefined);
   validate?: (v: Fields) => string;
   children: (
     v: Fields,
@@ -216,73 +218,171 @@ export function ConfigForm({
   onSaved?: (v: Fields) => void;
 }) {
   const model = useModel();
-  const saved = model.settings[id] || initial || {};
-  const [values, setValues] = useState<Fields>(saved),
-    [confirming, setConfirming] = useState(false),
-    [error, setError] = useState("");
-  const dirty = JSON.stringify(values) !== JSON.stringify(saved);
-  const apply = () => {
-    model.save(id, values);
-    onSaved?.(values);
-    setConfirming(false);
-    model.notify("示例设置已应用；未连接真实设备");
+  // Defaults are a snapshot for this form, not a new object on every render.
+  const initialValues = useMemo(() => initial || {}, [id]);
+  const saved = model.settings[id] || initialValues;
+  const applied = useRef(saved);
+  const drafts = useRef(new Map<string, string | boolean>());
+  const inputKeys = useRef(new WeakMap<HTMLElement, string>());
+  const [values, setValues] = useState<Fields>(saved);
+  const [pending, setPending] = useState<{
+    key: string;
+    value: string | boolean;
+    message: string;
+  } | null>(null);
+  const [error, setError] = useState("");
+  const [hasApplied, setHasApplied] = useState(false);
+  useEffect(() => {
+    drafts.current.clear();
+    inputKeys.current = new WeakMap();
+    setError("");
+    setPending(null);
+    setHasApplied(false);
+  }, [id]);
+  useEffect(() => {
+    applied.current = saved;
+    const next = { ...saved, ...Object.fromEntries(drafts.current) };
+    setValues((current) =>
+      JSON.stringify(current) === JSON.stringify(next) ? current : next,
+    );
+  }, [saved]);
+  const apply = (key: string, value: string | boolean) => {
+    const next = { ...applied.current, [key]: value };
+    applied.current = next;
+    drafts.current.delete(key);
+    model.save(id, next);
+    onSaved?.(next);
+    setValues((current) => ({ ...current, [key]: value }));
+    setPending(null);
+    setHasApplied(true);
+    setError("");
   };
+  const commit = (key: string, value: string | boolean) => {
+    if (value === applied.current[key]) {
+      drafts.current.delete(key);
+      return;
+    }
+    const next = { ...applied.current, [key]: value };
+    const issue = validate?.(next);
+    if (issue) {
+      setError(issue);
+      return;
+    }
+    const message =
+      typeof confirm === "function"
+        ? confirm(next, applied.current, key)
+        : confirm;
+    if (message) setPending({ key, value, message });
+    else apply(key, value);
+  };
+  const cancel = () => {
+    if (pending) {
+      drafts.current.delete(pending.key);
+      setValues((current) => ({
+        ...current,
+        [pending.key]: applied.current[pending.key],
+      }));
+    }
+    setPending(null);
+    setError("");
+  };
+  const change = (key: string, value: string | boolean) => {
+    setValues((current) => ({ ...current, [key]: value }));
+    setError("");
+    drafts.current.set(key, value);
+    const input = document.activeElement;
+    const textInput =
+      input instanceof HTMLTextAreaElement ||
+      (input instanceof HTMLInputElement &&
+        !["checkbox", "radio", "range", "color", "file", "button"].includes(
+          input.type,
+        ));
+    if (textInput && key !== "accent") inputKeys.current.set(input, key);
+    else commit(key, value);
+  };
+  const finishInput = (
+    target: EventTarget,
+    relatedTarget: EventTarget | null,
+  ) => {
+    if (!(target instanceof HTMLElement)) return;
+    const password = target.closest(".password-input");
+    if (
+      password &&
+      relatedTarget instanceof Node &&
+      password.contains(relatedTarget)
+    )
+      return;
+    const input =
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement
+        ? target
+        : password?.querySelector("input");
+    if (!input) return;
+    const key = inputKeys.current.get(input);
+    if (!key || !drafts.current.has(key)) return;
+    if (!input.validity.valid) {
+      setError(input.validationMessage);
+      return;
+    }
+    commit(key, drafts.current.get(key)!);
+  };
+  const dirty = JSON.stringify(values) !== JSON.stringify(saved);
   return (
     <Panel className="form-panel">
       <PanelTitle title={title} note={note} />
-      <div className="form-body">
-        {children(values, (key, value) => {
-          setValues((v) => ({ ...v, [key]: value }));
-          setError("");
-        })}
+      <div
+        className="form-body"
+        onBlurCapture={(event) =>
+          finishInput(event.target, event.relatedTarget)
+        }
+        onKeyDownCapture={(event) => {
+          if (
+            event.key === "Enter" &&
+            !event.nativeEvent.isComposing &&
+            event.target instanceof HTMLInputElement
+          ) {
+            event.preventDefault();
+            event.target.blur();
+          }
+        }}
+      >
+        {children(values, change)}
       </div>
       {error && (
         <p className="form-error" role="alert">
           {error}
         </p>
       )}
-      <footer className="save-bar">
+      <footer className="settings-feedback" role="status">
+        {hasApplied && !dirty && !error ? (
+          <Check size={14} />
+        ) : (
+          <Info size={14} />
+        )}
         <span>
-          {dirty ? (
-            "有未应用的更改"
-          ) : (
-            <>
-              <Check size={14} /> 设置已同步
-            </>
-          )}
+          {error
+            ? "请修正输入，尚未应用此修改"
+            : pending
+              ? "等待确认后应用"
+              : dirty
+                ? "输入完成后自动应用"
+                : hasApplied
+                  ? "已自动应用"
+                  : "开关与选项即时生效，文字输入完成后生效"}
         </span>
-        <button
-          className="btn"
-          disabled={!dirty}
-          onClick={() => {
-            setValues(saved);
-            setError("");
-          }}
-        >
-          撤销
-        </button>
-        <button
-          className="btn primary"
-          disabled={!dirty}
-          onClick={() => {
-            const issue = validate?.(values);
-            if (issue) return setError(issue);
-            if (confirm) setConfirming(true);
-            else apply();
-          }}
-        >
-          应用更改
-        </button>
       </footer>
-      {confirming && (
-        <Modal title="应用连接设置" close={() => setConfirming(false)}>
-          <p>{confirm}</p>
+      {pending && (
+        <Modal title="此更改会中断连接" close={cancel}>
+          <p>{pending.message}</p>
           <div className="dialog-actions">
-            <button className="btn" onClick={() => setConfirming(false)}>
-              继续编辑
+            <button className="btn" onClick={cancel}>
+              取消修改
             </button>
-            <button className="btn primary" onClick={apply}>
-              确认应用
+            <button
+              className="btn primary"
+              onClick={() => apply(pending.key, pending.value)}
+            >
+              继续应用
             </button>
           </div>
         </Modal>

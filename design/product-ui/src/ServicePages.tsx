@@ -16,6 +16,7 @@ import {
   Upload,
 } from "lucide-react";
 import { useModel, serviceNames } from "./model";
+import { proxyRuntimeInterruption } from "./settingsBehavior";
 import { Panel, PanelTitle, Status, Toggle } from "./ui";
 import {
   ConfigForm,
@@ -345,7 +346,9 @@ function WireGuardDesign({ tab }: { tab: string }) {
           mtu: "1420",
           route: true,
         }}
-        confirm="应用隧道设置会重新建立此 WireGuard 连接。其他服务继续运行。"
+        confirm={
+          m.enabled[1] ? "应用隧道设置会重新建立此 WireGuard 连接。" : undefined
+        }
       >
         {(v, set) => (
           <>
@@ -444,7 +447,6 @@ const demoYaml = `mixed-port: 7890\nmode: rule\nlog-level: info\n\nproxy-groups:
 function ProxyDesign({ tab }: { tab: string }) {
   const m = useModel(),
     saved = String(m.settings.proxyYaml?.text || demoYaml);
-  const applied = String(m.settings.proxyYaml?.applied || demoYaml);
   const [yaml, setYaml] = useState(saved),
     [validated, setValidated] = useState(false),
     [source, setSource] = useState(""),
@@ -465,10 +467,10 @@ function ProxyDesign({ tab }: { tab: string }) {
             <span className="file-label">
               <FileCode2 size={15} />{" "}
               {yaml !== saved
-                ? "未保存"
-                : applied !== saved
-                  ? "已保存，待重载"
-                  : "与运行配置一致"}
+                ? "正在编辑"
+                : m.enabled[2]
+                  ? "已生效"
+                  : "启动时生效"}
             </span>
           }
         />
@@ -509,7 +511,9 @@ function ProxyDesign({ tab }: { tab: string }) {
         />
         <div className="editor-actions">
           <span>
-            {validated ? "已演示校验完成" : "保存前校验，保存后再应用到服务"}
+            {validated
+              ? "已演示校验完成"
+              : "完成编辑后自动校验并应用，无需再重载"}
           </span>
           <button
             className="btn"
@@ -521,25 +525,19 @@ function ProxyDesign({ tab }: { tab: string }) {
             校验
           </button>
           <button
-            className="btn"
+            className="btn primary"
             disabled={!yaml.trim() || yaml === saved}
             onClick={() => {
-              m.save("proxyYaml", { text: yaml, applied });
+              m.save("proxyYaml", { text: yaml });
               setValidated(true);
-              m.notify("配置已保存在预览内存中");
+              m.notify(
+                m.enabled[2]
+                  ? "已模拟校验、保存与重载；正式版本由服务内核校验"
+                  : "示例配置已保存，服务下次启动时生效",
+              );
             }}
           >
-            保存配置
-          </button>
-          <button
-            className="btn primary"
-            disabled={!m.enabled[2] || yaml !== saved || applied === saved}
-            onClick={() => {
-              m.save("proxyYaml", { text: saved, applied: saved });
-              m.notify("已模拟重载当前配置");
-            }}
-          >
-            <RefreshCw size={14} /> 应用 / reload
+            <Check size={14} /> 完成编辑
           </button>
         </div>
         <details className="advanced-details">
@@ -615,10 +613,15 @@ function ProxyDesign({ tab }: { tab: string }) {
             ipv6: true,
             concurrent: true,
           }}
-          confirm={
-            m.enabled[2]
-              ? "应用流量范围与监听端口会重启本服务，现有代理连接会短暂中断。Tailscale 与 WireGuard 保持运行。"
-              : undefined
+          confirm={(next, previous) =>
+            proxyRuntimeInterruption(next, previous, m.enabled[2])
+          }
+          validate={(v) =>
+            /^\d+$/.test(String(v.port)) &&
+            Number(v.port) >= 1 &&
+            Number(v.port) <= 65535
+              ? ""
+              : "端口必须是 1–65535 之间的整数。"
           }
         >
           {(v, set) => (

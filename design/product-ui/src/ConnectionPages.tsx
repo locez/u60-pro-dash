@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { clients } from "./data";
 import { useModel } from "./model";
+import { wifiInterruption } from "./settingsBehavior";
 import {
   Battery,
   DeviceIcon,
@@ -209,7 +210,7 @@ export function WifiPage({ tab }: { tab: string }) {
           title="主网络"
           note="名称、密码和连接方式集中在这里。"
           validate={wifiValidate}
-          confirm="应用后，Wi-Fi 连接可能中断。请使用新的名称和密码重新连接；USB 管理连接不受影响。"
+          confirm={wifiInterruption}
         >
           {(v, set) => (
             <>
@@ -445,7 +446,12 @@ export function InternetPage({ tab }: { tab: string }) {
           oos: true,
           ttl: "保持系统默认",
         }}
-        confirm="应用蜂窝设置会重新建立移动网络连接，正在进行的下载与通话可能中断。"
+        confirm={(_, previous, key) =>
+          previous.data &&
+          ["data", "mode", "operator", "apn", "roaming"].includes(key)
+            ? "应用此设置会中断或重新建立移动网络连接，正在进行的下载与通话可能中断。"
+            : undefined
+        }
       >
         {(v, set) => (
           <>

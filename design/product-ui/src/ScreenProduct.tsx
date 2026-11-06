@@ -27,6 +27,7 @@ import { sampleMessages } from "./ManagementPages";
 import AccentPicker, { screenAccentStyle } from "./AccentPicker";
 import HomeLayoutSettings from "./HomeLayoutSettings";
 import { metricOptions, screenThemes, serviceIds } from "./screenPreferences";
+import { proxyRuntimeInterruption, wifiInterruption } from "./settingsBehavior";
 
 type ScreenRoot = "状态" | "连接" | "管理";
 function Row({
@@ -107,9 +108,11 @@ export default function ScreenProduct() {
     [systemDark, setSystemDark] = useState(
       () => matchMedia("(prefers-color-scheme: dark)").matches,
     ),
-    [runtimeChange, setRuntimeChange] = useState<{
-      key: "mode" | "scope";
-      value: string;
+    [pendingChange, setPendingChange] = useState<{
+      title: string;
+      summary: string;
+      message: string;
+      apply: () => void;
     } | null>(null);
   const hold = useRef<ReturnType<typeof setTimeout> | null>(null),
     pane = useRef<HTMLDivElement>(null);
@@ -178,15 +181,15 @@ export default function ScreenProduct() {
   const choose = (
     label: string,
     options: string[],
-    apply: (s: string) => void,
+    apply: (s: string) => void | boolean,
   ) =>
     setSheet({
       title: label,
       options,
       choose: (s) => {
-        apply(s);
+        const applied = apply(s);
         setSheet(null);
-        setScreenToast("已应用示例设置");
+        if (applied !== false) setScreenToast("已应用示例设置");
       },
     });
   const serviceIndex = path.findIndex((p) => serviceNames.includes(p));
@@ -202,10 +205,57 @@ export default function ScreenProduct() {
           : ["Wi-Fi 热点", "仅本机 HTTP / SOCKS"],
       choose: (value) => {
         setSheet(null);
-        if (m.settings.proxyRuntime[key] !== value)
-          setRuntimeChange({ key, value });
+        if (m.settings.proxyRuntime[key] === value) return;
+        const next = { ...m.settings.proxyRuntime, [key]: value };
+        const message = proxyRuntimeInterruption(
+          next,
+          m.settings.proxyRuntime,
+          m.enabled[2],
+        );
+        const apply = () => {
+          m.save("proxyRuntime", next);
+          setScreenToast("已应用示例运行设置");
+        };
+        if (message) {
+          setScreenToast("");
+          setPendingChange({
+            title: "应用运行设置",
+            summary: `${key === "mode" ? "运行模式" : "流量范围"}：${value}`,
+            message,
+            apply,
+          });
+        } else apply();
       },
     });
+  };
+  const editWifi = (
+    key: string,
+    value: string | boolean,
+    done?: () => void,
+  ) => {
+    if (m.settings.wifi[key] === value) {
+      done?.();
+      return false;
+    }
+    const next = { ...m.settings.wifi, [key]: value };
+    const message = wifiInterruption(next, m.settings.wifi);
+    const apply = () => {
+      m.save("wifi", next);
+      setScreenToast("已应用示例 Wi-Fi 设置");
+      done?.();
+    };
+    if (message) {
+      setScreenToast("");
+      setPendingChange({
+        title: "应用 Wi-Fi 设置",
+        summary: "无线网络连接将受影响",
+        message,
+        apply,
+      });
+      return false;
+    }
+    apply();
+    return true;
   };
   const renderService = () => {
     if (title === "网络设置")
@@ -361,12 +411,9 @@ export default function ScreenProduct() {
             value={String(m.settings.proxyRuntime.scope)}
             onClick={() => editRuntime("scope")}
           />
-          <button
-            className="native-primary"
-            onClick={() => setScreenToast("已模拟重新加载配置")}
-          >
-            应用已保存配置
-          </button>
+          <p className="native-note">
+            选项修改后自动应用；需要停止服务时会提示。
+          </p>
           <p className="native-note">
             长配置与密钥可在 Web 管理中编辑：
             <br />
@@ -385,12 +432,6 @@ export default function ScreenProduct() {
               ["MTU", "1420"],
             ]}
           />
-          <button
-            className="native-primary"
-            onClick={() => setScreenToast("已模拟重新加载配置")}
-          >
-            应用已保存配置
-          </button>
           <p className="native-note">
             长配置与密钥可在 Web 管理中编辑：
             <br />
@@ -510,7 +551,7 @@ export default function ScreenProduct() {
             value={m.settings.wifi.enabled ? "已开启" : "已关闭"}
             onClick={() =>
               choose("开启 Wi-Fi", ["开启", "关闭"], (s) =>
-                m.save("wifi", { ...m.settings.wifi, enabled: s === "开启" }),
+                editWifi("enabled", s === "开启"),
               )
             }
           />
@@ -519,7 +560,7 @@ export default function ScreenProduct() {
             value={m.settings.wifi.unified ? "已开启" : "已关闭"}
             onClick={() =>
               choose("双频合一", ["开启", "关闭"], (s) =>
-                m.save("wifi", { ...m.settings.wifi, unified: s === "开启" }),
+                editWifi("unified", s === "开启"),
               )
             }
           />
@@ -551,9 +592,7 @@ export default function ScreenProduct() {
           value={String(m.settings.wifi.ssid)}
           save={(value) => {
             if (!value.trim()) return;
-            m.save("wifi", { ...m.settings.wifi, ssid: value });
-            setPath((p) => p.slice(0, -1));
-            setScreenToast("已应用示例名称");
+            editWifi("ssid", value, () => setPath((p) => p.slice(0, -1)));
           }}
         />
       );
@@ -1373,41 +1412,30 @@ export default function ScreenProduct() {
                   </section>
                 </div>
               )}
-              {runtimeChange && (
+              {pendingChange && (
                 <div className="native-sheet-backdrop">
                   <section
                     className="native-sheet"
                     role="dialog"
-                    aria-label="应用运行设置"
+                    aria-label={pendingChange.title}
                   >
                     <header>
-                      <b>应用运行设置</b>
+                      <b>{pendingChange.title}</b>
                     </header>
-                    <p className="native-note">
-                      {runtimeChange.key === "mode" ? "运行模式" : "流量范围"}：
-                      {runtimeChange.value}
-                    </p>
-                    <p className="native-note">
-                      {m.enabled[2]
-                        ? runtimeChange.key === "scope"
-                          ? `需要重启 ${serviceNames[2]}，当前代理连接会短暂中断。`
-                          : `将重新加载 ${serviceNames[2]} 的运行模式。`
-                        : "设置将在下次启动服务时使用。"}
-                    </p>
+                    <p className="native-note">{pendingChange.summary}</p>
+                    <p className="native-note">{pendingChange.message}</p>
                     <button
                       className="native-primary"
                       onClick={() => {
-                        m.save("proxyRuntime", {
-                          ...m.settings.proxyRuntime,
-                          [runtimeChange.key]: runtimeChange.value,
-                        });
-                        setRuntimeChange(null);
-                        setScreenToast("已应用示例运行设置");
+                        pendingChange.apply();
+                        setPendingChange(null);
                       }}
                     >
-                      确认应用
+                      继续应用
                     </button>
-                    <button onClick={() => setRuntimeChange(null)}>取消</button>
+                    <button onClick={() => setPendingChange(null)}>
+                      取消修改
+                    </button>
                   </section>
                 </div>
               )}
@@ -1485,7 +1513,21 @@ function NativeEditor({
             onChange={(e) => setDraft(e.target.value)}
           />
         ) : (
-          <input value={draft} onChange={(e) => setDraft(e.target.value)} />
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (
+                e.key === "Enter" &&
+                !e.nativeEvent.isComposing &&
+                draft.trim() &&
+                draft !== value
+              ) {
+                e.preventDefault();
+                save(draft);
+              }
+            }}
+          />
         )}
       </label>
       <button
@@ -1493,7 +1535,7 @@ function NativeEditor({
         disabled={!draft.trim() || draft === value}
         onClick={() => save(draft)}
       >
-        应用
+        {multiline ? "发送" : "完成"}
       </button>
       <p className="native-note">屏幕输入框示意；设备版使用软键盘。</p>
     </div>
