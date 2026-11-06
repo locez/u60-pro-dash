@@ -10,13 +10,16 @@ import {
   Sun,
 } from "lucide-react";
 import { login, logout } from "./api";
-import { go, navigation as allNavigation, readRoute, topics, type Route } from "./catalog";
+import { go, navigation, readRoute, topics, type Route } from "./catalog";
 import { languages, setLocale, t, useLocale, type Locale } from "./i18n";
 import { LiveProvider, useLive, useSession } from "./live";
 import { MutationProvider } from "./mutations";
 import { DevicesPage, Overview, WifiPage } from "./NetworkPages";
+import { ServicePages } from "./ServicePages";
+import { InternetPage } from "./InternetPages";
+import { MessagesPage } from "./MessagesPage";
+import { LanPage, SystemPage } from "./ManagementPages";
 import { ErrorState, Modal, Status, Tabs } from "./ui";
-const navigation=allNavigation.filter(n=>['overview','wifi','devices'].includes(n.id));
 function Language() {
   const locale = useLocale();
   return (
@@ -139,7 +142,7 @@ function Workspace() {
     window.addEventListener("hashchange", change);
     return () => window.removeEventListener("hashchange", change);
   }, []);
-  const nav = (navigation.find((n) => n.id === route.page) || navigation[0]);
+  const nav = navigation.find((n) => n.id === route.page)!;
   const actual: Route = { ...route, tab: route.tab || nav.tabs[0]?.[0] };
   return (
     <LiveProvider topics={topics(actual)}>
@@ -152,7 +155,7 @@ function Shell({ route }: { route: Route }) {
     [search, setSearch] = useState(false),
     [query, setQuery] = useState("");
   const live = useLive(),
-    nav = (navigation.find((n) => n.id === route.page) || navigation[0]);
+    nav = navigation.find((n) => n.id === route.page)!;
   useEffect(() => {
     setMobile(false);
   }, [route.page]);
@@ -276,8 +279,16 @@ function Shell({ route }: { route: Route }) {
               <WifiPage tab={route.tab!} />
             ) : route.page === "devices" ? (
               <DevicesPage tab={route.tab!} />
+            ) : route.page === "services" ? (
+              <ServicePages route={route} />
+            ) : route.page === "internet" ? (
+              <InternetPage route={route} />
+            ) : route.page === "messages" ? (
+              <MessagesPage tab={route.tab!} />
+            ) : route.page === "lan" ? (
+              <LanPage route={route} />
             ) : (
-              <Overview />
+              <SystemPage route={route} />
             )}
           </div>
         </main>
