@@ -1,8 +1,20 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import type { Page } from "./data";
 import featureData from "./features.json";
+import { serviceNames } from "./presentation";
+import { readScreenAccent, rememberScreenAccent } from "./AccentPicker";
+export { serviceNames } from "./presentation";
 
-export const features = featureData as {
+export const features = featureData.map((feature) => ({
+  ...feature,
+  tab: feature.tab === "规则代理" ? serviceNames[2] : feature.tab,
+})) as {
   id: string;
   name: string;
   web: Page;
@@ -12,7 +24,6 @@ export const features = featureData as {
 }[];
 export type Route = { page: Page; tab?: string; service?: number };
 export type Scenario = "normal" | "offline" | "euicc";
-export const serviceNames = ["Tailscale", "WireGuard", "规则代理"];
 export const defaultTabs: Record<Page, string> = {
   overview: "",
   wifi: "热点设置",
@@ -61,6 +72,7 @@ export const initialSettings: Record<string, Fields> = {
     brightness: "60%",
     theme: "深色",
     language: "简体中文",
+    accent: "#2563eb",
   },
   tailscale: {
     routes: true,
@@ -91,7 +103,13 @@ function useModelState() {
       ? Math.min(2, Math.max(0, Number(params.get("service")) || 0))
       : undefined,
   });
-  const [settings, setSettings] = useState(initialSettings);
+  const [settings, setSettings] = useState<Record<string, Fields>>(() => ({
+    ...initialSettings,
+    security: { ...initialSettings.security, accent: readScreenAccent() },
+  }));
+  useEffect(() => {
+    rememberScreenAccent(String(settings.security.accent));
+  }, [settings.security.accent]);
   const [enabled, setEnabled] = useState([true, true, true]);
   const [scenario, setScenario] = useState<Scenario>("normal");
   const [toast, setToast] = useState("");

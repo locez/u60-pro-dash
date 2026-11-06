@@ -97,6 +97,10 @@
 }
 .interactive-screen .screen-face {
   position: relative;
+  --accent: var(--screen-accent-ink);
+}
+.interactive-screen button {
+  transition: none;
 }
 .interactive-screen .screen-nav {
   flex-shrink: 0;
@@ -245,7 +249,7 @@
   height: 32px;
   display: grid;
   place-items: center;
-  color: #b8c9de;
+  color: var(--screen-accent-ink);
 }
 .native-section-label {
   font-size: 10px;
@@ -285,7 +289,7 @@
 }
 .native-row > svg:first-child {
   flex-shrink: 0;
-  color: #97b3dc;
+  color: var(--screen-accent-ink);
 }
 .native-row > svg:last-child {
   flex-shrink: 0;
@@ -323,8 +327,8 @@
   place-items: center;
   width: 40px;
   height: 40px;
-  background: #2b3a51;
-  color: #9dbbec;
+  background: var(--screen-accent-soft);
+  color: var(--screen-accent-ink);
   border-radius: 11px;
 }
 .native-service-hero b {
@@ -354,10 +358,11 @@
   background: #e1e7ef;
 }
 .native-switch.on {
-  background: #6b8fcb;
+  background: var(--screen-accent);
 }
 .native-switch.on i {
   margin-left: auto;
+  background: var(--screen-accent-on);
 }
 .native-note {
   color: #9aacbf;
@@ -369,9 +374,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #8eade1;
-  color: #18283f;
-  border: 1px solid #adc5eb;
+  background: var(--screen-accent);
+  color: var(--screen-accent-on);
+  border: 1px solid var(--screen-accent-ink);
   border-radius: 8px;
   font-size: 12px;
   font-weight: 650;
@@ -385,7 +390,7 @@
   padding: 24px 8px 12px;
 }
 .native-hero svg {
-  color: #8faedb;
+  color: var(--screen-accent-ink);
   margin: 0 auto 14px;
 }
 .native-hero h2 {
@@ -447,7 +452,7 @@
 }
 .native-network-title span {
   font-size: 11px;
-  color: #99b8e8;
+  color: var(--screen-accent-ink);
 }
 .native-share-card {
   display: flex;
@@ -468,7 +473,7 @@
   min-width: 0;
 }
 .native-share-card small {
-  color: #96accb;
+  color: var(--screen-accent-ink);
   font-size: 11px;
 }
 .native-share-card b {
@@ -621,8 +626,8 @@
   bottom: 62px;
   left: 17px;
   right: 17px;
-  background: #c4d8f5;
-  color: #1c304e;
+  background: var(--screen-accent);
+  color: var(--screen-accent-on);
   padding: 12px;
   border-radius: 8px;
   z-index: 6;
@@ -687,21 +692,21 @@
   place-items: center;
   width: 60px;
   height: 60px;
-  background: #26374e;
-  color: #a4bde4;
-  border: 1px solid #4a617f;
+  background: var(--screen-accent-soft);
+  color: var(--screen-accent-ink);
+  border: 1px solid var(--screen-accent-ink);
   border-radius: 50%;
   touch-action: none;
   user-select: none;
 }
 .hold-unlock.holding {
-  color: #e4efff;
-  background: #4f719f;
-  border-color: #d0e4ff;
+  color: var(--screen-accent-on);
+  background: var(--screen-accent);
+  border-color: var(--screen-accent-ink);
 }
 .native-lock-bottom > small {
   font-size: 10px;
-  color: #8ea6c9;
+  color: var(--screen-accent-ink);
   margin-top: 10px;
 }
 .native-pin {
@@ -728,7 +733,7 @@
   border-radius: 50%;
 }
 .pin-dots i.filled {
-  background: #aac4eb;
+  background: var(--screen-accent-ink);
 }
 .native-pin > p {
   font-size: 11px;
@@ -828,4 +833,146 @@
 }
 .native-home-services {
   padding-top: 8px;
+}
+
+/* One chosen accent, with readable text and separate status colors. */
+.interactive-screen .screen-nav > button {
+  position: relative;
+}
+.interactive-screen .screen-nav > button.active {
+  color: var(--screen-accent-ink);
+  background: var(--screen-accent-soft);
+  font-weight: 650;
+}
+.interactive-screen .screen-nav > button.active::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: calc(50% - 12px);
+  width: 24px;
+  height: 2px;
+  background: var(--screen-accent-ink);
+  border-radius: 0 0 2px 2px;
+}
+.native-home .screen-c-metrics > div:first-child b,
+.native-metric-grid > div:first-child b,
+.native-three-stats > span:first-child b,
+.native-home .screen-password > button {
+  color: var(--screen-accent-ink);
+}
+.interactive-screen .screen-c-carrier > span {
+  color: var(--screen-accent-ink);
+}
+.native-color-chip {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px !important;
+  border-radius: 5px;
+  background: var(--screen-accent);
+  border: 1px solid var(--screen-accent-ink);
+}
+.native-editor input:focus,
+.native-editor textarea:focus {
+  border-color: var(--screen-accent-ink);
+}
+.native-pin > div:last-child > button:active {
+  background: var(--screen-accent);
+  color: var(--screen-accent-on);
+}
+.accent-picker {
+  border: 0;
+  padding: 0;
+  margin: 0 0 26px;
+  min-width: 0;
+}
+.accent-picker legend {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: 14px;
+}
+.accent-swatches {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+.accent-swatches button {
+  height: 36px;
+  display: grid;
+  place-items: center;
+  background: var(--swatch);
+  color: var(--swatch-on);
+  border-radius: 7px;
+  border: 1px solid #ffffff20;
+}
+.accent-swatches button[aria-pressed="true"] {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+.accent-picker > label {
+  display: block;
+  font-size: 11px;
+  color: var(--subtle);
+  margin: 17px 0 8px;
+}
+.accent-custom {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 8px;
+}
+.accent-custom input {
+  min-width: 0;
+  width: 100%;
+  height: 35px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  background: var(--surface);
+  padding: 6px 9px;
+  font:
+    12px ui-monospace,
+    monospace;
+}
+.accent-custom input[type="color"] {
+  padding: 3px !important;
+  cursor: pointer;
+}
+.accent-custom input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.accent-custom input[type="color"]::-webkit-color-swatch {
+  border: 0;
+  border-radius: 3px;
+}
+.accent-error {
+  display: block;
+  font-size: 11px;
+  margin-top: 8px;
+  color: #b75b36;
+}
+.native-scroll > .accent-picker {
+  margin-top: 20px;
+}
+.native-scroll .accent-swatches button {
+  height: 42px;
+}
+.native-scroll .accent-swatches button[aria-pressed="true"] {
+  outline-color: #d9e4f3;
+}
+.native-scroll .accent-picker label {
+  color: #a4b5ca;
+}
+.native-scroll .accent-custom input {
+  color: #d9e4f3;
+  border-color: #435570;
+  background: #26354a;
+  height: 40px;
+}
+.native-scroll .accent-error {
+  color: #efbc7a;
+}
+@media (max-width: 650px) {
+  .screen-principles > .accent-picker {
+    margin-bottom: 28px;
+  }
 }

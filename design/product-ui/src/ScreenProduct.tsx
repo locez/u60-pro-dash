@@ -24,6 +24,7 @@ import { clients } from "./data";
 import { features, serviceNames, useModel } from "./model";
 import { QR } from "./ui";
 import { sampleMessages } from "./ManagementPages";
+import AccentPicker, { screenAccentStyle } from "./AccentPicker";
 
 type ScreenRoot = "状态" | "连接" | "管理";
 function Row({
@@ -72,7 +73,7 @@ function NativeChart() {
       <path
         d="M0 44 16 36 32 39 48 29 64 34 80 21 96 30 112 22 128 25 144 15 160 21 176 12 192 18 208 13 224 5 240 12 256 8 270 11"
         fill="none"
-        stroke="#93b7f4"
+        stroke="var(--screen-accent-ink)"
         strokeWidth="1.8"
       />
       <path
@@ -103,6 +104,9 @@ export default function ScreenProduct() {
   const hold = useRef<ReturnType<typeof setTimeout> | null>(null),
     pane = useRef<HTMLDivElement>(null);
   const title = path.at(-1) || root;
+  const accent = String(m.settings.security.accent);
+  const setAccent = (color: string) =>
+    m.save("security", { ...m.settings.security, accent: color });
   const open = (s: string) => {
     setPath((p) => [...p, s]);
     setVisible(false);
@@ -663,9 +667,24 @@ export default function ScreenProduct() {
           />
         </>
       );
+    if (title === "强调色")
+      return (
+        <>
+          <AccentPicker value={accent} onChange={setAccent} />
+          <p className="native-note">
+            选中后即时生效。主要操作与重点读数使用强调色。
+          </p>
+        </>
+      );
     if (title === "屏幕与安全")
       return (
         <>
+          <Row
+            title="强调色"
+            value={accent.toUpperCase()}
+            onClick={() => open("强调色")}
+            icon={<span className="native-color-chip" />}
+          />
           <Row
             title="密码解锁"
             value={
@@ -893,7 +912,10 @@ export default function ScreenProduct() {
             <LockKeyhole size={14} />
           </button>
         </aside>
-        <div className="screen-frame screen-c interactive-screen">
+        <div
+          className="screen-frame screen-c interactive-screen"
+          style={screenAccentStyle(accent)}
+        >
           <div className="screen-hardware">
             <div className="screen-face" data-testid="native-screen">
               <div className="screen-statusbar">
@@ -1245,6 +1267,7 @@ export default function ScreenProduct() {
           </div>
         </div>
         <aside className="screen-principles">
+          <AccentPicker value={accent} onChange={setAccent} />
           <span>阅读与操作</span>
           <h3>紧凑，但不拥挤。</h3>
           <p>

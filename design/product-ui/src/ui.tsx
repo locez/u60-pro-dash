@@ -25,6 +25,7 @@ import {
   Zap,
 } from "lucide-react";
 import { traffic, clients } from "./data";
+import { serviceNames } from "./presentation";
 export type Variant = "a" | "b" | "c";
 export type Notify = (text: string) => void;
 export function Brand({ compact = false }: { compact?: boolean }) {
@@ -624,7 +625,7 @@ export function ServiceList({
         },
         { name: "WireGuard", description: "工作网络 · wg-office", kind: "wg" },
         {
-          name: "规则代理",
+          name: serviceNames[2],
           description: "规则模式 · 仅热点流量",
           kind: "proxy",
         },

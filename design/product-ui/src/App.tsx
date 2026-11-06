@@ -14,6 +14,7 @@ import Product, { FeatureMap } from "./Product";
 import ScreenProduct from "./ScreenProduct";
 import { ModelProvider, useModel, type Scenario } from "./model";
 import { ShareModal } from "./ui";
+import { presentationQuery, publicPresentation } from "./presentation";
 import "./product.css";
 import "./screen-product.css";
 const initial = new URLSearchParams(location.search);
@@ -39,6 +40,7 @@ function SelectedDesign() {
     [shareBand, setShareBand] = useState(0);
   useEffect(() => {
     const query = new URLSearchParams({
+      ...presentationQuery,
       view,
       page: m.route.page,
       ...(m.route.tab ? { tab: m.route.tab } : {}),
@@ -60,7 +62,13 @@ function SelectedDesign() {
         <div className="design-brand">
           <span className="design-dot" /> U60 <span>产品设计稿</span>
           <span className="design-stage">02 / 页面与层级</span>
-          <a href="?explore=1">初版风格</a>
+          <a
+            href={
+              "?explore=1" + (publicPresentation ? "&presentation=public" : "")
+            }
+          >
+            初版风格
+          </a>
         </div>
         <div className="design-controls">
           <div className="view-switch" aria-label="预览界面">

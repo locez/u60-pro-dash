@@ -26,6 +26,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useModel } from "./model";
+import AccentPicker from "./AccentPicker";
 import { Battery, Panel, PanelTitle, Status } from "./ui";
 import {
   ConfigForm,
@@ -647,6 +648,10 @@ export function SystemPage({ tab }: { tab: string }) {
                   />
                 </Field>
               </div>
+              <AccentPicker
+                value={String(v.accent)}
+                onChange={(color) => set("accent", color)}
+              />
               <SwitchRow
                 title="密码解锁"
                 hint="长按 1 秒后输入 PIN；关闭时仅长按解锁"

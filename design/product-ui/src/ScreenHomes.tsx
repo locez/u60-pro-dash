@@ -17,6 +17,7 @@ import {
   Wifi,
 } from "lucide-react";
 import { QR, type Notify, type Variant } from "./ui";
+import { serviceNames } from "./presentation";
 export const directions = {
   a: {
     name: "克制专业",
@@ -219,7 +220,7 @@ export function ScreenHome({
                     <i /> WireGuard
                   </span>
                   <span>
-                    <i /> 规则代理
+                    <i /> {serviceNames[2]}
                   </span>
                 </div>
               </>

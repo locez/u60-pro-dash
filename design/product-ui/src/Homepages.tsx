@@ -30,6 +30,7 @@ import {
   Zap,
 } from "lucide-react";
 import { type Page, navigation, clients } from "./data";
+import { serviceNames } from "./presentation";
 import {
   ArrowLink,
   Battery,
@@ -489,7 +490,7 @@ export function Consumer(p: Props) {
               <span>
                 <Network size={17} />
                 <b>{p.enabled.filter(Boolean).length} 项网络服务</b>
-                <small>Tailscale · WireGuard · 规则代理</small>
+                <small>{serviceNames.join(" · ")}</small>
               </span>
               <ChevronRight size={16} />
             </div>

@@ -12,6 +12,7 @@ import {
 import { Compact, Consumer, Professional } from "./Homepages";
 import ScreenHomes, { directions } from "./ScreenHomes";
 import { ShareModal, type Variant } from "./ui";
+import { presentationQuery, publicPresentation } from "./presentation";
 const initial = new URLSearchParams(location.search);
 export default function App() {
   const [variant, setVariant] = useState<Variant>(
@@ -29,6 +30,7 @@ export default function App() {
   const notify = (message: string) => setToast(message);
   useEffect(() => {
     const query = new URLSearchParams({
+      ...presentationQuery,
       explore: "1",
       style: variant,
       view,
@@ -57,7 +59,13 @@ export default function App() {
         <div className="design-brand">
           <span className="design-dot" /> U60 <span>首页风格预览</span>
           <span className="design-stage">01 / 设计探索</span>
-          <a href="?view=web">已选方案 →</a>
+          <a
+            href={
+              "?view=web" + (publicPresentation ? "&presentation=public" : "")
+            }
+          >
+            已选方案 →
+          </a>
         </div>
         <div className="design-controls">
           <div className="style-switch" aria-label="首页风格">
