@@ -9,6 +9,12 @@ import type { Page } from "./data";
 import featureData from "./features.json";
 import { serviceNames } from "./presentation";
 import { readScreenAccent, rememberScreenAccent } from "./AccentPicker";
+import {
+  readHomeLayout,
+  rememberHomeLayout,
+  readScreenTheme,
+  rememberScreenTheme,
+} from "./screenPreferences";
 export { serviceNames } from "./presentation";
 
 export const features = featureData.map((feature) => ({
@@ -81,6 +87,13 @@ export const initialSettings: Record<string, Fields> = {
     exit: "不使用退出节点",
     target: "192.0.2.80:443",
   },
+  proxyRuntime: {
+    mode: "规则",
+    scope: "Wi-Fi 热点",
+    port: "7890",
+    ipv6: true,
+    concurrent: true,
+  },
 };
 function useModelState() {
   const params = new URLSearchParams(location.search);
@@ -105,11 +118,21 @@ function useModelState() {
   });
   const [settings, setSettings] = useState<Record<string, Fields>>(() => ({
     ...initialSettings,
-    security: { ...initialSettings.security, accent: readScreenAccent() },
+    security: {
+      ...initialSettings.security,
+      accent: readScreenAccent(),
+      theme: readScreenTheme(),
+    },
   }));
   useEffect(() => {
     rememberScreenAccent(String(settings.security.accent));
   }, [settings.security.accent]);
+  useEffect(
+    () => rememberScreenTheme(String(settings.security.theme)),
+    [settings.security.theme],
+  );
+  const [homeLayout, setHomeLayout] = useState(readHomeLayout);
+  useEffect(() => rememberHomeLayout(homeLayout), [homeLayout]);
   const [enabled, setEnabled] = useState([true, true, true]);
   const [scenario, setScenario] = useState<Scenario>("normal");
   const [toast, setToast] = useState("");
@@ -118,6 +141,8 @@ function useModelState() {
     route,
     go: setRoute,
     settings,
+    homeLayout,
+    setHomeLayout,
     save: (key: string, values: Fields) =>
       setSettings((s) => ({ ...s, [key]: values })),
     enabled,

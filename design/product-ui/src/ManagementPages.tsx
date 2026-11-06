@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useModel } from "./model";
 import AccentPicker from "./AccentPicker";
+import HomeLayoutSettings from "./HomeLayoutSettings";
 import { Battery, Panel, PanelTitle, Status } from "./ui";
 import {
   ConfigForm,
@@ -674,26 +675,38 @@ export function SystemPage({ tab }: { tab: string }) {
             </>
           )}
         </ConfigForm>
-        <Panel>
-          <PanelTitle title="管理访问" />
-          <Definition
-            items={[
-              ["管理端口", "2026"],
-              ["当前会话", "本地管理员"],
-              ["HTTPS", "未启用"],
-            ]}
-          />
-          <Entry
-            title="管理员与会话"
-            description="修改密码、管理登录状态"
-            onClick={() => setDialog("管理员与会话")}
-          />
-          <Entry
-            title="HTTPS 与证书"
-            description="配置受信任的管理连接"
-            onClick={() => setDialog("HTTPS 与证书")}
-          />
-        </Panel>
+        <div className="stack">
+          <Panel>
+            <PanelTitle
+              title="屏幕首页布局"
+              note="选择模块与指标，调整后即时保存。"
+            />
+            <HomeLayoutSettings
+              value={m.homeLayout}
+              onChange={m.setHomeLayout}
+            />
+          </Panel>
+          <Panel>
+            <PanelTitle title="管理访问" />
+            <Definition
+              items={[
+                ["管理端口", "2026"],
+                ["当前会话", "本地管理员"],
+                ["HTTPS", "未启用"],
+              ]}
+            />
+            <Entry
+              title="管理员与会话"
+              description="修改密码、管理登录状态"
+              onClick={() => setDialog("管理员与会话")}
+            />
+            <Entry
+              title="HTTPS 与证书"
+              description="配置受信任的管理连接"
+              onClick={() => setDialog("HTTPS 与证书")}
+            />
+          </Panel>
+        </div>
         {dialog && (
           <Modal title={dialog} close={() => setDialog("")}>
             <Field
