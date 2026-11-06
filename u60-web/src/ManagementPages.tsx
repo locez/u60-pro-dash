@@ -495,7 +495,7 @@ function HTTPS() {
             ],
           ]}
         />
-        <a className="text-link" href="/console/a/u60-ca.crt">
+        <a className="text-link" href="/ui/https/u60-pro-ca.crt">
           {t("Download local CA certificate")}
         </a>
       </Panel>

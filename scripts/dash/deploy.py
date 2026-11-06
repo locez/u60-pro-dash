@@ -87,6 +87,12 @@ def elf(path):
 
 def build(args):
     subprocess.run([sys.executable, str(REPO / "scripts/i18n/build.py"), "--check"], cwd=REPO, check=True)
+    npm = shutil.which("npm")
+    if not npm:
+        raise Failure("缺少 Node.js/npm；Web 静态资源需要 Node.js 22 或更新版本构建。")
+    if not (REPO / "u60-web/node_modules/.bin/vite").is_file():
+        subprocess.run([npm, "ci"] + (["--offline"] if args.offline else []), cwd=REPO / "u60-web", check=True)
+    subprocess.run([npm, "run", "build"], cwd=REPO / "u60-web", check=True)
     env = os.environ.copy()
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip()
     # build.rs watches this variable; Cargo otherwise reuses the old embedded

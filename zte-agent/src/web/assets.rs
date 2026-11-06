@@ -35,7 +35,7 @@ pub async fn asset(uri: Uri, headers: HeaderMap) -> Response {
     }
 }
 
-fn serve(a: &Asset, headers: &HeaderMap) -> Response {
+pub(crate) fn serve(a: &Asset, headers: &HeaderMap) -> Response {
     let gzip = a.gzip && accepts_gzip(headers);
     let etag = if gzip { a.etag_gz } else { a.etag };
     let mut resp = if none_match(headers, etag) {

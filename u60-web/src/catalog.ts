@@ -105,7 +105,24 @@ export const navigation = [
 export type Page = (typeof navigation)[number]["id"];
 export type Route = { page: Page; tab?: string; detail?: string };
 export function readRoute(): Route {
-  const [p, tab, detail] = location.hash.slice(1).split("/");
+  const hash = location.hash.slice(1);
+  const aliases: Record<string, string> = {
+    'network/wifi': 'wifi', 'network/clients': 'devices',
+    'network/mobile': 'internet/connection', 'network/signal': 'internet/signal',
+    'network/bands': 'internet/signal', 'network/apn': 'internet/connection',
+    'network/esim': 'internet/sim', 'network/sim': 'internet/sim',
+    'network/lan': 'lan/lan', 'network/dns': 'lan/dns',
+    'network/firewall': 'lan/firewall', 'network/qos': 'lan/firewall',
+    'network/tailscale': 'services/tailscale', 'network/wireguard': 'services/wireguard',
+    'network/proxy': 'services/mihomo', 'sms/inbox': 'messages/inbox',
+    'sms/compose': 'messages/compose', 'sms/forwarding': 'messages/forward',
+    'tools/battery': 'system/power', 'tools/device': 'system/update',
+    'tools/traffic': 'internet/usage', 'tools/diagnostics': 'system/diagnostics',
+    'tools/terminal': 'system/diagnostics/terminal', 'tools/speedtest': 'system/diagnostics/speedtest',
+    'settings/device': 'system/update', 'settings/appearance': 'system/screen',
+    'settings/https': 'system/screen', 'settings/connection': 'system/screen',
+  };
+  const [p, tab, detail] = (aliases[hash] || hash).split("/");
   const page = navigation.some((n) => n.id === p) ? (p as Page) : "overview";
   return { page, tab, detail };
 }

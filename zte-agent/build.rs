@@ -24,6 +24,9 @@ const THEME_JS: &str = "src/web/assets/theme.js";
 /// The official v1.0.4 release bundle (`bundles/datastar.js` at tag v1.0.4).
 const DATASTAR_SHA256: &str = "727844adfc825ee651fb93c544a2a739986f9a21820a94524b35f0cac470cf91";
 
+#[path = "build_product.rs"]
+mod product;
+
 /// Icon colours: background and bars.
 const BG: [u8; 3] = [0x0f, 0x17, 0x2a];
 const FG: [u8; 3] = [0x38, 0xbd, 0xf8];
@@ -77,6 +80,8 @@ fn main() {
     println!("cargo:rustc-env=ZTE_AGENT_BUILD_TARGET={target}");
     let dir = PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR"));
     let out = PathBuf::from(std::env::var_os("OUT_DIR").expect("OUT_DIR"));
+    println!("cargo:rerun-if-changed=build_product.rs");
+    product::build(&dir, &out);
     // The release workflow injects the public half of the offline OTA signing
     // key.  Keeping it in a generated file supports multi-line PEM without
     // leaking it through a rustc environment directive.  Development builds

@@ -12,6 +12,8 @@ use axum::{
     Router,
 };
 
+include!(concat!(env!("OUT_DIR"), "/product_assets.rs"));
+
 pub fn router() -> Router<Ctx> {
     Router::new()
         .merge(crate::proxy::panel_http::router())
@@ -24,6 +26,7 @@ pub fn router() -> Router<Ctx> {
         .route("/console", get(serve))
         .route("/console/", get(serve))
         .route("/console/a/{file}", get(serve))
+        .route("/console/assets/{file}", get(serve))
 }
 
 async fn serve(State(ctx): State<Ctx>, req: Request) -> Response {
@@ -105,6 +108,18 @@ async fn serve(State(ctx): State<Ctx>, req: Request) -> Response {
     if path == "/console/setup" && ctx.app.auth.has_password() {
         return redirect("/console/");
     }
+    if path.trim_end_matches('/') == "/console" && !ctx.app.auth.has_password() {
+        return redirect("/console/setup");
+    }
+    let product_path = if path.trim_end_matches('/') == "/console" { "/console/index.html" } else { path };
+    if let Some(asset) = PRODUCT_ASSETS.iter().find(|a| a.path == product_path) {
+        let mut reply = crate::web::assets::serve(asset, req.headers());
+        if product_path.ends_with("/index.html") {
+            reply.headers_mut().insert(CACHE_CONTROL, HeaderValue::from_static("no-cache"));
+        }
+        security_headers(&mut reply);
+        return reply;
+    }
     let Some((mime, body)) = asset(req.uri().path()) else {
         let mut reply = Response::new(Body::from("Not found"));
         *reply.status_mut() = StatusCode::NOT_FOUND;
@@ -117,8 +132,12 @@ async fn serve(State(ctx): State<Ctx>, req: Request) -> Response {
     let headers = reply.headers_mut();
     headers.insert(CONTENT_TYPE, HeaderValue::from_static(mime));
     headers.insert(CACHE_CONTROL, HeaderValue::from_static("no-store"));
-    for (name,value) in [("x-content-type-options","nosniff"),("referrer-policy","no-referrer"),("content-security-policy","default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; manifest-src 'self'")] {headers.insert(name,HeaderValue::from_static(value));}
+    security_headers(&mut reply);
     reply
+}
+
+fn security_headers(reply: &mut Response) {
+    for (name,value) in [("x-content-type-options","nosniff"),("referrer-policy","no-referrer"),("content-security-policy","default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; font-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; manifest-src 'self'")] {reply.headers_mut().insert(name,HeaderValue::from_static(value));}
 }
 
 fn redirect(to: &'static str) -> Response {
@@ -271,9 +290,6 @@ fn asset(path: &str) -> Option<(&'static str, &'static str)> {
             "text/javascript; charset=utf-8",
             include_str!("../ui/update.js"),
         )),
-        "/console" | "/console/" => {
-            Some(("text/html; charset=utf-8", include_str!("../ui/index.html")))
-        }
         "/console/a/dashboard.css" => Some((
             "text/css; charset=utf-8",
             include_str!("../ui/dashboard.css"),
@@ -413,6 +429,42 @@ mod tests {
     use axum::http::Request;
     use std::sync::Arc;
     use tower::ServiceExt;
+
+    #[tokio::test]
+    async fn product_assets_are_complete_cached_and_protected_by_host_checks() {
+        let app = Arc::new(AppState::new());
+        app.auth.set_password("fixture-only");
+        let router = crate::httpd::app(Ctx::new(app, 2));
+        let index = router.clone().oneshot(Request::builder().uri("/console/")
+            .header("host", "192.168.0.1:2026").body(Body::empty()).unwrap()).await.unwrap();
+        assert_eq!(index.headers()[CACHE_CONTROL], "no-cache");
+        let html = String::from_utf8(axum::body::to_bytes(index.into_body(), 8192).await.unwrap().to_vec()).unwrap();
+        assert!(html.contains("id=\"root\"") && html.contains("type=\"module\""));
+        for asset in PRODUCT_ASSETS.iter().filter(|a| a.path.starts_with("/console/assets/")) {
+            let response = router.clone().oneshot(Request::builder().uri(asset.path)
+                .header("host", "192.168.0.1:2026").header("accept-encoding", "gzip")
+                .body(Body::empty()).unwrap()).await.unwrap();
+            assert_eq!(response.status(), 200);
+            assert_eq!(response.headers()[CONTENT_TYPE], asset.mime);
+            assert!(response.headers()[CACHE_CONTROL].to_str().unwrap().contains("immutable"));
+            let etag = response.headers()["etag"].clone();
+            assert_eq!(response.headers().contains_key("content-encoding"), asset.gzip);
+            let cached = router.clone().oneshot(Request::builder().uri(asset.path)
+                .header("host", "192.168.0.1:2026").header("accept-encoding", "gzip")
+                .header("if-none-match", etag).body(Body::empty()).unwrap()).await.unwrap();
+            assert_eq!(cached.status(), 304);
+            let head = router.clone().oneshot(Request::builder().method("HEAD").uri(asset.path)
+                .header("host", "192.168.0.1:2026").body(Body::empty()).unwrap()).await.unwrap();
+            assert_eq!(head.status(), 200);
+            assert!(axum::body::to_bytes(head.into_body(), 0).await.unwrap().is_empty());
+            let denied = router.clone().oneshot(Request::builder().uri(asset.path)
+                .header("host", "untrusted.invalid").body(Body::empty()).unwrap()).await.unwrap();
+            assert_eq!(denied.status(), 403);
+        }
+        let missing = router.oneshot(Request::builder().uri("/console/assets/absent.js")
+            .header("host", "192.168.0.1:2026").body(Body::empty()).unwrap()).await.unwrap();
+        assert_eq!(missing.status(), 404);
+    }
 
     #[tokio::test]
     async fn console_keeps_existing_ui_and_requires_bearer_for_live_data() {
