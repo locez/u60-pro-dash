@@ -1,5 +1,5 @@
-> **u60-pro-dash fork**：自定义机身小屏与 Tailscale 子网网关。
-> [项目部署](docs/deployment.md) · [小屏预览](u60-screen/README.md) · [界面语言](docs/languages.md) · [网关说明](local-tools/tailscale-gateway/README.md) · [网络服务管理](docs/network-services.md) · [同步上游与二开流程](FORK.md)
+> **u60-pro-dash fork**：React 管理界面、Rust/Slint 机身屏幕与网络服务管理。
+> [产品界面与验收](docs/product-ui-migration.md) · [项目部署](docs/deployment.md) · [小屏预览](u60-screen/README.md) · [界面语言](docs/languages.md) · [网关说明](local-tools/tailscale-gateway/README.md) · [网络服务管理](docs/network-services.md) · [同步上游与二开流程](FORK.md)
 
 <div align="center">
 
@@ -106,9 +106,9 @@ Open `http://192.168.0.1:2026/` on the router's Wi-Fi for a dashboard, connectio
 
 ### Responsive Web Console
 
-Open **`http://192.168.0.1:2026/console/`** on the router’s network. The console is embedded in the agent binary, with no separate frontend server or cloud service. When LAN HTTPS is enabled, use `/console/` on that same HTTPS address. It uses the current agent’s rate-limited bearer sign-in, Host/Origin checks and elapsed-time session expiry; `/` opens this console, and old `/ui/` bookmarks redirect to it. HTTPS and certificate-install controls are in Settings → HTTPS & Install.
+Open **`http://192.168.0.1:2026/console/`** on the router’s network. The console is embedded in the agent binary, with no separate frontend server or cloud service. When LAN HTTPS is enabled, use `/console/` on that same HTTPS address. It uses the current agent’s rate-limited bearer sign-in, Host/Origin checks and elapsed-time session expiry; `/` opens this console, and old `/ui/` bookmarks redirect to it. HTTPS and certificate controls are in System settings → Screen & security.
 
-The five sections cover Dashboard, Network, SMS, Tools and Settings. They include LTE/NR carrier aggregation and SA/NSA, WAN IPv4/IPv6, offline statistics, Wi-Fi/mobile/APN settings, connected-device traffic and observed peaks, eSIM management, SMS actions/forwarding, operator scanning, diagnostics, LAN/DHCP, firewall, port forwarding, UPnP, DMZ and QoS. Only fields reported by the firmware are presented as measurements or limits. See the [screenshots](#new-responsive-web-ui) and [developer guide](zte-agent/docs/responsive-console.md).
+This fork's React and Tailwind interface has eight sections: Overview, Wi-Fi, Connected devices, Mobile network, SMS, Networking & services, Local network and System settings. It supports five languages and light/dark themes. Short settings apply automatically with readback; each service owns its configuration, logs and maintenance. The native screen uses Status, Connections and Manage, with configurable home metrics and shared display preferences. See the [implementation and verification record](docs/product-ui-migration.md) for scope, build instructions and limitations.
 
 ### Mobile Companion Apps
 
@@ -127,7 +127,7 @@ Native apps that connect directly over WiFi -- no computer needed.
 
 ### New responsive Web UI
 
-The Rust agent serves one responsive browser console at **`http://192.168.0.1:2026/`** (also `/console/`). Old `/ui/` bookmarks open the new console. The console has phone, tablet and desktop layouts, Light/Dark/System themes, streamed SSE updates, animated measurements and smooth page/dialog transitions. Phones keep all five main tabs available in the bottom bar, including short landscape layouts and keyboard changes.
+The captures below archive the previous browser interface and its five-tab layout. The current product interface uses the navigation described [above](#responsive-web-console); see the [approved design](design/product-ui/DESIGN.md) and [implementation record](docs/product-ui-migration.md).
 
 **Desktop · Light**
 

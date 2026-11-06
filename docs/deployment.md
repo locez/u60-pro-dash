@@ -6,7 +6,9 @@
 
 设备需要先有可用的 root ADB（或 SSH）、已配置密码并正在运行的后台，以及现有开机启动文件。脚本适配 U60 Pro/B31 的显示与启动路径；它不是原厂设备的解锁或刷机工具。首次接入后台仍使用 `setup.sh`，后续使用本页命令。
 
-电脑需要 Bash、Python 3.11+、Rust、`aarch64-unknown-linux-musl` 标准库、ARM64 交叉链接器，以及 ADB 或 SSH 客户端。脚本优先复用 `~/.local/share/u60-build/` 的工具链，也支持 `U60_BUILD_ROOT`、`CARGO`、`CARGO_HOME`、`RUSTC`、`CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER`。构建依赖与链接器说明见 [原生屏幕开发](../u60-screen/NATIVE.md)。
+电脑需要 Bash、Python 3.11+、Node.js 22.12+ 与 npm、Rust、`aarch64-unknown-linux-musl` 标准库、ARM64 交叉链接器，以及 ADB 或 SSH 客户端。脚本优先复用 `~/.local/share/u60-build/` 的工具链，也支持 `U60_BUILD_ROOT`、`CARGO`、`CARGO_HOME`、`RUSTC`、`CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER`。构建依赖与链接器说明见 [原生屏幕开发](../u60-screen/NATIVE.md)。
+
+首次构建会在 `u60-web/` 安装前端依赖并构建 React 静态页面，然后编译后台与屏幕。可先执行 `cd u60-web && npm ci && npm run build` 准备页面资源；设备无需 Node.js。
 
 在仓库根目录运行：
 
@@ -39,7 +41,7 @@ ADB 多设备环境使用 `--serial` 或 `ANDROID_SERIAL`。首次常驻部署�
 | `bash dash.sh rollback` | 切回上一组项目版本，重新执行健康观察；首次安装无上一组时用 `restore` |
 | `bash dash.sh restore` | 恢复首次部署前的后台二进制、启动文件和原厂屏幕 |
 
-构建与安装可加 `--offline`，要求 Cargo 依赖已缓存。`--artifacts /path/to/package` 可指定部署包目录。包中的两个二进制、管理脚本和 SHA-256 清单共同决定版本组 ID；不要单独替换其中一个文件。
+构建与安装可加 `--offline`，要求 Cargo 与 npm 依赖已缓存。`--artifacts /path/to/package` 可指定部署包目录。包中的两个二进制、管理脚本和 SHA-256 清单共同决定版本组 ID；不要单独替换其中一个文件。
 
 `start`、`stop`、`rollback`、`restore` 返回的是设备操作及当时状态；后台启动或回退观察可能仍在进行，可稍后再运行 `status`。`restore` 不删除项目备份，也不撤销部署后修改的 Wi-Fi、Tailscale、代理服务等业务配置。
 

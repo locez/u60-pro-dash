@@ -2,9 +2,9 @@
 
 Web 管理界面与原生机身屏幕支持简体中文（`zh-Hans`）、繁體中文（`zh-Hant`）、English（`en`）、日本語（`ja`）、한국어（`ko`）。语言资源随程序打包，运行时无需联网翻译。
 
-Web 的顶部、登录页和「设置 → 外观」提供语言选择。首次打开按浏览器语言偏好的顺序选择支持的语言，均不支持时使用英语。中文优先遵循 `Hans` / `Hant` 标记；仅有地区信息时，台湾、香港、澳门使用繁体。手动选择保存在当前浏览器。切换会重新加载当前页面；存在未保存编辑时先确认，取消会保留草稿。正在提交操作时暂不切换。浏览器禁止保存偏好时会提示失败，不假装已保存。
+Web 的顶部和登录页提供语言选择，首次打开采用浏览器支持的语言偏好。手动选择保存在当前浏览器；切换更新 React 文案，保持当前页面、读数与编辑草稿，不更改请求路径或认证头。
 
-机身入口为「设备 → 屏幕与外观 → Language / 语言」，即时生效并保存到屏幕偏好文件。默认简体中文，与 Web 独立。已有偏好文件无需迁移；未知语言值回退简体中文，保留原来的颜色、亮度和休眠设置。语言切换不影响锁屏密码。
+机身入口为「管理 → 屏幕与安全 → 屏幕与外观 → Language / 语言」，也可在 Web 的「系统设置 → 屏幕与安全」修改机身语言。机身偏好与浏览器界面语言独立，默认简体中文。已有偏好文件无需迁移；未知语言值回退简体中文，保留颜色、亮度和休眠设置。语言切换不影响锁屏密码。
 
 已有设备使用仓库根目录的 `bash dash.sh install` 更新后台和机身屏幕。语言资源与 CJK 字体随程序打包，无需额外安装语言包。
 
@@ -19,24 +19,24 @@ bash u60-screen/native.sh snapshot /tmp/u60-ko.png --language ko --page lock
 
 ## 维护翻译
 
-- `locales/web.json`：Web 文案，以原始英文为键。
+- `u60-web/src/messages.json`：当前 React 界面的文案，以原始英文为键；导航等核心文案在 `src/i18n.tsx` 中。
 - `locales/screen.json`：机身文案，以原始简体中文为键。
-- `zte-agent/ui/locales.js`：生成的浏览器资源。
 - `u60-screen/translations/*/LC_MESSAGES/u60-screen.po`：生成的 Slint 资源。
+- `locales/web.json` 与 `zte-agent/ui/locales.js`：保留的旧界面资源，不再驱动 React 页面。
 
-新增界面文案时补齐五种语言。Web 使用 `tr('Message {0}', value)`，静态 HTML 使用 `data-i18n`；Rust 使用 `i18n::tr` / `i18n::format`，Slint 使用 `@tr`。占位符参数只能作为字面值插入，不能再递归翻译；API 参数、认证头和其他协议值不能作为翻译键。业务判断使用稳定状态值，不能比较翻译后的显示文字。预览 catalog 的显示文案也需进入屏幕词表。
+新增文案补齐五种语言。React 使用 `t('Message {0}', value)`，Rust 使用 `i18n::tr` / `i18n::format`，Slint 使用 `@tr`。API 参数、认证头和用户内容不参与翻译；判断状态使用稳定值，不比较显示文字。运营商别名按语言转换，未知运营商名称保留原值。
 
 ```bash
 python3 scripts/i18n/build.py
 python3 scripts/i18n/build.py --check
-node zte-agent/ui/tests/i18n.cjs
-node zte-agent/ui/tests/i18n-browser.cjs
+(cd u60-web && npm test && npm run build)
+(cd u60-web && npx playwright install chromium && npm run test:browser)
 bash u60-screen/native.sh test
 ```
 
-生成器验证五种语言非空、占位符一致及资源未过期。浏览器测试需要 Playwright 与 Chrome，使用本地模拟 API。机身测试验证运行中切换、旧偏好兼容、锁屏、显示值与请求值分离；测试截图只使用演示数据。
+检查覆盖完整性、占位符、生产浏览器资源、会话和机身偏好。浏览器回归使用模拟接口；机身截图仅使用演示数据。日语和韩语的长说明仍建议由母语使用者继续校对。修订 JSON 后重新构建，不需要在线翻译服务。
 
-翻译目录包含机器生成初稿和人工校正。导航、主要字段与操作文案已校正，日语和韩语的长说明仍建议由母语使用者继续校对。修订译文直接编辑 JSON，再重新生成资源；程序不依赖翻译模型或生成时使用的临时工具。
+2026-11-07 的产品迁移记录见[验收文档](product-ui-migration.md)。下面保留旧版本的历史验证记录。
 
 ## 验证记录
 
