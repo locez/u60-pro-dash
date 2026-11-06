@@ -47,6 +47,7 @@ mod sms;
 mod sms_forward;
 mod speedtest;
 mod standby_guard;
+mod static_assets;
 mod stk;
 mod system;
 mod tailscale;

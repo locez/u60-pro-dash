@@ -96,7 +96,7 @@ pub fn build(agent: &Path, out: &Path) {
         "Missing browser entry"
     );
     let mut rs = format!(
-        "pub static PRODUCT_ASSETS: [crate::web::assets::Asset; {}] = [\n",
+        "pub static PRODUCT_ASSETS: [crate::static_assets::Asset; {}] = [\n",
         assets.len()
     );
     for (i, path) in assets.into_iter().enumerate() {
@@ -114,7 +114,7 @@ pub fn build(agent: &Path, out: &Path) {
         let body = if gzip { gzip_bytes(&bytes) } else { bytes };
         let name = format!("product-{i}.bin");
         write(&out.join(&name), &body);
-        writeln!(rs, "crate::web::assets::Asset {{path:{:?}, mime:{mime:?}, etag:{:?}, etag_gz:{:?}, body:include_bytes!(concat!(env!(\"OUT_DIR\"), \"/{name}\")), gzip:{gzip}}},",
+        writeln!(rs, "crate::static_assets::Asset {{path:{:?}, mime:{mime:?}, etag:{:?}, etag_gz:{:?}, body:include_bytes!(concat!(env!(\"OUT_DIR\"), \"/{name}\")), gzip:{gzip}}},",
             format!("/console/{relative}"), format!("\"{hash}\""), format!("\"{hash}-gz\"")).unwrap();
     }
     rs.push_str("];\n");

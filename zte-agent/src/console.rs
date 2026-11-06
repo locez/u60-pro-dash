@@ -113,7 +113,7 @@ async fn serve(State(ctx): State<Ctx>, req: Request) -> Response {
     }
     let product_path = if path.trim_end_matches('/') == "/console" { "/console/index.html" } else { path };
     if let Some(asset) = PRODUCT_ASSETS.iter().find(|a| a.path == product_path) {
-        let mut reply = crate::web::assets::serve(asset, req.headers());
+        let mut reply = crate::static_assets::serve(asset, req.headers());
         if product_path.ends_with("/index.html") {
             reply.headers_mut().insert(CACHE_CONTROL, HeaderValue::from_static("no-cache"));
         }
