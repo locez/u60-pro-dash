@@ -1,0 +1,658 @@
+[
+  {
+    "id": "wifi2",
+    "name": "2.4 GHz 热点",
+    "web": "wifi",
+    "tab": "热点设置",
+    "screen": "连接",
+    "section": "Wi-Fi"
+  },
+  {
+    "id": "wifi5",
+    "name": "5 GHz 热点",
+    "web": "wifi",
+    "tab": "热点设置",
+    "screen": "连接",
+    "section": "Wi-Fi"
+  },
+  {
+    "id": "guest",
+    "name": "访客网络",
+    "web": "wifi",
+    "tab": "访客网络",
+    "screen": "连接",
+    "section": "Wi-Fi"
+  },
+  {
+    "id": "clients",
+    "name": "连接设备",
+    "web": "devices",
+    "tab": "全部设备",
+    "screen": "连接",
+    "section": "连接设备"
+  },
+  {
+    "id": "lan",
+    "name": "LAN 与 DHCP",
+    "web": "lan",
+    "tab": "LAN 与 DHCP",
+    "screen": "管理",
+    "section": "高级网络"
+  },
+  {
+    "id": "mobile-data",
+    "name": "蜂窝数据",
+    "web": "internet",
+    "tab": "连接设置",
+    "screen": "连接",
+    "section": "移动网络"
+  },
+  {
+    "id": "network-mode",
+    "name": "首选网络",
+    "web": "internet",
+    "tab": "连接设置",
+    "screen": "连接",
+    "section": "移动网络"
+  },
+  {
+    "id": "operators",
+    "name": "运营商选择",
+    "web": "internet",
+    "tab": "连接设置",
+    "screen": "连接",
+    "section": "移动网络"
+  },
+  {
+    "id": "apn",
+    "name": "APN 配置",
+    "web": "internet",
+    "tab": "连接设置",
+    "screen": "连接",
+    "section": "移动网络"
+  },
+  {
+    "id": "usage",
+    "name": "流量与套餐",
+    "web": "internet",
+    "tab": "流量套餐",
+    "screen": "状态",
+    "section": "流量套餐"
+  },
+  {
+    "id": "oos",
+    "name": "无服务省电",
+    "web": "internet",
+    "tab": "连接设置",
+    "screen": "连接",
+    "section": "移动网络"
+  },
+  {
+    "id": "watchdog",
+    "name": "断网自动恢复",
+    "web": "internet",
+    "tab": "连接设置",
+    "screen": "连接",
+    "section": "移动网络"
+  },
+  {
+    "id": "signal-live",
+    "name": "实时信号",
+    "web": "internet",
+    "tab": "信号与频段",
+    "screen": "连接",
+    "section": "移动网络"
+  },
+  {
+    "id": "carriers",
+    "name": "载波聚合",
+    "web": "internet",
+    "tab": "信号与频段",
+    "screen": "连接",
+    "section": "移动网络"
+  },
+  {
+    "id": "nr-bands",
+    "name": "5G 频段偏好",
+    "web": "internet",
+    "tab": "信号与频段",
+    "screen": "连接",
+    "section": "移动网络"
+  },
+  {
+    "id": "lte-bands",
+    "name": "4G 频段偏好",
+    "web": "internet",
+    "tab": "信号与频段",
+    "screen": "连接",
+    "section": "移动网络"
+  },
+  {
+    "id": "nr-lock",
+    "name": "5G 小区锁定",
+    "web": "internet",
+    "tab": "信号与频段",
+    "screen": "连接",
+    "section": "移动网络"
+  },
+  {
+    "id": "lte-lock",
+    "name": "4G 小区锁定",
+    "web": "internet",
+    "tab": "信号与频段",
+    "screen": "连接",
+    "section": "移动网络"
+  },
+  {
+    "id": "neighbors",
+    "name": "邻区扫描",
+    "web": "internet",
+    "tab": "信号与频段",
+    "screen": "连接",
+    "section": "移动网络"
+  },
+  {
+    "id": "stc",
+    "name": "STC 小区策略",
+    "web": "internet",
+    "tab": "信号与频段",
+    "screen": "连接",
+    "section": "移动网络"
+  },
+  {
+    "id": "signal-test",
+    "name": "信号质量检测",
+    "web": "internet",
+    "tab": "信号与频段",
+    "screen": "连接",
+    "section": "移动网络"
+  },
+  {
+    "id": "wan",
+    "name": "网络接口",
+    "web": "lan",
+    "tab": "访问与转发",
+    "screen": "管理",
+    "section": "高级网络"
+  },
+  {
+    "id": "firewall",
+    "name": "防火墙",
+    "web": "lan",
+    "tab": "访问与转发",
+    "screen": "管理",
+    "section": "高级网络"
+  },
+  {
+    "id": "nat",
+    "name": "NAT 类型",
+    "web": "lan",
+    "tab": "访问与转发",
+    "screen": "管理",
+    "section": "高级网络"
+  },
+  {
+    "id": "dmz",
+    "name": "DMZ 主机",
+    "web": "lan",
+    "tab": "访问与转发",
+    "screen": "管理",
+    "section": "高级网络"
+  },
+  {
+    "id": "upnp",
+    "name": "UPnP",
+    "web": "lan",
+    "tab": "访问与转发",
+    "screen": "管理",
+    "section": "高级网络"
+  },
+  {
+    "id": "ports",
+    "name": "端口转发",
+    "web": "lan",
+    "tab": "访问与转发",
+    "screen": "管理",
+    "section": "高级网络"
+  },
+  {
+    "id": "qos",
+    "name": "QoS 流量优先级",
+    "web": "lan",
+    "tab": "访问与转发",
+    "screen": "管理",
+    "section": "高级网络"
+  },
+  {
+    "id": "vpn",
+    "name": "VPN 与 ALG 穿透",
+    "web": "lan",
+    "tab": "访问与转发",
+    "screen": "管理",
+    "section": "高级网络"
+  },
+  {
+    "id": "ttl",
+    "name": "TTL 与跳数",
+    "web": "internet",
+    "tab": "高级设置",
+    "screen": "连接",
+    "section": "移动网络"
+  },
+  {
+    "id": "domain",
+    "name": "域名过滤",
+    "web": "lan",
+    "tab": "访问与转发",
+    "screen": "管理",
+    "section": "高级网络"
+  },
+  {
+    "id": "dns-config",
+    "name": "DNS 解析",
+    "web": "lan",
+    "tab": "DNS",
+    "screen": "管理",
+    "section": "高级网络"
+  },
+  {
+    "id": "doh",
+    "name": "加密 DNS",
+    "web": "lan",
+    "tab": "DNS",
+    "screen": "管理",
+    "section": "高级网络"
+  },
+  {
+    "id": "dns-cache",
+    "name": "DNS 缓存",
+    "web": "lan",
+    "tab": "DNS",
+    "screen": "管理",
+    "section": "高级网络"
+  },
+  {
+    "id": "tailscale-service",
+    "name": "连接与登录",
+    "web": "services",
+    "tab": "Tailscale",
+    "screen": "连接",
+    "section": "Tailscale"
+  },
+  {
+    "id": "tailscale-config",
+    "name": "网络设置",
+    "web": "services",
+    "tab": "Tailscale",
+    "screen": "连接",
+    "section": "Tailscale"
+  },
+  {
+    "id": "tailscale-network",
+    "name": "连通性检测",
+    "web": "services",
+    "tab": "Tailscale",
+    "screen": "连接",
+    "section": "Tailscale"
+  },
+  {
+    "id": "tailscale-version",
+    "name": "安装与更新",
+    "web": "services",
+    "tab": "Tailscale",
+    "screen": "连接",
+    "section": "Tailscale"
+  },
+  {
+    "id": "sms-inbox",
+    "name": "收件箱",
+    "web": "messages",
+    "tab": "收件箱",
+    "screen": "管理",
+    "section": "短信"
+  },
+  {
+    "id": "sms-compose",
+    "name": "发送短信",
+    "web": "messages",
+    "tab": "收件箱",
+    "screen": "管理",
+    "section": "短信"
+  },
+  {
+    "id": "sms-storage",
+    "name": "短信存储",
+    "web": "messages",
+    "tab": "存储管理",
+    "screen": "管理",
+    "section": "短信"
+  },
+  {
+    "id": "sms-forward",
+    "name": "自动转发规则",
+    "web": "messages",
+    "tab": "转发规则",
+    "screen": "管理",
+    "section": "短信转发"
+  },
+  {
+    "id": "sms-forward-log",
+    "name": "转发记录",
+    "web": "messages",
+    "tab": "转发记录",
+    "screen": "管理",
+    "section": "短信转发"
+  },
+  {
+    "id": "sim-info",
+    "name": "SIM 卡信息",
+    "web": "internet",
+    "tab": "SIM 与 eSIM",
+    "screen": "连接",
+    "section": "SIM 卡"
+  },
+  {
+    "id": "sim-verify",
+    "name": "解锁 SIM PIN / PUK",
+    "web": "internet",
+    "tab": "SIM 与 eSIM",
+    "screen": "连接",
+    "section": "SIM 卡"
+  },
+  {
+    "id": "sim-pin",
+    "name": "SIM PIN 保护",
+    "web": "internet",
+    "tab": "SIM 与 eSIM",
+    "screen": "连接",
+    "section": "SIM 卡"
+  },
+  {
+    "id": "sim-change-pin",
+    "name": "修改 SIM PIN",
+    "web": "internet",
+    "tab": "SIM 与 eSIM",
+    "screen": "连接",
+    "section": "SIM 卡"
+  },
+  {
+    "id": "sim-network-unlock",
+    "name": "网络锁解锁",
+    "web": "internet",
+    "tab": "SIM 与 eSIM",
+    "screen": "连接",
+    "section": "SIM 卡"
+  },
+  {
+    "id": "esim-profiles",
+    "name": "eSIM 配置文件",
+    "web": "internet",
+    "tab": "SIM 与 eSIM",
+    "screen": "连接",
+    "section": "SIM 卡"
+  },
+  {
+    "id": "esim-download",
+    "name": "下载 eSIM",
+    "web": "internet",
+    "tab": "SIM 与 eSIM",
+    "screen": "连接",
+    "section": "SIM 卡"
+  },
+  {
+    "id": "esim-receipts",
+    "name": "eSIM 通知回执",
+    "web": "internet",
+    "tab": "SIM 与 eSIM",
+    "screen": "连接",
+    "section": "SIM 卡"
+  },
+  {
+    "id": "phone",
+    "name": "通话",
+    "web": "internet",
+    "tab": "运营商服务",
+    "screen": "管理",
+    "section": "运营商服务"
+  },
+  {
+    "id": "ussd",
+    "name": "USSD 服务",
+    "web": "internet",
+    "tab": "运营商服务",
+    "screen": "管理",
+    "section": "运营商服务"
+  },
+  {
+    "id": "stk",
+    "name": "SIM 工具菜单",
+    "web": "internet",
+    "tab": "运营商服务",
+    "screen": "管理",
+    "section": "运营商服务"
+  },
+  {
+    "id": "resources",
+    "name": "CPU、内存与温度",
+    "web": "system",
+    "tab": "诊断工具",
+    "screen": "管理",
+    "section": "诊断工具"
+  },
+  {
+    "id": "processes",
+    "name": "当前进程",
+    "web": "system",
+    "tab": "诊断工具",
+    "screen": "管理",
+    "section": "诊断工具"
+  },
+  {
+    "id": "speedtest",
+    "name": "互联网测速",
+    "web": "system",
+    "tab": "诊断工具",
+    "screen": "管理",
+    "section": "诊断工具"
+  },
+  {
+    "id": "lan-test",
+    "name": "局域网测速",
+    "web": "system",
+    "tab": "诊断工具",
+    "screen": "管理",
+    "section": "诊断工具"
+  },
+  {
+    "id": "at-terminal",
+    "name": "AT 终端",
+    "web": "system",
+    "tab": "诊断工具",
+    "screen": "管理",
+    "section": "诊断工具"
+  },
+  {
+    "id": "traffic",
+    "name": "流量监视",
+    "web": "overview",
+    "tab": "流量趋势",
+    "screen": "状态",
+    "section": "流量趋势"
+  },
+  {
+    "id": "history",
+    "name": "连接记录",
+    "web": "internet",
+    "tab": "连接记录",
+    "screen": "状态",
+    "section": "连接记录"
+  },
+  {
+    "id": "scheduler",
+    "name": "计划任务",
+    "web": "system",
+    "tab": "自动化",
+    "screen": "管理",
+    "section": "更多设置"
+  },
+  {
+    "id": "live-activity",
+    "name": "iPhone 实时活动",
+    "web": "system",
+    "tab": "自动化",
+    "screen": "管理",
+    "section": "更多设置"
+  },
+  {
+    "id": "battery-details",
+    "name": "电池详情",
+    "web": "system",
+    "tab": "电源与电池",
+    "screen": "管理",
+    "section": "电源与电池"
+  },
+  {
+    "id": "charge",
+    "name": "充电策略",
+    "web": "system",
+    "tab": "电源与电池",
+    "screen": "管理",
+    "section": "电源与电池"
+  },
+  {
+    "id": "power-save",
+    "name": "省电模式",
+    "web": "system",
+    "tab": "电源与电池",
+    "screen": "管理",
+    "section": "电源与电池"
+  },
+  {
+    "id": "fast-boot",
+    "name": "快速启动",
+    "web": "system",
+    "tab": "电源与电池",
+    "screen": "管理",
+    "section": "电源与电池"
+  },
+  {
+    "id": "auto-sleep",
+    "name": "自动休眠",
+    "web": "system",
+    "tab": "电源与电池",
+    "screen": "管理",
+    "section": "电源与电池"
+  },
+  {
+    "id": "usb",
+    "name": "USB 与反向供电",
+    "web": "system",
+    "tab": "电源与电池",
+    "screen": "管理",
+    "section": "电源与电池"
+  },
+  {
+    "id": "device-info",
+    "name": "设备信息",
+    "web": "system",
+    "tab": "设备与维护",
+    "screen": "管理",
+    "section": "设备设置"
+  },
+  {
+    "id": "screen-prefs",
+    "name": "屏幕与外观",
+    "web": "system",
+    "tab": "屏幕与安全",
+    "screen": "管理",
+    "section": "屏幕设置"
+  },
+  {
+    "id": "https",
+    "name": "HTTPS 与证书",
+    "web": "system",
+    "tab": "屏幕与安全",
+    "screen": "管理",
+    "section": "管理访问"
+  },
+  {
+    "id": "account",
+    "name": "后台连接",
+    "web": "system",
+    "tab": "屏幕与安全",
+    "screen": "管理",
+    "section": "管理访问"
+  },
+  {
+    "id": "reboot",
+    "name": "重启设备",
+    "web": "system",
+    "tab": "设备与维护",
+    "screen": "管理",
+    "section": "设备设置"
+  },
+  {
+    "id": "factory-reset",
+    "name": "恢复出厂设置",
+    "web": "system",
+    "tab": "设备与维护",
+    "screen": "管理",
+    "section": "设备设置"
+  },
+  {
+    "id": "backup",
+    "name": "配置备份与恢复",
+    "web": "system",
+    "tab": "更新与备份",
+    "screen": "管理",
+    "section": "配置备份"
+  },
+  {
+    "id": "wifi-share",
+    "name": "分享 Wi-Fi",
+    "web": "wifi",
+    "tab": "热点设置",
+    "screen": "连接",
+    "section": "Wi-Fi"
+  },
+  {
+    "id": "proxy-service",
+    "name": "运行与配置",
+    "web": "services",
+    "tab": "规则代理",
+    "screen": "连接",
+    "section": "代理服务"
+  },
+  {
+    "id": "proxy-groups",
+    "name": "代理组",
+    "web": "services",
+    "tab": "规则代理",
+    "screen": "连接",
+    "section": "代理服务"
+  },
+  {
+    "id": "wireguard",
+    "name": "WireGuard",
+    "web": "services",
+    "tab": "WireGuard",
+    "screen": "连接",
+    "section": "WireGuard"
+  },
+  {
+    "id": "agent-update",
+    "name": "项目更新",
+    "web": "system",
+    "tab": "更新与备份",
+    "screen": "管理",
+    "section": "系统更新"
+  },
+  {
+    "id": "screen-lock",
+    "name": "锁屏与密码",
+    "web": "system",
+    "tab": "屏幕与安全",
+    "screen": "管理",
+    "section": "锁屏与密码"
+  }
+]
