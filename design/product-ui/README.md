@@ -34,6 +34,12 @@ bash design/product-ui/preview.sh
 
 屏幕强调色可在预览旁的色板、屏幕「管理 → 屏幕与安全 → 强调色」，或 Web 的屏幕设置中调整。提供六种预设和 `#RRGGBB` 自定义色，浏览器会记住选择。重点读数、趋势线、选中导航、按钮和解锁提示使用同一强调色；文字自动保证对比度，充电与告警保留各自的状态颜色。[橙色示例](previews/product-screen-accent-orange.png)。
 
+屏幕支持浅色、深色和跟随系统，主题与强调色独立保存，覆盖详情、弹层、锁屏和 PIN 页面。可在预览旁、屏幕「管理 → 屏幕与安全 → 界面外观」或 Web 屏幕设置中切换。
+
+「首页布局」可配置是否显示信号详情、Wi-Fi 连接卡片和组网服务摘要，也可单独隐藏某项服务。三个快捷指标支持在线设备、已用／剩余流量、CPU、内存、温度、电量、运行时间或不显示；选择已有指标会交换位置。设置在预览中即时生效并保留到下次打开；隐藏摘要只影响首页展示，不停止服务。
+
+屏幕服务配置页的运行模式与流量范围可直接点击修改，显示应用影响后确认。此处仍为示例交互，真实设备的保存、重载、重启与回读验证在后续接口接入时完成。
+
 公开截图使用中性示例名称的发布预览，例如 `http://127.0.0.1:5176/?view=screen&presentation=public`；切换页面与初版风格会保留该模式。
 
 实际设备继续使用 Rust + Slint。浏览器里的屏幕原型用于审阅尺寸、信息密度和交互；它不替代设备版的字体、触摸、性能与功耗验证。
@@ -52,6 +58,8 @@ bash design/product-ui/preview.sh
 | 系统设置     | [电源与电池](previews/product-system.png)                                                                                                        |
 | 设备屏幕     | [首页](previews/product-screen-home.png) · [连接列表](previews/product-screen-connections.png) · [服务详情](previews/product-screen-tailnet.png) |
 | 屏幕关键流程 | [锁屏](previews/product-screen-lock.png) · [双频连接码](previews/product-screen-wifi.png) · [长短信底部](previews/product-screen-sms.png)        |
+
+[浅色首页](previews/product-screen-home-light.png) · [浅色锁屏](previews/product-screen-lock-light.png) · [自定义指标与隐藏服务](previews/product-screen-home-custom.png) · [首页布局设置](previews/product-screen-layout.png) · [可编辑的运行设置](previews/product-screen-runtime.png)
 
 [页面层级与实现约束](DESIGN.md) · [82 项功能归属数据](src/features.json)
 
