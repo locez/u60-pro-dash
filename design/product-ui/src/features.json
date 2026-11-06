@@ -333,7 +333,7 @@
     "web": "messages",
     "tab": "转发规则",
     "screen": "管理",
-    "section": "短信转发"
+    "section": "短信"
   },
   {
     "id": "sms-forward-log",
@@ -341,7 +341,7 @@
     "web": "messages",
     "tab": "转发记录",
     "screen": "管理",
-    "section": "短信转发"
+    "section": "短信"
   },
   {
     "id": "sim-info",
@@ -493,7 +493,7 @@
     "web": "system",
     "tab": "自动化",
     "screen": "管理",
-    "section": "更多设置"
+    "section": "设备设置"
   },
   {
     "id": "live-activity",
@@ -501,7 +501,7 @@
     "web": "system",
     "tab": "自动化",
     "screen": "管理",
-    "section": "更多设置"
+    "section": "设备设置"
   },
   {
     "id": "battery-details",
@@ -565,7 +565,7 @@
     "web": "system",
     "tab": "屏幕与安全",
     "screen": "管理",
-    "section": "屏幕设置"
+    "section": "屏幕与安全"
   },
   {
     "id": "https",
@@ -573,7 +573,7 @@
     "web": "system",
     "tab": "屏幕与安全",
     "screen": "管理",
-    "section": "管理访问"
+    "section": "屏幕与安全"
   },
   {
     "id": "account",
@@ -581,7 +581,7 @@
     "web": "system",
     "tab": "屏幕与安全",
     "screen": "管理",
-    "section": "管理访问"
+    "section": "屏幕与安全"
   },
   {
     "id": "reboot",
@@ -605,7 +605,7 @@
     "web": "system",
     "tab": "更新与备份",
     "screen": "管理",
-    "section": "配置备份"
+    "section": "设备设置"
   },
   {
     "id": "wifi-share",
@@ -645,7 +645,7 @@
     "web": "system",
     "tab": "更新与备份",
     "screen": "管理",
-    "section": "系统更新"
+    "section": "设备设置"
   },
   {
     "id": "screen-lock",
@@ -653,6 +653,6 @@
     "web": "system",
     "tab": "屏幕与安全",
     "screen": "管理",
-    "section": "锁屏与密码"
+    "section": "屏幕与安全"
   }
 ]

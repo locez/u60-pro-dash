@@ -1,91 +1,86 @@
 import { useEffect, useState } from "react";
 import {
-  ArrowLeftRight,
   Check,
   ChevronRight,
+  ListTree,
   Monitor,
   Moon,
   Smartphone,
   Sun,
   X,
 } from "lucide-react";
-import { Compact, Consumer, Professional } from "./Homepages";
-import ScreenHomes, { directions } from "./ScreenHomes";
-import { ShareModal, type Variant } from "./ui";
+import Explore from "./Explore";
+import Product, { FeatureMap } from "./Product";
+import ScreenProduct from "./ScreenProduct";
+import { ModelProvider, useModel, type Scenario } from "./model";
+import { ShareModal } from "./ui";
+import "./product.css";
+import "./screen-product.css";
 const initial = new URLSearchParams(location.search);
 export default function App() {
-  const [variant, setVariant] = useState<Variant>(
-    ["a", "b", "c"].includes(initial.get("style") || "")
-      ? (initial.get("style") as Variant)
-      : "a",
+  return initial.has("explore") ? (
+    <Explore />
+  ) : (
+    <ModelProvider>
+      <SelectedDesign />
+    </ModelProvider>
   );
-  const [view, setView] = useState(
-    initial.get("view") === "screen" ? "screen" : "web",
-  );
-  const [dark, setDark] = useState(initial.get("theme") === "dark");
-  const [share, setShare] = useState(false),
-    [toast, setToast] = useState(""),
-    [enabled, setEnabled] = useState([true, true, true]);
-  const notify = (message: string) => setToast(message);
+}
+function SelectedDesign() {
+  const m = useModel(),
+    [view, setView] = useState(
+      initial.get("view") === "screen"
+        ? "screen"
+        : initial.get("view") === "map"
+          ? "map"
+          : "web",
+    ),
+    [dark, setDark] = useState(initial.get("theme") === "dark"),
+    [shareBand, setShareBand] = useState(0);
   useEffect(() => {
     const query = new URLSearchParams({
-      style: variant,
       view,
+      page: m.route.page,
+      ...(m.route.tab ? { tab: m.route.tab } : {}),
+      ...(m.route.service !== undefined
+        ? { service: String(m.route.service) }
+        : {}),
       ...(dark ? { theme: "dark" } : {}),
     });
     history.replaceState(null, "", "?" + query.toString());
-  }, [variant, view, dark]);
+  }, [view, dark, m.route]);
   useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(""), 3600);
+    if (!m.toast) return;
+    const timer = setTimeout(() => m.notify(""), 4000);
     return () => clearTimeout(timer);
-  }, [toast]);
-  const props = {
-    variant,
-    share: () => setShare(true),
-    notify,
-    enabled,
-    toggle: (i: number) =>
-      setEnabled((v) => v.map((on, index) => (index === i ? !on : on))),
-  };
-  const Homepage =
-    variant === "a" ? Professional : variant === "b" ? Consumer : Compact;
+  }, [m.toast]);
   return (
     <div className={"design-app " + (dark ? "dark-design" : "")}>
       <div className="design-bar">
         <div className="design-brand">
-          <span className="design-dot" /> U60 <span>首页风格预览</span>
-          <span className="design-stage">01 / 设计探索</span>
+          <span className="design-dot" /> U60 <span>产品设计稿</span>
+          <span className="design-stage">02 / 页面与层级</span>
+          <a href="?explore=1">初版风格</a>
         </div>
         <div className="design-controls">
-          <div className="style-switch" aria-label="首页风格">
-            {(["a", "b", "c"] as Variant[]).map((v) => (
+          <div className="view-switch" aria-label="预览界面">
+            {(
+              [
+                ["web", "Web", Monitor],
+                ["screen", "设备屏幕", Smartphone],
+                ["map", "功能地图", ListTree],
+              ] as const
+            ).map(([id, label, Icon]) => (
               <button
-                key={v}
-                onClick={() => setVariant(v)}
-                aria-pressed={variant === v}
+                key={id}
+                aria-label={label}
+                aria-pressed={view === id}
+                onClick={() => setView(id)}
               >
-                <span>{v.toUpperCase()}</span>
-                {directions[v].name}
+                <Icon size={15} />
+                <span>{label}</span>
               </button>
             ))}
-          </div>
-          <span className="design-separator" />
-          <div className="view-switch" aria-label="预览界面">
-            <button
-              aria-pressed={view === "web"}
-              onClick={() => setView("web")}
-            >
-              <Monitor size={15} />
-              <span>Web</span>
-            </button>
-            <button
-              aria-pressed={view === "screen"}
-              onClick={() => setView("screen")}
-            >
-              <Smartphone size={15} />
-              <span>设备屏幕</span>
-            </button>
           </div>
           <button
             className="design-theme"
@@ -97,41 +92,68 @@ export default function App() {
         </div>
       </div>
       <div className="design-description">
-        <span>
-          <b>
-            {variant.toUpperCase()} / {directions[variant].name}
-          </b>
-          <span className="description-detail">
-            {directions[variant].label}
-          </span>
+        <span className="selected-pair">
+          <b>Web · 克制专业</b>
+          <span>屏幕 · 紧凑高密度</span>
         </span>
-        <span>
-          首页设计稿 <i /> 示例数据
-        </span>
+        <label className="design-scenario">
+          <span>交互原型 · 示例数据</span>
+          <select
+            value={m.scenario}
+            aria-label="预览场景"
+            onChange={(e) => m.setScenario(e.target.value as Scenario)}
+          >
+            <option value="normal">正常连接</option>
+            <option value="offline">蜂窝断网</option>
+            <option value="euicc">支持 eSIM 的卡</option>
+          </select>
+        </label>
       </div>
       <div
         id="product-preview"
-        className={"variant-" + variant}
+        className="variant-a"
         data-theme={dark ? "dark" : "light"}
       >
         {view === "web" ? (
-          <Homepage {...props} />
+          <Product />
+        ) : view === "screen" ? (
+          <ScreenProduct />
         ) : (
-          <ScreenHomes notify={notify} />
+          <FeatureMap openWeb={() => setView("web")} />
         )}
       </div>
-      {share && <ShareModal close={() => setShare(false)} />}
       <div className="design-bottom">
-        <span>先确认视觉方向，再展开完整产品与两端层级。</span>
+        <span>功能归属与关键流程评审 · 操作仅改变示例状态，未连接设备。</span>
         <span>
-          React + Tailwind <ChevronRight size={12} /> 纯本地预览
+          React + Tailwind <ChevronRight size={12} /> 本地预览
         </span>
       </div>
-      {toast && (
+      {m.share && (
+        <ShareModal
+          close={() => {
+            m.setShare(false);
+            setShareBand(0);
+          }}
+          ssid={String(
+            shareBand ? m.settings.wifi.ssid5 : m.settings.wifi.ssid,
+          )}
+          password={String(m.settings.wifi.password)}
+          unified={!!m.settings.wifi.unified}
+          alternate={
+            !m.settings.wifi.unified
+              ? {
+                  label: shareBand ? "切换到 2.4 GHz" : "切换到 5 GHz",
+                  action: () => setShareBand((s) => 1 - s),
+                }
+              : undefined
+          }
+        />
+      )}
+      {m.toast && (
         <div role="status" className="toast">
           <Check size={17} />
-          <span>{toast}</span>
-          <button aria-label="关闭提示" onClick={() => setToast("")}>
+          <span>{m.toast}</span>
+          <button aria-label="关闭提示" onClick={() => m.notify("")}>
             <X size={16} />
           </button>
         </div>
