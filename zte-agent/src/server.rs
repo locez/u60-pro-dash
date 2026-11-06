@@ -88,6 +88,8 @@ pub enum Pre {
     Reply(u16, Value),
     /// `POST /api/auth/login`: read at most `LOGIN_BODY_MAX`, needs the peer address.
     Login,
+    /// Revoke only the authenticated bearer session and its streams.
+    Logout { owner: SessionId },
     LanDownload { size: usize },
     LanUpload,
     /// Authenticated JPEG/PNG upload for the bounded eSIM QR decoder.
@@ -132,6 +134,12 @@ pub fn precheck(req: &ReqInfo, env: &PreEnv) -> Pre {
     }
     match (req.method, req.path) {
         (Method::Post, "/api/auth/login") => return Pre::Login,
+        (Method::Post, "/api/auth/logout") => {
+            return match principal {
+                Some(p) => Pre::Logout { owner: p.id },
+                None => refuse(401, "unauthorized"),
+            };
+        }
         // Answered here, without a hand-off, so the RTT measurement stays honest.
         (Method::Get, "/api/lan/ping") => {
             let (status, body) = lan_test::ping();
@@ -302,6 +310,7 @@ fn route_inner(method: &Method, path: &str, state: &AppState, body: &[u8]) -> (u
         (&Method::Get, "/api/network/rmnet") => network_ext::network_rmnet(state),
         // Device (ubus)
         (&Method::Get, "/api/device/battery-info") => network_ext::network_battery_ubus(state),
+        (&Method::Get, "/api/device/battery-details") => (200, crate::battery_details::snapshot(state)),
         (&Method::Get, "/api/device/thermal") => device_ext::device_thermal(state),
         (&Method::Get, "/api/device/charger") => device_ext::device_charger(state),
         (&Method::Get, "/api/device/system") => device_ext::device_system(state),
@@ -487,6 +496,9 @@ fn route_inner(method: &Method, path: &str, state: &AppState, body: &[u8]) -> (u
             "/api/proxy/config" | "/api/proxy/subscription" | "/api/proxy/validate" | "/api/proxy/reload" | "/api/proxy/install" | "/api/proxy/select"
         ) => proxy::change(state, path.rsplit('/').next().unwrap(), body),
         (&Method::Get, "/api/tailscale/status") => tailscale::status(state),
+        (&Method::Get, "/api/tailscale/network") => tailscale::diagnostics::network(state),
+        (&Method::Get, "/api/tailscale/logs") => tailscale::diagnostics::logs(state),
+        (&Method::Post, "/api/tailscale/probe") => tailscale::diagnostics::probe(state, body),
         // LAN HTTPS (docs/web-ui.md, "LAN HTTPS"): read-only for the apps.
         (&Method::Get, "/api/https") => state.tls.status_json(),
         (&Method::Post, path @ ("/api/https/on" | "/api/https/renew" | "/api/https/reset")) => https_change(state, path, body),

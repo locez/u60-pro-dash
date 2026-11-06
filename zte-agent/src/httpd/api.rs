@@ -72,6 +72,14 @@ pub async fn api_entry(State(ctx): State<Ctx>, req: Request) -> Response {
                     .await,
             )
         }
+        Pre::Logout { owner } => {
+            // Keep body handling bounded and enforce the same origin guard as writes.
+            if let Err(e) = read_capped(headers, body, LOGIN_BODY_MAX, ctx.body_wait).await {
+                return read_failed(headers, e).await;
+            }
+            ctx.app.auth.logout_id(owner);
+            json_reply(200, &serde_json::json!({"ok":true}))
+        }
         // LAN test: no gate (nothing blocks), its own stream limit.
         Pre::LanDownload { size } => match Arc::clone(&ctx.lan).try_acquire_owned() {
             Ok(permit) => {
@@ -556,6 +564,28 @@ mod tests {
         let r = get(&c, "/api/doh/status", peer(2, 2)).await;
         r.assert_json(503, err("agent busy, retry"));
         assert_eq!(r.header("retry-after"), Some("1"));
+    }
+
+    #[tokio::test]
+    async fn logout_revokes_only_its_bearer_and_rejects_cross_origin() {
+        let c = ctx(Some(PW));
+        let first = token(&c, 31);
+        let other = token(&c, 32);
+        let logout = |origin: Option<&str>| {
+            let mut r = req("POST", "/api/auth/logout", peer(31, 1))
+                .header("authorization", format!("Bearer {first}"));
+            if let Some(origin) = origin { r = r.header("origin", origin); }
+            r.body(Body::from("{}")).unwrap()
+        };
+        assert_eq!(send(&c, logout(Some("http://evil.example"))).await.status, 403);
+        assert!(c.app.auth.authenticate(crate::auth::Kind::Bearer, &first).is_some());
+        send(&c, logout(None)).await.assert_json(200, json!({"ok":true}));
+        assert!(c.app.auth.authenticate(crate::auth::Kind::Bearer, &first).is_none());
+        assert!(c.app.auth.authenticate(crate::auth::Kind::Bearer, &other).is_some());
+        assert_eq!(send(&c, logout(None)).await.status, 401);
+        let open = ctx(None);
+        send(&open, req("POST", "/api/auth/logout", peer(31, 2)).body(Body::from("{}")).unwrap())
+            .await.assert_json(401, err("unauthorized"));
     }
 
     #[tokio::test]

@@ -34,6 +34,40 @@ impl MihomoService {
             *self.settings.lock().unwrap() = next;
             return Ok(());
         }
+        let mode_only = previous.capture == next.capture
+            && previous.mixed_port == next.mixed_port
+            && previous.ipv6 == next.ipv6
+            && previous.tcp_concurrent == next.tcp_concurrent;
+        if mode_only && body["restart"] != true {
+            if next.mode == previous.mode {
+                return Ok(());
+            }
+            // The controller supports mode changes without replacing the process,
+            // route ownership or active connections. Persist only after readback.
+            let apply = |mode: &str| -> Result<(), String> {
+                self.controller(
+                    reqwest::Method::PATCH,
+                    "/configs",
+                    Some(json!({"mode":mode})),
+                )?;
+                let actual = self.controller(reqwest::Method::GET, "/configs", None)?;
+                if actual["mode"] != mode {
+                    return Err("The controller has not confirmed the requested mode".into());
+                }
+                Ok(())
+            };
+            if let Err(cause) = apply(&next.mode).and_then(|()| self.save(&next)) {
+                return Err(if apply(&previous.mode).is_ok() {
+                    format!(
+                        "Mode change could not be applied; the previous mode was restored. {cause}"
+                    )
+                } else {
+                    format!("Mode change could not be confirmed. Read the service state before retrying. {cause}")
+                });
+            }
+            *self.settings.lock().unwrap() = next;
+            return Ok(());
+        }
         if body["restart"] != true {
             return Err(
                 "Confirm save and restart to change runtime settings while this service is running"
@@ -137,7 +171,12 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.end_headers()
-        self.wfile.write(b'{}')
+        self.wfile.write(json.dumps({'mode': config['mode']}).encode())
+    def do_PATCH(self):
+        value = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
+        config['mode'] = value['mode']
+        self.send_response(204)
+        self.end_headers()
     def log_message(self, *args): pass
 class Server(HTTPServer): allow_reuse_address = True
 Server(('127.0.0.1', 19092), Handler).serve_forever()
@@ -147,13 +186,17 @@ Server(('127.0.0.1', 19092), Handler).serve_forever()
         .unwrap();
         service.change("enable", &json!({})).unwrap();
         let first_pid = service.runtime.lock().unwrap().child.as_ref().unwrap().id();
-        assert!(service
+        service
             .change("settings", &json!({"mode":"direct"}))
-            .is_err());
+            .unwrap();
         assert_eq!(
             service.runtime.lock().unwrap().child.as_ref().unwrap().id(),
             first_pid
         );
+        assert_eq!(service.status()["mode"], "direct");
+        assert_eq!(MihomoService::at(root.clone()).status()["mode"], "direct");
+        let ipv6 = service.settings.lock().unwrap().ipv6;
+        assert!(service.change("settings", &json!({"ipv6":!ipv6})).is_err());
         service
             .change("settings", &json!({"mode":"direct","restart":true}))
             .unwrap();

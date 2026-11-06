@@ -1,4 +1,5 @@
 pub mod config;
+pub mod diagnostics;
 mod management;
 
 pub use config::TsConfig;
