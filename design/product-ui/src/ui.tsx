@@ -22,6 +22,7 @@ import {
   Cable,
   Router,
   Plus,
+  Zap,
 } from "lucide-react";
 import { traffic, clients } from "./data";
 export type Variant = "a" | "b" | "c";
@@ -167,13 +168,21 @@ export function Rate({
     </div>
   );
 }
-export function QR({ size = 112 }: { size?: number }) {
+export function QR({
+  size = 112,
+  ssid = "U60 Studio",
+  password = "sample-pass-2026",
+}: {
+  size?: number;
+  ssid?: string;
+  password?: string;
+}) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     if (ref.current)
       QRCode.toCanvas(
         ref.current,
-        "WIFI:T:WPA;S:U60 Studio;P:sample-pass-2026;;",
+        `WIFI:T:WPA;S:${ssid.replace(/([\\;,:\"])/g, "\\$1")};P:${password.replace(/([\\;,:\"])/g, "\\$1")};;`,
         {
           width: size,
           margin: 2,
@@ -181,7 +190,7 @@ export function QR({ size = 112 }: { size?: number }) {
           errorCorrectionLevel: "M",
         },
       ).catch(() => {});
-  }, [size]);
+  }, [size, ssid, password]);
   return (
     <canvas
       ref={ref}
@@ -365,10 +374,12 @@ export function DeviceTable({
   limit = 4,
   dense = false,
   notify,
+  onOpen,
 }: {
   limit?: number;
   dense?: boolean;
   notify: Notify;
+  onOpen?: () => void;
 }) {
   return (
     <div className={"device-table " + (dense ? "dense" : "")}>
@@ -383,7 +394,9 @@ export function DeviceTable({
           className="device-row"
           key={c.name}
           onClick={() =>
-            notify(`${c.name} · ${c.ip} · ${c.band}，当前为首页风格预览`)
+            onOpen
+              ? onOpen()
+              : notify(`${c.name} · ${c.ip} · ${c.band}，当前为首页风格预览`)
           }
         >
           <span className="device-identity">
@@ -431,23 +444,41 @@ export function Usage({ compact = false }: { compact?: boolean }) {
     </div>
   );
 }
-export function Battery({ compact = false }: { compact?: boolean }) {
+export function Battery({
+  compact = false,
+  direct = false,
+}: {
+  compact?: boolean;
+  direct?: boolean;
+}) {
   return (
     <div className={"battery-detail " + (compact ? "compact" : "")}>
       <div className="battery-reading">
-        <BatteryCharging size={compact ? 24 : 30} />
+        {direct ? (
+          <Zap size={compact ? 24 : 30} />
+        ) : (
+          <BatteryCharging size={compact ? 24 : 30} />
+        )}
         <strong>
           82<small>%</small>
         </strong>
       </div>
       <div>
-        <b>正在充电</b>
+        <b>{direct ? "外部电源直供" : "正在充电"}</b>
         <p>USB-C 电源已接入</p>
       </div>
     </div>
   );
 }
-export function Topology({ compact = false }: { compact?: boolean }) {
+export function Topology({
+  compact = false,
+  offline = false,
+  wifi,
+}: {
+  compact?: boolean;
+  offline?: boolean;
+  wifi?: { ssid: string; unified: boolean; enabled: boolean };
+}) {
   return (
     <div className={"topology " + (compact ? "compact" : "")}>
       <div className="topology-node">
@@ -464,7 +495,7 @@ export function Topology({ compact = false }: { compact?: boolean }) {
       </div>
       <div className="topology-wire">
         <i />
-        <small>已联网</small>
+        <small>{offline ? "已断开" : "已联网"}</small>
       </div>
       <div className="topology-node router-node">
         <span className="node-icon">
@@ -478,7 +509,7 @@ export function Topology({ compact = false }: { compact?: boolean }) {
       </div>
       <div className="topology-wire">
         <i />
-        <small>双频合一</small>
+        <small>{wifi?.unified === false ? "双频独立" : "双频合一"}</small>
       </div>
       <div className="topology-node">
         <span className="node-icon">
@@ -486,14 +517,26 @@ export function Topology({ compact = false }: { compact?: boolean }) {
         </span>
         <div>
           <small>Wi-Fi</small>
-          <b>U60 Studio</b>
-          <span>6 台设备在线</span>
+          <b>{wifi?.ssid || "U60 Studio"}</b>
+          <span>{wifi?.enabled === false ? "热点已关闭" : "5 台无线设备"}</span>
         </div>
       </div>
     </div>
   );
 }
-export function ShareModal({ close }: { close: () => void }) {
+export function ShareModal({
+  close,
+  ssid = "U60 Studio",
+  password = "sample-pass-2026",
+  unified = true,
+  alternate,
+}: {
+  close: () => void;
+  ssid?: string;
+  password?: string;
+  unified?: boolean;
+  alternate?: { label: string; action: () => void };
+}) {
   const [visible, setVisible] = useState(false),
     [copied, setCopied] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -520,11 +563,20 @@ export function ShareModal({ close }: { close: () => void }) {
       </div>
       <h2>连接，从扫描开始</h2>
       <p>用手机相机或 WLAN 扫一扫。</p>
-      <QR size={210} />
-      <h3>U60 Studio</h3>
-      <span className="muted">2.4 GHz 与 5 GHz 共用名称和密码</span>
+      <QR size={210} ssid={ssid} password={password} />
+      <h3>{ssid}</h3>
+      {alternate && (
+        <button className="text-link" onClick={alternate.action}>
+          {alternate.label}
+        </button>
+      )}
+      <span className="muted">
+        {unified
+          ? "2.4 GHz 与 5 GHz 共用名称和密码"
+          : "此二维码对应当前选择的频段"}
+      </span>
       <div className="password-line">
-        <span>{visible ? "sample-pass-2026" : "••••••••••••••••"}</span>
+        <span>{visible ? password : "••••••••••••••••"}</span>
         <button
           className="icon-btn"
           aria-label={visible ? "隐藏密码" : "显示密码"}
@@ -537,7 +589,7 @@ export function ShareModal({ close }: { close: () => void }) {
           aria-label="复制演示密码"
           onClick={() => {
             navigator.clipboard
-              ?.writeText("sample-pass-2026")
+              ?.writeText(password)
               .then(() => setCopied(true))
               .catch(() => setCopied(false));
           }}
@@ -555,10 +607,12 @@ export function ServiceList({
   enabled,
   setEnabled,
   notify,
+  onOpen,
 }: {
   enabled: boolean[];
   setEnabled: (index: number) => void;
   notify: Notify;
+  onOpen?: (index: number) => void;
 }) {
   return (
     <div className="service-list">
@@ -592,9 +646,11 @@ export function ServiceList({
           <button
             className="service-copy"
             onClick={() =>
-              notify(
-                `${s.name} 的配置、日志与更新将在同一服务内管理；此处为首页预览`,
-              )
+              onOpen
+                ? onOpen(i)
+                : notify(
+                    `${s.name} 的配置、日志与更新将在同一服务内管理；此处为首页预览`,
+                  )
             }
           >
             <b>{s.name}</b>

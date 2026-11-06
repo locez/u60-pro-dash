@@ -29,7 +29,7 @@ import {
   Wifi,
   Zap,
 } from "lucide-react";
-import { navigation, clients } from "./data";
+import { type Page, navigation, clients } from "./data";
 import {
   ArrowLink,
   Battery,
@@ -55,6 +55,10 @@ type Props = {
   notify: Notify;
   enabled: boolean[];
   toggle: (i: number) => void;
+  navigate?: (page: Page, tab?: string, service?: number) => void;
+  offline?: boolean;
+  wifi?: { ssid: string; unified: boolean; enabled: boolean };
+  directPower?: boolean;
 };
 const later = (notify: Notify) => () =>
   notify("本轮先确认首页风格，其余页面在选定后展开设计");
@@ -160,9 +164,11 @@ function Header({
 function Heading({
   share,
   dense = false,
+  offline = false,
 }: {
   share: () => void;
   dense?: boolean;
+  offline?: boolean;
 }) {
   return (
     <div className="page-title">
@@ -171,10 +177,20 @@ function Heading({
           {dense ? "NETWORK OVERVIEW" : "你的网络，此刻"}
         </div>
         <h1>
-          {dense ? "网络概览" : "连接，一切就绪。"}
+          {offline
+            ? "移动网络连接中断。"
+            : dense
+              ? "网络概览"
+              : "连接，一切就绪。"}
           <span className="title-dot" />
         </h1>
-        {!dense && <p>互联网正常 · 已持续连接 2 天 6 小时</p>}
+        {!dense && (
+          <p>
+            {offline
+              ? "本地管理正常 · 检查移动网络连接"
+              : "互联网正常 · 已持续连接 2 天 6 小时"}
+          </p>
+        )}
       </div>
       <button className="btn primary" onClick={share}>
         <QrCode size={16} /> 分享 Wi-Fi
@@ -183,88 +199,132 @@ function Heading({
   );
 }
 export function Professional(p: Props) {
-  const [period, setPeriod] = useState("30 分钟");
   return (
     <div className="product-shell professional">
       <Sidebar variant="a" notify={p.notify} />
       <div className="product-main">
         <Header notify={p.notify} />
         <main>
-          <Heading share={p.share} />
-          <Panel className="network-panel">
-            <div className="network-panel-top">
-              <span>
-                <Globe2 size={15} /> 网络连接
-              </span>
-              <Status>所有连接正常</Status>
-            </div>
-            <Topology />
-          </Panel>
-          <div className="dashboard-grid">
-            <Panel className="bandwidth-panel">
-              <PanelTitle
-                title="实时速率"
-                note="你的连接，正在发生什么"
-                action={<Periods value={period} onChange={setPeriod} />}
-              />
-              <div className="rates">
-                <Rate />
-                <Rate up value="14.2" />
-                <span className="chart-legend">
-                  <i />
-                  下载 <i className="upload-dot" />
-                  上传
-                </span>
-              </div>
-              <TrafficChart period={period} />
-            </Panel>
-            <Panel className="usage-panel">
-              <PanelTitle
-                title="本月流量"
-                action={<ArrowLink onClick={later(p.notify)}>套餐</ArrowLink>}
-              />
-              <Usage />
-              <div className="power-divider" />
-              <Battery />
-            </Panel>
-            <Panel className="devices-panel">
-              <PanelTitle
-                title="连接设备"
-                note="6 台在线 · 5 GHz 优先连接"
-                action={
-                  <ArrowLink onClick={later(p.notify)}>全部设备</ArrowLink>
-                }
-              />
-              <DeviceTable notify={p.notify} />
-            </Panel>
-            <Panel className="services-panel">
-              <PanelTitle
-                title="组网与服务"
-                action={
-                  <span className="tiny-counter">
-                    {p.enabled.filter(Boolean).length} 个运行中
-                  </span>
-                }
-              />
-              <ServiceList
-                enabled={p.enabled}
-                setEnabled={p.toggle}
-                notify={p.notify}
-              />
-              <SectionEmptyAction notify={p.notify} />
-            </Panel>
-          </div>
-          <div className="overview-footer">
-            <span>
-              <ShieldCheck size={13} /> 设备运行正常 · CPU 12% · 39°C
-            </span>
-            <span>
-              数据已更新 <i /> 刚刚
-            </span>
-          </div>
+          <ProfessionalContent {...p} />
         </main>
       </div>
     </div>
+  );
+}
+export function ProfessionalContent(p: Props) {
+  const [period, setPeriod] = useState("30 分钟");
+  return (
+    <>
+      <Heading share={p.share} offline={p.offline} />
+      <Panel className="network-panel">
+        <div className="network-panel-top">
+          <span>
+            <Globe2 size={15} /> 网络连接
+          </span>
+          <Status muted={p.offline}>
+            {p.offline ? "本地连接正常 · 蜂窝断开" : "所有连接正常"}
+          </Status>
+        </div>
+        <Topology offline={p.offline} wifi={p.wifi} />
+      </Panel>
+      <div className="dashboard-grid">
+        <Panel className="bandwidth-panel">
+          <PanelTitle
+            title={p.offline ? "连接中断前的速率" : "实时速率"}
+            note={
+              p.offline
+                ? "当前蜂窝流量为 0，保留历史趋势"
+                : "你的连接，正在发生什么"
+            }
+            action={<Periods value={period} onChange={setPeriod} />}
+          />
+          <div className="rates">
+            <Rate value={p.offline ? "0" : "124.6"} />
+            <Rate up value={p.offline ? "0" : "14.2"} />
+            <span className="chart-legend">
+              <i />
+              下载 <i className="upload-dot" />
+              上传
+            </span>
+          </div>
+          <TrafficChart period={period} />
+        </Panel>
+        <Panel className="usage-panel">
+          <PanelTitle
+            title="本月流量"
+            action={
+              <ArrowLink
+                onClick={() =>
+                  p.navigate
+                    ? p.navigate("internet", "流量套餐")
+                    : later(p.notify)()
+                }
+              >
+                套餐
+              </ArrowLink>
+            }
+          />
+          <Usage />
+          <div className="power-divider" />
+          <Battery direct={p.directPower} />
+        </Panel>
+        <Panel className="devices-panel">
+          <PanelTitle
+            title="连接设备"
+            note="6 台在线 · 5 GHz 优先连接"
+            action={
+              <ArrowLink
+                onClick={() =>
+                  p.navigate ? p.navigate("devices") : later(p.notify)()
+                }
+              >
+                全部设备
+              </ArrowLink>
+            }
+          />
+          <DeviceTable
+            notify={p.notify}
+            onOpen={p.navigate ? () => p.navigate!("devices") : undefined}
+          />
+        </Panel>
+        <Panel className="services-panel">
+          <PanelTitle
+            title="组网与服务"
+            action={
+              <span className="tiny-counter">
+                {p.enabled.filter(Boolean).length} 个运行中
+              </span>
+            }
+          />
+          <ServiceList
+            enabled={p.enabled}
+            setEnabled={p.toggle}
+            notify={p.notify}
+            onOpen={
+              p.navigate ? (i) => p.navigate!("services", "概览", i) : undefined
+            }
+          />
+          {p.navigate ? (
+            <button
+              className="add-service"
+              onClick={() => p.navigate!("services")}
+            >
+              管理服务 <ChevronRight size={13} />
+            </button>
+          ) : (
+            <SectionEmptyAction notify={p.notify} />
+          )}
+        </Panel>
+      </div>
+      <div className="overview-footer">
+        <span>
+          <ShieldCheck size={13} /> 设备运行正常 · CPU 12% · 39°C
+        </span>
+        <span>
+          数据已更新 <i /> 刚刚
+        </span>
+      </div>
+    </>
   );
 }
 export function Consumer(p: Props) {
