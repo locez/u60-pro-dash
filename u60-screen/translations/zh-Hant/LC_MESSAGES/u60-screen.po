@@ -20,11 +20,23 @@ msgstr "U60   →   Tailscale   →   目標"
 msgid "U60 · 原生屏幕预览"
 msgstr "U60 · 原生螢幕預覽"
 
+msgid "Wi-Fi 连接卡片"
+msgstr "Wi-Fi 連線卡片"
+
+msgid "↑ 上传 / Mbps"
+msgstr "↑ 上傳 / Mbps"
+
+msgid "↓ 下载 / Mbps"
+msgstr "↓ 下載 / Mbps"
+
 msgid "−2 分钟"
 msgstr "−2 分鐘"
 
 msgid "信号强度"
 msgstr "訊號強度"
+
+msgid "信号详情"
+msgstr "訊號詳情"
 
 msgid "修改解锁密码"
 msgstr "修改解鎖密碼"
@@ -50,14 +62,14 @@ msgstr "重新整理連線狀態"
 msgid "取消"
 msgstr "取消"
 
-msgid "台设备"
-msgstr "臺裝置"
-
 msgid "后台连接 · "
 msgstr "後臺連線 · "
 
 msgid "启动与熄屏后自动锁定。开启密码后，更改或关闭密码需要先验证当前密码。"
 msgstr "啟動與熄屏後自動鎖定。開啟密碼後，更改或關閉密碼需要先驗證當前密碼。"
+
+msgid "固件未提供系统主题，沿用当前浅色或深色设置。"
+msgstr "韌體未提供系統主題，沿用目前淺色或深色設定。"
 
 msgid "处理中"
 msgstr "處理中"
@@ -80,9 +92,6 @@ msgstr "已開啟 · 6–12 位數字密碼"
 msgid "已连接"
 msgstr "已連線"
 
-msgid "应用"
-msgstr "應用"
-
 msgid "强调色"
 msgstr "強調色"
 
@@ -91,6 +100,9 @@ msgstr "當前"
 
 msgid "当前读数为演示数据。"
 msgstr "當前讀數為演示資料。"
+
+msgid "快捷指标"
+msgstr "快捷指標"
 
 msgid "换行"
 msgstr "換行"
@@ -107,11 +119,17 @@ msgstr "斷開並清除本地會話"
 msgid "明暗、配色与亮度即时生效。"
 msgstr "明暗、配色與亮度即時生效。"
 
+msgid "显示"
+msgstr "顯示"
+
 msgid "显示密码"
 msgstr "顯示密碼"
 
 msgid "暂无有效读数"
 msgstr "暫無有效讀數"
+
+msgid "服务摘要"
+msgstr "服務摘要"
 
 msgid "未开启 · 仅长按解锁"
 msgstr "未開啟 · 僅長按解鎖"
@@ -134,14 +152,14 @@ msgstr "檢視設定與操作需要密碼"
 msgid "检测目标"
 msgstr "檢測目標"
 
-msgid "概览"
-msgstr "概覽"
-
 msgid "正在积累趋势"
 msgstr "正在累積趨勢"
 
 msgid "正在读取 Wi-Fi…"
 msgstr "正在讀取 Wi-Fi…"
+
+msgid "流量套餐"
+msgstr "流量方案"
 
 msgid "浅色"
 msgstr "淺色"
@@ -158,11 +176,11 @@ msgstr "演示"
 msgid "演示运营商"
 msgstr "示範電信業者"
 
-msgid "点二维码放大"
-msgstr "點 QR 碼放大"
-
 msgid "熄屏"
 msgstr "熄屏"
+
+msgid "状态"
+msgstr "狀態"
 
 msgid "电池供电"
 msgstr "電池供電"
@@ -188,8 +206,8 @@ msgstr "空格"
 msgid "立即锁屏"
 msgstr "立即鎖屏"
 
-msgid "网络"
-msgstr "網路"
+msgid "管理"
+msgstr "管理"
 
 msgid "自动熄屏"
 msgstr "自動熄屏"
@@ -197,14 +215,14 @@ msgstr "自動熄屏"
 msgid "自定义颜色"
 msgstr "自定義顏色"
 
-msgid "设备"
-msgstr "裝置"
-
 msgid "设置目标 IP 和端口"
 msgstr "設定目標 IP 和埠"
 
 msgid "设置解锁密码"
 msgstr "設定解鎖密碼"
+
+msgid "跟随系统"
+msgstr "跟隨系統"
 
 msgid "输入 "
 msgstr "輸入 "
@@ -215,8 +233,11 @@ msgstr "輸入密碼登入"
 msgid "返回"
 msgstr "返回"
 
-msgid "连接设备"
-msgstr "連線裝置"
+msgid "连接"
+msgstr "連線"
+
+msgid "连接记录"
+msgstr "連線記錄"
 
 msgid "退格"
 msgstr "退格"
@@ -233,5 +254,14 @@ msgstr "長按解鎖"
 msgid "随身网络"
 msgstr "隨身網路"
 
+msgid "隐藏"
+msgstr "隱藏"
+
+msgid "隐藏仅影响首页显示，不会停止服务。"
+msgstr "隱藏僅影響首頁顯示，不會停止服務。"
+
 msgid "隐藏密码"
 msgstr "隱藏密碼"
+
+msgid "首页布局"
+msgstr "首頁配置"

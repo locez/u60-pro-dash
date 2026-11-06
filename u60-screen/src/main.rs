@@ -5,6 +5,7 @@ mod config;
 #[cfg(feature = "device")]
 mod device;
 mod features;
+mod home;
 mod i18n;
 mod material;
 mod platform;
@@ -334,19 +335,21 @@ mod tests {
         assert!(!app.ui.get_locked());
         tap(120., 450.);
         assert_eq!(app.ui.get_tab(), 1);
-        assert_eq!(app.ui.get_heading(), "网络");
+        assert_eq!(app.ui.get_heading(), "连接");
         platform::capture(&window, false);
         tap(140., 114.);
-        assert_eq!(app.ui.get_heading(), "Wi-Fi 与局域网");
-        assert!(app.ui.get_entries().row_count() >= 5);
-        app.open("vpn-services")?;
-        assert_eq!(
-            app.ui
-                .get_entries()
-                .iter()
-                .map(|entry| entry.id.to_string())
-                .collect::<Vec<_>>(),
-            ["tailscale", "wireguard"]
+        assert_eq!(app.ui.get_heading(), "Wi-Fi");
+        assert!(app.ui.get_entries().row_count() >= 4);
+        app.open("connect")?;
+        let connections = app
+            .ui
+            .get_entries()
+            .iter()
+            .map(|entry| entry.id.to_string())
+            .collect::<Vec<_>>();
+        assert!(
+            connections.contains(&"tailscale".into())
+                && connections.contains(&"wireguard-service".into())
         );
         app.ui.invoke_open("tailscale".into());
         assert_eq!(app.ui.get_heading(), "Tailscale");
@@ -372,11 +375,11 @@ mod tests {
             assert_eq!(app.ui.get_heading(), "Tailscale");
         }
         app.ui.invoke_back();
-        assert_eq!(app.ui.get_heading(), "VPN 与组网");
+        assert_eq!(app.ui.get_heading(), "连接");
         app.ui.invoke_open("wireguard".into());
         assert_eq!(app.ui.get_heading(), "WireGuard");
         app.ui.invoke_back();
-        assert_eq!(app.ui.get_heading(), "VPN 与组网");
+        assert_eq!(app.ui.get_heading(), "连接");
         let ids = app
             .state
             .borrow()
@@ -410,21 +413,30 @@ mod tests {
             app.ui.get_feature_fields().row_data(0).unwrap().subtitle,
             "关闭"
         );
-        app.ui.invoke_feature_action(0);
-        assert!(app.ui.get_confirm_visible());
-        assert!(app.ui.get_confirm_body().contains("关闭"));
-        app.ui.invoke_confirm_cancel();
+        assert!(
+            app.ui.get_feature_busy(),
+            "ordinary settings queue one application"
+        );
         assert!(!app.ui.get_confirm_visible());
-        assert!(!app.ui.get_feature_busy());
         // Exercise real feature rendering without a device or network writes.
         let fixture = |pairs: Vec<(&str, serde_json::Value)>| {
             pairs.into_iter().map(|(k, v)| (k.into(), Ok(v))).collect()
         };
         let save = |name: &str| -> Result<()> {
             if let Ok(dir) = std::env::var("U60_SCREEN_TEST_IMAGES") {
+                let services = app.ui.get_home_services();
+                // Public preview artifacts omit optional branded summaries.
+                let visible: Vec<_> = services
+                    .iter()
+                    .filter(|entry| entry.id != "mihomo")
+                    .collect();
+                app.ui
+                    .set_home_services(std::rc::Rc::new(slint::VecModel::from(visible)).into());
                 let dir = std::path::Path::new(&dir);
                 std::fs::create_dir_all(dir)?;
                 platform::save_png(&dir.join(name), &platform::capture(&window, false))?;
+                app.ui.set_home_services(services);
+                platform::capture(&window, false);
             }
             Ok(())
         };
@@ -490,8 +502,8 @@ mod tests {
             0,
             "a process detail must not offer cleanup of unrelated processes"
         );
-        app.open("vpn-services")?;
-        save("vpn-services.png")?;
+        app.open("connect")?;
+        save("connections.png")?;
         app.open("tailscale")?;
         save("tailscale-menu.png")?;
         app.open("overview")?;
@@ -861,7 +873,7 @@ mod tests {
         );
         save("live-tailscale-qr.png")?;
         app.feature_data_fixture("proxy-service", fixture(vec![("status",serde_json::json!({"installed":true,"version":"1.0.0","configured":true,"running":true,"capturing":true,"mode":"rule","capture":"hotspot"}))]));
-        assert_eq!(app.ui.get_feature_fields().row_count(), 0);
+        assert_eq!(app.ui.get_feature_fields().row_count(), 2);
         // Keep branded service UI out of published screenshot artifacts.
         app.feature_data_fixture("proxy-groups", fixture(vec![
             ("status",serde_json::json!({"running":true})),
@@ -962,7 +974,7 @@ mod tests {
         }
         // Actual touch targets, followed by lock/navigation and timeout checks.
         platform::capture(&window, false);
-        tap(278., 358.);
+        tap(278., 336.);
         assert!(app.ui.get_home_wifi_revealed());
         assert!(app.ui.get_home_wifi_key().starts_with("example:long"));
         save("overview-wifi-password.png")?;
@@ -1149,6 +1161,38 @@ mod tests {
         // Switching language updates authored labels immediately, while stable
         // field keys, literal SSIDs, preferences and the lock remain intact.
         app.open("screen-prefs")?;
+        app.ui.invoke_home_metric(0);
+        assert!(app.ui.get_choice_visible());
+        app.ui.invoke_choose(2); // Selecting an occupied metric swaps its slot.
+        assert_eq!(app.state.borrow().prefs.home.metric_1, "month");
+        assert_eq!(app.state.borrow().prefs.home.metric_2, "clients");
+        assert!(!app.ui.get_choice_visible());
+        app.ui.invoke_home_metric(2);
+        app.ui.invoke_choose(0); // Hidden slots do not reserve layout space.
+        assert_eq!(app.ui.get_home_metrics().row_count(), 2);
+        app.ui.invoke_home_toggle("services".into());
+        assert!(!app.ui.get_home_show_services());
+        std::thread::sleep(std::time::Duration::from_millis(600));
+        slint::platform::update_timers_and_animations();
+        let path = private.path().join("appearance.json");
+        let restored = Preferences::load(&path)?;
+        assert_eq!(restored.home.metric_1, "month");
+        assert_eq!(restored.home.metric_3, "none");
+        assert!(!restored.home.show_services);
+        // A browser patch is picked up without resetting this page or lock.
+        crate::config::shared::patch(
+            &path,
+            &serde_json::json!({
+                "home":{"show_radio":false,"metric_3":"cpu"}
+            }),
+        )
+        .unwrap();
+        std::thread::sleep(std::time::Duration::from_millis(2100));
+        slint::platform::update_timers_and_animations();
+        assert!(!app.ui.get_home_show_radio());
+        assert_eq!(app.ui.get_home_metrics().row_count(), 3);
+        assert_eq!(app.ui.get_heading(), "屏幕与外观");
+        assert!(!app.ui.get_locked());
         for (code, heading) in [
             ("en", "Screen & appearance"),
             ("zh-Hant", "螢幕與外觀"),

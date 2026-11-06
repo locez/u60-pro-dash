@@ -495,6 +495,8 @@ fn route_inner(method: &Method, path: &str, state: &AppState, body: &[u8]) -> (u
             "/api/proxy/enable" | "/api/proxy/disable" | "/api/proxy/restart" |
             "/api/proxy/config" | "/api/proxy/subscription" | "/api/proxy/validate" | "/api/proxy/reload" | "/api/proxy/install" | "/api/proxy/select"
         ) => proxy::change(state, path.rsplit('/').next().unwrap(), body),
+        (&Method::Get, "/api/screen/preferences") => crate::screen::get(),
+        (&Method::Put, "/api/screen/preferences") => crate::screen::put(body),
         (&Method::Get, "/api/tailscale/status") => tailscale::status(state),
         (&Method::Get, "/api/tailscale/network") => tailscale::diagnostics::network(state),
         (&Method::Get, "/api/tailscale/logs") => tailscale::diagnostics::logs(state),

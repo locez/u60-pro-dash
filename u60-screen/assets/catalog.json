@@ -2,63 +2,56 @@
   "groups": [
     {
       "id": "wifi",
-      "title": "Wi-Fi 与局域网",
+      "title": "Wi-Fi",
       "subtitle": "热点、访客与连接设备",
-      "root": "network-menu",
+      "root": "connect",
       "icon": "wifi"
     },
     {
       "id": "mobile",
       "title": "移动网络",
       "subtitle": "选网、APN 与流量套餐",
-      "root": "network-menu",
+      "root": "connect",
       "icon": "network"
     },
     {
       "id": "radio",
       "title": "信号与锁频",
       "subtitle": "载波、小区与无线诊断",
-      "root": "network-menu",
+      "root": "mobile",
       "icon": "network"
     },
     {
-      "id": "routing",
-      "title": "路由与防火墙",
-      "subtitle": "转发、访问规则与 QoS",
-      "root": "network-menu",
-      "icon": "network"
-    },
-    {
-      "id": "dns",
-      "title": "DNS 与隐私",
-      "subtitle": "解析、加密 DNS 与缓存",
-      "root": "network-menu",
-      "icon": "network"
-    },
-    {
-      "id": "vpn-services",
-      "title": "VPN 与组网",
-      "subtitle": "Tailscale、WireGuard 与远端网络",
-      "root": "network-menu",
-      "icon": "tailnet"
+      "id": "sim",
+      "title": "SIM 与 eSIM",
+      "subtitle": "卡片安全、套餐与配置文件",
+      "root": "connect",
+      "icon": "sim"
     },
     {
       "id": "tailscale",
       "title": "Tailscale",
       "subtitle": "连接、路由与连通性检测",
-      "root": "vpn-services",
+      "root": "connect",
+      "icon": "tailnet"
+    },
+    {
+      "id": "wireguard-service",
+      "title": "WireGuard",
+      "subtitle": "隧道与对端",
+      "root": "connect",
       "icon": "tailnet"
     },
     {
       "id": "proxy",
-      "title": "代理",
+      "title": "代理服务",
       "subtitle": "独立管理各代理服务",
-      "root": "network-menu",
+      "root": "connect",
       "icon": "network"
     },
     {
       "id": "mihomo",
-      "title": "mihomo",
+      "title": "Mihomo",
       "subtitle": "运行、配置与代理组",
       "root": "proxy",
       "icon": "network"
@@ -67,50 +60,78 @@
       "id": "sms",
       "title": "短信",
       "subtitle": "收件箱、发送与自动转发",
-      "root": "apps",
+      "root": "manage",
       "icon": "message"
     },
     {
-      "id": "sim",
-      "title": "SIM 与 eSIM",
-      "subtitle": "卡片安全、套餐与配置文件",
-      "root": "apps",
-      "icon": "sim"
+      "id": "power",
+      "title": "电源与电池",
+      "subtitle": "充电、休眠与 USB",
+      "root": "manage",
+      "icon": "power"
     },
     {
-      "id": "voice",
-      "title": "通话与卡片服务",
-      "subtitle": "拨号、USSD 与 SIM 菜单",
-      "root": "apps",
-      "icon": "phone"
+      "id": "screen-security",
+      "title": "屏幕与安全",
+      "subtitle": "外观、锁屏与管理访问",
+      "root": "manage",
+      "icon": "device"
     },
     {
       "id": "tools",
       "title": "诊断工具",
       "subtitle": "测速、进程与 AT 终端",
-      "root": "apps",
+      "root": "manage",
       "icon": "tools"
+    },
+    {
+      "id": "system",
+      "title": "设备设置",
+      "subtitle": "设备维护、更新与备份",
+      "root": "manage",
+      "icon": "device"
     },
     {
       "id": "automation",
       "title": "自动化",
       "subtitle": "计划任务与实时活动",
-      "root": "apps",
+      "root": "system",
       "icon": "clock"
     },
     {
-      "id": "power",
-      "title": "电池与电源",
-      "subtitle": "充电、休眠与 USB",
-      "root": "device-settings",
-      "icon": "power"
+      "id": "voice",
+      "title": "运营商服务",
+      "subtitle": "拨号、USSD 与 SIM 菜单",
+      "root": "manage",
+      "icon": "phone"
     },
     {
-      "id": "system",
-      "title": "系统设置",
-      "subtitle": "屏幕、HTTPS 与设备维护",
-      "root": "device-settings",
-      "icon": "device"
+      "id": "advanced-network",
+      "title": "高级网络",
+      "subtitle": "局域网、解析与访问规则",
+      "root": "manage",
+      "icon": "network"
+    },
+    {
+      "id": "routing",
+      "title": "路由与防火墙",
+      "subtitle": "转发、访问规则与 QoS",
+      "root": "advanced-network",
+      "icon": "network"
+    },
+    {
+      "id": "dns",
+      "title": "DNS 与隐私",
+      "subtitle": "解析、加密 DNS 与缓存",
+      "root": "advanced-network",
+      "icon": "network"
+    },
+    {
+      "id": "traffic-data",
+      "title": "流量套餐",
+      "subtitle": "套餐与流量趋势",
+      "root": "overview",
+      "icon": "network"
     }
   ],
   "features": [
@@ -358,7 +379,7 @@
     {
       "id": "clients",
       "title": "连接设备",
-      "group": "wifi",
+      "group": "connect",
       "description": "查看连接方式、信号与设备流量。",
       "rows": [],
       "fields": [],
@@ -449,7 +470,7 @@
     {
       "id": "lan",
       "title": "LAN 与 DHCP",
-      "group": "wifi",
+      "group": "advanced-network",
       "description": "",
       "rows": [],
       "fields": [
@@ -768,7 +789,7 @@
     {
       "id": "usage",
       "title": "流量与套餐",
-      "group": "mobile",
+      "group": "traffic-data",
       "description": "统计可能与运营商计费存在差异。",
       "rows": [
         [
@@ -1674,7 +1695,7 @@
     {
       "id": "ttl",
       "title": "TTL 与跳数",
-      "group": "routing",
+      "group": "mobile",
       "description": "用于蜂窝软件转发路径。",
       "rows": [],
       "fields": [
@@ -3032,7 +3053,7 @@
     {
       "id": "traffic",
       "title": "流量监视",
-      "group": "tools",
+      "group": "traffic-data",
       "description": "",
       "rows": [
         [
@@ -3068,7 +3089,7 @@
     {
       "id": "history",
       "title": "连接记录",
-      "group": "tools",
+      "group": "traffic-data",
       "description": "展示当前会话观察到的连接变化。",
       "rows": [],
       "fields": [],
@@ -3518,7 +3539,7 @@
     {
       "id": "screen-prefs",
       "title": "屏幕与外观",
-      "group": "system",
+      "group": "screen-security",
       "description": "明暗与配色分别调整，保存后应用到预览。",
       "rows": [],
       "fields": [
@@ -3582,7 +3603,7 @@
     {
       "id": "https",
       "title": "HTTPS 与证书",
-      "group": "system",
+      "group": "screen-security",
       "description": "证书安装在访问后台的手机或电脑上完成。",
       "rows": [
         [
@@ -3625,7 +3646,7 @@
     {
       "id": "account",
       "title": "后台连接",
-      "group": "system",
+      "group": "screen-security",
       "description": "机身屏幕将通过本机受控接口访问 agent。",
       "rows": [
         [
@@ -3745,7 +3766,7 @@
     },
     {
       "id": "proxy-service",
-      "title": "运行与配置",
+      "title": "Mihomo",
       "group": "mihomo",
       "description": "管理 mihomo 的运行模式与流量范围。",
       "apis": [
@@ -3770,7 +3791,7 @@
     {
       "id": "wireguard",
       "title": "WireGuard",
-      "group": "vpn-services",
+      "group": "wireguard-service",
       "description": "管理独立的 WireGuard 隧道。",
       "rows": [
         [
@@ -3841,7 +3862,7 @@
     {
       "id": "screen-lock",
       "title": "锁屏与密码",
-      "group": "system",
+      "group": "screen-security",
       "local": true,
       "description": "长按解锁与可选数字密码保护。",
       "rows": [],

@@ -20,11 +20,23 @@ msgstr "U60 → Tailscale → 目標"
 msgid "U60 · 原生屏幕预览"
 msgstr "U60 · 画面プレビュー"
 
+msgid "Wi-Fi 连接卡片"
+msgstr "Wi-Fi 接続カード"
+
+msgid "↑ 上传 / Mbps"
+msgstr "↑ 上り / Mbps"
+
+msgid "↓ 下载 / Mbps"
+msgstr "↓ 下り / Mbps"
+
 msgid "−2 分钟"
 msgstr "−2 分"
 
 msgid "信号强度"
 msgstr "電波強度"
+
+msgid "信号详情"
+msgstr "電波の詳細"
 
 msgid "修改解锁密码"
 msgstr "解除 PIN を変更"
@@ -50,14 +62,14 @@ msgstr "接続状態を更新する"
 msgid "取消"
 msgstr "キャンセル"
 
-msgid "台设备"
-msgstr "装置"
-
 msgid "后台连接 · "
 msgstr "管理サービス · "
 
 msgid "启动与熄屏后自动锁定。开启密码后，更改或关闭密码需要先验证当前密码。"
 msgstr "起動後,スクリーンで自動ロックします. パスワードを開いた後,変更または閉じる場合は,現在のパスワードを確認する必要があります."
+
+msgid "固件未提供系统主题，沿用当前浅色或深色设置。"
+msgstr "ファームウェアにシステムテーマがないため、現在のライトまたはダーク設定を使用します。"
 
 msgid "处理中"
 msgstr "処理中"
@@ -80,9 +92,6 @@ msgstr "有効 · 6～12桁の PIN"
 msgid "已连接"
 msgstr "接続済み"
 
-msgid "应用"
-msgstr "アプリ"
-
 msgid "强调色"
 msgstr "アクセントカラー"
 
@@ -91,6 +100,9 @@ msgstr "流動"
 
 msgid "当前读数为演示数据。"
 msgstr "これはデモデータです"
+
+msgid "快捷指标"
+msgstr "クイック指標"
 
 msgid "换行"
 msgstr "改行"
@@ -107,11 +119,17 @@ msgstr "接続を断ち,局部セッションを解除する"
 msgid "明暗、配色与亮度即时生效。"
 msgstr "テーマ・色・明るさは即時反映されます。"
 
+msgid "显示"
+msgstr "表示"
+
 msgid "显示密码"
 msgstr "パスワードを表示"
 
 msgid "暂无有效读数"
 msgstr "有効な測定値なし"
+
+msgid "服务摘要"
+msgstr "サービス概要"
 
 msgid "未开启 · 仅长按解锁"
 msgstr "未開封 - 解鎖のみ"
@@ -134,14 +152,14 @@ msgstr "設定と操作には PIN が必要"
 msgid "检测目标"
 msgstr "接続テスト先"
 
-msgid "概览"
-msgstr "概要"
-
 msgid "正在积累趋势"
 msgstr "データを収集中"
 
 msgid "正在读取 Wi-Fi…"
 msgstr "Wi-Fi を読み込み中…"
+
+msgid "流量套餐"
+msgstr "データプラン"
 
 msgid "浅色"
 msgstr "ライト"
@@ -158,11 +176,11 @@ msgstr "デモ"
 msgid "演示运营商"
 msgstr "サンプル通信事業者"
 
-msgid "点二维码放大"
-msgstr "QR をタップで拡大"
-
 msgid "熄屏"
 msgstr "画面を消灯"
+
+msgid "状态"
+msgstr "状態"
 
 msgid "电池供电"
 msgstr "バッテリー駆動"
@@ -188,8 +206,8 @@ msgstr "空白"
 msgid "立即锁屏"
 msgstr "鍵を閉じて"
 
-msgid "网络"
-msgstr "ネットワーク"
+msgid "管理"
+msgstr "管理"
 
 msgid "自动熄屏"
 msgstr "自動消灯"
@@ -197,14 +215,14 @@ msgstr "自動消灯"
 msgid "自定义颜色"
 msgstr "色を指定"
 
-msgid "设备"
-msgstr "デバイス"
-
 msgid "设置目标 IP 和端口"
 msgstr "ターゲットIPとポートを設定する"
 
 msgid "设置解锁密码"
 msgstr "解除 PIN を設定"
+
+msgid "跟随系统"
+msgstr "システム設定"
 
 msgid "输入 "
 msgstr "入力する"
@@ -215,8 +233,11 @@ msgstr "パスワードでサインインする"
 msgid "返回"
 msgstr "戻る"
 
-msgid "连接设备"
-msgstr "接続デバイス"
+msgid "连接"
+msgstr "接続"
+
+msgid "连接记录"
+msgstr "接続履歴"
 
 msgid "退格"
 msgstr "削除"
@@ -233,5 +254,14 @@ msgstr "長押しで解除"
 msgid "随身网络"
 msgstr "モバイルルーター"
 
+msgid "隐藏"
+msgstr "非表示"
+
+msgid "隐藏仅影响首页显示，不会停止服务。"
+msgstr "非表示はホームの表示だけに適用されます。サービスは停止しません。"
+
 msgid "隐藏密码"
 msgstr "パスワードを隠す"
+
+msgid "首页布局"
+msgstr "ホームのレイアウト"

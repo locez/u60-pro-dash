@@ -9,7 +9,7 @@ import "../assets/U60Hangul.ttf";
 export { Palette }
 export struct MenuEntry { id: string, title: string, subtitle: string, tag: string }
 export { Reading, Trend, TrendPlot, Meter, DataRow }
-export struct FeatureAction { id: string, label: string, enabled: bool }
+export struct FeatureAction { id: string, label: string, enabled: bool, index: int }
 export struct FeatureInput { index: int, title: string, subtitle: string, tag: string }
 
 export component Screen inherits Window {
@@ -150,6 +150,19 @@ export component Screen inherits Window {
     callback back;
     callback action(int);
     callback theme(bool);
+    callback system-theme;
+    in-out property <bool> follow-system;
+    callback home-toggle(string);
+    callback home-metric(int);
+    in-out property <bool> home-show-radio: true;
+    in-out property <bool> home-show-wifi: true;
+    in-out property <bool> home-show-services: true;
+    in-out property <bool> home-show-tailscale: true;
+    in-out property <bool> home-show-wireguard: true;
+    in-out property <bool> home-show-mihomo: true;
+    in-out property <[MenuEntry]> home-metrics;
+    in-out property <[MenuEntry]> home-services;
+    in-out property <[string]> home-metric-choices;
     callback accent(string);
     callback set-brightness(int);
     callback cycle-sleep;
@@ -184,8 +197,8 @@ export component Screen inherits Window {
             if event.text == " " { root.power(); return accept; }
             if root.locked { return accept; }
             if event.text == Key.Escape { root.back(); return accept; }
-            if event.text == Key.RightArrow { root.navigate(mod(root.tab + 1, 4)); return accept; }
-            if event.text == Key.LeftArrow { root.navigate(mod(root.tab + 3, 4)); return accept; }
+            if event.text == Key.RightArrow { root.navigate(mod(root.tab + 1, 3)); return accept; }
+            if event.text == Key.LeftArrow { root.navigate(mod(root.tab + 2, 3)); return accept; }
             return reject;
         }
         init => { self.focus(); }
@@ -198,7 +211,7 @@ export component Screen inherits Window {
             power-label: root.power-label;
         }
         Rectangle {
-            y: 28px; width: parent.width; height: 62px;
+            y: 28px; width: parent.width; height: 40px;
             HorizontalLayout {
                 padding-left: 14px; padding-right: 14px; spacing: 8px;
                 if root.can-back: Rectangle {
@@ -208,30 +221,58 @@ export component Screen inherits Window {
                 }
                 VerticalLayout {
                     padding-top: 3px; padding-bottom: 6px; spacing: 2px;
-                    Label { text: root.kicker; height: 17px; font-size: 12px; color: Palette.muted; letter-spacing: 0.5px; }
-                    Label { text: root.view == 0 ? root.carrier-label : root.heading; height: 32px; font-size: 22px; font-weight: 650; }
+
+                    Label { text: root.view == 0 ? root.carrier-label : root.heading; height: 30px; font-size: 19px; font-weight: 650; }
                 }
             }
         }
         scroll := Flickable {
-            x: 0px; y: 90px; width: 320px; height: 334px;
+            x: 0px; y: 68px; width: 320px; height: 356px;
             content-width: self.width; content-height: content.height;
             changed content-y => { root.activity(); }
             content := VerticalLayout {
                 x: 0px; y: 0px; width: scroll.width; height: max(self.min-height, self.preferred-height);
-                padding-left: 12px; padding-right: 12px; padding-top: 2px; padding-bottom: 12px; spacing: 10px;
-                if root.view == 0: TrafficPanel {
-                    compact: true;
-                    online: root.network-online; download: root.download; upload: root.upload;
-                    network-label: root.radio-label; total: root.traffic-total;
-                    interactive: true; clicked => { root.open("traffic"); }
+                padding-left: 12px; padding-right: 12px; padding-top: 2px; padding-bottom: 12px; spacing: root.view == 0 ? 8px : 10px;
+                if root.view == 0: Rectangle {
+                    height: root.home-show-radio ? 102px : 80px;
+                    Rectangle { x: 0px; y: 0px; width: parent.width; height: 1px; background: Palette.line; }
+                    HorizontalLayout {
+                        y: 16px; height: 64px; spacing: 16px;
+                        VerticalLayout {
+                            Label { text: @tr("↓ 下载 / Mbps"); font-size: 12px; color: Palette.muted; }
+                            Label { text: root.download; height: 42px; font-size: 32px; font-weight: 650; color: Palette.accent-ink; }
+                        }
+                        VerticalLayout {
+                            Label { text: @tr("↑ 上传 / Mbps"); font-size: 12px; color: Palette.muted; }
+                            Label { text: root.upload; height: 42px; font-size: 32px; font-weight: 650; }
+                        }
+                    }
+                    TouchArea { clicked => { root.open("traffic"); } }
+                    if root.home-show-radio: Rectangle {
+                        y: 82px; height: 22px;
+                        HorizontalLayout {
+                            Label { text: root.radio-label; font-size: 12px; color: Palette.muted; }
+                            Label { text: root.signal-strength + " dBm"; font-size: 12px; horizontal-alignment: right; color: Palette.muted; }
+                        }
+                        TouchArea { clicked => { root.open("signal-live"); } }
+                    }
                 }
-                if root.view == 0: HorizontalLayout {
-                    spacing: 10px;
-                    Stat { compact: true; label: @tr("信号强度"); value: root.signal-strength; unit: "dBm"; clicked => { root.open("signal-live"); } }
-                    Stat { compact: true; label: @tr("连接设备"); value: root.client-count; unit: @tr("台设备"); clicked => { root.open("clients"); } }
+                if root.view == 0 && root.home-metrics.length > 0: Rectangle {
+                    height: 56px;
+                    Rectangle { x: 0px; y: 0px; height: 1px; width: parent.width; background: Palette.line; }
+                    HorizontalLayout {
+                        y: 8px; height: 48px; spacing: 10px;
+                        for metric in root.home-metrics: Rectangle {
+                            horizontal-stretch: 1; min-width: 0px;
+                            VerticalLayout {
+                                Label { text: metric.title; height: 18px; font-size: 12px; color: Palette.muted; }
+                                Label { text: metric.subtitle; height: 28px; font-size: 19px; font-weight: 650; }
+                            }
+                            TouchArea { clicked => { root.open(metric.tag == "clients" ? "clients" : metric.tag == "month" ? "usage" : metric.tag == "battery" ? "battery-details" : "resources"); } }
+                        }
+                    }
                 }
-                if root.view == 0: WifiCard {
+                if root.view == 0 && root.home-show-wifi: WifiCard {
                     qr: root.home-wifi-qr; ready: root.home-wifi-ready;
                     ssid: root.home-wifi-name; band: root.home-wifi-band;
                     password: root.home-wifi-key; protected: root.home-wifi-protected;
@@ -241,18 +282,22 @@ export component Screen inherits Window {
                     toggle-password => { root.wifi-toggle-password(); }
                     switch-band => { root.wifi-switch-band(); }
                 }
-                if root.view == 0: GlassPanel {
-                    height: 86px;
-                    HorizontalLayout {
-                        padding: 14px; spacing: 8px;
-                        VerticalLayout {
-                            Label { text: "TAILSCALE"; height: 16px; font-size: 12px; color: Palette.muted; }
-                            Label { text: root.tailnet-status; height: 24px; font-size: 17px; font-weight: 600; color: root.tailnet-online ? Palette.good : Palette.warning; }
-                            Label { text: @tr("子网路由与连通性检测"); height: 18px; font-size: 13px; color: Palette.muted; }
-                        }
-                        Label { text: "↗"; font-size: 24px; vertical-alignment: center; color: Palette.accent-ink; width: 24px; }
+                if root.view == 0 && root.home-show-services && root.home-services.length > 0: HorizontalLayout {
+                    height: 28px; spacing: 4px;
+                    for service in root.home-services: Rectangle {
+                        horizontal-stretch: 1; min-width: 0px;
+                        Rectangle { x: 1px; y: 12px; width: 4px; height: 4px; border-radius: 2px; background: service.tag == "on" ? Palette.good : Palette.muted; }
+                        Label { x: 10px; width: parent.width - 12px; text: service.title; font-size: 12px; vertical-alignment: center; color: Palette.muted; }
+                        TouchArea { clicked => { root.open(service.id); } }
                     }
-                    TouchArea { clicked => { root.open("tailscale"); } }
+                }
+                if root.view == 0: Rectangle { height: 16px; }
+                if root.view == 0: HorizontalLayout {
+                    height: 34px; spacing: 12px;
+                    for link in [{title: @tr("流量套餐"), id: "usage"}, {title: @tr("连接记录"), id: "history"}]: Rectangle {
+                        Label { text: link.title + " ›"; font-size: 12px; color: Palette.accent-ink; vertical-alignment: center; }
+                        TouchArea { clicked => { root.open(link.id); } }
+                    }
                 }
                 if root.view == 1: VerticalLayout {
                     spacing: 8px;
@@ -286,9 +331,11 @@ export component Screen inherits Window {
                     Label { text: @tr("界面主题"); color: Palette.muted; font-size: 12px; }
                     HorizontalLayout {
                         spacing: 10px;
-                        TapButton { text: @tr("浅色"); selected: !Palette.dark; clicked => { root.theme(false); } }
-                        TapButton { text: @tr("深色"); selected: Palette.dark; clicked => { root.theme(true); } }
+                        TapButton { text: @tr("浅色"); selected: !root.follow-system && !Palette.dark; clicked => { root.theme(false); } }
+                        TapButton { text: @tr("深色"); selected: !root.follow-system && Palette.dark; clicked => { root.theme(true); } }
                     }
+                    TapButton { text: @tr("跟随系统"); selected: root.follow-system; clicked => { root.system-theme(); } }
+                    if root.follow-system: Paragraph { text: @tr("固件未提供系统主题，沿用当前浅色或深色设置。"); color: Palette.muted; font-size: 12px; }
                     Label { text: @tr("强调色"); color: Palette.muted; font-size: 12px; }
                     HorizontalLayout {
                         spacing: 5px;
@@ -306,6 +353,20 @@ export component Screen inherits Window {
                     Label { text: @tr("屏幕亮度  ") + root.brightness + "%"; color: Palette.muted; font-size: 12px; }
                     Brightness { value: root.brightness; changed(value) => { root.set-brightness(value); } }
                     MenuRow { title: @tr("自动熄屏"); subtitle: root.sleep-label; clicked => { root.cycle-sleep(); } }
+                    Label { text: @tr("首页布局"); color: Palette.muted; font-size: 12px; }
+                    for setting in [
+                        {key: "radio", title: @tr("信号详情"), enabled: root.home-show-radio},
+                        {key: "wifi", title: @tr("Wi-Fi 连接卡片"), enabled: root.home-show-wifi},
+                        {key: "services", title: @tr("服务摘要"), enabled: root.home-show-services},
+                        {key: "tailscale", title: "Tailscale", enabled: root.home-show-tailscale},
+                        {key: "wireguard", title: "WireGuard", enabled: root.home-show-wireguard},
+                        {key: "mihomo", title: "Mihomo", enabled: root.home-show-mihomo}
+                    ]: MenuRow { title: setting.title; subtitle: setting.enabled ? @tr("显示") : @tr("隐藏"); clicked => { root.home-toggle(setting.key); } }
+                    for name[index] in root.home-metric-choices: MenuRow {
+                        title: @tr("快捷指标") + " " + (index + 1); subtitle: name;
+                        clicked => { root.home-metric(index); }
+                    }
+                    Paragraph { text: @tr("隐藏仅影响首页显示，不会停止服务。"); color: Palette.muted; font-size: 12px; }
                     TapButton { text: @tr("熄屏"); clicked => { root.power(); } }
                     Label { text: @tr("明暗、配色与亮度即时生效。"); color: Palette.muted; font-size: 12px; }
                 }
@@ -389,7 +450,7 @@ export component Screen inherits Window {
                     }
                     for action[index] in root.feature-actions: TapButton {
                         text: action.label; interactive: action.enabled && !root.feature-busy;
-                        clicked => { root.feature-action(index); }
+                        clicked => { root.feature-action(action.index); }
                     }
                     if root.feature-can-refresh: TapButton { text: @tr("刷新状态"); interactive: !root.feature-refreshing; clicked => { root.feature-refresh(); } }
                     if root.trends.length > 0: Paragraph { text: @tr("本页最近 2 分钟的观察记录；断线或暂停处留空。"); font-size: 12px; color: Palette.muted; }
@@ -398,18 +459,19 @@ export component Screen inherits Window {
             }
         }
         GlassPanel {
-            x: 8px; y: 426px; height: 50px; width: parent.width - 16px;
-            translucent: true; border-radius: 17px;
+            x: 0px; y: 424px; height: 56px; width: parent.width;
+            translucent: true; border-radius: 0px;
             HorizontalLayout {
-                for name[index] in [@tr("概览"), @tr("网络"), @tr("应用"), @tr("设备")]: Rectangle {
-                    width: 76px;
+                for name[index] in [@tr("状态"), @tr("连接"), @tr("管理")]: Rectangle {
+                    horizontal-stretch: 1;
                     if root.tab == index: Rectangle {
-                        x: 5px; y: 4px; width: 66px; height: 42px; border-radius: 13px;
+                        x: 0px; y: 1px; width: parent.width; height: 55px; border-radius: 0px;
                         background: Palette.accent.with-alpha(Palette.dark ? 0.18 : 0.09);
                         border-width: 1px; border-color: Palette.accent.with-alpha(0.2);
                     }
-                    NavigationIcon { x: 28px; y: 6px; kind: index; selected: root.tab == index; }
-                    Label { x: 0px; y: 27px; width: parent.width; height: 19px; text: name; color: root.tab == index ? Palette.text : Palette.muted; font-size: root.language == "ja" ? 12px : 13px; font-weight: root.tab == index ? 650 : 500; horizontal-alignment: center; }
+                    if root.tab == index: Rectangle { x: (parent.width - 24px) / 2; y: 0px; width: 24px; height: 2px; background: Palette.accent; }
+                    NavigationIcon { x: (parent.width - 20px) / 2; y: 8px; kind: index == 2 ? 3 : index; selected: root.tab == index; }
+                    Label { x: 0px; y: 32px; width: parent.width; height: 19px; text: name; color: root.tab == index ? Palette.accent-ink : Palette.muted; font-size: root.language == "ja" ? 12px : 13px; font-weight: root.tab == index ? 650 : 500; horizontal-alignment: center; }
                     TouchArea { clicked => { root.navigate(index); } }
                 }
             }

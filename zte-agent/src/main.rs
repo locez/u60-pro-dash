@@ -11,6 +11,7 @@ mod charge_policy;
 mod conn_watchdog;
 mod client_details;
 mod console;
+mod screen;
 mod dashboard;
 mod dashboard_extra;
 mod data_usage;

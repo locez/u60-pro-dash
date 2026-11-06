@@ -20,11 +20,23 @@ msgstr "U60 → Tailscale → Goals"
 msgid "U60 · 原生屏幕预览"
 msgstr "U60 · Screen preview"
 
+msgid "Wi-Fi 连接卡片"
+msgstr "Wi-Fi connection card"
+
+msgid "↑ 上传 / Mbps"
+msgstr "↑ Upload / Mbps"
+
+msgid "↓ 下载 / Mbps"
+msgstr "↓ Download / Mbps"
+
 msgid "−2 分钟"
 msgstr "−2 min"
 
 msgid "信号强度"
 msgstr "Signal strength"
+
+msgid "信号详情"
+msgstr "Radio details"
 
 msgid "修改解锁密码"
 msgstr "Change unlock PIN"
@@ -50,14 +62,14 @@ msgstr "Refresh connection status"
 msgid "取消"
 msgstr "Cancel"
 
-msgid "台设备"
-msgstr "devices"
-
 msgid "后台连接 · "
 msgstr "Agent · "
 
 msgid "启动与熄屏后自动锁定。开启密码后，更改或关闭密码需要先验证当前密码。"
 msgstr "Activate and lock automatically after screening. After opening the password, changing or closing the password requires verification of the current password."
+
+msgid "固件未提供系统主题，沿用当前浅色或深色设置。"
+msgstr "The firmware has no system theme. The current light or dark appearance is retained."
 
 msgid "处理中"
 msgstr "Working"
@@ -80,9 +92,6 @@ msgstr "Enabled · 6–12 digit PIN"
 msgid "已连接"
 msgstr "Connected"
 
-msgid "应用"
-msgstr "Apps"
-
 msgid "强调色"
 msgstr "Accent color"
 
@@ -91,6 +100,9 @@ msgstr "Current"
 
 msgid "当前读数为演示数据。"
 msgstr "These readings are demo data."
+
+msgid "快捷指标"
+msgstr "Quick metric"
 
 msgid "换行"
 msgstr "Enter"
@@ -107,11 +119,17 @@ msgstr "Disconnect and clear local session"
 msgid "明暗、配色与亮度即时生效。"
 msgstr "Theme, color and brightness apply immediately."
 
+msgid "显示"
+msgstr "Show"
+
 msgid "显示密码"
 msgstr "Show password"
 
 msgid "暂无有效读数"
 msgstr "No valid reading"
+
+msgid "服务摘要"
+msgstr "Service summary"
 
 msgid "未开启 · 仅长按解锁"
 msgstr "Unlocked · Long only by unlocking"
@@ -134,14 +152,14 @@ msgstr "PIN required for settings"
 msgid "检测目标"
 msgstr "Test target"
 
-msgid "概览"
-msgstr "Overview"
-
 msgid "正在积累趋势"
 msgstr "Collecting samples"
 
 msgid "正在读取 Wi-Fi…"
 msgstr "Reading Wi-Fi…"
+
+msgid "流量套餐"
+msgstr "Data plan"
 
 msgid "浅色"
 msgstr "Light"
@@ -158,11 +176,11 @@ msgstr "Demo"
 msgid "演示运营商"
 msgstr "Example Mobile"
 
-msgid "点二维码放大"
-msgstr "Tap QR to enlarge"
-
 msgid "熄屏"
 msgstr "Screen off"
+
+msgid "状态"
+msgstr "Status"
 
 msgid "电池供电"
 msgstr "Battery powered"
@@ -188,8 +206,8 @@ msgstr "Space"
 msgid "立即锁屏"
 msgstr "Lock now"
 
-msgid "网络"
-msgstr "Network"
+msgid "管理"
+msgstr "Manage"
 
 msgid "自动熄屏"
 msgstr "Automatic sleep"
@@ -197,14 +215,14 @@ msgstr "Automatic sleep"
 msgid "自定义颜色"
 msgstr "Custom color"
 
-msgid "设备"
-msgstr "Device"
-
 msgid "设置目标 IP 和端口"
 msgstr "Set the target IP and port"
 
 msgid "设置解锁密码"
 msgstr "Set unlock PIN"
+
+msgid "跟随系统"
+msgstr "System theme"
 
 msgid "输入 "
 msgstr "Enter "
@@ -215,8 +233,11 @@ msgstr "Sign in with password"
 msgid "返回"
 msgstr "Back"
 
-msgid "连接设备"
-msgstr "Connected devices"
+msgid "连接"
+msgstr "Connect"
+
+msgid "连接记录"
+msgstr "Connection history"
 
 msgid "退格"
 msgstr "Backspace"
@@ -233,5 +254,14 @@ msgstr "Hold to unlock"
 msgid "随身网络"
 msgstr "Mobile hotspot"
 
+msgid "隐藏"
+msgstr "Hide"
+
+msgid "隐藏仅影响首页显示，不会停止服务。"
+msgstr "Hiding only changes the home display. Services keep running."
+
 msgid "隐藏密码"
 msgstr "Hide password"
+
+msgid "首页布局"
+msgstr "Home layout"

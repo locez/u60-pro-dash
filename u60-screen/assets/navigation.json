@@ -1,0 +1,386 @@
+{
+  "groups": [
+    {
+      "id": "wifi",
+      "title": "Wi-Fi",
+      "subtitle": "热点、访客与连接设备",
+      "root": "connect",
+      "icon": "wifi"
+    },
+    {
+      "id": "mobile",
+      "title": "移动网络",
+      "subtitle": "选网、APN 与流量套餐",
+      "root": "connect",
+      "icon": "network"
+    },
+    {
+      "id": "radio",
+      "title": "信号与锁频",
+      "subtitle": "载波、小区与无线诊断",
+      "root": "mobile",
+      "icon": "network"
+    },
+    {
+      "id": "sim",
+      "title": "SIM 与 eSIM",
+      "subtitle": "卡片安全、套餐与配置文件",
+      "root": "connect",
+      "icon": "sim"
+    },
+    {
+      "id": "tailscale",
+      "title": "Tailscale",
+      "subtitle": "连接、路由与连通性检测",
+      "root": "connect",
+      "icon": "tailnet"
+    },
+    {
+      "id": "wireguard-service",
+      "title": "WireGuard",
+      "subtitle": "隧道与对端",
+      "root": "connect",
+      "icon": "tailnet"
+    },
+    {
+      "id": "proxy",
+      "title": "代理服务",
+      "subtitle": "独立管理各代理服务",
+      "root": "connect",
+      "icon": "network"
+    },
+    {
+      "id": "mihomo",
+      "title": "Mihomo",
+      "subtitle": "运行、配置与代理组",
+      "root": "proxy",
+      "icon": "network"
+    },
+    {
+      "id": "sms",
+      "title": "短信",
+      "subtitle": "收件箱、发送与自动转发",
+      "root": "manage",
+      "icon": "message"
+    },
+    {
+      "id": "power",
+      "title": "电源与电池",
+      "subtitle": "充电、休眠与 USB",
+      "root": "manage",
+      "icon": "power"
+    },
+    {
+      "id": "screen-security",
+      "title": "屏幕与安全",
+      "subtitle": "外观、锁屏与管理访问",
+      "root": "manage",
+      "icon": "device"
+    },
+    {
+      "id": "tools",
+      "title": "诊断工具",
+      "subtitle": "测速、进程与 AT 终端",
+      "root": "manage",
+      "icon": "tools"
+    },
+    {
+      "id": "system",
+      "title": "设备设置",
+      "subtitle": "设备维护、更新与备份",
+      "root": "manage",
+      "icon": "device"
+    },
+    {
+      "id": "automation",
+      "title": "自动化",
+      "subtitle": "计划任务与实时活动",
+      "root": "system",
+      "icon": "clock"
+    },
+    {
+      "id": "voice",
+      "title": "运营商服务",
+      "subtitle": "拨号、USSD 与 SIM 菜单",
+      "root": "manage",
+      "icon": "phone"
+    },
+    {
+      "id": "advanced-network",
+      "title": "高级网络",
+      "subtitle": "局域网、解析与访问规则",
+      "root": "manage",
+      "icon": "network"
+    },
+    {
+      "id": "routing",
+      "title": "路由与防火墙",
+      "subtitle": "转发、访问规则与 QoS",
+      "root": "advanced-network",
+      "icon": "network"
+    },
+    {
+      "id": "dns",
+      "title": "DNS 与隐私",
+      "subtitle": "解析、加密 DNS 与缓存",
+      "root": "advanced-network",
+      "icon": "network"
+    },
+    {
+      "id": "traffic-data",
+      "title": "流量套餐",
+      "subtitle": "套餐与流量趋势",
+      "root": "overview",
+      "icon": "network"
+    }
+  ],
+  "features": {
+    "wifi2": {
+      "group": "wifi"
+    },
+    "wifi5": {
+      "group": "wifi"
+    },
+    "guest": {
+      "group": "wifi"
+    },
+    "clients": {
+      "group": "connect"
+    },
+    "lan": {
+      "group": "advanced-network"
+    },
+    "mobile-data": {
+      "group": "mobile"
+    },
+    "network-mode": {
+      "group": "mobile"
+    },
+    "operators": {
+      "group": "mobile"
+    },
+    "apn": {
+      "group": "mobile"
+    },
+    "usage": {
+      "group": "traffic-data"
+    },
+    "oos": {
+      "group": "mobile"
+    },
+    "watchdog": {
+      "group": "mobile"
+    },
+    "signal-live": {
+      "group": "radio"
+    },
+    "carriers": {
+      "group": "radio"
+    },
+    "nr-bands": {
+      "group": "radio"
+    },
+    "lte-bands": {
+      "group": "radio"
+    },
+    "nr-lock": {
+      "group": "radio"
+    },
+    "lte-lock": {
+      "group": "radio"
+    },
+    "neighbors": {
+      "group": "radio"
+    },
+    "stc": {
+      "group": "radio"
+    },
+    "signal-test": {
+      "group": "radio"
+    },
+    "wan": {
+      "group": "routing"
+    },
+    "firewall": {
+      "group": "routing"
+    },
+    "nat": {
+      "group": "routing"
+    },
+    "dmz": {
+      "group": "routing"
+    },
+    "upnp": {
+      "group": "routing"
+    },
+    "ports": {
+      "group": "routing"
+    },
+    "qos": {
+      "group": "routing"
+    },
+    "vpn": {
+      "group": "routing"
+    },
+    "ttl": {
+      "group": "mobile"
+    },
+    "domain": {
+      "group": "routing"
+    },
+    "dns-config": {
+      "group": "dns"
+    },
+    "doh": {
+      "group": "dns"
+    },
+    "dns-cache": {
+      "group": "dns"
+    },
+    "tailscale-service": {
+      "group": "tailscale"
+    },
+    "tailscale-config": {
+      "group": "tailscale"
+    },
+    "tailscale-network": {
+      "group": "tailscale"
+    },
+    "tailscale-version": {
+      "group": "tailscale"
+    },
+    "sms-inbox": {
+      "group": "sms"
+    },
+    "sms-compose": {
+      "group": "sms"
+    },
+    "sms-storage": {
+      "group": "sms"
+    },
+    "sms-forward": {
+      "group": "sms"
+    },
+    "sms-forward-log": {
+      "group": "sms"
+    },
+    "sim-info": {
+      "group": "sim"
+    },
+    "sim-verify": {
+      "group": "sim"
+    },
+    "sim-pin": {
+      "group": "sim"
+    },
+    "sim-change-pin": {
+      "group": "sim"
+    },
+    "sim-network-unlock": {
+      "group": "sim"
+    },
+    "esim-profiles": {
+      "group": "sim"
+    },
+    "esim-download": {
+      "group": "sim"
+    },
+    "esim-receipts": {
+      "group": "sim"
+    },
+    "phone": {
+      "group": "voice"
+    },
+    "ussd": {
+      "group": "voice"
+    },
+    "stk": {
+      "group": "voice"
+    },
+    "resources": {
+      "group": "tools"
+    },
+    "processes": {
+      "group": "tools"
+    },
+    "speedtest": {
+      "group": "tools"
+    },
+    "lan-test": {
+      "group": "tools"
+    },
+    "at-terminal": {
+      "group": "tools"
+    },
+    "traffic": {
+      "group": "traffic-data"
+    },
+    "history": {
+      "group": "traffic-data"
+    },
+    "scheduler": {
+      "group": "automation"
+    },
+    "live-activity": {
+      "group": "automation"
+    },
+    "battery-details": {
+      "group": "power"
+    },
+    "charge": {
+      "group": "power"
+    },
+    "power-save": {
+      "group": "power"
+    },
+    "fast-boot": {
+      "group": "power"
+    },
+    "auto-sleep": {
+      "group": "power"
+    },
+    "usb": {
+      "group": "power"
+    },
+    "device-info": {
+      "group": "system"
+    },
+    "screen-prefs": {
+      "group": "screen-security"
+    },
+    "https": {
+      "group": "screen-security"
+    },
+    "account": {
+      "group": "screen-security"
+    },
+    "reboot": {
+      "group": "system"
+    },
+    "factory-reset": {
+      "group": "system"
+    },
+    "backup": {
+      "group": "system"
+    },
+    "wifi-share": {
+      "group": "wifi"
+    },
+    "proxy-service": {
+      "group": "mihomo",
+      "title": "Mihomo"
+    },
+    "proxy-groups": {
+      "group": "mihomo"
+    },
+    "wireguard": {
+      "group": "wireguard-service"
+    },
+    "agent-update": {
+      "group": "system"
+    },
+    "screen-lock": {
+      "group": "screen-security"
+    }
+  }
+}

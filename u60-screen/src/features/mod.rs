@@ -1,4 +1,5 @@
 //! Native feature contracts. Browser fixtures are never request bodies.
+pub mod automatic;
 pub mod controller;
 mod demo;
 mod esim;
@@ -553,6 +554,14 @@ pub fn qr_version(value: &str) -> Option<u8> {
         .map(|qr| qr.version().value())
 }
 pub fn qr_image_version(value: &str, size: u32, min_version: u8) -> Option<slint::Image> {
+    qr_pixels(value, size, min_version, 2)
+}
+/// Dense credentials still have a fixed thumbnail; tapping opens the full
+/// two-pixel-or-larger join code. Never resize the QR column to fit text.
+pub fn qr_thumbnail(value: &str, size: u32, min_version: u8) -> Option<slint::Image> {
+    qr_pixels(value, size, min_version, 1)
+}
+fn qr_pixels(value: &str, size: u32, min_version: u8, minimum_scale: i32) -> Option<slint::Image> {
     use qrcodegen::{QrCode, QrCodeEcc, QrSegment, Version};
     if value.len() > 2048 {
         return None;
@@ -568,7 +577,7 @@ pub fn qr_image_version(value: &str, size: u32, min_version: u8) -> Option<slint
     .ok()?;
     let modules = qr.size() + 8;
     let scale = size as i32 / modules;
-    if scale < 2 {
+    if scale < minimum_scale {
         return None;
     }
     let margin = (size as i32 - modules * scale) / 2;

@@ -2,15 +2,20 @@ use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
 use std::{fs, io::Write, path::Path};
 
+#[path = "../../shared/screen_preferences.rs"]
+pub mod shared;
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(default)]
 pub struct Preferences {
     pub language: crate::i18n::Locale,
     pub dark: bool,
+    pub follow_system: bool,
     pub accent: String,
     pub brightness: u8,
     pub sleep_seconds: u16,
     pub probe_target: String,
+    pub home: shared::Home,
 }
 
 impl Default for Preferences {
@@ -18,22 +23,25 @@ impl Default for Preferences {
         Self {
             language: crate::i18n::Locale::default(),
             dark: true,
+            follow_system: false,
             accent: "#2563eb".into(),
             brightness: 70,
             sleep_seconds: 60,
             probe_target: String::new(),
+            home: shared::Home::default(),
         }
     }
 }
 
 impl Preferences {
     pub fn load(path: &Path) -> Result<Self> {
-        let prefs: Self = serde_json::from_slice(&fs::read(path)?)?;
+        let prefs: Self = serde_json::from_value(shared::read(path).map_err(anyhow::Error::msg)?)?;
         prefs.validate()?;
         Ok(prefs)
     }
 
     pub fn validate(&self) -> Result<()> {
+        shared::validate(&serde_json::to_value(self)?).map_err(anyhow::Error::msg)?;
         parse_color(&self.accent)?;
         if !self.probe_target.is_empty() {
             crate::agent::connectivity::target(&self.probe_target)?;
@@ -51,7 +59,8 @@ impl Preferences {
 
     pub fn save(&self, path: &Path) -> Result<()> {
         self.validate()?;
-        write_json_atomic(path, self)
+        shared::patch(path, &serde_json::to_value(self)?).map_err(anyhow::Error::msg)?;
+        Ok(())
     }
 }
 
@@ -99,7 +108,7 @@ pub fn parse_color(value: &str) -> Result<[u8; 3]> {
 
 pub fn readable_accent(rgb: [u8; 3], dark: bool) -> [u8; 3] {
     // The exact chosen color is kept for swatches; text gets >= 4.5:1 contrast.
-    let bg = if dark { [24, 24, 24] } else { [255, 255, 255] };
+    let bg = if dark { [39, 52, 69] } else { [255, 255, 255] };
     let mut color = rgb;
     for _ in 0..32 {
         if contrast(color, bg) >= 4.5 {
@@ -174,7 +183,7 @@ mod tests {
                 [255, 255, 0],
                 [255, 0, 255],
             ] {
-                let bg = if dark { [24, 24, 24] } else { [255, 255, 255] };
+                let bg = if dark { [39, 52, 69] } else { [255, 255, 255] };
                 assert!(contrast(readable_accent(rgb, dark), bg) >= 4.5);
                 assert!(contrast(button_ink(rgb), rgb) >= 4.5);
             }

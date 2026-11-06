@@ -20,11 +20,23 @@ msgstr "U60   →   Tailscale   →   目标"
 msgid "U60 · 原生屏幕预览"
 msgstr "U60 · 原生屏幕预览"
 
+msgid "Wi-Fi 连接卡片"
+msgstr "Wi-Fi 连接卡片"
+
+msgid "↑ 上传 / Mbps"
+msgstr "↑ 上传 / Mbps"
+
+msgid "↓ 下载 / Mbps"
+msgstr "↓ 下载 / Mbps"
+
 msgid "−2 分钟"
 msgstr "−2 分钟"
 
 msgid "信号强度"
 msgstr "信号强度"
+
+msgid "信号详情"
+msgstr "信号详情"
 
 msgid "修改解锁密码"
 msgstr "修改解锁密码"
@@ -50,14 +62,14 @@ msgstr "刷新连接状态"
 msgid "取消"
 msgstr "取消"
 
-msgid "台设备"
-msgstr "台设备"
-
 msgid "后台连接 · "
 msgstr "后台连接 · "
 
 msgid "启动与熄屏后自动锁定。开启密码后，更改或关闭密码需要先验证当前密码。"
 msgstr "启动与熄屏后自动锁定。开启密码后，更改或关闭密码需要先验证当前密码。"
+
+msgid "固件未提供系统主题，沿用当前浅色或深色设置。"
+msgstr "固件未提供系统主题，沿用当前浅色或深色设置。"
 
 msgid "处理中"
 msgstr "处理中"
@@ -80,9 +92,6 @@ msgstr "已开启 · 6–12 位数字密码"
 msgid "已连接"
 msgstr "已连接"
 
-msgid "应用"
-msgstr "应用"
-
 msgid "强调色"
 msgstr "强调色"
 
@@ -91,6 +100,9 @@ msgstr "当前"
 
 msgid "当前读数为演示数据。"
 msgstr "当前读数为演示数据。"
+
+msgid "快捷指标"
+msgstr "快捷指标"
 
 msgid "换行"
 msgstr "换行"
@@ -107,11 +119,17 @@ msgstr "断开并清除本地会话"
 msgid "明暗、配色与亮度即时生效。"
 msgstr "明暗、配色与亮度即时生效。"
 
+msgid "显示"
+msgstr "显示"
+
 msgid "显示密码"
 msgstr "显示密码"
 
 msgid "暂无有效读数"
 msgstr "暂无有效读数"
+
+msgid "服务摘要"
+msgstr "服务摘要"
 
 msgid "未开启 · 仅长按解锁"
 msgstr "未开启 · 仅长按解锁"
@@ -134,14 +152,14 @@ msgstr "查看设置与操作需要密码"
 msgid "检测目标"
 msgstr "检测目标"
 
-msgid "概览"
-msgstr "概览"
-
 msgid "正在积累趋势"
 msgstr "正在积累趋势"
 
 msgid "正在读取 Wi-Fi…"
 msgstr "正在读取 Wi-Fi…"
+
+msgid "流量套餐"
+msgstr "流量套餐"
 
 msgid "浅色"
 msgstr "浅色"
@@ -158,11 +176,11 @@ msgstr "演示"
 msgid "演示运营商"
 msgstr "演示运营商"
 
-msgid "点二维码放大"
-msgstr "点二维码放大"
-
 msgid "熄屏"
 msgstr "熄屏"
+
+msgid "状态"
+msgstr "状态"
 
 msgid "电池供电"
 msgstr "电池供电"
@@ -188,8 +206,8 @@ msgstr "空格"
 msgid "立即锁屏"
 msgstr "立即锁屏"
 
-msgid "网络"
-msgstr "网络"
+msgid "管理"
+msgstr "管理"
 
 msgid "自动熄屏"
 msgstr "自动熄屏"
@@ -197,14 +215,14 @@ msgstr "自动熄屏"
 msgid "自定义颜色"
 msgstr "自定义颜色"
 
-msgid "设备"
-msgstr "设备"
-
 msgid "设置目标 IP 和端口"
 msgstr "设置目标 IP 和端口"
 
 msgid "设置解锁密码"
 msgstr "设置解锁密码"
+
+msgid "跟随系统"
+msgstr "跟随系统"
 
 msgid "输入 "
 msgstr "输入 "
@@ -215,8 +233,11 @@ msgstr "输入密码登录"
 msgid "返回"
 msgstr "返回"
 
-msgid "连接设备"
-msgstr "连接设备"
+msgid "连接"
+msgstr "连接"
+
+msgid "连接记录"
+msgstr "连接记录"
 
 msgid "退格"
 msgstr "退格"
@@ -233,5 +254,14 @@ msgstr "长按解锁"
 msgid "随身网络"
 msgstr "随身网络"
 
+msgid "隐藏"
+msgstr "隐藏"
+
+msgid "隐藏仅影响首页显示，不会停止服务。"
+msgstr "隐藏仅影响首页显示，不会停止服务。"
+
 msgid "隐藏密码"
 msgstr "隐藏密码"
+
+msgid "首页布局"
+msgstr "首页布局"

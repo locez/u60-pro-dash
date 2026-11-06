@@ -2,15 +2,14 @@ export global Palette {
     in-out property <bool> dark: true;
     in-out property <color> accent: #2563eb;
     in-out property <color> accent-ink: #87aeff;
-    // These neutral grays also stay neutral after RGB565 quantization.
-    out property <color> bg: dark ? #101010 : #efefef;
-    out property <color> surface: dark ? #181818 : #ffffff;
+    out property <color> bg: dark ? #202a37 : #f4f6fa;
+    out property <color> surface: dark ? #273445 : #ffffff;
     out property <color> text: dark ? #eef0f4 : #1b2028;
-    out property <color> muted: dark ? #bec3cc : #4b525e;
-    out property <color> line: dark ? #303030 : #dedfde;
+    out property <color> muted: dark ? #b4bfce : #546477;
+    out property <color> line: dark ? #3b4757 : #dbe2ec;
     out property <color> rim: dark ? #ffffff18 : #1b202814;
     out property <color> sheen: dark ? #ffffff45 : #ffffff;
-    out property <color> glass: dark ? #181818f8 : #fffffff8;
+    out property <color> glass: dark ? #273445f2 : #fffffff2;
     in-out property <image> material-light;
     in-out property <image> material-dark;
     in-out property <color> accent-on: #ffffff;
@@ -44,12 +43,12 @@ export component NavigationIcon inherits Path {
     in property <bool> selected;
     width: 20px; height: 20px;
     viewbox-width: 24; viewbox-height: 24;
-    stroke: root.selected ? Palette.text : Palette.muted;
+    stroke: root.selected ? Palette.accent-ink : Palette.muted;
     stroke-width: 1.7px; stroke-line-cap: round; stroke-line-join: round;
     commands: root.kind == 0
         ? "M 3 3 H 10 V 10 H 3 Z M 14 3 H 21 V 10 H 14 Z M 3 14 H 10 V 21 H 3 Z M 14 14 H 21 V 21 H 14 Z"
         : root.kind == 1
-        ? "M 2 8 Q 12 -1 22 8 M 5 12 Q 12 5.5 19 12 M 8 16 Q 12 12 16 16 M 12 20 h 0.1"
+        ? "M 9 2 H 15 V 8 H 9 Z M 4 16 H 10 V 22 H 4 Z M 14 16 H 20 V 22 H 14 Z M 12 8 V 12 M 7 16 V 12 H 17 V 16"
         : root.kind == 2
         ? "M 12 2 L 22 8 L 12 14 L 2 8 Z M 2 13 L 12 19 L 22 13 M 2 18 L 12 24 L 22 18"
         : "M 5 2 V 6 M 5 12 V 22 M 12 2 V 13 M 12 19 V 22 M 19 2 V 6 M 19 12 V 22 M 2 6 H 8 V 12 H 2 Z M 9 13 H 15 V 19 H 9 Z M 16 6 H 22 V 12 H 16 Z";

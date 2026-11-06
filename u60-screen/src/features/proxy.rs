@@ -21,7 +21,7 @@ pub fn page(id: &str, readings: &Data) -> Page {
     }
     let running = d["running"] == true;
     if id == "proxy-service" {
-        p.row(crate::i18n::tr("代理内核"), &json!("mihomo"));
+        p.row(crate::i18n::tr("代理内核"), &json!("Mihomo"));
         p.row(
             crate::i18n::tr("内核版本"),
             &if d["installed"] == true {
@@ -56,45 +56,25 @@ pub fn page(id: &str, readings: &Data) -> Page {
         if !d["last_error"].is_null() {
             p.row(crate::i18n::tr("运行提示"), &d["last_error"]);
         }
-        if running {
-            p.row(
-                crate::i18n::tr("运行模式"),
-                &json!(match d["mode"].as_str() {
-                    Some("rule") => crate::i18n::tr("规则模式"),
-                    Some("global") => crate::i18n::tr("全局模式"),
-                    Some("direct") => crate::i18n::tr("直连模式"),
-                    _ => crate::i18n::tr("未提供"),
-                }),
-            );
-            p.row(
-                crate::i18n::tr("流量范围"),
-                &json!(if d["capture"] == "hotspot" {
-                    crate::i18n::tr("Wi-Fi 热点设备")
-                } else {
-                    crate::i18n::tr("仅本机应用")
-                }),
-            );
-        } else {
-            p.fields.push(Field::choice(
-                "mode",
-                crate::i18n::tr("运行模式"),
-                &d["mode"],
-                &[
-                    ("rule", crate::i18n::tr("规则模式")),
-                    ("global", crate::i18n::tr("全局模式")),
-                    ("direct", crate::i18n::tr("直连模式")),
-                ],
-            ));
-            p.fields.push(Field::choice(
-                "capture",
-                crate::i18n::tr("流量范围"),
-                &d["capture"],
-                &[
-                    ("local", crate::i18n::tr("仅本机应用")),
-                    ("hotspot", crate::i18n::tr("Wi-Fi 热点设备")),
-                ],
-            ));
-        }
+        p.fields.push(Field::choice(
+            "mode",
+            crate::i18n::tr("运行模式"),
+            &d["mode"],
+            &[
+                ("rule", crate::i18n::tr("规则模式")),
+                ("global", crate::i18n::tr("全局模式")),
+                ("direct", crate::i18n::tr("直连模式")),
+            ],
+        ));
+        p.fields.push(Field::choice(
+            "capture",
+            crate::i18n::tr("流量范围"),
+            &d["capture"],
+            &[
+                ("local", crate::i18n::tr("仅本机应用")),
+                ("hotspot", crate::i18n::tr("Wi-Fi 热点设备")),
+            ],
+        ));
         for (action, label, warning, enabled) in [
             (
                 "enable",
@@ -124,18 +104,15 @@ pub fn page(id: &str, readings: &Data) -> Page {
                 "settings",
                 crate::i18n::tr("保存运行模式"),
                 crate::i18n::tr("保存下次启动使用的策略和流量范围。"),
-                !running && !d.is_null(),
+                !d.is_null(),
             ),
         ] {
             let mut a = Action::new(action, label, warning);
             a.enabled = enabled;
             p.actions.push(a);
         }
-        for f in &mut p.fields {
-            f.available &= !running;
-        }
         p.note = crate::i18n::tr(
-            "Web：网络 → 代理 → mihomo。编辑 YAML、DNS 与订阅请在 Web 完成；各代理服务独立运行。",
+            "Web：组网与服务 → Mihomo。长配置与订阅可在 Web 编辑；各服务独立运行。",
         )
         .into();
     } else {
@@ -205,17 +182,12 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
             crate::i18n::tr("操作不存在。")
         );
         if action == "settings" {
-            ensure!(
-                d["running"] != true,
-                "{}",
-                crate::i18n::tr("请先停止服务。")
-            );
             ensure!(p.dirty(), "{}", crate::i18n::tr("没有需要保存的更改。"));
-            Plan::one(
-                Method::PUT,
-                "/api/proxy/mihomo/settings",
-                p.changed(&["mode", "capture"])?,
-            )
+            let mut body = p.changed(&["mode", "capture"])?;
+            if d["running"] == true && p.field("capture").is_ok_and(Field::dirty) {
+                body["restart"] = json!(true);
+            }
+            Plan::one(Method::PUT, "/api/proxy/mihomo/settings", body)
         } else {
             if action == "reload" {
                 ensure!(
@@ -312,18 +284,24 @@ mod tests {
         assert!(plan("proxy-groups", "select", &p, &d).is_err());
     }
     #[test]
-    fn active_policy_is_not_editable() {
+    fn active_mode_is_hot_and_scope_requests_a_restart() {
         let d = Data::from([(
             "status".into(),
-            Ok(json!({"running":true,"mode":"rule","capture":"hotspot"})),
+            Ok(json!({"running":true,"mode":"rule","capture":"local"})),
         )]);
-        let p = page("proxy-service", &d);
-        assert!(p.fields.is_empty());
-        assert!(
-            p.rows
-                .iter()
-                .any(|(label, value)| label == "运行模式" && value == "规则模式")
+        let mut p = page("proxy-service", &d);
+        assert_eq!(p.fields.len(), 2);
+        p.fields[0].value = "direct".into();
+        let hot = plan("proxy-service", "settings", &p, &d).unwrap();
+        assert_eq!(
+            hot.requests[0].body.as_ref().unwrap(),
+            &json!({"mode":"direct"})
         );
-        assert!(plan("proxy-service", "settings", &p, &d).is_err());
+        p.fields[1].value = "hotspot".into();
+        let restart = plan("proxy-service", "settings", &p, &d).unwrap();
+        assert_eq!(restart.requests[0].body.as_ref().unwrap()["restart"], true);
+        assert!(
+            !restart.guards[0].matches(&json!({"running":false,"mode":"rule","capture":"local"}))
+        );
     }
 }

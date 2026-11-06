@@ -11380,5 +11380,236 @@
     "en": "View running processes and their CPU and memory use.",
     "ja": "実行中のプロセスと CPU・メモリ使用量を確認します。",
     "ko": "실행 중인 프로세스와 CPU 및 메모리 사용량을 확인합니다."
+  },
+  "连接": {
+    "zh-Hans": "连接",
+    "zh-Hant": "連線",
+    "en": "Connect",
+    "ja": "接続",
+    "ko": "연결"
+  },
+  "管理": {
+    "zh-Hans": "管理",
+    "zh-Hant": "管理",
+    "en": "Manage",
+    "ja": "管理",
+    "ko": "관리"
+  },
+  "Wi-Fi 连接卡片": {
+    "zh-Hans": "Wi-Fi 连接卡片",
+    "zh-Hant": "Wi-Fi 連線卡片",
+    "en": "Wi-Fi connection card",
+    "ja": "Wi-Fi 接続カード",
+    "ko": "Wi-Fi 연결 카드"
+  },
+  "↓ 下载 / Mbps": {
+    "zh-Hans": "↓ 下载 / Mbps",
+    "zh-Hant": "↓ 下載 / Mbps",
+    "en": "↓ Download / Mbps",
+    "ja": "↓ 下り / Mbps",
+    "ko": "↓ 다운로드 / Mbps"
+  },
+  "↑ 上传 / Mbps": {
+    "zh-Hans": "↑ 上传 / Mbps",
+    "zh-Hant": "↑ 上傳 / Mbps",
+    "en": "↑ Upload / Mbps",
+    "ja": "↑ 上り / Mbps",
+    "ko": "↑ 업로드 / Mbps"
+  },
+  "代理服务": {
+    "zh-Hans": "代理服务",
+    "zh-Hant": "代理服務",
+    "en": "Proxy services",
+    "ja": "プロキシサービス",
+    "ko": "프록시 서비스"
+  },
+  "信号详情": {
+    "zh-Hans": "信号详情",
+    "zh-Hant": "訊號詳情",
+    "en": "Radio details",
+    "ja": "電波の詳細",
+    "ko": "신호 상세"
+  },
+  "固件未提供系统主题，沿用当前浅色或深色设置。": {
+    "zh-Hans": "固件未提供系统主题，沿用当前浅色或深色设置。",
+    "zh-Hant": "韌體未提供系統主題，沿用目前淺色或深色設定。",
+    "en": "The firmware has no system theme. The current light or dark appearance is retained.",
+    "ja": "ファームウェアにシステムテーマがないため、現在のライトまたはダーク設定を使用します。",
+    "ko": "펌웨어에서 시스템 테마를 제공하지 않아 현재 밝은 테마 또는 어두운 테마를 유지합니다."
+  },
+  "在线设备": {
+    "zh-Hans": "在线设备",
+    "zh-Hant": "線上裝置",
+    "en": "Online devices",
+    "ja": "接続中の端末",
+    "ko": "온라인 기기"
+  },
+  "外观、锁屏与管理访问": {
+    "zh-Hans": "外观、锁屏与管理访问",
+    "zh-Hant": "外觀、鎖定畫面與管理存取",
+    "en": "Appearance, lock and management access",
+    "ja": "外観・画面ロック・管理アクセス",
+    "ko": "외관, 화면 잠금 및 관리 접속"
+  },
+  "套餐与流量趋势": {
+    "zh-Hans": "套餐与流量趋势",
+    "zh-Hant": "方案與流量趨勢",
+    "en": "Plan and traffic trends",
+    "ja": "プランと通信量の推移",
+    "ko": "요금제 및 트래픽 추이"
+  },
+  "局域网、解析与访问规则": {
+    "zh-Hans": "局域网、解析与访问规则",
+    "zh-Hant": "區域網路、解析與存取規則",
+    "en": "LAN, DNS and access rules",
+    "ja": "LAN・名前解決・アクセスルール",
+    "ko": "LAN, DNS 및 접근 규칙"
+  },
+  "屏幕与安全": {
+    "zh-Hans": "屏幕与安全",
+    "zh-Hant": "螢幕與安全",
+    "en": "Screen & security",
+    "ja": "画面とセキュリティ",
+    "ko": "화면 및 보안"
+  },
+  "快捷指标": {
+    "zh-Hans": "快捷指标",
+    "zh-Hant": "快捷指標",
+    "en": "Quick metric",
+    "ja": "クイック指標",
+    "ko": "빠른 지표"
+  },
+  "显示": {
+    "zh-Hans": "显示",
+    "zh-Hant": "顯示",
+    "en": "Show",
+    "ja": "表示",
+    "ko": "표시"
+  },
+  "隐藏": {
+    "zh-Hans": "隐藏",
+    "zh-Hant": "隱藏",
+    "en": "Hide",
+    "ja": "非表示",
+    "ko": "숨기기"
+  },
+  "服务摘要": {
+    "zh-Hans": "服务摘要",
+    "zh-Hant": "服務摘要",
+    "en": "Service summary",
+    "ja": "サービス概要",
+    "ko": "서비스 요약"
+  },
+  "本月流量": {
+    "zh-Hans": "本月流量",
+    "zh-Hant": "本月流量",
+    "en": "Monthly data",
+    "ja": "今月の通信量",
+    "ko": "이번 달 데이터"
+  },
+  "流量套餐": {
+    "zh-Hans": "流量套餐",
+    "zh-Hant": "流量方案",
+    "en": "Data plan",
+    "ja": "データプラン",
+    "ko": "데이터 요금제"
+  },
+  "电源与电池": {
+    "zh-Hans": "电源与电池",
+    "zh-Hant": "電源與電池",
+    "en": "Power & battery",
+    "ja": "電源とバッテリー",
+    "ko": "전원 및 배터리"
+  },
+  "电量": {
+    "zh-Hans": "电量",
+    "zh-Hant": "電量",
+    "en": "Battery",
+    "ja": "バッテリー",
+    "ko": "배터리"
+  },
+  "设备维护、更新与备份": {
+    "zh-Hans": "设备维护、更新与备份",
+    "zh-Hant": "裝置維護、更新與備份",
+    "en": "Maintenance, updates and backup",
+    "ja": "保守・更新・バックアップ",
+    "ko": "기기 유지보수, 업데이트 및 백업"
+  },
+  "设备设置": {
+    "zh-Hans": "设备设置",
+    "zh-Hant": "裝置設定",
+    "en": "Device settings",
+    "ja": "端末設定",
+    "ko": "기기 설정"
+  },
+  "设置未能保存，已恢复原值。": {
+    "zh-Hans": "设置未能保存，已恢复原值。",
+    "zh-Hant": "設定未能儲存，已恢復原值。",
+    "en": "Settings could not be saved. The previous values were restored.",
+    "ja": "設定を保存できなかったため、元の値に戻しました。",
+    "ko": "설정을 저장하지 못해 이전 값으로 복원했습니다."
+  },
+  "跟随系统": {
+    "zh-Hans": "跟随系统",
+    "zh-Hant": "跟隨系統",
+    "en": "System theme",
+    "ja": "システム設定",
+    "ko": "시스템 테마"
+  },
+  "隐藏仅影响首页显示，不会停止服务。": {
+    "zh-Hans": "隐藏仅影响首页显示，不会停止服务。",
+    "zh-Hant": "隱藏僅影響首頁顯示，不會停止服務。",
+    "en": "Hiding only changes the home display. Services keep running.",
+    "ja": "非表示はホームの表示だけに適用されます。サービスは停止しません。",
+    "ko": "숨기기는 홈 화면 표시에만 적용되며 서비스는 계속 실행됩니다."
+  },
+  "隧道与对端": {
+    "zh-Hans": "隧道与对端",
+    "zh-Hant": "通道與對端",
+    "en": "Tunnels and peers",
+    "ja": "トンネルとピア",
+    "ko": "터널 및 피어"
+  },
+  "首页布局": {
+    "zh-Hans": "首页布局",
+    "zh-Hant": "首頁配置",
+    "en": "Home layout",
+    "ja": "ホームのレイアウト",
+    "ko": "홈 화면 구성"
+  },
+  "高级网络": {
+    "zh-Hans": "高级网络",
+    "zh-Hant": "進階網路",
+    "en": "Advanced network",
+    "ja": "高度なネットワーク設定",
+    "ko": "고급 네트워크"
+  },
+  "已应用并核对实际值。": {
+    "zh-Hans": "已应用并核对实际值。",
+    "zh-Hant": "已套用並核對實際值。",
+    "en": "Applied and verified.",
+    "ja": "適用し、実際の値を確認しました。",
+    "ko": "적용 후 실제 값을 확인했습니다."
+  },
+  "设备尚未确认修改，请核对实际状态。": {
+    "zh-Hans": "设备尚未确认修改，请核对实际状态。",
+    "zh-Hant": "裝置尚未確認修改，請核對實際狀態。",
+    "en": "The device has not confirmed the change. Check its actual state.",
+    "ja": "端末から変更を確認できませんでした。実際の状態を確認してください。",
+    "ko": "기기에서 변경을 확인하지 못했습니다. 실제 상태를 확인하세요."
+  },
+  "完成输入后自动应用；需要中断服务时会先提示。": {
+    "zh-Hans": "完成输入后自动应用；需要中断服务时会先提示。",
+    "zh-Hant": "完成輸入後自動套用；需要中斷服務時會先提示。",
+    "en": "Complete input to apply. Interrupting a service requires confirmation.",
+    "ja": "入力を完了すると適用します。サービスを中断する場合は確認します。",
+    "ko": "입력을 완료하면 적용됩니다. 서비스 중단이 필요한 경우 먼저 확인합니다."
+  },
+  "Web：组网与服务 → Mihomo。长配置与订阅可在 Web 编辑；各服务独立运行。": {
+    "zh-Hans": "Web：组网与服务 → Mihomo。长配置与订阅可在 Web 编辑；各服务独立运行。",
+    "zh-Hant": "Web：組網與服務 → Mihomo。長設定與訂閱可在 Web 編輯；各服務獨立執行。",
+    "en": "Web: Networking & services → Mihomo. Edit long configurations and subscriptions in the browser. Services run independently.",
+    "ja": "Web：ネットワークとサービス → Mihomo。長い設定やサブスクリプションはブラウザーで編集できます。各サービスは独立して動作します。",
+    "ko": "웹: 네트워크 및 서비스 → Mihomo. 긴 설정과 구독은 브라우저에서 편집하세요. 서비스는 독립적으로 실행됩니다."
   }
 }

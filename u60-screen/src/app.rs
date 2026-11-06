@@ -49,9 +49,8 @@ impl Catalog {
         let mut root = id;
         for _ in 0..=self.groups.len() {
             match root {
-                "network-menu" => return 1,
-                "apps" => return 2,
-                "device-settings" => return 3,
+                "connect" => return 1,
+                "manage" => return 2,
                 _ => match self.groups.iter().find(|g| g.id == root) {
                     Some(group) => root = &group.root,
                     None => return 0,
@@ -111,11 +110,16 @@ pub struct State {
     feature_revision: u64,
     feature_qr_text: Option<zeroize::Zeroizing<String>>,
     choice_field: Option<usize>,
+    metric_choice: Option<usize>,
     pub security: crate::security::ScreenLock,
     pub prefs: Preferences,
     prefs_path: Option<PathBuf>,
     prefs_dirty: bool,
     prefs_changed: Instant,
+    prefs_baseline: Value,
+    prefs_checked: Instant,
+    prefs_stamp: Option<std::time::SystemTime>,
+    home: crate::home::Summary,
     pub catalog: Catalog,
     history: Vec<String>,
     page: String,
@@ -162,6 +166,7 @@ fn text<'a>(v: &'a Value, key: &str) -> &'a str {
 impl State {
     fn show(&mut self, ui: &Screen, id: &str, push: bool) -> Result<()> {
         if id != self.page {
+            self.metric_choice = None;
             self.feature_qr_text = None;
             self.wifi.suspend(ui);
             self.features.cancel();
@@ -183,50 +188,27 @@ impl State {
             "account" if self.agent.is_some() => {
                 title = crate::i18n::tr("后台连接").into();
                 view = 6;
-                tab = 3;
+                tab = 2;
             }
             "overview" => {
                 title = crate::i18n::tr("随身网络").to_string();
                 view = 0;
                 tab = 0;
             }
-            "network-menu" | "apps" | "device-settings" => {
+            "connect" | "manage" => {
                 let (t, label) = match id {
-                    "network-menu" => (1, crate::i18n::tr("网络")),
-                    "apps" => (2, crate::i18n::tr("应用")),
-                    _ => (3, crate::i18n::tr("设备")),
+                    "connect" => (1, crate::i18n::tr("连接")),
+                    _ => (2, crate::i18n::tr("管理")),
                 };
                 tab = t;
                 title = label.into();
-                if tab == 3 {
-                    if self.agent.is_some() {
-                        entries.push(entry(
-                            "account",
-                            crate::i18n::tr("后台连接"),
-                            crate::i18n::tr("连接状态与登录"),
-                            "",
-                        ));
-                    }
+                if tab == 2 && self.agent.is_none() {
                     entries.push(entry(
-                        "screen-lock",
-                        crate::i18n::tr("锁屏与密码"),
-                        crate::i18n::tr("长按解锁与可选密码保护"),
+                        "demo-scenario",
+                        crate::i18n::tr("演示场景"),
+                        crate::i18n::tr("正常、目标离线、无网络、低电量"),
                         "",
                     ));
-                    entries.push(entry(
-                        "screen-prefs",
-                        crate::i18n::tr("屏幕与外观"),
-                        crate::i18n::tr("明暗、配色、亮度与熄屏"),
-                        "",
-                    ));
-                    if self.agent.is_none() {
-                        entries.push(entry(
-                            "demo-scenario",
-                            crate::i18n::tr("演示场景"),
-                            crate::i18n::tr("正常、目标离线、无网络、低电量"),
-                            "",
-                        ));
-                    }
                 }
                 for g in &self.catalog.groups {
                     if g.root == id {
@@ -245,16 +227,22 @@ impl State {
                         entries.push(entry(&g.id, &g.title, &g.subtitle, &count.to_string()));
                     }
                 }
+                for f in self.catalog.features.iter().filter(|f| f.group == id) {
+                    entries.insert(
+                        usize::from(!entries.is_empty()),
+                        entry(&f.id, &f.title, &f.description, ""),
+                    );
+                }
             }
             "screen-lock" => {
                 title = crate::i18n::tr("锁屏与密码").into();
                 view = 5;
-                tab = 3;
+                tab = 2;
             }
             "screen-prefs" => {
                 title = crate::i18n::tr("屏幕与外观").into();
                 view = 3;
-                tab = 3;
+                tab = 2;
             }
             "tailscale-network" => {
                 title = crate::i18n::tr("连通性检测").into();
@@ -411,13 +399,8 @@ impl State {
         ui.set_message("".into());
         ui.set_tab(tab);
         ui.set_heading(title.into());
-        ui.set_kicker(
-            ["01 / OVERVIEW", "02 / NETWORK", "03 / APPS", "04 / DEVICE"][tab as usize].into(),
-        );
-        ui.set_can_back(!matches!(
-            id,
-            "overview" | "network-menu" | "apps" | "device-settings"
-        ));
+        ui.set_kicker(["STATUS", "CONNECT", "MANAGE"][tab as usize].into());
+        ui.set_can_back(!matches!(id, "overview" | "connect" | "manage"));
         ui.set_view(view);
         ui.set_entries(model(entries));
         ui.set_readings(model(readings));
@@ -437,6 +420,24 @@ impl State {
 
     fn apply_preferences(&self, ui: &Screen) {
         ui.set_language(self.prefs.language.code().into());
+        ui.set_follow_system(self.prefs.follow_system);
+        ui.set_home_show_radio(self.prefs.home.show_radio);
+        ui.set_home_show_wifi(self.prefs.home.show_wifi);
+        ui.set_home_show_services(self.prefs.home.show_services);
+        ui.set_home_show_tailscale(self.prefs.home.show_tailscale);
+        ui.set_home_show_wireguard(self.prefs.home.show_wireguard);
+        ui.set_home_show_mihomo(self.prefs.home.show_mihomo);
+        ui.set_home_metric_choices(model(
+            [
+                &self.prefs.home.metric_1,
+                &self.prefs.home.metric_2,
+                &self.prefs.home.metric_3,
+            ]
+            .into_iter()
+            .map(|key| crate::home::metric_label(key).into())
+            .collect(),
+        ));
+        self.home.render(ui, &self.prefs.home, None);
         let rgb = parse_color(&self.prefs.accent).expect("validated preferences");
         let ink = readable_accent(rgb, self.prefs.dark);
         let palette = ui.global::<Palette>();
@@ -460,6 +461,7 @@ impl State {
             || self.security.mode != crate::security::Mode::Hold
             || ui.get_asleep()
         {
+            self.metric_choice = None;
             self.wifi.suspend(ui);
             self.feature_qr_text = None;
             self.close_editor(ui);
@@ -500,6 +502,7 @@ impl State {
 
     fn persist(&mut self, ui: &Screen) {
         self.last_input = Instant::now();
+        self.home.refresh();
         self.apply_preferences(ui);
         self.prefs_dirty = self.prefs_path.is_some();
         self.prefs_changed = Instant::now();
@@ -510,12 +513,74 @@ impl State {
             return;
         }
         self.prefs_dirty = false;
-        if let Some(path) = &self.prefs_path
-            && let Err(error) = self.prefs.save(path)
-        {
-            eprintln!("preferences: {error:#}");
-            ui.set_message(crate::i18n::tr("设置已生效，但未能保存到偏好文件。").into());
+        let language = self.prefs.language;
+        if let Some(path) = &self.prefs_path {
+            let patch = crate::config::shared::diff(
+                &self.prefs_baseline,
+                &serde_json::to_value(&self.prefs).unwrap(),
+            );
+            match crate::config::shared::patch(path, &patch) {
+                Ok(value) => {
+                    self.prefs =
+                        serde_json::from_value(value.clone()).expect("validated preferences");
+                    self.prefs_baseline = value;
+                    self.prefs_stamp = std::fs::metadata(path).and_then(|m| m.modified()).ok();
+                    self.apply_preferences(ui);
+                }
+                Err(error) => {
+                    eprintln!("preferences: {error}");
+                    self.prefs = serde_json::from_value(self.prefs_baseline.clone())
+                        .expect("previous preferences");
+                    self.apply_preferences(ui);
+                    ui.set_message(crate::i18n::tr("设置未能保存，已恢复原值。").into());
+                }
+            }
         }
+        if language != self.prefs.language {
+            crate::i18n::select(self.prefs.language);
+            let _ = slint::select_bundled_translation(self.prefs.language.code());
+            self.catalog = Catalog::load().expect("embedded catalog");
+            self.live_revision = u64::MAX;
+            self.feature_revision = u64::MAX;
+            let page = self.page.clone();
+            let _ = self.show(ui, &page, false);
+        }
+    }
+    fn poll_preferences(&mut self, ui: &Screen) {
+        if self.prefs_checked.elapsed() < Duration::from_secs(2)
+            || self.prefs_dirty
+            || ui.get_editor_visible()
+            || ui.get_confirm_visible()
+            || ui.get_choice_visible()
+        {
+            return;
+        }
+        self.prefs_checked = Instant::now();
+        let Some(path) = &self.prefs_path else {
+            return;
+        };
+        let stamp = std::fs::metadata(path).and_then(|m| m.modified()).ok();
+        if stamp == self.prefs_stamp {
+            return;
+        }
+        self.prefs_stamp = stamp;
+        let Ok(prefs) = Preferences::load(path) else {
+            return;
+        };
+        let changed_language = prefs.language != self.prefs.language;
+        self.prefs_baseline = serde_json::to_value(&prefs).unwrap();
+        self.prefs = prefs;
+        self.home.refresh();
+        if changed_language {
+            crate::i18n::select(self.prefs.language);
+            let _ = slint::select_bundled_translation(self.prefs.language.code());
+            self.catalog = Catalog::load().expect("embedded catalog");
+            self.live_revision = u64::MAX;
+            self.feature_revision = u64::MAX;
+            let page = self.page.clone();
+            let _ = self.show(ui, &page, false);
+        }
+        self.apply_preferences(ui);
     }
     fn apply_scenario(&self, ui: &Screen) {
         if self.agent.is_some() {
@@ -591,9 +656,11 @@ impl State {
             && !self.security.locked
             && !ui.get_pin_visible()
             && self.page == "overview"
-            && ui.get_view() == 0;
+            && ui.get_view() == 0
+            && self.prefs.home.show_wifi;
         let Some(agent) = &mut self.agent else {
             self.wifi.demo(ui, wifi_active);
+            self.home.render(ui, &self.prefs.home, None);
             return;
         };
         let mut topics = if ui.get_asleep() {
@@ -609,6 +676,19 @@ impl State {
                     .iter()
                     .map(|s| (*s).into()),
             );
+        }
+        if !ui.get_asleep()
+            && !self.security.locked
+            && ui.get_view() == 0
+            && [
+                &self.prefs.home.metric_1,
+                &self.prefs.home.metric_2,
+                &self.prefs.home.metric_3,
+            ]
+            .iter()
+            .any(|v| matches!(v.as_str(), "cpu" | "temperature"))
+        {
+            topics.push("health".into());
         }
         agent.watch(topics);
         let snapshot = agent.snapshot();
@@ -649,6 +729,9 @@ impl State {
             self.wifi.suspend(ui);
         }
         for reply in agent.replies() {
+            if self.home.receive(reply.id, reply.result.clone()) {
+                continue;
+            }
             if self.wifi.receive(reply.id, reply.result.clone()) {
                 continue;
             }
@@ -685,7 +768,10 @@ impl State {
         if active
             && snapshot.authenticated
             && snapshot.status == crate::agent::Status::Live
-            && (on_network || self.page == "overview")
+            && (on_network
+                || self.page == "overview"
+                    && self.prefs.home.show_services
+                    && self.prefs.home.show_tailscale)
             && self.network.last_refresh.elapsed() >= Duration::from_secs(30)
         {
             self.network.last_refresh = Instant::now();
@@ -706,9 +792,19 @@ impl State {
         if active && ui.get_view() == 7 {
             self.features.stream(&snapshot);
         }
+        self.home.tick(
+            agent,
+            active
+                && snapshot.authenticated
+                && snapshot.status == crate::agent::Status::Live
+                && ui.get_view() == 0,
+            &self.prefs.home,
+            &snapshot,
+        );
         self.render_features(ui);
         ui.set_tailnet_status(self.network.label().into());
         ui.set_tailnet_online(self.network.online());
+        self.home.render(ui, &self.prefs.home, Some(&snapshot));
         let rows = self.network.rows(&self.prefs.probe_target);
         if rows != self.network_rows {
             self.network_rows = rows.clone();
@@ -862,10 +958,15 @@ impl State {
             ui.get_feature_actions(),
             page.actions
                 .iter()
-                .map(|a| FeatureAction {
+                .enumerate()
+                .filter(|(_, a)| {
+                    Some(a.id.as_str()) != crate::features::automatic::action(&self.features.id)
+                })
+                .map(|(index, a)| FeatureAction {
                     id: a.id.clone().into(),
                     label: a.label.clone().into(),
                     enabled: a.enabled,
+                    index: index as i32,
                 })
                 .collect(),
             |row| row.id.clone(),
@@ -928,7 +1029,7 @@ impl State {
                 if field.secret {
                     crate::i18n::tr("输入新值；留空保持不变。")
                 } else {
-                    crate::i18n::tr("修改后点完成，再在页面中保存。")
+                    crate::i18n::tr("完成输入后自动应用；需要中断服务时会先提示。")
                 }
                 .into(),
             );
@@ -944,6 +1045,18 @@ impl State {
         ui.set_editor_visible(false);
         ui.set_editor_value("".into());
         ui.set_editor_error("".into());
+    }
+    fn apply_feature_edit(&mut self, ui: &Screen) {
+        if let Err(error) = self.features.auto_apply() {
+            ui.set_message(error.to_string().into());
+        }
+        if let Some(plan) = &self.features.confirmation {
+            ui.set_confirm_body(plan.summary.clone().into());
+            ui.set_confirm_phrase(plan.phrase.clone().unwrap_or_default().into());
+            ui.set_confirm_word("".into());
+            ui.set_confirm_visible(true);
+        }
+        self.render_features(ui);
     }
     fn edit(&mut self, ui: &Screen, kind: &str) {
         if ui.get_confirm_visible() && kind != "confirmation" {
@@ -999,6 +1112,7 @@ impl State {
             return;
         }
         let value = zeroize::Zeroizing::new(ui.get_editor_value().to_string());
+        let feature_edit = matches!(self.editor, Some(Editor::Feature(_)));
         match self.editor {
             Some(Editor::AgentLogin) => {
                 if value.is_empty() || value.len() > 1024 {
@@ -1054,6 +1168,9 @@ impl State {
         }
         self.editor = None;
         self.close_editor(ui);
+        if feature_edit {
+            self.apply_feature_edit(ui);
+        }
     }
 }
 
@@ -1075,10 +1192,17 @@ impl App {
             feature_revision: u64::MAX,
             feature_qr_text: None,
             choice_field: None,
+            metric_choice: None,
             security: crate::security::ScreenLock::load(prefs_path.as_ref().map(|p| {
                 p.with_file_name(".screen-private")
                     .join("screen-lock.private.json")
             }))?,
+            prefs_baseline: serde_json::to_value(&prefs).unwrap(),
+            prefs_checked: Instant::now(),
+            prefs_stamp: prefs_path
+                .as_ref()
+                .and_then(|p| std::fs::metadata(p).and_then(|m| m.modified()).ok()),
+            home: Default::default(),
             prefs,
             prefs_path,
             prefs_dirty: false,
@@ -1115,7 +1239,7 @@ impl App {
             }};
         }
         bind!(on_navigate, |s, u, tab| {
-            if !(0..4).contains(&tab) {
+            if !(0..3).contains(&tab) {
                 return;
             }
             if u.get_asleep() {
@@ -1123,11 +1247,7 @@ impl App {
                 return;
             }
             s.history.clear();
-            let _ = s.show(
-                &u,
-                ["overview", "network-menu", "apps", "device-settings"][tab as usize],
-                false,
-            );
+            let _ = s.show(&u, ["overview", "connect", "manage"][tab as usize], false);
         });
         bind!(on_open, |s, u, id| {
             if let Some(id) = id.strip_prefix("feature-item:") {
@@ -1209,6 +1329,45 @@ impl App {
             }
         });
         bind!(on_choose, |s, u, index| {
+            if let Some(slot) = s.metric_choice.take() {
+                let options = [
+                    "none",
+                    "clients",
+                    "month",
+                    "temperature",
+                    "cpu",
+                    "memory",
+                    "uptime",
+                    "battery",
+                ];
+                let Some(selected) = usize::try_from(index).ok().and_then(|i| options.get(i))
+                else {
+                    return;
+                };
+                let mut keys = [
+                    s.prefs.home.metric_1.clone(),
+                    s.prefs.home.metric_2.clone(),
+                    s.prefs.home.metric_3.clone(),
+                ];
+                if *selected != "none" {
+                    if let Some(other) = keys
+                        .iter()
+                        .enumerate()
+                        .position(|(i, v)| i != slot && v == selected)
+                    {
+                        keys[other] = keys[slot].clone();
+                    }
+                }
+                keys[slot] = (*selected).into();
+                [
+                    s.prefs.home.metric_1,
+                    s.prefs.home.metric_2,
+                    s.prefs.home.metric_3,
+                ] = keys;
+                u.set_choice_visible(false);
+                s.persist(&u);
+                return;
+            }
             if let Some(field) = s.choice_field
                 && let Ok(index) = usize::try_from(index)
                 && let Some(choice) = s
@@ -1225,9 +1384,10 @@ impl App {
             }
             s.choice_field = None;
             u.set_choice_visible(false);
-            s.render_features(&u);
+            s.apply_feature_edit(&u);
         });
         bind!(on_choice_cancel, |s, u| {
+            s.metric_choice = None;
             s.choice_field = None;
             u.set_choice_visible(false);
         });
@@ -1258,9 +1418,10 @@ impl App {
             u.set_confirm_word("".into());
         });
         bind!(on_confirm_cancel, |s, u| {
-            s.features.confirmation = None;
+            s.features.cancel_confirmation();
             u.set_confirm_visible(false);
             u.set_confirm_word("".into());
+            s.render_features(&u);
         });
         bind!(on_edit, |s, u, kind| {
             s.edit(&u, &kind);
@@ -1302,7 +1463,60 @@ impl App {
         });
         bind!(on_theme, |s, u, dark| {
             s.prefs.dark = dark;
+            s.prefs.follow_system = false;
             s.persist(&u);
+        });
+        bind!(on_system_theme, |s, u| {
+            s.prefs.follow_system = true;
+            s.persist(&u);
+        });
+        bind!(on_home_toggle, |s, u, key| {
+            let field = match key.as_str() {
+                "radio" => &mut s.prefs.home.show_radio,
+                "wifi" => &mut s.prefs.home.show_wifi,
+                "services" => &mut s.prefs.home.show_services,
+                "tailscale" => &mut s.prefs.home.show_tailscale,
+                "wireguard" => &mut s.prefs.home.show_wireguard,
+                "mihomo" => &mut s.prefs.home.show_mihomo,
+                _ => return,
+            };
+            *field = !*field;
+            s.persist(&u);
+        });
+        bind!(on_home_metric, |s, u, index| {
+            s.choice_field = None;
+            let key = match index {
+                0 => &s.prefs.home.metric_1,
+                1 => &s.prefs.home.metric_2,
+                2 => &s.prefs.home.metric_3,
+                _ => return,
+            };
+            let options = [
+                "none",
+                "clients",
+                "month",
+                "temperature",
+                "cpu",
+                "memory",
+                "uptime",
+                "battery",
+            ];
+            u.set_choices(model(
+                options
+                    .iter()
+                    .map(|item| {
+                        entry(
+                            item,
+                            crate::home::metric_label(item),
+                            "",
+                            if *item == key { "✓" } else { "" },
+                        )
+                    })
+                    .collect(),
+            ));
+            s.metric_choice = Some(index as usize);
+            u.set_choice_title(crate::i18n::tr("快捷指标").into());
+            u.set_choice_visible(true);
         });
         bind!(on_set_language, |s, u, code| {
             let Some(locale) = crate::i18n::Locale::parse(&code) else {
@@ -1423,6 +1637,7 @@ impl App {
                     if s.prefs_dirty && s.prefs_changed.elapsed() >= Duration::from_millis(500) {
                         s.flush_preferences(&ui);
                     }
+                    s.poll_preferences(&ui);
                     if s.prefs.sleep_seconds != 0
                         && s.last_input.elapsed().as_secs() >= s.prefs.sleep_seconds as u64
                     {
@@ -1439,11 +1654,12 @@ impl App {
         Ok(Self { ui, state, timer })
     }
     pub fn open(&self, page: &str) -> Result<()> {
-        let page = if page == "tailscale-home" {
-            "tailscale-network"
-        } else {
-            page
-        }; // Previous preview link.
+        let page = match page {
+            "tailscale-home" => "tailscale-network",
+            "network-menu" => "connect",
+            "apps" | "device-settings" => "manage",
+            _ => page,
+        };
         self.state.borrow_mut().show(&self.ui, page, true)
     }
     pub fn connect(&self, config: crate::agent::Config) -> Result<()> {
@@ -1524,9 +1740,33 @@ impl Drop for App {
 mod navigation_tests {
     use super::*;
     #[test]
+    fn all_existing_capabilities_match_the_approved_product_roots() {
+        let c = Catalog::load().unwrap();
+        let agreed: Vec<Value> =
+            serde_json::from_str(include_str!("../../design/product-ui/src/features.json"))
+                .unwrap();
+        assert_eq!(agreed.len(), 82);
+        assert_eq!(c.features.len(), agreed.len());
+        for expected in agreed {
+            let id = expected["id"].as_str().unwrap();
+            let feature = c
+                .features
+                .iter()
+                .find(|f| f.id == id)
+                .expect("preserved feature ID");
+            let tab = match expected["screen"].as_str().unwrap() {
+                "状态" => 0,
+                "连接" => 1,
+                "管理" => 2,
+                _ => panic!("unknown root"),
+            };
+            assert_eq!(c.tab_for(&feature.group), tab, "{id}");
+        }
+    }
+    #[test]
     fn network_services_and_nested_engines_stay_on_network_tab() {
         let c = Catalog::load().unwrap();
-        for id in ["vpn-services", "tailscale", "proxy", "mihomo"] {
+        for id in ["wireguard-service", "tailscale", "proxy", "mihomo"] {
             assert_eq!(c.tab_for(id), 1);
         }
         for id in [

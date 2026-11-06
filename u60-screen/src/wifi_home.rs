@@ -77,7 +77,7 @@ impl WifiHome {
                 });
                 if changed {
                     self.revealed_until = None;
-                    let small = features::qr_image_version(&join.payload, 148, join.qr_version);
+                    let small = features::qr_thumbnail(&join.payload, 104, join.qr_version);
                     let large = features::qr_image_version(&join.payload, 256, join.qr_version);
                     ui.set_home_wifi_ready(small.is_some() && large.is_some());
                     ui.set_home_wifi_qr(small.unwrap_or_default());
