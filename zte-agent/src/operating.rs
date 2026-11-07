@@ -390,11 +390,7 @@ fn bandwidth() -> Result<&'static str, String> {
 }
 pub fn status(state: &AppState) -> (u16, Value) {
     let mode = handlers::read_uci_option("zte_nwinfo", "sys_info", "operate_mode");
-    let airplane = match mode.as_deref() {
-        Ok("ONLINE") => Some(false),
-        Ok("LPM" | "OFFLINE") => Some(true),
-        _ => None,
-    };
+    let airplane = mode.as_deref().ok().and_then(crate::modem_ext::airplane_enabled);
     let bandwidth = bandwidth();
     let rail = handlers::read_uci_option("zte_nwinfo", "sys_info", "hst_info")
         .ok()

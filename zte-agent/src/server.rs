@@ -229,6 +229,7 @@ pub fn lane(method: Method, path: &str) -> Lane {
         | (Get, "/api/stk/menu" | "/api/stk/session") => false,
         (_, p) if p.starts_with("/api/proxy/") || p.starts_with("/api/esim/") || p.starts_with("/api/tailscale/") || p.starts_with("/api/https/") => true,
         (Put | Post, p) if p.starts_with("/api/vpn/wireguard") => true,
+        (Put, "/api/modem/bandwidth") => true,
         (_, p) if p.starts_with("/api/ussd/") || p.starts_with("/api/stk/") => true,
         (Post, p) if p.starts_with("/api/sim/") || p.starts_with("/api/cell/") => true,
         (_, p) if p.starts_with("/api/dns/") => true,
@@ -238,7 +239,6 @@ pub fn lane(method: Method, path: &str) -> Lane {
             "/api/at/send"
             | "/api/modem/online"
             | "/api/modem/airplane"
-            | "/api/modem/bandwidth"
             | "/api/modem/scan"
             | "/api/modem/register"
             | "/api/sms/forward/test"
@@ -834,5 +834,12 @@ mod tests {
     fn ota_download_uses_the_slow_lane_without_blocking_status() {
         assert_eq!(lane(Method::Post, "/api/update/download"), Lane::Slow);
         assert_eq!(lane(Method::Get, "/api/update/status"), Lane::General);
+    }
+
+    #[test]
+    fn mode_writes_leave_live_status_in_the_general_lane() {
+        assert_eq!(lane(Method::Post, "/api/modem/airplane"), Lane::Slow);
+        assert_eq!(lane(Method::Put, "/api/modem/bandwidth"), Lane::Slow);
+        assert_eq!(lane(Method::Get, "/api/device/operating"), Lane::General);
     }
 }

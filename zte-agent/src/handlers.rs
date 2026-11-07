@@ -203,11 +203,52 @@ pub fn modem_status(_state: &AppState) -> (u16, Value) {
 /// Read a public scalar from committed UCI plus its uncommitted delta.
 /// Callers supply fixed keys, never values or paths from an HTTP request.
 pub(crate) fn read_uci_option(config: &str, section: &str, option: &str) -> Result<String, String> {
-    let value = std::fs::read_to_string(format!("/etc/config/{config}")).ok().and_then(|base| {
-        let delta = std::fs::read_to_string(format!("/tmp/.uci/{config}")).unwrap_or_default();
-        uci_option(&base, &delta, config, section, option)
-    });
+    let value = read_uci_files(
+        std::path::Path::new(&format!("/etc/config/{config}")),
+        std::path::Path::new(&format!("/tmp/.uci/{config}")),
+        config, section, option,
+    );
     value.map(Ok).unwrap_or_else(|| ubus::uci_get(&format!("{config}.{section}.{option}")))
+}
+
+/// Hold libuci's shared locks in config → delta order. A commit truncates
+/// the delta before replacing the config; an unlocked read during that gap
+/// incorrectly resurrects the old value. Contention uses the CLI fallback.
+fn read_uci_files(base_path: &std::path::Path, delta_path: &std::path::Path, config: &str, section: &str, option: &str) -> Option<String> {
+    use std::fs::File;
+    use std::io::Read;
+    use std::os::fd::AsRawFd;
+    use std::os::unix::fs::MetadataExt;
+
+    fn lock(file: &File) -> Option<()> {
+        (unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_SH | libc::LOCK_NB) } == 0).then_some(())
+    }
+    fn current(file: &File, path: &std::path::Path) -> Option<()> {
+        let open = file.metadata().ok()?;
+        let now = std::fs::metadata(path).ok()?;
+        (open.dev() == now.dev() && open.ino() == now.ino()).then_some(())
+    }
+    let mut base = File::open(base_path).ok()?;
+    lock(&base)?;
+    current(&base, base_path)?;
+    let mut base_text = String::new();
+    base.read_to_string(&mut base_text).ok()?;
+    let mut delta_text = String::new();
+    let delta = match File::open(delta_path) {
+        Ok(mut file) => {
+            lock(&file)?;
+            file.read_to_string(&mut delta_text).ok()?;
+            current(&file, delta_path)?;
+            Some(file)
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
+        Err(_) => return None,
+    };
+    current(&base, base_path)?;
+    let value = uci_option(&base_text, &delta_text, config, section, option);
+    // Closing the files releases the locks, including every early return.
+    drop(delta);
+    value
 }
 
 /// Resolve `zte_nwinfo.sys_info.operate_mode` from the committed config text
@@ -357,6 +398,34 @@ config other 'other'
     #[test]
     fn reads_committed_value_when_no_delta() {
         assert_eq!(uci_operate_mode(CONFIG, "").as_deref(), Some("ONLINE"));
+    }
+
+    #[test]
+    fn concurrent_uci_commit_cannot_resurrect_old_radio_state() {
+        use std::fs::{self, OpenOptions};
+        use std::os::fd::AsRawFd;
+        let dir = std::env::temp_dir().join(format!("u60-uci-lock-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let base = dir.join("config");
+        let delta = dir.join("delta");
+        fs::write(&base, CONFIG).unwrap();
+        fs::write(&delta, "zte_nwinfo.sys_info.operate_mode='OFFLINE'\n").unwrap();
+        let read = || read_uci_files(&base, &delta, "zte_nwinfo", "sys_info", "operate_mode");
+        assert_eq!(read().as_deref(), Some("OFFLINE"));
+
+        let writer = OpenOptions::new().read(true).write(true).open(&base).unwrap();
+        assert_eq!(unsafe { libc::flock(writer.as_raw_fd(), libc::LOCK_EX) }, 0);
+        fs::write(&delta, "").unwrap(); // libuci flushes the delta before rename.
+        assert_eq!(read(), None); // Must defer to libuci, never report old ONLINE.
+        fs::write(&base, CONFIG.replace("ONLINE", "OFFLINE")).unwrap();
+        drop(writer);
+        assert_eq!(read().as_deref(), Some("OFFLINE"));
+
+        let writer = OpenOptions::new().read(true).write(true).open(&delta).unwrap();
+        assert_eq!(unsafe { libc::flock(writer.as_raw_fd(), libc::LOCK_EX) }, 0);
+        assert_eq!(read(), None); // Also respect a concurrent uci set.
+        drop(writer);
+        fs::remove_dir_all(dir).unwrap();
     }
 
     #[test]
