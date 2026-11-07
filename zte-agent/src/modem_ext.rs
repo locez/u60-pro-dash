@@ -62,7 +62,10 @@ pub fn modem_data_set(state: &AppState, body: &[u8]) -> (u16, Value) {
 pub(crate) fn airplane_enabled(mode: &str) -> Option<bool> {
     match mode {
         "ONLINE" => Some(false),
-        "LPM" | "OFFLINE" => Some(true),
+        // B31 can settle on LOW_POWER after a QoS change while flight mode
+        // is active. The device reports CFUN=0; it is a known radio-off
+        // state, not an unreadable modem or an unsupported command target.
+        "LPM" | "OFFLINE" | "LOW_POWER" => Some(true),
         _ => None,
     }
 }
@@ -142,8 +145,9 @@ mod radio_mode_tests {
     fn firmware_offline_is_a_valid_lpm_readback_but_unknown_is_not() {
         assert_eq!(airplane_enabled("LPM"), Some(true));
         assert_eq!(airplane_enabled("OFFLINE"), airplane_enabled("LPM"));
+        assert_eq!(airplane_enabled("LOW_POWER"), airplane_enabled("LPM"));
         assert_eq!(airplane_enabled("ONLINE"), Some(false));
-        for mode in ["", "RESET", "LOW_POWER", "unknown"] {
+        for mode in ["", "RESET", "unknown"] {
             assert_eq!(airplane_enabled(mode), None);
         }
     }
@@ -157,6 +161,28 @@ mod radio_mode_tests {
         );
         assert_eq!(result.0, 200);
         assert_eq!(result.1["data"]["operate_mode"], "ONLINE");
+    }
+
+    #[test]
+    fn flight_remains_known_across_bandwidth_change_and_radio_recovery() {
+        // Observed B31 sequence: entry OFFLINE, QoS change LOW_POWER,
+        // restoration LOW_POWER until the modem finally reports ONLINE.
+        for mode in ["OFFLINE", "LOW_POWER"] {
+            assert_eq!(airplane_enabled(mode), Some(true));
+            let result = verify_radio_mode(
+                "LPM", (200, json!({"ok":true})),
+                || Ok(mode.into()), Duration::ZERO, Duration::ZERO,
+            );
+            assert_eq!(result.0, 200);
+            assert_eq!(result.1["data"]["operate_mode"], mode);
+        }
+        let mut modes = ["LOW_POWER", "LOW_POWER", "ONLINE"].into_iter();
+        let result = verify_radio_mode(
+            "ONLINE", (503, json!({"ok":false,"error":"AT+CFUN=1 failed"})),
+            || Ok(modes.next().unwrap().into()), Duration::from_secs(1), Duration::ZERO,
+        );
+        assert_eq!(result.0, 200);
+        assert_eq!(airplane_enabled(result.1["data"]["operate_mode"].as_str().unwrap()), Some(false));
     }
 
     #[test]

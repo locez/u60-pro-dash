@@ -136,8 +136,9 @@ mod tests {
         assert_eq!(enter.requests[0].path, "/api/modem/airplane");
         assert!(!enter.summary.is_empty());
         let mut off = d.clone();
-        off.get_mut("operating").unwrap().as_mut().unwrap()["airplane"]["enabled"] = json!(true);
+        off.get_mut("operating").unwrap().as_mut().unwrap()["airplane"] = json!({"enabled":true,"mode":"LOW_POWER"});
         let mut p = page("mobile-modes", &off);
+        assert!(p.fields[0].available, "LOW_POWER keeps flight recovery available");
         p.fields[0].value = "false".into();
         assert!(!automatic::interruption("mobile-modes", &p, &off));
         let recover = plan("mobile-modes", "save", &p, &off).unwrap();
