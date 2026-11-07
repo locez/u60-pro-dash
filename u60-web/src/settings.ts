@@ -10,6 +10,7 @@ export const wifiStandard: FormSpec = {
   note: "Applies to both bands. Enables Wi-Fi 6 and Wi-Fi 7 for compatible clients. Turn off only if older devices cannot connect.",
   read: "/api/wifi/status",
   write: "/api/wifi/settings",
+  timeout: 90000,
   fields: [flag("wifi6_switch", "Wi-Fi 7 (802.11be)")],
   interrupt: wifiWarning,
 };
@@ -20,6 +21,7 @@ export function wifiSpec(band: "2g" | "5g", radio = false): FormSpec {
     title: name,
     read: "/api/wifi/status",
     write: "/api/wifi/settings",
+    timeout: 90000,
     fields: radio
       ? [
           options(
@@ -113,6 +115,7 @@ export const guest: FormSpec = {
   id: "guest",
   title: "Guest network",
   read: "/api/wifi/guest",
+  timeout: 90000,
   fields: [
     options(
       "guest_disabled_2g",

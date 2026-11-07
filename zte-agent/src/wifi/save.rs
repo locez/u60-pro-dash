@@ -214,7 +214,10 @@ fn standard_width(width: &str, modern: bool, band2: bool) -> Result<String, Fail
         return Ok(width.into());
     }
     let number = width.trim_start_matches(|c: char| c.is_ascii_alphabetic());
-    if !matches!(number, "20" | "40") && (band2 || !matches!(number, "80" | "160")) {
+    if !matches!(number, "20" | "40")
+        && !(band2 && number == "20_40")
+        && (band2 || !matches!(number, "80" | "160"))
+    {
         return Err((
             422,
             "Cannot determine the current Wi-Fi channel width".into(),
@@ -313,13 +316,17 @@ fn save(
     std::thread::sleep(settle);
     let deadline = Instant::now() + wait;
     loop {
-        if backend.ready().map_err(failed)? {
-            let actual = backend.read().map_err(failed)?;
-            if changes
-                .iter()
-                .all(|c| actual.0.get(&c.path) == Some(&c.value))
-            {
-                return Ok(json!({"status":"ok", "verified":true}));
+        // The WLAN daemon can also be busy during reinitialization. Retry
+        // only these bounded reads; a temporary report failure is not a
+        // reason to replay the change or claim it was saved successfully.
+        if backend.ready().unwrap_or(false) {
+            if let Ok(actual) = backend.read() {
+                if changes
+                    .iter()
+                    .all(|c| actual.0.get(&c.path) == Some(&c.value))
+                {
+                    return Ok(json!({"status":"ok", "verified":true}));
+                }
             }
         }
         if Instant::now() >= deadline {
@@ -349,7 +356,9 @@ pub(super) fn settings(body: &[u8], guest: bool) -> (u16, Value) {
         &body,
         guest,
         Duration::from_secs(2),
-        Duration::from_secs(10),
+        // B31 standard changes take about 16 seconds; wider/DFS channels
+        // may take longer. Both interactive clients allow a 90-second call.
+        Duration::from_secs(60),
     ) {
         Ok(data) => (200, json!({"ok":true, "data":data})),
         Err((status, error)) => (status, json!({"ok":false, "error":error})),
@@ -367,6 +376,7 @@ mod tests {
         calls: Vec<String>,
         fail: &'static str,
         ignore: &'static str,
+        unavailable_reports: usize,
     }
     impl Default for Fake {
         fn default() -> Self {
@@ -375,6 +385,7 @@ mod tests {
                 calls: Vec::new(),
                 fail: "",
                 ignore: "",
+                unavailable_reports: 0,
             }
         }
     }
@@ -419,6 +430,10 @@ mod tests {
             Ok(())
         }
         fn ready(&mut self) -> Result<bool, String> {
+            if self.unavailable_reports > 0 {
+                self.unavailable_reports -= 1;
+                return Err("firmware is restarting".into());
+            }
             Ok(self.fail != "busy")
         }
     }
@@ -459,6 +474,11 @@ mod tests {
         assert_eq!(fake.config.get("wifi0.hwmode"), "11beg");
         assert_eq!(fake.config.get("wifi1.hwmode"), "11bea");
         assert_eq!(fake.config.get("wifi1.htmode"), "EHT160");
+        fake.config
+            .0
+            .insert("wireless.wifi0.htmode".into(), "EHT20_40".into());
+        run(&mut fake, json!({"wifi6_switch":"0"}), false).unwrap();
+        assert_eq!(fake.config.get("wifi0.htmode"), "HT20_40");
     }
 
     #[test]
@@ -565,5 +585,23 @@ mod tests {
             assert_eq!(run(&mut fake, body, guest).unwrap_err().0, 503);
             assert_eq!(fake.calls.iter().filter(|c| *c == "apply").count(), 1);
         }
+    }
+
+    #[test]
+    fn waits_for_firmware_reinitialization_without_replaying_writes() {
+        let mut fake = Fake {
+            unavailable_reports: 2,
+            ..Fake::default()
+        };
+        let result = save(
+            &mut fake,
+            &json!({"wifi6_switch":"0"}),
+            false,
+            Duration::ZERO,
+            Duration::from_secs(5),
+        )
+        .unwrap();
+        assert_eq!(result["verified"], true);
+        assert_eq!(fake.calls, ["apply"]);
     }
 }

@@ -396,6 +396,7 @@ export function WifiPage({ tab }: { tab: string }) {
                     const d = await api("/api/wifi/status");
                     await api("/api/wifi/settings", {
                       method: "PUT",
+                      timeout: 90000,
                       body: {
                         ssid_5g: d.ssid_2g,
                         key_5g: d.key_2g,

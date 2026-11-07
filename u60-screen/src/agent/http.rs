@@ -111,6 +111,7 @@ impl Api {
             "/api/update/check" | "/api/update/download" => 360,
             "/api/tailscale/setup" | "/api/tailscale/login-url" => 65,
             "/api/at/send" => 35,
+            "/api/wifi/settings" | "/api/wifi/guest" => 90,
             "/api/proxy/enable" | "/api/proxy/restart" => 600,
             "/api/proxy/disable" | "/api/proxy/mihomo/disable" => 120,
             "/api/proxy/reload"
