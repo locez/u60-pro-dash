@@ -11,9 +11,6 @@ msgstr " 秒後に再試行できます"
 msgid "60 秒"
 msgstr "60 秒"
 
-msgid "NETWORK / 网络状态"
-msgstr "ネットワーク状態"
-
 msgid "U60   →   Tailscale   →   目标"
 msgstr "U60 → Tailscale → 目標"
 
@@ -23,6 +20,9 @@ msgstr "U60 · 画面プレビュー"
 msgid "Wi-Fi 连接卡片"
 msgstr "Wi-Fi 接続カード"
 
+msgid "{0} 台设备"
+msgstr "端末 {0} 台"
+
 msgid "↑ 上传 / Mbps"
 msgstr "↑ 上り / Mbps"
 
@@ -31,9 +31,6 @@ msgstr "↓ 下り / Mbps"
 
 msgid "−2 分钟"
 msgstr "−2 分"
-
-msgid "信号强度"
-msgstr "電波強度"
 
 msgid "信号详情"
 msgstr "電波の詳細"
@@ -89,6 +86,9 @@ msgstr "画面の明るさ  "
 msgid "已开启 · 6–12 位数字密码"
 msgstr "有効 · 6～12桁の PIN"
 
+msgid "已联网"
+msgstr "接続中"
+
 msgid "已连接"
 msgstr "接続済み"
 
@@ -133,6 +133,9 @@ msgstr "サービス概要"
 
 msgid "未开启 · 仅长按解锁"
 msgstr "未開封 - 解鎖のみ"
+
+msgid "未联网"
+msgstr "未接続"
 
 msgid "本次 "
 msgstr "今回 "
@@ -245,11 +248,8 @@ msgstr "削除"
 msgid "重新连接"
 msgstr "再接続"
 
-msgid "长按 1 秒，松开后解锁"
-msgstr "1秒長押しして指を離す"
-
-msgid "长按解锁"
-msgstr "長押しで解除"
+msgid "长按 1 秒解锁"
+msgstr "1 秒長押しで解除"
 
 msgid "随身网络"
 msgstr "モバイルルーター"

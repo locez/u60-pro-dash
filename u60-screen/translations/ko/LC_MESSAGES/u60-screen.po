@@ -11,9 +11,6 @@ msgstr "초 후 다시 시도 가능"
 msgid "60 秒"
 msgstr "60초"
 
-msgid "NETWORK / 网络状态"
-msgstr "네트워크 상태"
-
 msgid "U60   →   Tailscale   →   目标"
 msgstr "U60 → Tailscale → 목표"
 
@@ -23,6 +20,9 @@ msgstr "U60 · 화면 미리보기"
 msgid "Wi-Fi 连接卡片"
 msgstr "Wi-Fi 연결 카드"
 
+msgid "{0} 台设备"
+msgstr "기기 {0}대"
+
 msgid "↑ 上传 / Mbps"
 msgstr "↑ 업로드 / Mbps"
 
@@ -31,9 +31,6 @@ msgstr "↓ 다운로드 / Mbps"
 
 msgid "−2 分钟"
 msgstr "−2분"
-
-msgid "信号强度"
-msgstr "신호 강도"
 
 msgid "信号详情"
 msgstr "신호 상세"
@@ -89,6 +86,9 @@ msgstr "화면 밝기  "
 msgid "已开启 · 6–12 位数字密码"
 msgstr "활성화됨 · 숫자 6~12자리 PIN"
 
+msgid "已联网"
+msgstr "연결됨"
+
 msgid "已连接"
 msgstr "연결됨"
 
@@ -133,6 +133,9 @@ msgstr "서비스 요약"
 
 msgid "未开启 · 仅长按解锁"
 msgstr "열리지 않은 · 잠금 잠금"
+
+msgid "未联网"
+msgstr "오프라인"
 
 msgid "本次 "
 msgstr "이번 연결 "
@@ -245,11 +248,8 @@ msgstr "삭제"
 msgid "重新连接"
 msgstr "다시 연결"
 
-msgid "长按 1 秒，松开后解锁"
-msgstr "1초간 누른 후 손 떼기"
-
-msgid "长按解锁"
-msgstr "길게 눌러 잠금 해제"
+msgid "长按 1 秒解锁"
+msgstr "1초 길게 눌러 잠금 해제"
 
 msgid "随身网络"
 msgstr "모바일 라우터"

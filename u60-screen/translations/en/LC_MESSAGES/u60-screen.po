@@ -11,9 +11,6 @@ msgstr " seconds until retry"
 msgid "60 秒"
 msgstr "60 seconds"
 
-msgid "NETWORK / 网络状态"
-msgstr "NETWORK STATUS"
-
 msgid "U60   →   Tailscale   →   目标"
 msgstr "U60 → Tailscale → Goals"
 
@@ -23,6 +20,9 @@ msgstr "U60 · Screen preview"
 msgid "Wi-Fi 连接卡片"
 msgstr "Wi-Fi connection card"
 
+msgid "{0} 台设备"
+msgstr "{0} devices"
+
 msgid "↑ 上传 / Mbps"
 msgstr "↑ Upload / Mbps"
 
@@ -31,9 +31,6 @@ msgstr "↓ Download / Mbps"
 
 msgid "−2 分钟"
 msgstr "−2 min"
-
-msgid "信号强度"
-msgstr "Signal strength"
 
 msgid "信号详情"
 msgstr "Radio details"
@@ -89,6 +86,9 @@ msgstr "Brightness  "
 msgid "已开启 · 6–12 位数字密码"
 msgstr "Enabled · 6–12 digit PIN"
 
+msgid "已联网"
+msgstr "Connected"
+
 msgid "已连接"
 msgstr "Connected"
 
@@ -133,6 +133,9 @@ msgstr "Service summary"
 
 msgid "未开启 · 仅长按解锁"
 msgstr "Unlocked · Long only by unlocking"
+
+msgid "未联网"
+msgstr "Offline"
 
 msgid "本次 "
 msgstr "Session "
@@ -245,11 +248,8 @@ msgstr "Backspace"
 msgid "重新连接"
 msgstr "Reconnect"
 
-msgid "长按 1 秒，松开后解锁"
-msgstr "Hold 1s, then release"
-
-msgid "长按解锁"
-msgstr "Hold to unlock"
+msgid "长按 1 秒解锁"
+msgstr "Hold 1 second to unlock"
 
 msgid "随身网络"
 msgstr "Mobile hotspot"

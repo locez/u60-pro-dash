@@ -1,6 +1,7 @@
 mod agent;
 mod app;
 mod carrier;
+mod chrome;
 mod config;
 #[cfg(feature = "device")]
 mod device;
@@ -319,8 +320,27 @@ mod tests {
         );
         tap(120., 450.);
         assert_eq!(app.ui.get_tab(), 0, "navigation must be gated while locked");
+        tap(160., 396.);
+        assert!(app.ui.get_locked(), "a short tap must not unlock");
+        window.dispatch_event(WindowEvent::PointerPressed {
+            position: LogicalPosition::new(160., 396.),
+            button: PointerEventButton::Left,
+        });
+        std::thread::sleep(std::time::Duration::from_millis(1010));
+        slint::platform::update_timers_and_animations();
+        window.dispatch_event(WindowEvent::PointerMoved {
+            position: LogicalPosition::new(90., 396.),
+        });
+        window.dispatch_event(WindowEvent::PointerReleased {
+            position: LogicalPosition::new(90., 396.),
+            button: PointerEventButton::Left,
+        });
+        assert!(
+            app.ui.get_locked(),
+            "moving off the circle must cancel a completed hold"
+        );
         let hold = || {
-            let position = LogicalPosition::new(160., 355.);
+            let position = LogicalPosition::new(160., 396.);
             window.dispatch_event(WindowEvent::PointerPressed {
                 position,
                 button: PointerEventButton::Left,
@@ -568,6 +588,35 @@ mod tests {
             if locked {
                 hold();
             }
+        }
+        for code in ["zh-Hans", "zh-Hant", "en", "ja", "ko"] {
+            app.ui.invoke_set_language(code.into());
+            for dark in [false, true] {
+                app.ui.invoke_theme(dark);
+                app.ui.invoke_lock_now();
+                save(&format!(
+                    "product-lock-{code}-{}.png",
+                    if dark { "dark" } else { "light" }
+                ))?;
+                hold();
+                assert!(!app.ui.get_locked());
+            }
+        }
+        app.ui.invoke_set_language("zh-Hans".into());
+        app.ui.set_charging(false);
+        app.ui.set_external_power(false);
+        app.ui.set_wifi_enabled(true);
+        let full_status = status_pixels();
+        app.ui.set_wifi_enabled(false);
+        app.ui.set_network_badge("".into());
+        let compact_status = status_pixels();
+        assert_ne!(full_status, compact_status);
+        for row in 0..28 {
+            assert_eq!(
+                &full_status[row * 320 + 282..row * 320 + 307],
+                &compact_status[row * 320 + 282..row * 320 + 307],
+                "the battery percentage stays anchored when optional icons disappear"
+            );
         }
         app.ui.set_external_power(false);
         app.ui.set_battery("14%".into());

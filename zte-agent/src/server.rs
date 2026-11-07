@@ -328,6 +328,7 @@ fn route_inner(method: &Method, path: &str, state: &AppState, body: &[u8]) -> (u
         (&Method::Get, "/api/system/top") => handlers::system_top(state),
         (&Method::Post, "/api/system/kill-bloat") => handlers::system_kill_bloat(state, body),
         // WiFi
+        (&Method::Get, "/api/wifi/radios") => wifi::wifi_radios(state),
         (&Method::Get, "/api/wifi/status") => wifi::wifi_status(state),
         (&Method::Put, "/api/wifi/settings") => wifi::wifi_set(state, body),
         (&Method::Get, "/api/wifi/guest") => wifi::guest_status(state),

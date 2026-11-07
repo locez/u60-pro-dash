@@ -1,11 +1,13 @@
 import { Palette, Label } from "components.slint";
 
+// One compact status row for the home, details and lock surfaces.
 export component StatusBar inherits Rectangle {
     in property <bool> awake: true;
     in property <bool> locked;
     in property <string> connection;
     in property <string> network;
     in property <int> signal-level: -1;
+    in property <bool> wifi-enabled;
     in property <string> battery;
     in property <int> battery-level: -1;
     in property <bool> charging;
@@ -20,74 +22,95 @@ export component StatusBar inherits Rectangle {
         triggered => { root.charge-pulse = !root.charge-pulse; }
     }
     identity := Rectangle {
-        x: 14px; width: root.locked ? 40px : 25px; height: 28px;
-        // Slint centers fixed-width children by default. Keep the wordmark
-        // anchored when the lock icon widens this container.
-        Label { x: 0px; y: 0px; text: "U60"; width: 25px; height: parent.height; font-size: 12px; font-weight: 700; horizontal-alignment: left; vertical-alignment: center; }
+        x: 14px; width: root.locked ? 52px : 36px; height: parent.height;
         if root.locked: Path {
-            x: 29px; y: 9px; width: 9px; height: 10px;
-            commands: "M 2 4 V 2.5 A 2.5 2.5 0 0 1 7 2.5 V 4 M 0.5 4 H 8.5 V 9.5 H 0.5 Z";
-            stroke: Palette.muted; stroke-width: 1px;
+            x: 0px; y: 9px; width: 10px; height: 11px;
+            commands: "M 2 4 V 2.5 A 3 3 0 0 1 8 2.5 V 4 M 0.5 4 H 9.5 V 10.5 H 0.5 Z M 5 6.5 V 8";
+            stroke: Palette.muted; stroke-width: 1px; stroke-line-join: round;
+        }
+        Label {
+            x: root.locked ? 16px : 0px; y: 0px; width: 36px; height: parent.height;
+            text: "U60"; font-size: 14px; font-weight: 650; letter-spacing: 0.6px;
+            horizontal-alignment: left; vertical-alignment: center;
         }
     }
     Label {
-        x: identity.x + identity.width + 8px; width: max(0px, indicators.x - self.x - 8px);
-        height: 28px; text: root.connection; font-size: 12px;
+        x: identity.x + identity.width + 6px; width: max(0px, indicators.x - self.x - 8px);
+        height: parent.height; text: root.connection; font-size: 11px;
         color: Palette.muted; vertical-alignment: center;
     }
     indicators := HorizontalLayout {
         x: root.width - self.width - 14px; width: self.preferred-width;
-        height: 28px; spacing: 5px;
+        height: parent.height; spacing: 5px;
         Rectangle {
-            width: 20px;
+            width: 14px;
             for bar in [0, 1, 2, 3]: Rectangle {
-                x: bar * 5px; y: 21px - self.height;
-                width: 3px; height: 4px + bar * 4px;
-                background: root.signal-level > bar ? (root.signal-level == 1 ? Palette.warning : Palette.text) : Palette.line;
+                x: bar * 4px; y: 20px - self.height;
+                width: 2px; height: 3px + bar * 3px;
+                background: root.signal-level > bar ? (root.signal-level == 1 ? Palette.warning : Palette.muted) : Palette.line;
             }
             if root.signal-level == 0: Path {
-                x: 3px; y: 8px; width: 13px; height: 13px;
-                commands: "M 0 0 L 13 13 M 13 0 L 0 13";
-                stroke: Palette.warning; stroke-width: 1.5px;
+                x: 1px; y: 8px; width: 12px; height: 12px;
+                commands: "M 0 0 L 12 12";
+                stroke: Palette.warning; stroke-width: 1px;
             }
             if root.signal-level < 0: Label {
-                text: "?"; font-size: 13px; font-weight: 700; horizontal-alignment: center; vertical-alignment: center;
+                text: "?"; font-size: 12px; horizontal-alignment: center; vertical-alignment: center;
             }
         }
-        if root.network != "": Label { text: root.network; width: self.preferred-width; font-size: 12px; vertical-alignment: center; }
-        Label { text: root.battery; width: self.preferred-width; font-size: 12px; vertical-alignment: center; horizontal-alignment: right; }
+        if root.network != "": Label {
+            text: root.network; width: self.preferred-width; font-size: 11px;
+            color: Palette.muted; vertical-alignment: center;
+        }
+        if root.wifi-enabled: Rectangle {
+            width: 14px;
+            Path {
+                x: 0px; y: 8px; width: 14px; height: 11px;
+                viewbox-width: 24; viewbox-height: 19;
+                commands: "M 1 5 A 17 17 0 0 1 23 5 M 5 9 A 11 11 0 0 1 19 9 M 9 13 A 5 5 0 0 1 15 13 M 12 17 L 12.01 17";
+                stroke: Palette.muted; stroke-width: 1.3px; stroke-line-cap: round;
+            }
+        }
         Rectangle {
-            property <length> power-width: root.external-power || root.charging ? 19px : 0px;
-            width: self.power-width + 24px;
+            width: root.external-power && !root.charging ? 36px : 23px;
             accessible-role: text;
             accessible-label: root.power-label + " " + root.battery;
+            property <color> ink: root.external-power || root.charging
+                ? (root.bypass-power ? Palette.accent-ink : Palette.good)
+                : root.battery-level >= 0 && root.battery-level <= 20 ? Palette.warning : Palette.muted;
+            Path {
+                x: 1px; y: 9px; width: 21px; height: 11px;
+                viewbox-width: 23; viewbox-height: 12;
+                commands: root.charging
+                    ? "M 6 1 H 2 Q 1 1 1 2 V 10 Q 1 11 2 11 H 6 M 16 1 H 19 Q 20 1 20 2 V 10 Q 20 11 19 11 H 16 M 22 4 V 8"
+                    : "M 2 1 H 19 Q 20 1 20 2 V 10 Q 20 11 19 11 H 2 Q 1 11 1 10 V 2 Q 1 1 2 1 M 22 4 V 8";
+                stroke: parent.ink; stroke-width: 1.3px; stroke-line-cap: round; stroke-line-join: round;
+            }
             if root.charging: Path {
-                x: 1px; y: 6px; width: 12px; height: 16px;
-                commands: "M 7 0 L 0 9 H 5 L 4 16 L 12 6 H 7 Z";
-                fill: Palette.good;
-                opacity: root.charge-pulse ? 0.45 : 1;
+                x: 7px; y: 7px; width: 9px; height: 15px;
+                commands: "M 5 0 L 0 8 H 4 L 3 15 L 9 6 H 5 Z";
+                fill: parent.ink; opacity: root.charge-pulse ? 0.45 : 1;
+            }
+            if !root.charging && root.battery-level >= 0: Rectangle {
+                x: 4px; y: 12px; height: 5px;
+                width: round(13 * root.battery-level / 100) * 1px;
+                background: parent.ink; border-radius: 1px;
+            }
+            if root.battery-level < 0 && !root.charging: Label {
+                x: 1px; width: 18px; height: parent.height;
+                text: "?"; font-size: 10px; horizontal-alignment: center; vertical-alignment: center;
             }
             if root.external-power && !root.charging: Path {
-                x: 0px; y: 7px; width: root.bypass-power ? 17px : 10px; height: 14px;
+                x: 25px; y: 9px; width: 10px; height: 12px;
                 commands: root.bypass-power
-                    ? "M 2 0 V 4 M 6 0 V 4 M 0 4 H 8 V 7 Q 8 10 4 10 Q 0 10 0 7 Z M 4 10 V 14 M 9 9 H 16 M 13 6 L 16 9 L 13 12"
-                    : "M 2 0 V 4 M 7 0 V 4 M 0 4 H 9 V 7 Q 9 10 4.5 10 Q 0 10 0 7 Z M 4.5 10 V 14";
-                stroke: root.bypass-power ? Palette.accent-ink : Palette.good;
-                stroke-width: 1.5px;
+                    ? "M 2 0 V 3 M 6 0 V 3 M 0 3 H 8 V 6 Q 8 8 4 8 Q 0 8 0 6 Z M 4 8 V 11 M 6 10 H 10 M 8 8 L 10 10 L 8 12"
+                    : "M 2 0 V 3 M 6 0 V 3 M 0 3 H 8 V 6 Q 8 8 4 8 Q 0 8 0 6 Z M 4 8 V 12";
+                stroke: parent.ink; stroke-width: 1px; stroke-line-cap: round; stroke-line-join: round;
             }
-            Rectangle {
-                x: parent.power-width; y: 7px; width: 22px; height: 14px;
-                border-width: 1px; border-radius: 2px;
-                border-color: root.battery-level >= 0 && root.battery-level <= 20 && !root.external-power ? Palette.warning : Palette.muted;
-                Rectangle {
-                    x: 2px; y: 2px; height: 10px;
-                    width: root.battery-level < 0 ? 0px : max(0px, round(18 * root.battery-level / 100) * 1px);
-                    background: root.external-power ? (root.bypass-power ? Palette.accent-ink : Palette.good) : root.battery-level <= 20 ? Palette.warning : Palette.text;
-                    opacity: root.charging && root.charge-pulse ? 0.45 : 1;
-                }
-                if root.battery-level < 0: Label { text: "?"; font-size: 10px; horizontal-alignment: center; vertical-alignment: center; }
-            }
-            Rectangle { x: parent.power-width + 22px; y: 11px; width: 2px; height: 6px; background: Palette.muted; }
+        }
+        Label {
+            text: root.battery; width: self.preferred-width; font-size: 11px; font-weight: 650;
+            color: Palette.muted; vertical-alignment: center; horizontal-alignment: right;
         }
     }
 }

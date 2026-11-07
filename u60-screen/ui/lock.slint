@@ -1,26 +1,31 @@
-import { Palette, Label, TapButton, TrafficPanel, Stat, AmbientBackground, GlassPanel } from "components.slint";
+import { Palette, Label, TapButton, AmbientBackground } from "components.slint";
 import { StatusBar } from "status.slint";
 
 export component LockScreen inherits AmbientBackground {
     in property <bool> pin-enabled;
     in property <bool> awake: true;
     in property <float> progress;
+    in property <string> clock;
+    in property <string> date;
     in property <string> battery;
     in property <int> battery-level;
     in property <bool> charging;
     in property <bool> external-power;
     in property <bool> bypass-power;
+    in property <bool> wifi-enabled;
     in property <string> power-label;
     in property <string> network-badge;
     in property <int> signal-level;
     in property <string> connection-label;
-    in property <string> radio-label;
+    in property <string> network-mode;
     in property <string> carrier-label;
-    in property <string> signal-strength;
-    in property <string> traffic-total;
+    in property <string> client-count;
     in property <bool> network-online;
     in property <string> download;
     in property <string> upload;
+    in property <string> download-path;
+    in property <string> upload-path;
+    in property <int> samples;
     callback hold-start;
     callback hold-tick;
     callback hold-end(bool);
@@ -30,58 +35,109 @@ export component LockScreen inherits AmbientBackground {
     StatusBar {
         x: 0px; y: 0px; width: parent.width; awake: root.awake; locked: true;
         connection: root.connection-label; network: root.network-badge; signal-level: root.signal-level;
+        wifi-enabled: root.wifi-enabled;
         battery: root.battery; battery-level: root.battery-level;
         charging: root.charging; external-power: root.external-power; bypass-power: root.bypass-power;
         power-label: root.power-label;
     }
-    Label { x: 14px; y: 32px; height: 18px; text: @tr("NETWORK / 网络状态"); font-size: 12px; color: Palette.muted; }
-    Label { x: 14px; y: 52px; width: parent.width - 28px; height: 32px; text: root.carrier-label; font-size: 22px; font-weight: 650; }
-    TrafficPanel { x: 12px; y: 92px; width: parent.width - 24px; online: root.network-online; download: root.download; upload: root.upload; network-label: root.radio-label; total: root.traffic-total; }
-    HorizontalLayout {
-        x: 12px; y: 244px; width: parent.width - 24px; height: 72px; spacing: 10px;
-        Stat { label: @tr("信号强度"); value: root.signal-strength; unit: "dBm"; }
-        Stat { label: root.power-label; value: root.battery; unit: ""; }
+    Label {
+        x: 24px; y: 51px; width: parent.width - 48px; height: 65px;
+        text: root.clock; font-size: 48px; font-weight: 450; letter-spacing: -1px;
+        horizontal-alignment: center; vertical-alignment: center;
     }
-    GlassPanel {
-        x: 118px; y: 332px; width: 84px; height: 84px;
-        border-radius: 42px;
-        background: hold.pressed ? Palette.line : Palette.surface;
-        Path {
-            x: 1px; y: 1px; width: 82px; height: 82px; viewbox-width: 82; viewbox-height: 82;
-            commands: "M 4 57 A 40 40 0 0 1 57 4";
-            stroke: Palette.sheen; stroke-width: 1.5px; stroke-line-cap: round;
+    Label {
+        x: 24px; y: 119px; width: parent.width - 48px; height: 23px;
+        text: root.date; font-size: 12px; color: Palette.muted; horizontal-alignment: center; vertical-alignment: center;
+    }
+    HorizontalLayout {
+        x: 24px; y: 165px; width: parent.width - 48px; height: 22px; spacing: 5px;
+        Label { text: root.carrier-label + " · " + root.network-mode; min-width: 0px; font-size: 12px; vertical-alignment: center; }
+        Rectangle {
+            width: 4px;
+            Rectangle { y: 9px; width: 4px; height: 4px; border-radius: 2px; background: root.network-online ? Palette.good : Palette.warning; }
         }
-        Rectangle { x: 5px; y: 5px; width: 74px; height: 74px; border-radius: 37px; border-width: 1px; border-color: Palette.rim; }
-        // Short segments give crisp feedback on the device's RGB565 display.
-        for segment in 32: Rectangle {
-            x: 40px + sin(segment * 360deg / 32) * 38px;
-            y: 40px - cos(segment * 360deg / 32) * 38px;
-            width: 4px; height: 4px; border-radius: 2px;
-            background: Palette.accent-ink;
-            visible: root.progress > 0 && segment < root.progress * 32;
+        Label {
+            text: root.network-online ? @tr("已联网") : @tr("未联网"); width: self.preferred-width;
+            font-size: 12px; color: Palette.muted; vertical-alignment: center;
         }
-        Path {
-            x: 28px; y: 25px; width: 28px; height: 32px;
-            commands: root.progress >= 1
-                ? "M 5 17 L 12 24 L 25 8"
-                : "M 7 14 V 8 A 7 7 0 0 1 21 8 V 14 M 3 14 H 25 V 31 H 3 Z M 14 20 V 25";
-            stroke: root.progress > 0 ? Palette.accent-ink : Palette.text;
-            stroke-width: 2px;
+    }
+    HorizontalLayout {
+        x: 24px; y: 200px; width: parent.width - 48px; height: 58px; spacing: 16px;
+        VerticalLayout {
+            spacing: 5px;
+            Label { text: @tr("↓ 下载 / Mbps"); height: 18px; font-size: 12px; color: Palette.muted; }
+            Label { text: root.download; height: 35px; font-size: 29px; font-weight: 650; color: Palette.accent-ink; }
+        }
+        VerticalLayout {
+            spacing: 5px;
+            Label { text: @tr("↑ 上传 / Mbps"); height: 18px; font-size: 12px; color: Palette.muted; }
+            Label { text: root.upload; height: 35px; font-size: 29px; font-weight: 650; }
+        }
+    }
+    Rectangle {
+        x: 24px; y: 271px; width: parent.width - 48px; height: 54px; clip: true;
+        for level in [0,1,2]: Rectangle { y: 3px + level * 24px; width: parent.width; height: 1px; background: Palette.line; }
+        if root.download-path != "": Path {
+            width: parent.width; height: parent.height; commands: root.download-path;
+            viewbox-width: 272; viewbox-height: 54; fit: fill;
+            stroke: Palette.accent-ink; stroke-width: 1.5px; stroke-line-cap: round; stroke-line-join: round;
+        }
+        if root.upload-path != "": Path {
+            width: parent.width; height: parent.height; commands: root.upload-path;
+            viewbox-width: 272; viewbox-height: 54; fit: fill;
+            stroke: Palette.good; stroke-width: 1.5px; stroke-line-cap: round; stroke-line-join: round;
+        }
+        if root.samples < 2: Label {
+            text: @tr("正在积累趋势"); font-size: 12px; color: Palette.muted; horizontal-alignment: center; vertical-alignment: center;
+        }
+    }
+    Label {
+        x: 16px; y: 332px; width: parent.width - 32px; height: 22px;
+        text: @tr("{0} 台设备", root.client-count) + " · " + root.battery + " · " + root.power-label;
+        color: Palette.muted; font-size: 12px; horizontal-alignment: center; vertical-alignment: center;
+    }
+    // A small visual control with a larger finger target. It remains a hold
+    // gesture; fingerprint artwork does not add biometric authentication.
+    Rectangle {
+        x: 118px; y: 354px; width: 84px; height: 84px;
+        Rectangle {
+            x: 12px; y: 12px; width: 60px; height: 60px; border-radius: 30px;
+            background: hold.pressed ? Palette.accent : Palette.accent.with-alpha(0.09);
+            border-width: 1px; border-color: Palette.accent-ink;
+            if root.progress > 0: Path {
+                x: -3px; y: -3px; width: 66px; height: 66px;
+                viewbox-width: 66; viewbox-height: 66;
+                commands: root.progress >= 1 ? "M 33 1 A 32 32 0 1 1 32.99 1"
+                    : "M 33 1 A 32 32 0 " + (root.progress > 0.5 ? "1" : "0") + " 1 " + (33 + sin(root.progress * 360deg) * 32) + " " + (33 - cos(root.progress * 360deg) * 32);
+                stroke: Palette.accent-ink; stroke-width: 2px; stroke-line-cap: round;
+            }
+            Path {
+                x: 15px; y: 15px; width: 30px; height: 30px; viewbox-width: 24; viewbox-height: 24;
+                commands: "M 12 11 C 12 15 11.5 18 10 21 M 8 16 C 8.5 14 8 12 9 10 C 10.5 7 15 8 15 11 C 15 15 14.5 18 13 22 M 5 16 C 6 13 4.5 10 7 7 C 10 3.5 16 4.5 18 8 C 19 10 18 14 19 17 M 3 12 C 2 4 10 0 16 3 M 20 6 C 22 9 21 12 22 14 M 5 20 L 6 17 M 16 20 L 17 17";
+                stroke: hold.pressed ? Palette.accent-on : Palette.accent-ink;
+                stroke-width: 1.7px; stroke-line-cap: round; stroke-line-join: round;
+            }
         }
         hold := TouchArea {
-            accessible-role: button; accessible-label: @tr("长按解锁");
+            accessible-role: button; accessible-label: @tr("长按 1 秒解锁");
             pointer-event(event) => {
                 if event.kind == PointerEventKind.down { root.hold-start(); }
                 if event.kind == PointerEventKind.up { root.hold-end(self.mouse-x >= 0px && self.mouse-x <= self.width && self.mouse-y >= 0px && self.mouse-y <= self.height); }
+                if event.kind == PointerEventKind.cancel { root.hold-cancel(); }
             }
-            moved => {
-                if self.mouse-x < 0px || self.mouse-x > self.width || self.mouse-y < 0px || self.mouse-y > self.height { root.hold-cancel(); }
-            }
+            moved => { if self.mouse-x < 0px || self.mouse-x > self.width || self.mouse-y < 0px || self.mouse-y > self.height { root.hold-cancel(); } }
         }
         Timer { interval: 50ms; running: hold.pressed && root.awake; triggered => { root.hold-tick(); } }
     }
-    Label { x: 16px; y: 420px; width: parent.width - 32px; height: 24px; text: root.progress >= 1 ? @tr("松开继续") : @tr("长按解锁"); font-size: 15px; font-weight: 600; horizontal-alignment: center; }
-    Label { x: 16px; y: 448px; width: parent.width - 32px; height: 24px; text: root.pin-enabled ? @tr("查看设置与操作需要密码") : @tr("长按 1 秒，松开后解锁"); font-size: 12px; color: Palette.muted; horizontal-alignment: center; }
+    Label {
+        x: 16px; y: 436px; width: parent.width - 32px; height: 20px;
+        text: root.progress >= 1 ? @tr("松开继续") : @tr("长按 1 秒解锁");
+        font-size: 12px; color: Palette.accent-ink; horizontal-alignment: center;
+    }
+    if root.pin-enabled: Label {
+        x: 16px; y: 457px; width: parent.width - 32px; height: 18px;
+        text: @tr("查看设置与操作需要密码"); font-size: 11px; color: Palette.muted; horizontal-alignment: center;
+    }
 }
 
 export component PinPad inherits AmbientBackground {

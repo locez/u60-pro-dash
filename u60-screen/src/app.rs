@@ -105,6 +105,7 @@ pub struct State {
     network_rows: Vec<(String, String)>,
     clients: crate::agent::clients::Clients,
     wifi: crate::wifi_home::WifiHome,
+    chrome: crate::chrome::Chrome,
     editor: Option<Editor>,
     features: crate::features::controller::Controller,
     feature_revision: u64,
@@ -586,6 +587,13 @@ impl State {
         if self.agent.is_some() {
             return;
         }
+        ui.set_lock_clock("14:08".into());
+        ui.set_lock_date(crate::i18n::tr("11 月 6 日 · 星期五").into());
+        ui.set_wifi_enabled(true);
+        ui.set_client_count("6".into());
+        ui.set_lock_download_path("M 0 42 L 16 35 L 32 37 L 48 27 L 64 32 L 80 20 L 96 28 L 112 22 L 128 24 L 144 14 L 160 20 L 176 10 L 192 17 L 208 12 L 224 3 L 240 10 L 256 6 L 271 9".into());
+        ui.set_lock_upload_path("M 0 50 L 16 48 L 32 49 L 48 44 L 64 46 L 80 40 L 96 44 L 112 39 L 128 41 L 144 39 L 160 40 L 176 35 L 192 39 L 208 34 L 224 36 L 240 32 L 256 34 L 271 30".into());
+        ui.set_lock_samples(18);
         ui.set_network_online(self.scenario != 2);
         ui.set_carrier_label(
             if self.scenario == 2 {
@@ -652,6 +660,7 @@ impl State {
     }
 
     fn update_agent(&mut self, ui: &Screen) {
+        self.chrome.clock(ui, self.prefs.language);
         let wifi_active = !ui.get_asleep()
             && !self.security.locked
             && !ui.get_pin_visible()
@@ -729,6 +738,9 @@ impl State {
             self.wifi.suspend(ui);
         }
         for reply in agent.replies() {
+            if self.chrome.receive(reply.id, &reply.result) {
+                continue;
+            }
             if self.home.receive(reply.id, reply.result.clone()) {
                 continue;
             }
@@ -777,9 +789,13 @@ impl State {
             }
         }
         self.wifi.tick(ui, agent, wifi_active);
+        self.chrome.tick(ui, agent, &snapshot);
         self.clients.tick(
             agent,
-            active && snapshot.authenticated && self.page == "overview",
+            !ui.get_asleep()
+                && !ui.get_pin_visible()
+                && snapshot.authenticated
+                && (self.security.locked || self.page == "overview"),
         );
         ui.set_client_count(self.clients.label().into());
         self.features.editing =
@@ -1183,6 +1199,7 @@ impl App {
             network: crate::agent::network::Network::default(),
             clients: Default::default(),
             wifi: Default::default(),
+            chrome: Default::default(),
             network_rows: Vec::new(),
             editor: None,
             features: crate::features::controller::Controller::default(),
@@ -1663,6 +1680,12 @@ impl App {
         let mut state = self.state.borrow_mut();
         state.agent = Some(crate::agent::Agent::start(config)?);
         self.ui.set_demo(false);
+        self.ui.set_wifi_enabled(false);
+        self.ui.set_lock_clock("—:—".into());
+        self.ui.set_lock_date("".into());
+        self.ui.set_lock_download_path("".into());
+        self.ui.set_lock_upload_path("".into());
+        self.ui.set_lock_samples(0);
         self.ui.set_tailnet_online(false);
         self.ui
             .set_tailnet_status(crate::i18n::tr("等待查询连接状态").into());

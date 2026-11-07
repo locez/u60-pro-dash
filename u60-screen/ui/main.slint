@@ -87,6 +87,12 @@ export component Screen inherits Window {
     in-out property <bool> demo: true;
     in-out property <string> connection-label: @tr("演示");
     in-out property <bool> connection-live;
+    in-out property <bool> wifi-enabled;
+    in-out property <string> lock-clock: "—:—";
+    in-out property <string> lock-date;
+    in-out property <string> lock-download-path;
+    in-out property <string> lock-upload-path;
+    in-out property <int> lock-samples;
     in-out property <string> carrier-label: @tr("演示运营商");
     in-out property <string> network-mode: "5G";
     in-out property <string> radio-label: "5G SA · n78";
@@ -206,6 +212,7 @@ export component Screen inherits Window {
             x: 0px; y: 0px; width: parent.width;
             awake: !root.asleep && !root.locked && !root.pin-visible;
             connection: root.connection-live ? "" : root.connection-label; network: root.network-badge; signal-level: root.signal-level;
+            wifi-enabled: root.wifi-enabled;
             battery: root.battery; battery-level: root.battery-level;
             charging: root.charging; external-power: root.external-power; bypass-power: root.bypass-power;
             power-label: root.power-label;
@@ -557,13 +564,15 @@ export component Screen inherits Window {
         if root.locked && !root.pin-visible: LockScreen {
             width: parent.width; height: parent.height;
             pin-enabled: root.pin-enabled; awake: !root.asleep; progress: root.hold-progress;
+            clock: root.lock-clock; date: root.lock-date;
+            download-path: root.lock-download-path; upload-path: root.lock-upload-path; samples: root.lock-samples;
             battery: root.battery; network-online: root.network-online;
             battery-level: root.battery-level; charging: root.charging;
             external-power: root.external-power; bypass-power: root.bypass-power; power-label: root.power-label;
             network-badge: root.network-badge; signal-level: root.signal-level;
-            connection-label: root.connection-live ? "" : root.connection-label; radio-label: root.radio-label;
+            connection-label: root.connection-live ? "" : root.connection-label; network-mode: root.network-mode;
+            wifi-enabled: root.wifi-enabled; client-count: root.client-count;
             carrier-label: root.carrier-label;
-            signal-strength: root.signal-strength; traffic-total: root.traffic-total;
             download: root.download; upload: root.upload;
             hold-start => { root.hold-start(); }
             hold-tick => { root.hold-tick(); }

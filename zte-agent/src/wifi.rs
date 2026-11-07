@@ -239,6 +239,30 @@ fn sanitize_uci_value(v: &str) -> String {
 // GET /api/wifi/status
 // ---------------------------------------------------------------------------
 
+/// Minimal authenticated status for screen chrome. No SSIDs, keys, station
+/// inventory or repeated `iw` calls are needed to display a radio indicator.
+pub fn wifi_radios(_state: &AppState) -> (u16, Value) {
+    let w = match Wireless::load() {
+        Ok(w) => w,
+        Err(e) => return (503, json!({"ok": false, "error": e})),
+    };
+    let mut enabled = w.mbb("wifi_onoff");
+    if enabled.is_empty() {
+        if let Ok(report) = ubus::call("zwrt_wlan", "report", Some("{}")) {
+            enabled = report["wifi_onoff"].as_str().unwrap_or_default().to_string();
+        }
+    }
+    (200, json!({"ok": true, "data": radio_summary(&w, enabled)}))
+}
+
+fn radio_summary(w: &Wireless, enabled: String) -> Value {
+    json!({
+        "wifi_onoff": enabled,
+        "radio2_disabled": w.get("wifi0.disabled"),
+        "radio5_disabled": w.get("wifi1.disabled"),
+    })
+}
+
 pub fn wifi_status(_state: &AppState) -> (u16, Value) {
     let mut result = serde_json::Map::new();
     let w = match Wireless::load() {
@@ -562,6 +586,17 @@ mod wireless_tests {
     use super::{access_point_interfaces, station_addresses, Wireless};
 
     const SHOW: &str = "wireless.wifi0=wifi-device\nwireless.wifi0.disabled='0'\nwireless.main_2g.ssid='U60'\nwireless.zte_mbb=zte_mbb\nwireless.zte_mbb.wifi_onoff='1'\nwireless.zte_mbb.wifi6_switch='0'\n";
+
+    #[test]
+    fn radio_summary_excludes_credentials_and_preserves_unknown_state() {
+        let w = Wireless::from_show(&format!("{SHOW}wireless.main_2g.key='private-example'\n"));
+        assert_eq!(super::radio_summary(&w, w.mbb("wifi_onoff")), serde_json::json!({
+            "wifi_onoff":"1", "radio2_disabled":"0", "radio5_disabled":""
+        }));
+        assert_eq!(super::radio_summary(&Wireless::from_show(""), String::new()), serde_json::json!({
+            "wifi_onoff":"", "radio2_disabled":"", "radio5_disabled":""
+        }));
+    }
 
     #[test]
     fn master_switch_is_read_from_wireless_zte_mbb_when_present() {

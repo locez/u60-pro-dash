@@ -11,9 +11,6 @@ msgstr " 秒後可以重試"
 msgid "60 秒"
 msgstr "60 秒"
 
-msgid "NETWORK / 网络状态"
-msgstr "NETWORK / 網路狀態"
-
 msgid "U60   →   Tailscale   →   目标"
 msgstr "U60   →   Tailscale   →   目標"
 
@@ -23,6 +20,9 @@ msgstr "U60 · 原生螢幕預覽"
 msgid "Wi-Fi 连接卡片"
 msgstr "Wi-Fi 連線卡片"
 
+msgid "{0} 台设备"
+msgstr "{0} 臺裝置"
+
 msgid "↑ 上传 / Mbps"
 msgstr "↑ 上傳 / Mbps"
 
@@ -31,9 +31,6 @@ msgstr "↓ 下載 / Mbps"
 
 msgid "−2 分钟"
 msgstr "−2 分鐘"
-
-msgid "信号强度"
-msgstr "訊號強度"
 
 msgid "信号详情"
 msgstr "訊號詳情"
@@ -89,6 +86,9 @@ msgstr "螢幕亮度  "
 msgid "已开启 · 6–12 位数字密码"
 msgstr "已開啟 · 6–12 位數字密碼"
 
+msgid "已联网"
+msgstr "已連線"
+
 msgid "已连接"
 msgstr "已連線"
 
@@ -133,6 +133,9 @@ msgstr "服務摘要"
 
 msgid "未开启 · 仅长按解锁"
 msgstr "未開啟 · 僅長按解鎖"
+
+msgid "未联网"
+msgstr "未連線"
 
 msgid "本次 "
 msgstr "本次 "
@@ -245,11 +248,8 @@ msgstr "退格"
 msgid "重新连接"
 msgstr "重新連線"
 
-msgid "长按 1 秒，松开后解锁"
-msgstr "長按 1 秒，鬆開後解鎖"
-
-msgid "长按解锁"
-msgstr "長按解鎖"
+msgid "长按 1 秒解锁"
+msgstr "長按 1 秒解鎖"
 
 msgid "随身网络"
 msgstr "隨身網路"
