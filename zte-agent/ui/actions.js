@@ -2,13 +2,13 @@
 (() => {
   const tr = globalThis.OpenU60I18n?.t || ((s,...v)=>s.replace(/\{(\d+)\}/g,(match,i)=>Number(i)<v.length?String(v[i]):match));
   const bytes = value => new TextEncoder().encode(value).length;
-  const restricted = /['";$`\\|<>&]/;
+  const controls = /[\u0000-\u001f\u007f-\u009f]/;
   function wifiText(value,label,max = 32) {
     if (!value || bytes(value) > max) throw new Error(tr("{0} must contain 1–{1} UTF-8 bytes.", label, max));
-    if (restricted.test(value)) throw new Error(`${label} contains characters the router cannot store: quotes, semicolons, $, backticks, backslashes, |, <, > or &.`);
+    if (controls.test(value)) throw new Error(`${label}: control characters cannot be stored.`);
   }
   function wifiPassword(value) {
-    if (restricted.test(value)) throw new Error(tr('The router cannot store one or more characters in this Wi-Fi password. Choose a different password.'));
+    if (!/^[\x20-\x7e]*$/.test(value)) throw new Error(tr('The router cannot store one or more characters in this Wi-Fi password. Choose a different password.'));
     if (!((value.length >= 8 && bytes(value) <= 63) || /^[0-9a-f]{64}$/i.test(value))) throw new Error(tr('Use an 8–63 byte Wi-Fi password, or a 64-digit hexadecimal key.'));
   }
   function encodeSMS(value) {

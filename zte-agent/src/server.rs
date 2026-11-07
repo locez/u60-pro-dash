@@ -230,6 +230,7 @@ pub fn lane(method: Method, path: &str) -> Lane {
         (_, p) if p.starts_with("/api/proxy/") || p.starts_with("/api/esim/") || p.starts_with("/api/tailscale/") || p.starts_with("/api/https/") => true,
         (Put | Post, p) if p.starts_with("/api/vpn/wireguard") => true,
         (Put, "/api/modem/bandwidth") => true,
+        (Put, "/api/wifi/settings" | "/api/wifi/guest") => true,
         (_, p) if p.starts_with("/api/ussd/") || p.starts_with("/api/stk/") => true,
         (Post, p) if p.starts_with("/api/sim/") || p.starts_with("/api/cell/") => true,
         (_, p) if p.starts_with("/api/dns/") => true,
