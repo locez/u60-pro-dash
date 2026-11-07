@@ -768,10 +768,7 @@ impl State {
         if active
             && snapshot.authenticated
             && snapshot.status == crate::agent::Status::Live
-            && (on_network
-                || self.page == "overview"
-                    && self.prefs.home.show_services
-                    && self.prefs.home.show_tailscale)
+            && on_network
             && self.network.last_refresh.elapsed() >= Duration::from_secs(30)
         {
             self.network.last_refresh = Instant::now();

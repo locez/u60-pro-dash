@@ -286,9 +286,16 @@ export component Screen inherits Window {
                     height: 28px; spacing: 4px;
                     for service in root.home-services: Rectangle {
                         horizontal-stretch: 1; min-width: 0px;
-                        Rectangle { x: 1px; y: 12px; width: 4px; height: 4px; border-radius: 2px; background: service.tag == "on" ? Palette.good : Palette.muted; }
+                        Rectangle {
+                            x: 1px; y: 12px; width: 4px; height: 4px; border-radius: 2px;
+                            background: service.tag == "on" ? Palette.good : service.tag == "attention" ? Palette.warning : service.tag == "off" ? transparent : Palette.muted;
+                            border-width: service.tag == "off" ? 1px : 0px; border-color: Palette.muted;
+                        }
                         Label { x: 10px; width: parent.width - 12px; text: service.title; font-size: 12px; vertical-alignment: center; color: Palette.muted; }
-                        TouchArea { clicked => { root.open(service.id); } }
+                        TouchArea {
+                            accessible-role: button; accessible-label: service.title + " · " + service.subtitle;
+                            clicked => { root.open(service.id); }
+                        }
                     }
                 }
                 if root.view == 0: Rectangle { height: 16px; }

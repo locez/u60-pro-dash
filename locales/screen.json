@@ -11632,5 +11632,19 @@
     "en": "Advertised routes need admin approval. DNS and exit nodes apply to this router; hotspot forwarding keeps its configured scope.",
     "ja": "公開ルートは管理画面で承認が必要です。DNS と出口ノードはルーターに適用され、ホットスポット転送の範囲は維持されます。",
     "ko": "광고한 경로는 관리자 승인이 필요합니다. DNS와 출구 노드는 라우터에 적용되며 핫스팟 전달 범위는 유지됩니다."
+  },
+  "运行中": {
+    "zh-Hans": "运行中",
+    "zh-Hant": "執行中",
+    "en": "Running",
+    "ja": "稼働中",
+    "ko": "실행 중"
+  },
+  "需要处理": {
+    "zh-Hans": "需要处理",
+    "zh-Hant": "需要處理",
+    "en": "Needs attention",
+    "ja": "要確認",
+    "ko": "확인 필요"
   }
 }
