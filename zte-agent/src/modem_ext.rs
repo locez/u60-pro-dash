@@ -95,29 +95,48 @@ pub fn modem_airplane(state: &AppState, body: &[u8]) -> (u16, Value) {
     // Mark the request's outcome on both old and new live projections.
     crate::events::touch(crate::events::Topic::Modem);
     crate::events::touch(crate::events::Topic::Operating);
-    if response.0 >= 400 { return response; }
-    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(8);
+    let confirmed = verify_radio_mode(
+        target, response,
+        || crate::handlers::read_uci_option("zte_nwinfo", "sys_info", "operate_mode"),
+        std::time::Duration::from_secs(8), std::time::Duration::from_millis(200),
+    );
+    if confirmed.0 == 200 { state.oos_policy.user_mode(target == "ONLINE"); }
+    crate::events::touch(crate::events::Topic::Modem);
+    crate::events::touch(crate::events::Topic::Operating);
+    confirmed
+}
+
+fn verify_radio_mode(
+    target: &str,
+    command_result: (u16, Value),
+    mut read_mode: impl FnMut() -> Result<String, String>,
+    wait: std::time::Duration,
+    poll: std::time::Duration,
+) -> (u16, Value) {
+    let expected = airplane_enabled(target);
+    let deadline = std::time::Instant::now() + wait;
     loop {
-        if let Ok(mode) = crate::handlers::read_uci_option("zte_nwinfo", "sys_info", "operate_mode") {
+        if let Ok(mode) = read_mode() {
             // B31 reports OFFLINE after a successful LPM request (CFUN=0).
-            // Confirm the radio state and return the actual firmware value.
-            if airplane_enabled(&mode) == airplane_enabled(target) {
-                crate::events::touch(crate::events::Topic::Modem);
-                crate::events::touch(crate::events::Topic::Operating);
+            // CFUN=1 can also apply without an OK reply. Read the real state
+            // after either outcome, without sending the command a second time.
+            if expected.is_some() && airplane_enabled(&mode) == expected {
                 // ONLINE confirms the radio, not registration or remote reachability.
                 return (200, json!({"ok":true,"data":{"operate_mode":mode}}));
             }
         }
         if std::time::Instant::now() >= deadline {
+            if command_result.0 >= 400 { return command_result; }
             return (503, json!({"ok":false,"error":"Radio mode change could not be verified; check current mobile network status"}));
         }
-        std::thread::sleep(std::time::Duration::from_millis(200));
+        std::thread::sleep(poll);
     }
 }
 
 #[cfg(test)]
 mod radio_mode_tests {
-    use super::airplane_enabled;
+    use super::*;
+    use std::time::Duration;
 
     #[test]
     fn firmware_offline_is_a_valid_lpm_readback_but_unknown_is_not() {
@@ -127,6 +146,42 @@ mod radio_mode_tests {
         for mode in ["", "RESET", "LOW_POWER", "unknown"] {
             assert_eq!(airplane_enabled(mode), None);
         }
+    }
+
+    #[test]
+    fn missing_at_ack_can_be_confirmed_by_actual_online_state() {
+        let mut modes = ["OFFLINE", "ONLINE"].into_iter();
+        let result = verify_radio_mode(
+            "ONLINE", (503, json!({"ok":false,"error":"AT+CFUN=1 failed"})),
+            || Ok(modes.next().unwrap().into()), Duration::from_secs(1), Duration::ZERO,
+        );
+        assert_eq!(result.0, 200);
+        assert_eq!(result.1["data"]["operate_mode"], "ONLINE");
+    }
+
+    #[test]
+    fn command_ack_alone_never_confirms_a_radio_change() {
+        for mode in ["OFFLINE", "unknown"] {
+            let result = verify_radio_mode(
+                "ONLINE", (200, json!({"ok":true})),
+                || Ok(mode.into()), Duration::ZERO, Duration::ZERO,
+            );
+            assert_eq!(result.0, 503);
+        }
+        let result = verify_radio_mode(
+            "LPM", (200, json!({"ok":true})),
+            || Ok("OFFLINE".into()), Duration::ZERO, Duration::ZERO,
+        );
+        assert_eq!(result.0, 200);
+        assert_eq!(result.1["data"]["operate_mode"], "OFFLINE");
+    }
+
+    #[test]
+    fn unconfirmed_failure_keeps_the_original_error() {
+        let failure = (503, json!({"ok":false,"error":"AT+CFUN=1 failed"}));
+        assert_eq!(verify_radio_mode(
+            "ONLINE", failure.clone(), || Err("unavailable".into()), Duration::ZERO, Duration::ZERO,
+        ), failure);
     }
 }
 
