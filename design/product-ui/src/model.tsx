@@ -9,6 +9,7 @@ import type { Page } from "./data";
 import featureData from "./features.json";
 import { serviceNames } from "./presentation";
 import { readScreenAccent, rememberScreenAccent } from "./AccentPicker";
+import { useOperatingModes } from "./modes";
 import {
   readHomeLayout,
   rememberHomeLayout,
@@ -46,7 +47,14 @@ export const pageTabs: Partial<Record<Page, string[]>> = {
   internet: ["信号与频段", "连接设置", "SIM 与 eSIM", "流量套餐", "运营商服务"],
   messages: ["收件箱", "转发规则", "存储管理"],
   lan: ["LAN 与 DHCP", "DNS", "访问与转发"],
-  system: ["电源与电池", "屏幕与安全", "更新与备份", "诊断工具", "自动化"],
+  system: [
+    "运行模式",
+    "电源与电池",
+    "屏幕与安全",
+    "更新与备份",
+    "诊断工具",
+    "自动化",
+  ],
 };
 export type Fields = Record<string, string | boolean>;
 export const initialSettings: Record<string, Fields> = {
@@ -69,7 +77,6 @@ export const initialSettings: Record<string, Fields> = {
     mode: "智能充电",
     limit: "90%",
     sleep: "1 分钟",
-    save: false,
     fast: true,
   },
   security: {
@@ -96,6 +103,7 @@ export const initialSettings: Record<string, Fields> = {
   },
 };
 function useModelState() {
+  const modes = useOperatingModes();
   const params = new URLSearchParams(location.search);
   const validPages = [
     "overview",
@@ -138,6 +146,7 @@ function useModelState() {
   const [toast, setToast] = useState("");
   const [share, setShare] = useState(false);
   return {
+    modes,
     route,
     go: setRoute,
     settings,

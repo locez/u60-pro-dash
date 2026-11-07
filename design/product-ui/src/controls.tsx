@@ -30,6 +30,7 @@ export function Modal({
   return (
     <dialog
       ref={ref}
+      aria-label={title}
       className={"product-dialog " + (wide ? "wide" : "")}
       onCancel={close}
       onClick={(e) => {

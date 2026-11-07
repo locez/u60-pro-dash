@@ -12,6 +12,10 @@ import {
   LockKeyhole,
   MessageSquare,
   Network,
+  Plane,
+  SlidersHorizontal,
+  Thermometer,
+  TrainFront,
   Settings2,
   ShieldCheck,
   Signal,
@@ -20,6 +24,9 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import ScreenModes from "./ScreenModes";
+import { ProfileIcon } from "./ModeControls";
+import { bandwidthModes } from "./modes";
 import { clients } from "./data";
 import { features, serviceNames, useModel } from "./model";
 import { QR } from "./ui";
@@ -93,6 +100,7 @@ export default function ScreenProduct() {
     [root, setRoot] = useState<ScreenRoot>("状态"),
     [path, setPath] = useState<string[]>([]),
     [locked, setLocked] = useState(false),
+    [quickControls, setQuickControls] = useState(false),
     [holding, setHolding] = useState(false),
     [pinEntry, setPinEntry] = useState(false),
     [pin, setPin] = useState(""),
@@ -117,6 +125,44 @@ export default function ScreenProduct() {
   const hold = useRef<ReturnType<typeof setTimeout> | null>(null),
     pane = useRef<HTMLDivElement>(null);
   const title = path.at(-1) || root;
+  const v = m.modes;
+  const cellularUnavailable =
+    v.airplane || v.unknown || v.busy || m.scenario === "offline";
+  const requestAirplane = () => {
+    if (v.airplane) {
+      v.changeAirplane(false);
+      return;
+    }
+    setQuickControls(false);
+    setPendingChange({
+      title: "开启飞行模式？",
+      summary: "蜂窝互联网、通话与短信将中断。",
+      message:
+        "Wi-Fi、USB 和本地管理保留；依赖蜂窝的远程访问会断开。可在机身或本地 Web 恢复蜂窝。",
+      apply: () => v.changeAirplane(true),
+    });
+  };
+  const chooseBandwidth = () =>
+    setSheet({
+      title: "应用带宽策略",
+      selected: v.strategy.label,
+      options: bandwidthModes.map((p) => p.label),
+      choose: (label) => {
+        v.changeBandwidth(bandwidthModes.find((p) => p.label === label)!.id);
+        setSheet(null);
+      },
+    });
+  const modeControls = (compact = false) => (
+    <ScreenModes
+      compact={compact}
+      requestAirplane={requestAirplane}
+      chooseBandwidth={chooseBandwidth}
+      openDetails={() => {
+        setQuickControls(false);
+        quick("管理", ["运行模式"]);
+      }}
+    />
+  );
   const accent = String(m.settings.security.accent);
   const dark =
     m.settings.security.theme === "跟随系统"
@@ -492,6 +538,7 @@ export default function ScreenProduct() {
     );
   };
   const renderPage = (): ReactNode => {
+    if (title === "运行模式") return modeControls();
     if (serviceId >= 0) return renderService();
     if (title === "短信")
       return (
@@ -680,6 +727,11 @@ export default function ScreenProduct() {
               ["连接状态", "已注册"],
             ]}
           />
+          <Row
+            title="飞行模式"
+            value={v.airplane ? "已开启" : "已关闭"}
+            onClick={() => open("运行模式")}
+          />
           {["连接设置", "信号与频段", "流量套餐"].map((s) => (
             <Row key={s} title={s} onClick={() => open(s)} />
           ))}
@@ -748,14 +800,9 @@ export default function ScreenProduct() {
             }
           />
           <Row
-            title="省电模式"
-            value={m.settings.power.save ? "已开启" : "已关闭"}
-            onClick={() =>
-              m.save("power", {
-                ...m.settings.power,
-                save: !m.settings.power.save,
-              })
-            }
+            title="性能模式"
+            value={v.unknown ? "状态未知" : v.profile.label}
+            onClick={() => open("运行模式")}
           />
           <Row
             title="自动熄屏"
@@ -1002,6 +1049,7 @@ export default function ScreenProduct() {
           <h3>快速查看</h3>
           {[
             ["首页", "状态", []],
+            ["运行模式", "管理", ["运行模式"]],
             ["首页布局", "管理", ["屏幕与安全", "首页布局"]],
             ["Wi-Fi 与连接码", "连接", ["Wi-Fi"]],
             ["Tailscale", "连接", ["Tailscale"]],
@@ -1019,6 +1067,9 @@ export default function ScreenProduct() {
           ))}
           <button
             onClick={() => {
+              setQuickControls(false);
+              setPendingChange(null);
+              setSheet(null);
               setLocked(true);
               setPinEntry(false);
               setPin("");
@@ -1036,14 +1087,51 @@ export default function ScreenProduct() {
         >
           <div className="screen-hardware">
             <div className="screen-face" data-testid="native-screen">
-              <div className="screen-statusbar">
+              <div
+                className="screen-statusbar"
+                role={locked ? undefined : "button"}
+                tabIndex={locked ? undefined : 0}
+                aria-label={locked ? "锁屏状态栏" : "打开快捷控制"}
+                onClick={() => {
+                  if (!locked) setQuickControls(true);
+                }}
+                onKeyDown={(e) => {
+                  if (!locked && (e.key === "Enter" || e.key === " ")) {
+                    e.preventDefault();
+                    setQuickControls(true);
+                  }
+                }}
+              >
                 <span className="native-brand">
                   {locked && <LockKeyhole size={12} />} U60
                 </span>
                 <span>
-                  <Signal size={14} />
-                  <span>5G</span>
-                  <Wifi size={14} />
+                  {v.airplane ? (
+                    <Plane size={15} aria-label="飞行模式" />
+                  ) : v.unknown ? (
+                    <span>—</span>
+                  ) : (
+                    <>
+                      <Signal size={14} />
+                      <span>{m.scenario === "offline" ? "无服务" : "5G"}</span>
+                    </>
+                  )}
+                  {v.thermal ? (
+                    <Thermometer
+                      size={14}
+                      className="native-state-warning"
+                      aria-label="温度保护"
+                    />
+                  ) : !v.unknown && v.performance !== "balanced" ? (
+                    <span
+                      className="native-profile-indicator"
+                      aria-label={v.profile.label + "模式"}
+                    >
+                      <ProfileIcon profile={v.performance} size={14} />
+                    </span>
+                  ) : null}
+                  {v.rail && <TrainFront size={14} aria-label="高铁优化中" />}
+                  {m.settings.wifi.enabled && <Wifi size={14} />}
                   {m.settings.power.mode === "直供电" ? (
                     <Zap size={17} />
                   ) : (
@@ -1058,21 +1146,58 @@ export default function ScreenProduct() {
                     <b>14:08</b>
                     <span>11 月 6 日 · 星期五</span>
                   </div>
+                  <div className="native-lock-mode">
+                    <ProfileIcon profile={v.performance} size={12} />
+                    <span>
+                      {v.unknown ? "模式未知" : v.profile.label + "模式"}
+                    </span>
+                    {v.thermal ? (
+                      <span className="native-state-warning">· 温度保护中</span>
+                    ) : v.rail ? (
+                      <span>· 高铁优化中</span>
+                    ) : null}
+                  </div>
                   <div className="native-lock-carrier">
-                    <span>中国联通 · 5G SA</span>
-                    <i /> 网络正常
+                    <span>
+                      {v.unknown
+                        ? "网络状态未知"
+                        : v.phase === "restoring"
+                          ? "正在恢复蜂窝"
+                          : v.airplane
+                            ? "飞行模式"
+                            : cellularUnavailable
+                              ? "蜂窝未连接"
+                              : "中国联通 · 5G SA"}
+                    </span>
+                    <i className={cellularUnavailable ? "paused" : ""} />{" "}
+                    {v.airplane
+                      ? m.settings.wifi.enabled
+                        ? "Wi-Fi 可用"
+                        : "蜂窝关闭"
+                      : cellularUnavailable
+                        ? "未联网"
+                        : "网络正常"}
                   </div>
                   <div className="native-metric-grid">
                     <div>
                       <small>↓ 下载 / Mbps</small>
-                      <b>124.6</b>
+                      <b>{cellularUnavailable ? "—" : "124.6"}</b>
                     </div>
                     <div>
                       <small>↑ 上传 / Mbps</small>
-                      <b>14.2</b>
+                      <b>{cellularUnavailable ? "—" : "14.2"}</b>
                     </div>
                   </div>
-                  <NativeChart />
+                  {cellularUnavailable ? (
+                    <div className="native-lock-paused">
+                      {v.airplane ? <Plane size={17} /> : <Signal size={17} />}
+                      <span>
+                        {v.airplane ? "蜂窝流量已暂停" : "等待蜂窝数据"}
+                      </span>
+                    </div>
+                  ) : (
+                    <NativeChart />
+                  )}
                   <div className="native-lock-bottom">
                     <span>
                       6 台设备 · 82% ·{" "}
@@ -1188,11 +1313,41 @@ export default function ScreenProduct() {
                     ) : root === "状态" ? (
                       <>
                         <div className="screen-c-carrier">
-                          <b>中国联通</b>
+                          <b>
+                            {v.unknown
+                              ? "状态未知"
+                              : v.airplane
+                                ? "飞行模式"
+                                : "中国联通"}
+                          </b>
+                          <button
+                            className="native-mode-shortcut"
+                            aria-label="打开运行模式"
+                            onClick={() => setQuickControls(true)}
+                          >
+                            <ProfileIcon profile={v.performance} size={12} />
+                            {v.unknown ? "未知" : v.profile.label}
+                          </button>
                           <span>
-                            5G SA <i />
+                            {v.unknown
+                              ? "等待数据"
+                              : v.phase === "restoring"
+                                ? "恢复中"
+                                : v.airplane
+                                  ? m.settings.wifi.enabled
+                                    ? "Wi-Fi 保留"
+                                    : "蜂窝关闭"
+                                  : v.busy
+                                    ? "切换中"
+                                    : cellularUnavailable
+                                      ? "无服务"
+                                      : "5G SA"}{" "}
+                            <i
+                              className={cellularUnavailable ? "paused" : ""}
+                            />
                           </span>
                         </div>
+
                         <button
                           className="native-home-rates"
                           onClick={() => open("流量趋势")}
@@ -1200,21 +1355,23 @@ export default function ScreenProduct() {
                           <div className="screen-c-metrics">
                             <div>
                               <span>↓ 下载 / Mbps</span>
-                              <b>124.6</b>
+                              <b>{cellularUnavailable ? "—" : "124.6"}</b>
                             </div>
                             <div>
                               <span>↑ 上传 / Mbps</span>
-                              <b>14.2</b>
+                              <b>{cellularUnavailable ? "—" : "14.2"}</b>
                             </div>
                           </div>
                         </button>
                         {m.homeLayout.signal && (
                           <div className="screen-c-signal">
                             <span>
-                              n78 <b>−86 dBm</b>
+                              {v.airplane ? "蜂窝无线电" : "n78"}{" "}
+                              <b>{cellularUnavailable ? "—" : "−86 dBm"}</b>
                             </span>
                             <span>
-                              SINR <b>24 dB</b>
+                              {v.airplane ? "已关闭" : "SINR"}{" "}
+                              <b>{cellularUnavailable ? "" : "24 dB"}</b>
                             </span>
                           </div>
                         )}
@@ -1332,6 +1489,13 @@ export default function ScreenProduct() {
                         <p className="native-section-label">常用管理</p>
                         {[
                           ["短信", "1 条未读", MessageSquare],
+                          [
+                            "运行模式",
+                            v.unknown
+                              ? "状态未知"
+                              : v.profile.label + " · " + v.strategy.label,
+                            SlidersHorizontal,
+                          ],
                           ["电源与电池", "82% · 外部电源", BatteryCharging],
                           ["屏幕与安全", "外观、语言与锁屏", LockKeyhole],
                           ["诊断工具", "负载、进程与测试", Cpu],
@@ -1374,6 +1538,26 @@ export default function ScreenProduct() {
                     ))}
                   </nav>
                 </>
+              )}
+              {quickControls && !locked && (
+                <div className="native-sheet-backdrop">
+                  <section
+                    className="native-sheet native-mode-sheet"
+                    role="dialog"
+                    aria-label="快捷控制"
+                  >
+                    <header>
+                      <b>快捷控制</b>
+                      <button
+                        aria-label="关闭快捷控制"
+                        onClick={() => setQuickControls(false)}
+                      >
+                        <X size={18} />
+                      </button>
+                    </header>
+                    {modeControls(true)}
+                  </section>
+                </div>
               )}
               {sheet && (
                 <div className="native-sheet-backdrop">

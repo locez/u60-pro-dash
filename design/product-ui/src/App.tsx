@@ -13,6 +13,7 @@ import Explore from "./Explore";
 import Product, { FeatureMap } from "./Product";
 import ScreenProduct from "./ScreenProduct";
 import { ModelProvider, useModel, type Scenario } from "./model";
+import { modeScenarios, type ModeScenario } from "./modes";
 import { ShareModal } from "./ui";
 import { presentationQuery, publicPresentation } from "./presentation";
 import "./product.css";
@@ -61,7 +62,7 @@ function SelectedDesign() {
       <div className="design-bar">
         <div className="design-brand">
           <span className="design-dot" /> U60 <span>产品设计稿</span>
-          <span className="design-stage">02 / 页面与层级</span>
+          <span className="design-stage">03 / 运行模式</span>
           <a
             href={
               "?explore=1" + (publicPresentation ? "&presentation=public" : "")
@@ -104,6 +105,20 @@ function SelectedDesign() {
           <b>Web · 克制专业</b>
           <span>屏幕 · 紧凑高密度</span>
         </span>
+        <label className="mode-review-control">
+          模式演示
+          <select
+            aria-label="模式演示场景"
+            value={m.modes.scenario}
+            onChange={(e) => m.modes.setScene(e.target.value as ModeScenario)}
+          >
+            {modeScenarios.map(([id, label]) => (
+              <option key={id} value={id}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
         <label className="design-scenario">
           <span>交互原型 · 示例数据</span>
           <select

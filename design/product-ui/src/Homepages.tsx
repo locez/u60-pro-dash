@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -58,6 +58,10 @@ type Props = {
   toggle: (i: number) => void;
   navigate?: (page: Page, tab?: string, service?: number) => void;
   offline?: boolean;
+  airplane?: boolean;
+  unknown?: boolean;
+  restoring?: boolean;
+  modeBar?: ReactNode;
   wifi?: { ssid: string; unified: boolean; enabled: boolean };
   directPower?: boolean;
 };
@@ -166,10 +170,16 @@ function Heading({
   share,
   dense = false,
   offline = false,
+  airplane = false,
+  restoring = false,
+  unknown = false,
 }: {
   share: () => void;
   dense?: boolean;
   offline?: boolean;
+  airplane?: boolean;
+  restoring?: boolean;
+  unknown?: boolean;
 }) {
   return (
     <div className="page-title">
@@ -178,18 +188,28 @@ function Heading({
           {dense ? "NETWORK OVERVIEW" : "你的网络，此刻"}
         </div>
         <h1>
-          {offline
-            ? "移动网络连接中断。"
-            : dense
-              ? "网络概览"
-              : "连接，一切就绪。"}
+          {unknown
+            ? "正在读取网络状态。"
+            : restoring
+              ? "正在恢复蜂窝连接。"
+              : airplane
+                ? "飞行模式已开启。"
+                : offline
+                  ? "移动网络连接中断。"
+                  : dense
+                    ? "网络概览"
+                    : "连接，一切就绪。"}
           <span className="title-dot" />
         </h1>
         {!dense && (
           <p>
-            {offline
-              ? "本地管理正常 · 检查移动网络连接"
-              : "互联网正常 · 已持续连接 2 天 6 小时"}
+            {unknown
+              ? "模式状态暂不可用 · 本地管理可用"
+              : airplane
+                ? "蜂窝无线电关闭 · 本地管理保留"
+                : offline
+                  ? "本地管理正常 · 检查移动网络连接"
+                  : "互联网正常 · 已持续连接 2 天 6 小时"}
           </p>
         )}
       </div>
@@ -216,32 +236,48 @@ export function ProfessionalContent(p: Props) {
   const [period, setPeriod] = useState("30 分钟");
   return (
     <>
-      <Heading share={p.share} offline={p.offline} />
+      <Heading
+        share={p.share}
+        offline={p.offline}
+        airplane={p.airplane}
+        restoring={p.restoring}
+        unknown={p.unknown}
+      />
+      {p.modeBar}
       <Panel className="network-panel">
         <div className="network-panel-top">
           <span>
             <Globe2 size={15} /> 网络连接
           </span>
           <Status muted={p.offline}>
-            {p.offline ? "本地连接正常 · 蜂窝断开" : "所有连接正常"}
+            {p.unknown
+              ? "本地连接正常 · 等待蜂窝状态"
+              : p.offline
+                ? "本地连接正常 · 蜂窝断开"
+                : "所有连接正常"}
           </Status>
         </div>
-        <Topology offline={p.offline} wifi={p.wifi} />
+        <Topology
+          offline={p.offline}
+          airplane={p.airplane}
+          unknown={p.unknown}
+          wifi={p.wifi}
+        />
       </Panel>
       <div className="dashboard-grid">
         <Panel className="bandwidth-panel">
           <PanelTitle
-            title={p.offline ? "连接中断前的速率" : "实时速率"}
+            title={p.offline ? "历史速率" : "实时速率"}
             note={
               p.offline
-                ? "当前蜂窝流量为 0，保留历史趋势"
+                ? "当前无蜂窝读数，保留历史趋势"
                 : "你的连接，正在发生什么"
             }
             action={<Periods value={period} onChange={setPeriod} />}
           />
           <div className="rates">
-            <Rate value={p.offline ? "0" : "124.6"} />
-            <Rate up value={p.offline ? "0" : "14.2"} />
+            <Rate value={p.offline ? "—" : "124.6"} />
+            <Rate up value={p.offline ? "—" : "14.2"} />
             <span className="chart-legend">
               <i />
               下载 <i className="upload-dot" />

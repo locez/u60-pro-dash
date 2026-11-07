@@ -455,6 +455,20 @@ export function InternetPage({ tab }: { tab: string }) {
       >
         {(v, set) => (
           <>
+            <button
+              className="mode-inline-entry"
+              onClick={() => m.go({ page: "system", tab: "运行模式" })}
+            >
+              <span>
+                飞行模式
+                <small>
+                  {m.modes.airplane
+                    ? "已开启 · Wi-Fi 与本地管理可用"
+                    : "已关闭 · 管理蜂窝无线电"}
+                </small>
+              </span>
+              <ChevronRight size={16} />
+            </button>
             <SwitchRow
               title="移动数据"
               value={!!v.data}

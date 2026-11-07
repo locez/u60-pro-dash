@@ -8,6 +8,7 @@ import {
   Menu,
   Router,
   Search,
+  SlidersHorizontal,
   X,
 } from "lucide-react";
 import { navigation } from "./data";
@@ -25,6 +26,7 @@ import { Entry, Modal, Note, SearchBox, Tabs } from "./controls";
 import { WifiPage, DevicesPage, InternetPage } from "./ConnectionPages";
 import { ServicesPage } from "./ServicePages";
 import { MessagesPage, LanPage, SystemPage } from "./ManagementPages";
+import { ModeControls, ModeOverview } from "./ModeControls";
 
 export default function Product() {
   const m = useModel(),
@@ -32,6 +34,7 @@ export default function Product() {
     [query, setQuery] = useState(""),
     [mobileNav, setMobileNav] = useState(false),
     [notifications, setNotifications] = useState(false);
+  const [modePanel, setModePanel] = useState(false);
   const page = m.route.page,
     nav = navigation.find((n) => n.id === page)!,
     tabs = pageTabs[page];
@@ -123,6 +126,13 @@ export default function Product() {
             )}
           </div>
           <div className="header-actions">
+            <button
+              className="icon-btn"
+              aria-label="快捷控制"
+              onClick={() => setModePanel(true)}
+            >
+              <SlidersHorizontal size={18} />
+            </button>
             <span className="local-badge">
               <span />
               本地连接 <b>192.0.2.1:2026</b>
@@ -152,7 +162,16 @@ export default function Product() {
           )}
           {page === "overview" ? (
             <ProfessionalContent
-              offline={m.scenario === "offline"}
+              offline={
+                m.scenario === "offline" ||
+                m.modes.airplane ||
+                m.modes.busy ||
+                m.modes.unknown
+              }
+              airplane={m.modes.airplane}
+              unknown={m.modes.unknown}
+              restoring={m.modes.phase === "restoring"}
+              modeBar={<ModeOverview open={() => setModePanel(true)} />}
               wifi={{
                 ssid: String(m.settings.wifi.ssid),
                 unified: !!m.settings.wifi.unified,
@@ -209,6 +228,17 @@ export default function Product() {
           )}
         </main>
       </div>
+      {modePanel && (
+        <Modal title="快捷控制" close={() => setModePanel(false)}>
+          <ModeControls
+            compact
+            openDetails={() => {
+              setModePanel(false);
+              m.go({ page: "system", tab: "运行模式" });
+            }}
+          />
+        </Modal>
+      )}
       {search && (
         <Modal title="查找功能" close={() => setSearch(false)} wide>
           <SearchBox

@@ -1194,3 +1194,220 @@
 .native-sheet > button[aria-pressed="true"] {
   color: var(--screen-accent-ink);
 }
+
+/* Operating modes share the screen accent, density and fixed canvas. */
+.interactive-screen .screen-statusbar[role="button"] {
+  cursor: pointer;
+}
+.interactive-screen .screen-statusbar[role="button"]:focus-visible {
+  outline: 1px solid var(--screen-accent-ink);
+  outline-offset: -2px;
+}
+.native-profile-indicator {
+  color: var(--screen-accent-ink);
+  display: inline-flex;
+}
+.native-state-warning {
+  color: var(--screen-warning) !important;
+}
+.native-mode-shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 24px;
+  padding: 3px 7px;
+  margin-left: 10px;
+  margin-right: auto;
+  border-radius: 5px;
+  background: var(--screen-accent-soft);
+  color: var(--screen-accent-ink);
+  font-size: 10px;
+}
+.interactive-screen .screen-c-carrier i.paused,
+.native-lock-carrier i.paused {
+  background: var(--screen-muted);
+}
+.native-lock-mode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--screen-muted);
+  margin-top: 12px;
+}
+.native-lock-mode > svg {
+  color: var(--screen-accent-ink);
+}
+.native-lock:has(.native-lock-mode) .native-lock-carrier {
+  margin-top: 14px;
+}
+.native-lock:has(.native-lock-mode) .native-lock-bottom > span {
+  margin-bottom: 10px;
+}
+.native-lock-paused {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  height: 55px;
+  margin-top: 8px;
+  color: var(--screen-muted);
+  border-block: 1px solid var(--screen-line);
+  font-size: 11px;
+}
+.native-mode-controls {
+  padding-top: 6px;
+}
+.native-mode-controls button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.native-mode-flight {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 60px;
+  padding: 8px 0 16px;
+  text-align: left;
+  width: 100%;
+  border-bottom: 1px solid var(--screen-line);
+}
+.native-mode-flight > svg {
+  color: var(--screen-accent-ink);
+  flex-shrink: 0;
+}
+.native-mode-flight > span:first-of-type {
+  flex: 1;
+  min-width: 0;
+}
+.native-mode-flight b,
+.native-mode-bandwidth b,
+.native-mode-rail b {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+}
+.native-mode-flight small,
+.native-mode-bandwidth small,
+.native-mode-rail small {
+  display: block;
+  margin-top: 6px;
+  line-height: 1.6;
+  font-size: 10px;
+  color: var(--screen-muted);
+}
+.native-mode-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 18px 0 12px;
+}
+.native-mode-heading b {
+  font-size: 12px;
+  font-weight: 600;
+}
+.native-mode-heading small {
+  font-size: 9px;
+  color: var(--screen-muted);
+}
+.native-profile-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+.native-profile-options > button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 65px;
+  border: 1px solid var(--screen-line);
+  border-radius: 9px;
+  background: var(--screen-raised);
+  color: var(--screen-muted);
+  font-size: 11px;
+}
+.native-profile-options > button[aria-pressed="true"] {
+  border-color: var(--screen-accent-ink);
+  color: var(--screen-accent-ink);
+  background: var(--screen-accent-soft);
+}
+.native-mode-description {
+  margin: 9px 0 14px;
+  color: var(--screen-muted);
+  font-size: 10px;
+  line-height: 1.8;
+}
+.native-mode-bandwidth {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  width: 100%;
+  border-top: 1px solid var(--screen-line);
+  padding: 16px 0 0;
+}
+.native-mode-bandwidth > span {
+  flex: 1;
+}
+.native-mode-bandwidth strong {
+  font-size: 11px;
+  font-weight: 500;
+}
+.native-mode-bandwidth > svg {
+  color: var(--screen-accent-ink);
+}
+.native-mode-rail {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 0;
+  border-top: 1px solid var(--screen-line);
+}
+.native-mode-rail > span {
+  flex: 1;
+}
+.native-mode-rail > svg {
+  color: var(--screen-muted);
+}
+.native-mode-rail em {
+  font-size: 9px;
+  font-style: normal;
+  color: var(--screen-accent-ink);
+}
+.native-mode-alert {
+  padding: 10px 11px;
+  background: var(--screen-accent-soft);
+  border-left: 2px solid var(--screen-warning);
+  font-size: 10px;
+  line-height: 1.8;
+  margin: 10px 0;
+  color: var(--screen-text);
+}
+.native-mode-alert > svg {
+  display: inline;
+  vertical-align: -2px;
+}
+.native-mode-alert > button {
+  display: block;
+  min-height: 34px;
+  color: var(--screen-accent-ink);
+  font-weight: 600;
+}
+.native-mode-details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 11px;
+  color: var(--screen-accent-ink);
+  border-top: 1px solid var(--screen-line);
+  padding-top: 14px;
+  min-height: 36px;
+}
+.native-sheet.native-mode-sheet {
+  padding: 15px 16px 19px;
+  max-height: 420px;
+}

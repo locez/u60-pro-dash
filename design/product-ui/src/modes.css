@@ -1,0 +1,343 @@
+.mode-overview {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 5px 0 20px;
+  margin-top: -8px;
+  flex-wrap: wrap;
+}
+.mode-overview > button,
+.mode-overview > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.mode-overview > button {
+  padding: 5px 14px;
+  border-right: 1px solid var(--line);
+}
+.mode-overview > button:first-child {
+  padding-left: 0;
+}
+.mode-overview > button.active {
+  color: var(--accent);
+}
+.mode-overview .mode-strategy,
+.mode-overview .mode-status {
+  padding: 5px 14px;
+}
+.mode-overview .mode-open {
+  margin-left: auto;
+  border: 0;
+  padding-right: 0;
+  color: var(--accent);
+}
+.mode-status.warning {
+  color: #b06c1c;
+}
+.mode-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+.mode-controls.compact {
+  gap: 22px;
+}
+.mode-flight {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.mode-flight.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 4%, var(--surface));
+}
+.mode-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.mode-flight > div {
+  flex: 1;
+}
+.mode-flight b {
+  font-size: 15px;
+}
+.mode-flight p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin: 7px 0 0;
+}
+.mode-controls.compact .mode-flight {
+  padding: 0 0 22px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
+}
+.mode-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+.mode-section-title h3 {
+  font-size: 15px;
+  margin: 0;
+  font-weight: 650;
+}
+.mode-section-title > span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.performance-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.performance-options > button {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 22px;
+  text-align: left;
+  background: var(--surface);
+  color: var(--text);
+}
+.performance-options > button > svg {
+  color: var(--muted);
+}
+.performance-options > button b {
+  font-size: 16px;
+  font-weight: 650;
+}
+.performance-options > button small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+  max-width: 19em;
+}
+.performance-options > button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+}
+.performance-options > button[aria-pressed="true"] > svg {
+  color: var(--accent);
+}
+.performance-options .mode-check {
+  position: absolute;
+  top: 21px;
+  right: 18px;
+}
+.compact .performance-options > button {
+  padding: 17px 14px;
+}
+.compact .performance-options > button small {
+  display: none;
+}
+.mode-help {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin: 13px 0 0;
+}
+.bandwidth-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 20px;
+}
+.bandwidth-options > button {
+  position: relative;
+  text-align: left;
+  border: 1px solid var(--line);
+  padding: 15px;
+  border-radius: 8px;
+}
+.bandwidth-options b {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+.bandwidth-options small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.bandwidth-options svg {
+  position: absolute;
+  right: 13px;
+  top: 15px;
+  color: var(--accent);
+}
+.bandwidth-options [aria-pressed="true"] {
+  border-color: var(--accent);
+}
+.mode-controls button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.mode-rail {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border-top: 1px solid var(--line);
+  padding-top: 22px;
+}
+.mode-rail > svg {
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.mode-rail > div {
+  flex: 1;
+}
+.mode-rail b {
+  font-size: 13px;
+  font-weight: 600;
+}
+.mode-rail b span {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 450;
+  margin-left: 9px;
+}
+.mode-rail b span.mode-on {
+  color: var(--accent);
+}
+.mode-rail p {
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--muted);
+  margin: 7px 0 0;
+}
+.mode-auto {
+  font-size: 10px;
+  color: var(--muted);
+  padding: 4px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+.mode-detail-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--line);
+  padding-top: 15px;
+  color: var(--accent);
+  font-size: 12px;
+}
+.mode-confirm-icon {
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+.mode-related,
+.mode-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.mode-error > .notice {
+  flex: 1;
+}
+.mode-related {
+  margin-top: 20px;
+}
+.mode-inline-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+  color: var(--accent);
+  width: 100%;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 18px;
+}
+.mode-inline-entry > span {
+  flex: 1;
+  font-size: 13px;
+}
+.mode-inline-entry small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 5px;
+}
+.mode-review-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.mode-review-control select {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 7px 25px 7px 9px;
+}
+@media (max-width: 700px) {
+  .performance-options {
+    gap: 7px;
+  }
+  .performance-options > button {
+    padding: 17px 12px;
+  }
+  .performance-options > button small {
+    font-size: 11px;
+  }
+  .performance-options .mode-check {
+    top: 16px;
+    right: 9px;
+  }
+  .bandwidth-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+  .mode-flight {
+    padding: 16px 12px;
+    gap: 12px;
+  }
+  .mode-flight p {
+    font-size: 11px;
+  }
+  .mode-icon {
+    width: 34px;
+    height: 34px;
+  }
+  .mode-overview > button,
+  .mode-overview > span {
+    font-size: 11px;
+  }
+  .mode-overview .mode-strategy {
+    display: none;
+  }
+  .mode-section-title > span {
+    font-size: 10px;
+  }
+  .design-description {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}

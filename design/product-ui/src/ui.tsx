@@ -14,6 +14,7 @@ import {
   Lightbulb,
   ShieldCheck,
   Signal,
+  Plane,
   Wifi,
   X,
   Eye,
@@ -109,16 +110,19 @@ export function Toggle({
   on,
   label,
   onChange,
+  disabled = false,
 }: {
   on: boolean;
   label: string;
   onChange: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       role="switch"
       aria-checked={on}
       aria-label={label}
+      disabled={disabled}
       className={"toggle " + (on ? "on" : "")}
       onClick={onChange}
     >
@@ -474,24 +478,45 @@ export function Battery({
 export function Topology({
   compact = false,
   offline = false,
+  airplane = false,
+  unknown = false,
   wifi,
 }: {
   compact?: boolean;
   offline?: boolean;
+  airplane?: boolean;
+  unknown?: boolean;
   wifi?: { ssid: string; unified: boolean; enabled: boolean };
 }) {
   return (
     <div className={"topology " + (compact ? "compact" : "")}>
       <div className="topology-node">
         <span className="node-icon">
-          <Signal size={23} />
+          {airplane ? <Plane size={23} /> : <Signal size={23} />}
         </span>
         <div>
           <small>互联网</small>
           <b>
-            中国联通 <em>5G SA</em>
+            中国联通{" "}
+            <em>
+              {unknown
+                ? "状态未知"
+                : airplane
+                  ? "飞行模式"
+                  : offline
+                    ? "离线"
+                    : "5G SA"}
+            </em>
           </b>
-          <span>n78 · −86 dBm</span>
+          <span>
+            {unknown
+              ? "等待状态更新"
+              : airplane
+                ? "蜂窝无线电已关闭"
+                : offline
+                  ? "等待网络连接"
+                  : "n78 · −86 dBm"}
+          </span>
         </div>
       </div>
       <div className="topology-wire">
