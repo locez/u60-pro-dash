@@ -1,3 +1,4 @@
+import { PerformanceControls } from "./Operating";
 import { useState } from "react";
 import { api, type ObjectData } from "./api";
 import { type Route, go } from "./catalog";
@@ -16,14 +17,7 @@ import {
   ReadingsPanel,
   SettingsForm,
 } from "./forms";
-import {
-  autoSleep,
-  charge,
-  fastBoot,
-  firewall,
-  lan,
-  powerSave,
-} from "./settings";
+import { autoSleep, charge, fastBoot, firewall, lan } from "./settings";
 import {
   bytes,
   Definition,
@@ -341,11 +335,13 @@ function Power() {
         }}
         onApplied={control.reload}
       />
+      <Panel>
+        <PerformanceControls />
+      </Panel>
       <div className="two-columns">
-        <SettingsForm spec={powerSave} />
         <SettingsForm spec={fastBoot} />
+        <SettingsForm spec={autoSleep} />
       </div>
-      <SettingsForm spec={autoSleep} />
       <SettingsForm
         spec={{
           id: "usb",

@@ -15,7 +15,21 @@ const wifi = {
   hidden_2g: "0",
   hidden_5g: "0",
 };
+const operating = {
+  airplane: { enabled: false, mode: "ONLINE", error: null },
+  bandwidth: { supported: true, mode: "normal", error: null },
+  rail: { active: false },
+  performance: {
+    supported: true,
+    available: ["balanced", "performance", "saving"],
+    requested: null,
+    effective: "balanced",
+    applied: true,
+    thermal_limited: false,
+  },
+};
 const fixtures = {
+  "/api/device/operating": operating,
   "/api/wifi/status": wifi,
   "/api/wifi/guest": {
     ssid: "Guest",
@@ -219,6 +233,7 @@ const fixtures = {
   },
 };
 const streams = {
+  operating,
   signal: { network_provider: "UNICOM", network_type: "5G SA" },
   traffic: { real_rx_speed: 1250000, real_tx_speed: 125000 },
   battery: {
@@ -253,7 +268,8 @@ const streams = {
     const page = await context.newPage(),
       errors = [],
       writes = [];
-    let ignoreWrite = false;
+    let ignoreWrite = false,
+      modeFailure = "";
     page.on("pageerror", (e) => {
       errors.push(e.message);
       console.error("Browser:", e.message);
@@ -261,6 +277,35 @@ const streams = {
     await context.addInitScript((token) => {
       sessionStorage.setItem("openu60.session", token);
       localStorage.setItem("openu60.language", "en");
+      // Playwright fulfills finite responses. Model the device's persistent
+      // event stream so controls can distinguish live state from disconnection.
+      const fetchOriginal = window.fetch;
+      window.fetch = async (input, init) => {
+        const response = await fetchOriginal(input, init);
+        if (!String(input).includes("/api/events?")) return response;
+        const body = await response.text();
+        return new Response(
+          new ReadableStream({
+            start(controller) {
+              const enc = new TextEncoder();
+              controller.enqueue(enc.encode(body));
+              const timer = setInterval(
+                () => controller.enqueue(enc.encode(": keepalive\n\n")),
+                5000,
+              );
+              init?.signal?.addEventListener(
+                "abort",
+                () => {
+                  clearInterval(timer);
+                  controller.close();
+                },
+                { once: true },
+              );
+            },
+          }),
+          { headers: response.headers, status: response.status },
+        );
+      };
     }, token);
     await context.route("**/api/**", async (route) => {
       const req = route.request(),
@@ -306,6 +351,38 @@ const streams = {
         !["/api/sms/list", "/api/device/power-save"].includes(path)
       ) {
         writes.push({ path, body: req.postDataJSON() });
+        if (
+          [
+            "/api/device/performance",
+            "/api/modem/airplane",
+            "/api/modem/bandwidth",
+          ].includes(path)
+        ) {
+          const body = req.postDataJSON();
+          if (modeFailure !== "ignore") {
+            if (path.endsWith("performance"))
+              Object.assign(operating.performance, {
+                requested: body.profile,
+                effective: body.profile,
+                applied: true,
+              });
+            if (path.endsWith("bandwidth"))
+              operating.bandwidth.mode = body.mode;
+            if (path.endsWith("airplane"))
+              Object.assign(operating.airplane, {
+                mode: body.operate_mode,
+                enabled: body.operate_mode !== "ONLINE",
+              });
+          }
+          if (modeFailure === "applied-error")
+            return route.fulfill({
+              status: 503,
+              json: {
+                ok: false,
+                error: "Response interrupted; check current state",
+              },
+            });
+        }
         if (path === "/api/proxy/mihomo/settings" && !ignoreWrite)
           Object.assign(
             fixtures["/api/proxy/mihomo/status"],
@@ -518,6 +595,147 @@ const streams = {
       await page.locator(".language-select").selectOption(locale);
       await page.getByText(name, { exact: true }).waitFor();
     }
+    // Real mode controls: one verified write, independent settings, safe
+    // cancellation and recovery even when a response is lost after applying.
+    const modeStart = writes.length;
+    await page.evaluate(() => (location.hash = "system/power"));
+    await page.getByRole("group", { name: "Performance mode" }).waitFor();
+    assert.equal(
+      await page
+        .getByRole("switch", { name: "Airplane mode", exact: true })
+        .count(),
+      0,
+      "flight belongs to mobile network",
+    );
+    await page.getByRole("button", { name: /^Power saving/ }).click();
+    await page.waitForFunction(() =>
+      document
+        .querySelector('.performance-options button[aria-pressed="true"]')
+        ?.textContent.includes("Power saving"),
+    );
+    assert.equal(writes.length, modeStart + 1);
+    assert.deepEqual(writes.at(-1), {
+      path: "/api/device/performance",
+      body: { profile: "saving" },
+    });
+    assert.equal(operating.bandwidth.mode, "normal");
+    assert.equal(
+      await page.getByRole("dialog").count(),
+      0,
+      "profile selection needs no extra confirmation",
+    );
+    modeFailure = "ignore";
+    await page.getByRole("button", { name: /^Performance/ }).click();
+    await page
+      .getByText(
+        "The requested setting was not confirmed. Check current device status.",
+      )
+      .waitFor();
+    assert.equal(operating.performance.effective, "saving");
+    modeFailure = "";
+    await page.evaluate(() => (location.hash = "internet/connection"));
+    const flight = page.getByRole("switch", {
+      name: "Airplane mode",
+      exact: true,
+    });
+    await flight.waitFor();
+    await flight.click();
+    await page
+      .getByRole("button", { name: "Cancel change", exact: true })
+      .click();
+    assert.equal(
+      writes.length,
+      modeStart + 2,
+      "cancelled flight creates no write",
+    );
+    modeFailure = "applied-error";
+    await flight.click();
+    await page
+      .getByRole("button", { name: "Continue and apply", exact: true })
+      .click();
+    await page.getByText("Response interrupted; check current state").waitFor();
+    assert.equal(
+      await flight.getAttribute("aria-checked"),
+      "true",
+      "readback wins over uncertain command result",
+    );
+    modeFailure = "";
+    await page.evaluate(() => (location.hash = "overview"));
+    await page.waitForFunction(() =>
+      document
+        .querySelector(".mode-overview")
+        ?.textContent.includes("Airplane mode"),
+    );
+    assert.equal(
+      await page.locator(".live-rates strong").first().innerText(),
+      "—",
+      "stale cellular speed is hidden while radio is off",
+    );
+    await page
+      .getByRole("button", { name: "Quick controls", exact: true })
+      .first()
+      .click();
+    await page
+      .getByRole("dialog")
+      .getByRole("switch", { name: "Airplane mode", exact: true })
+      .click();
+    await page.waitForFunction(
+      () =>
+        document
+          .querySelector('dialog [role="switch"]')
+          ?.getAttribute("aria-checked") === "false",
+    );
+    assert.equal(
+      await page.getByRole("dialog").count(),
+      1,
+      "restoring cellular needs no second dialog",
+    );
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Close", exact: true })
+      .click();
+    await page.evaluate(() => (location.hash = "internet/connection"));
+    await page.getByRole("button", { name: /^Gaming/ }).click();
+    await page.waitForFunction(() =>
+      document
+        .querySelector('.bandwidth-options button[aria-pressed="true"]')
+        ?.textContent.includes("Gaming"),
+    );
+    assert.deepEqual(writes.at(-1), {
+      path: "/api/modem/bandwidth",
+      body: { mode: "game" },
+    });
+    assert.equal(
+      operating.performance.effective,
+      "saving",
+      "bandwidth priority does not change CPU profile",
+    );
+    // Capture only public controls; no service names or real device values.
+    for (const language of ["zh-Hans", "zh-Hant", "en", "ja", "ko"]) {
+      await page.locator(".language-select").selectOption(language);
+      assert.equal(
+        await page.locator(".mode-flight b").innerText(),
+        {
+          en: "Airplane mode",
+          "zh-Hans": "飞行模式",
+          "zh-Hant": "飛航模式",
+          ja: "機内モード",
+          ko: "비행기 모드",
+        }[language],
+      );
+    }
+    await page.locator(".language-select").selectOption("zh-Hans");
+    await page.screenshot({
+      path: "/tmp/u60-operating-web-mobile-network.png",
+      fullPage: true,
+    });
+    await page.evaluate(() => (location.hash = "system/power"));
+    await page.getByText("性能模式", { exact: true }).waitFor();
+    await page.screenshot({
+      path: "/tmp/u60-operating-web-power.png",
+      fullPage: true,
+    });
+    await page.locator(".language-select").selectOption("en");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.evaluate(() => (location.hash = "overview"));
     await page.waitForTimeout(150);

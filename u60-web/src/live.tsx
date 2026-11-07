@@ -158,7 +158,11 @@ export function LiveProvider({
                         ? [
                             ...s.history.slice(-59),
                             {
-                              ...(value.error ? {} : value.data),
+                              ...(value.error ||
+                              s.readings.operating?.data?.airplane?.enabled !==
+                                false
+                                ? {}
+                                : value.data),
                               time: Date.now(),
                             },
                           ]

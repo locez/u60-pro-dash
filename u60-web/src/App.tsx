@@ -1,3 +1,4 @@
+import { OperatingProvider, QuickControls } from "./Operating";
 import { useEffect, useState } from "react";
 import {
   ChevronRight,
@@ -7,6 +8,7 @@ import {
   Moon,
   Router,
   Search,
+  SlidersHorizontal,
   Sun,
 } from "lucide-react";
 import { login, logout } from "./api";
@@ -146,11 +148,14 @@ function Workspace() {
   const actual: Route = { ...route, tab: route.tab || nav.tabs[0]?.[0] };
   return (
     <LiveProvider topics={topics(actual)}>
-      <Shell route={actual} />
+      <OperatingProvider>
+        <Shell route={actual} />
+      </OperatingProvider>
     </LiveProvider>
   );
 }
 function Shell({ route }: { route: Route }) {
+  const [quickControls, setQuickControls] = useState(false);
   const [mobile, setMobile] = useState(false),
     [search, setSearch] = useState(false),
     [query, setQuery] = useState("");
@@ -215,6 +220,7 @@ function Shell({ route }: { route: Route }) {
           </button>
         </div>
       </aside>
+      {quickControls && <QuickControls close={() => setQuickControls(false)} />}
       <div className="product-main">
         <header className="product-header">
           <button
@@ -230,6 +236,13 @@ function Shell({ route }: { route: Route }) {
             <b>{t(nav.label)}</b>
           </div>
           <div className="header-actions">
+            <button
+              className="icon-btn"
+              aria-label={t("Quick controls")}
+              onClick={() => setQuickControls(true)}
+            >
+              <SlidersHorizontal size={18} />
+            </button>
             <Status on={live.state === "live"}>
               {t(
                 {
@@ -274,7 +287,7 @@ function Shell({ route }: { route: Route }) {
             key={[route.page, route.tab, route.detail].join("/")}
           >
             {route.page === "overview" ? (
-              <Overview />
+              <Overview openControls={() => setQuickControls(true)} />
             ) : route.page === "wifi" ? (
               <WifiPage tab={route.tab!} />
             ) : route.page === "devices" ? (

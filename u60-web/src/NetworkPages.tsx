@@ -1,3 +1,9 @@
+import {
+  FlightModeControl,
+  NetworkOptimization,
+  ModeOverview,
+  useOperating,
+} from "./Operating";
 import { useEffect, useState } from "react";
 import {
   ArrowDown,
@@ -55,7 +61,12 @@ function rate(data: ObjectData | null | undefined, direction: string) {
   );
   return value === null ? "—" : ((value * 8) / 1e6).toFixed(1);
 }
-export function Overview() {
+export function Overview({ openControls }: { openControls: () => void }) {
+  const operating = useOperating();
+  const airplane = operating.available
+    ? operating.data?.airplane?.enabled
+    : null;
+  const radioUnavailable = airplane !== false;
   const live = useLive(),
     signal = useReading("signal"),
     traffic = useReading("traffic"),
@@ -67,7 +78,7 @@ export function Overview() {
     usage = useResource("/api/data-usage"),
     clients = useClients();
   const model = cellular.parse(signal?.data || {});
-  const data = !traffic?.error ? traffic?.data : null;
+  const data = !radioUnavailable && !traffic?.error ? traffic?.data : null;
   const budget = usageModel.parse(usage.data || {});
   return (
     <>
@@ -76,13 +87,20 @@ export function Overview() {
           {t("Connection interrupted. Reconnecting automatically…")}
         </Note>
       )}
+      <ModeOverview open={openControls} />
       <Panel>
         <PanelTitle title="Network topology" />
         <div className="connection-topology">
           <div>
             <Globe size={25} />
             <b>{carrier(signal?.data?.network_provider)}</b>
-            <Status on={model.hasSignal && !signal?.error}>{model.mode}</Status>
+            <Status on={!radioUnavailable && model.hasSignal && !signal?.error}>
+              {airplane === true
+                ? t("Airplane mode")
+                : radioUnavailable
+                  ? t("Unknown")
+                  : model.mode}
+            </Status>
           </div>
           <span className="topology-link" />
           <div>
@@ -211,7 +229,14 @@ export function Overview() {
           <PanelTitle title="Connection details" />
           <Definition
             items={[
-              ["Network", model.mode],
+              [
+                "Network",
+                airplane === true
+                  ? t("Airplane mode")
+                  : airplane === false
+                    ? model.mode
+                    : t("Unknown"),
+              ],
               ["Band", model.primary?.band],
               [
                 "RSRP",
@@ -521,14 +546,25 @@ export function DevicesPage({ tab }: { tab: string }) {
   );
 }
 export function SignalPage() {
+  const operating = useOperating();
+  const airplane = operating.available
+    ? operating.data?.airplane?.enabled
+    : null;
   const reading = useReading("signal"),
-    model = cellular.parse(reading?.data || {});
+    model = cellular.parse(airplane === false ? reading?.data || {} : {});
   return (
     <>
       <Stats
         items={[
           ["Operator", carrier(reading?.data?.network_provider)],
-          ["Network", model.mode],
+          [
+            "Network",
+            airplane === true
+              ? t("Airplane mode")
+              : airplane === false
+                ? model.mode
+                : t("Unknown"),
+          ],
           ["Band", model.primary?.band || "—"],
           [
             "Signal",
@@ -600,10 +636,14 @@ export function SignalPage() {
 export function ConnectionSettings() {
   return (
     <>
+      <Panel>
+        <FlightModeControl />
+      </Panel>
       <div className="two-columns">
         <SettingsForm spec={mobile} />
         <SettingsForm spec={networkMode} />
       </div>
+      <NetworkOptimization />
       <div className="entry-grid">
         {[
           ["apn", "APN profiles"],
