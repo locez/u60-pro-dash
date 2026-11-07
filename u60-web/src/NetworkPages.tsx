@@ -37,7 +37,7 @@ import {
 } from "./ui";
 import { SettingsForm } from "./forms";
 import { cellular, clientsModel, usageModel } from "./models";
-import { guest, mobile, networkMode, wifiSpec } from "./settings";
+import { guest, mobile, networkMode, wifiSpec, wifiStandard } from "./settings";
 import { go } from "./catalog";
 import { useMutation } from "./mutations";
 import { ServiceSummary } from "./ServicePages";
@@ -356,6 +356,7 @@ export function WifiPage({ tab }: { tab: string }) {
   if (tab === "guest") return <SettingsForm spec={guest} />;
   return (
     <>
+      {tab === "radio" && <SettingsForm spec={wifiStandard} />}
       <div className="two-columns">
         <SettingsForm
           key={"2g" + tab + revision}

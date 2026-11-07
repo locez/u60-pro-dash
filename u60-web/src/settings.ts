@@ -4,6 +4,15 @@ const wifiWarning =
   "Applying wireless settings may disconnect this device. Reconnect using the new network name or password, then reopen the console.";
 const mobileWarning =
   "Changing mobile settings can interrupt internet access. Roaming may incur carrier charges. Keep a local connection to the router.";
+export const wifiStandard: FormSpec = {
+  id: "wifi-standard",
+  title: "Wireless standard",
+  note: "Applies to both bands. Enables Wi-Fi 6 and Wi-Fi 7 for compatible clients. Turn off only if older devices cannot connect.",
+  read: "/api/wifi/status",
+  write: "/api/wifi/settings",
+  fields: [flag("wifi6_switch", "Wi-Fi 7 (802.11be)")],
+  interrupt: wifiWarning,
+};
 export function wifiSpec(band: "2g" | "5g", radio = false): FormSpec {
   const name = band === "2g" ? "2.4 GHz" : "5 GHz";
   return {

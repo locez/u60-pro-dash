@@ -54,7 +54,7 @@ pub fn page(id: &str, readings: &Data) -> Page {
             ));
             p.fields.push(Field::choice(
                 "wifi6_switch",
-                "Wi-Fi 6",
+                "Wi-Fi 7",
                 &d["wifi6_switch"],
                 ON,
             ));

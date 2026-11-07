@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 const token = "a".repeat(64);
 const wifi = {
   wifi_onoff: "1",
+  wifi6_switch: "0",
   radio2_disabled: "0",
   radio5_disabled: "0",
   ssid_2g: "Test hotspot",
@@ -366,8 +367,11 @@ const streams = {
                 effective: body.profile,
                 applied: true,
               });
-            if (path.endsWith("bandwidth"))
+            if (path.endsWith("bandwidth")) {
               operating.bandwidth.mode = body.mode;
+              if (operating.airplane.enabled)
+                operating.airplane.mode = "LOW_POWER";
+            }
             if (path.endsWith("airplane"))
               Object.assign(operating.airplane, {
                 mode: body.operate_mode,
@@ -660,6 +664,17 @@ const streams = {
       "readback wins over uncertain command result",
     );
     modeFailure = "";
+    // B31 may change its radio-off enum after a bandwidth selection. The
+    // boolean projection keeps recovery available in both settings surfaces.
+    await page.getByRole("button", { name: /^AI smart/ }).click();
+    await page.waitForFunction(() =>
+      document
+        .querySelector('.bandwidth-options button[aria-pressed="true"]')
+        ?.textContent.includes("AI smart"),
+    );
+    assert.equal(operating.airplane.mode, "LOW_POWER");
+    assert.equal(await flight.isEnabled(), true);
+    assert.equal(await flight.getAttribute("aria-checked"), "true");
     await page.evaluate(() => (location.hash = "overview"));
     await page.waitForFunction(() =>
       document
@@ -690,6 +705,7 @@ const streams = {
       1,
       "restoring cellular needs no second dialog",
     );
+    assert.equal(operating.airplane.mode, "ONLINE");
     await page
       .getByRole("dialog")
       .getByRole("button", { name: "Close", exact: true })
@@ -710,6 +726,36 @@ const streams = {
       "saving",
       "bandwidth priority does not change CPU profile",
     );
+    await page.evaluate(() => (location.hash = "wifi/radio"));
+    const standard = page.getByLabel("Wi-Fi 7 (802.11be)", { exact: true });
+    await standard.waitFor();
+    assert.equal(
+      await standard.count(),
+      1,
+      "one global Wi-Fi standard control for both radios",
+    );
+    assert.equal(await standard.inputValue(), "0");
+    const beforeWifi = writes.length;
+    await standard.selectOption("1");
+    await page
+      .getByRole("button", { name: "Cancel change", exact: true })
+      .click();
+    assert.equal(
+      writes.length,
+      beforeWifi,
+      "cancelled wireless disruption does not write",
+    );
+    await standard.selectOption("1");
+    await page
+      .getByRole("button", { name: "Continue and apply", exact: true })
+      .click();
+    await page.getByText("Applied and verified", { exact: true }).waitFor();
+    assert.deepEqual(writes.at(-1), {
+      path: "/api/wifi/settings",
+      body: { wifi6_switch: "1" },
+    });
+    await page.evaluate(() => (location.hash = "internet/connection"));
+    await flight.waitFor();
     // Capture only public controls; no service names or real device values.
     for (const language of ["zh-Hans", "zh-Hant", "en", "ja", "ko"]) {
       await page.locator(".language-select").selectOption(language);

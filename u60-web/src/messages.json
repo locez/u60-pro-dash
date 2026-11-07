@@ -447,6 +447,13 @@
     "ja": "外観",
     "ko": "테마"
   },
+  "Applies to both bands. Enables Wi-Fi 6 and Wi-Fi 7 for compatible clients. Turn off only if older devices cannot connect.": {
+    "en": "Applies to both bands. Enables Wi-Fi 6 and Wi-Fi 7 for compatible clients. Turn off only if older devices cannot connect.",
+    "zh-Hans": "同时作用于两个频段，允许兼容设备使用 Wi-Fi 6 和 Wi-Fi 7。仅当旧设备无法连接时考虑关闭。",
+    "zh-Hant": "同時套用至兩個頻段，允許相容裝置使用 Wi-Fi 6 和 Wi-Fi 7。僅在舊裝置無法連線時考慮關閉。",
+    "ja": "両方の帯域に適用され、対応端末で Wi-Fi 6 と Wi-Fi 7 を利用できます。古い端末が接続できない場合にのみ無効にしてください。",
+    "ko": "두 대역에 모두 적용되며 호환 기기에서 Wi-Fi 6 및 Wi-Fi 7을 사용할 수 있습니다. 구형 기기가 연결되지 않는 경우에만 끄세요."
+  },
   "Apply PIN protection": {
     "en": "Apply PIN protection",
     "zh-Hans": "应用 PIN 保护",
@@ -5830,6 +5837,13 @@
     "ja": "Wi-Fi",
     "ko": "Wi-Fi"
   },
+  "Wi-Fi 7 (802.11be)": {
+    "en": "Wi-Fi 7 (802.11be)",
+    "zh-Hans": "Wi-Fi 7 (802.11be)",
+    "zh-Hant": "Wi-Fi 7 (802.11be)",
+    "ja": "Wi-Fi 7 (802.11be)",
+    "ko": "Wi-Fi 7 (802.11be)"
+  },
   "Wi-Fi connection code": {
     "en": "Wi-Fi connection code",
     "zh-Hans": "Wi-Fi 连接码",
@@ -5850,6 +5864,13 @@
     "zh-Hant": "WireGuard 設定",
     "ja": "WireGuard 設定",
     "ko": "WireGuard 설정"
+  },
+  "Wireless standard": {
+    "en": "Wireless standard",
+    "zh-Hans": "无线标准",
+    "zh-Hant": "無線標準",
+    "ja": "無線規格",
+    "ko": "무선 표준"
   },
   "Write each request header as Name: value, one per line.": {
     "en": "Write each request header as Name: value, one per line.",
