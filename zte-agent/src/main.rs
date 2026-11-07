@@ -12,6 +12,7 @@ mod conn_watchdog;
 mod client_details;
 mod console;
 mod screen;
+mod operating;
 mod dashboard;
 mod dashboard_extra;
 mod data_usage;
@@ -133,6 +134,9 @@ fn main() {
         std::process::exit(1);
     }
     let state = Arc::new(AppState::new());
+    if let Err(error) = state.performance.resume() {
+        eprintln!("[performance] saved profile could not be restored: {error}");
+    }
 
     // Set password from environment if provided
     if let Ok(pw) = std::env::var("ZTE_AGENT_PASSWORD") {

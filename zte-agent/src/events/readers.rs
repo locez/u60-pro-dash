@@ -49,6 +49,7 @@ pub fn read(t: Topic, app: &AppState, hub: &Hub) -> Option<ReadOut> {
     crate::httpd::gate::debug_assert_may_block();
     let _scope = ReadScope::enter();
     Some(match t {
+        Topic::Operating => data_of(crate::operating::status(app)),
         Topic::Signal => data_of(handlers::network_signal(app)),
         Topic::Traffic => data_of(network_ext::network_speeds(app)),
         Topic::Battery => data_of(handlers::battery(app)),

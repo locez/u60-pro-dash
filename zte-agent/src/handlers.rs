@@ -12,6 +12,7 @@ use crate::system::{self, CpuTracker, ProcessTracker, SpeedTracker};
 use crate::ubus;
 
 pub struct AppState {
+    pub performance: crate::operating::Performance,
     pub client_details: crate::client_details::ClientMonitor,
     pub dashboard: Arc<crate::dashboard::Dashboard>,
     pub live_activity: Arc<crate::live_activity::LiveActivity>,
@@ -56,6 +57,7 @@ impl AppState {
         let dashboard = Arc::new(crate::dashboard::Dashboard::default());
         let ota = crate::ota::OtaManager::system(Arc::downgrade(&dashboard));
         Self {
+            performance: crate::operating::Performance::default(),
             client_details: crate::client_details::ClientMonitor::default(),
             dashboard,
             tls: Arc::new(crate::tls::Tls::router(Arc::clone(&live_activity))),
@@ -191,30 +193,36 @@ pub fn network_speed(state: &AppState) -> (u16, Value) {
 /// toggles, so any cache would pin stale state. Falls back to `uci get` on
 /// any miss so the result is always what the CLI would have printed.
 pub fn modem_status(_state: &AppState) -> (u16, Value) {
-    let read = |path: &str| std::fs::read_to_string(path).ok();
-    let from_files = read(UCI_NWINFO_CONFIG).and_then(|config| {
-        uci_operate_mode(&config, read(UCI_NWINFO_DELTA).as_deref().unwrap_or(""))
-    });
-    let mode = match from_files {
-        Some(mode) => Ok(mode),
-        None => ubus::uci_get(UCI_OPERATE_MODE_KEY),
-    };
+    let mode = read_uci_option("zte_nwinfo", "sys_info", "operate_mode");
     match mode {
         Ok(mode) => (200, json!({"ok": true, "data": {"operate_mode": mode}})),
         Err(e) => (503, json!({"ok": false, "error": e})),
     }
 }
 
-const UCI_NWINFO_CONFIG: &str = "/etc/config/zte_nwinfo";
-const UCI_NWINFO_DELTA: &str = "/tmp/.uci/zte_nwinfo";
-const UCI_OPERATE_MODE_KEY: &str = "zte_nwinfo.sys_info.operate_mode";
+/// Read a public scalar from committed UCI plus its uncommitted delta.
+/// Callers supply fixed keys, never values or paths from an HTTP request.
+pub(crate) fn read_uci_option(config: &str, section: &str, option: &str) -> Result<String, String> {
+    let value = std::fs::read_to_string(format!("/etc/config/{config}")).ok().and_then(|base| {
+        let delta = std::fs::read_to_string(format!("/tmp/.uci/{config}")).unwrap_or_default();
+        uci_option(&base, &delta, config, section, option)
+    });
+    value.map(Ok).unwrap_or_else(|| ubus::uci_get(&format!("{config}.{section}.{option}")))
+}
 
 /// Resolve `zte_nwinfo.sys_info.operate_mode` from the committed config text
 /// and the delta (`uci set` without `commit`) text. `None` means "not sure":
 /// the option is absent, deleted, or the delta does something this reader
 /// does not model (section add/rename), and the caller must ask `uci get`.
+#[cfg(test)]
 fn uci_operate_mode(config: &str, delta: &str) -> Option<String> {
-    let mut value = uci_config_option(config, "sys_info", "operate_mode");
+    uci_option(config, delta, "zte_nwinfo", "sys_info", "operate_mode")
+}
+fn uci_option(config: &str, delta: &str, name: &str, section: &str, option: &str) -> Option<String> {
+    let key = format!("{name}.{section}.{option}");
+    let delete_option = format!("-{key}");
+    let delete_section = format!("-{name}.{section}");
+    let mut value = uci_config_option(config, section, option);
     for line in delta.lines().map(str::trim).filter(|l| !l.is_empty()) {
         let (lhs, rhs) = match line.split_once('=') {
             Some((lhs, rhs)) => (lhs, Some(rhs)),
@@ -222,7 +230,7 @@ fn uci_operate_mode(config: &str, delta: &str) -> Option<String> {
         };
         match lhs {
             // `uci set` of the key: last write wins.
-            "zte_nwinfo.sys_info.operate_mode" => {
+            _ if lhs == key => {
                 let raw = rhs?.trim();
                 if uci_value_torn(raw) {
                     return None;
@@ -230,9 +238,9 @@ fn uci_operate_mode(config: &str, delta: &str) -> Option<String> {
                 value = Some(uci_unquote(raw));
             }
             // Deleting the option or the whole section removes it.
-            "-zte_nwinfo.sys_info.operate_mode" | "-zte_nwinfo.sys_info" => value = None,
+            _ if lhs == delete_option || lhs == delete_section => value = None,
             // Section creation/rename or list ops touching sys_info: bail.
-            _ if lhs.starts_with(['+', '@', '|', '~']) && line.contains("sys_info") => return None,
+            _ if lhs.starts_with(['+', '@', '|', '~']) && line.contains(section) => return None,
             _ => {}
         }
     }

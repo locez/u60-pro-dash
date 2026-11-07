@@ -238,6 +238,7 @@ pub fn lane(method: Method, path: &str) -> Lane {
             "/api/at/send"
             | "/api/modem/online"
             | "/api/modem/airplane"
+            | "/api/modem/bandwidth"
             | "/api/modem/scan"
             | "/api/modem/register"
             | "/api/sms/forward/test"
@@ -341,6 +342,9 @@ fn route_inner(method: &Method, path: &str, state: &AppState, body: &[u8]) -> (u
         (&Method::Post, "/api/modem/online") => modem_ext::modem_online_user(state),
         (&Method::Get, "/api/modem/data") => modem_ext::modem_data_get(state),
         (&Method::Put, "/api/modem/data") => modem_ext::modem_data_set(state, body),
+        (&Method::Get, "/api/device/operating") => crate::operating::status(state),
+        (&Method::Put, "/api/device/performance") => crate::operating::set_performance(state, body),
+        (&Method::Put, "/api/modem/bandwidth") => crate::operating::set_bandwidth(state, body),
         (&Method::Post, "/api/modem/airplane") => modem_ext::modem_airplane(state, body),
         (&Method::Put, "/api/modem/network-mode") => modem_ext::modem_network_mode_set(state, body),
         (&Method::Post, "/api/modem/scan") => modem_ext::modem_scan(state),

@@ -52,6 +52,7 @@ pub enum Topic {
     Netscan,
     SignalDetect,
     Stk,
+    Operating,
 }
 
 /// Which sampler thread reads a topic. `/proc` and sysfs reads (Fast) never
@@ -107,6 +108,7 @@ const SPECS: [TopicSpec; Topic::COUNT] = [
     spec(Lane::Ubus, 2_000, 0),     // Netscan (the app's 2 s scan/register polls)
     spec(Lane::Ubus, 2_000, 0),     // SignalDetect (the app's 2 s progress poll)
     spec(Lane::Fast, 0, 0),         // Stk: the toolkit worker's memory, re-read when the worker touches it
+    spec(Lane::Ubus, 5_000, 5),     // Operating: public radio/QoS/CPU state; no reads without demand
 ];
 
 /// Every topic name, in `Topic` order; `NAME_END[i]` ends name `i`. (One
@@ -114,11 +116,11 @@ const SPECS: [TopicSpec; Topic::COUNT] = [
 /// 22 relocated pointers.)
 const NAMES: &str = "signaltrafficbatteryhealthclientswansimmodemchargerbattery_info\
                      sim_identityservicepower_statesmsesim_switchesim_downloadprocessesusbspeedtest\
-                     netscansignal_detectstk";
-const NAME_END: [u8; Topic::COUNT] = [6, 13, 20, 26, 33, 36, 39, 44, 51, 63, 75, 82, 93, 96, 107, 120, 129, 132, 141, 148, 161, 164];
+                     netscansignal_detectstkoperating";
+const NAME_END: [u8; Topic::COUNT] = [6, 13, 20, 26, 33, 36, 39, 44, 51, 63, 75, 82, 93, 96, 107, 120, 129, 132, 141, 148, 161, 164, 173];
 
 impl Topic {
-    pub const COUNT: usize = 22;
+    pub const COUNT: usize = 23;
     pub const ALL: [Topic; Topic::COUNT] = [
         Topic::Signal,
         Topic::Traffic,
@@ -142,6 +144,7 @@ impl Topic {
         Topic::Netscan,
         Topic::SignalDetect,
         Topic::Stk,
+        Topic::Operating,
     ];
 
     pub fn name(self) -> &'static str {
@@ -396,7 +399,7 @@ mod tests {
             [
                 "signal", "traffic", "battery", "health", "clients", "wan", "sim", "modem", "charger",
                 "battery_info", "sim_identity", "service", "power_state", "sms", "esim_switch", "esim_download",
-                "processes", "usb", "speedtest", "netscan", "signal_detect", "stk",
+                "processes", "usb", "speedtest", "netscan", "signal_detect", "stk", "operating",
             ]
         );
         let st = Topic::Speedtest.spec();

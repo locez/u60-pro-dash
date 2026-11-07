@@ -171,10 +171,13 @@ fn https_serves_the_ui_with_the_routers_certificate() {
         assert_eq!(served, ["server.crt", "issuing.crt"].map(|f| std::fs::read(s.world.dir().join(f)).unwrap()));
         let r = request(&mut c, &format!("GET /console/ HTTP/1.1\r\nHost: {host}"), "");
         assert_eq!(r.status, 200);
-        assert!(r.body.contains("Agent password"));
+        // Both the product bundle and the legacy fallback are valid console
+        // entry points; TLS coverage must not depend on login copy in HTML.
+        let product = r.body.contains("<div id=\"root\"></div>");
+        assert!(product || r.body.contains("Agent password"));
         assert_eq!(r.header("strict-transport-security"), None);
         assert!(r.all("set-cookie").is_empty());
-        assert!(r.body.contains("/console/a/dashboard.js"));
+        assert!(r.body.contains(if product { "/console/assets/" } else { "/console/a/dashboard.js" }));
         // Keep-alive: a second request on the same connection.
         let r = request(&mut c, &format!("GET /api/lan/ping HTTP/1.1\r\nHost: {host}"), "");
         assert_eq!(r.status, 401);

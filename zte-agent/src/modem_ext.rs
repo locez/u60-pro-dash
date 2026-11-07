@@ -62,29 +62,44 @@ pub fn modem_data_set(state: &AppState, body: &[u8]) -> (u16, Value) {
 pub fn modem_airplane(state: &AppState, body: &[u8]) -> (u16, Value) {
     let parsed: Value = match serde_json::from_slice(body) {
         Ok(v) => v,
-        Err(_) => return (400, json!({"ok": false, "error": "invalid JSON"})),
+        Err(_) => return (400, json!({"ok":false,"error":"invalid JSON"})),
+    };
+    let target = match parsed["operate_mode"].as_str() {
+        Some(mode @ ("ONLINE" | "LPM" | "OFFLINE")) => mode,
+        _ => return (400, json!({"ok":false,"error":"operate_mode must be ONLINE, LPM or OFFLINE"})),
     };
     let _command = note_user_modem_change(state);
-    // Use AT+CFUN=1 for ONLINE (ubus nwinfo_set_mode ONLINE is broken for LPM→ONLINE recovery)
-    if parsed["operate_mode"].as_str() == Some("ONLINE") {
-        // modem_online settles the modem/data entry itself.
+    let response = if target == "ONLINE" {
+        // Firmware's ubus ONLINE does not recover from LPM. Preserve the known AT path.
         state.oos_policy.user_mode(true);
-        return crate::handlers::modem_online(state);
-    }
-    let result = ubus::call(
-        "zte_nwinfo_api",
-        "nwinfo_set_mode",
-        Some(&parsed.to_string()),
-    );
-    settle_modem_data(state);
-    match result {
-        Ok(data) => {
-            // The user parked the modem (LPM/OFFLINE): the no-service policy
-            // stands down until the user goes ONLINE again.
-            state.oos_policy.user_mode(false);
-            (200, json!({"ok": true, "data": data}))
+        crate::handlers::modem_online(state)
+    } else {
+        let result = ubus::call_bounded("zte_nwinfo_api", "nwinfo_set_mode", Some(&json!({"operate_mode":target}).to_string()), 3);
+        settle_modem_data(state);
+        match result {
+            Ok(_) => {
+                state.oos_policy.user_mode(false);
+                (200, json!({"ok":true}))
+            }
+            Err(error) => (503, json!({"ok":false,"error":error})),
         }
-        Err(e) => (503, json!({"ok": false, "error": e})),
+    };
+    // Mark the request's outcome on both old and new live projections.
+    crate::events::touch(crate::events::Topic::Modem);
+    crate::events::touch(crate::events::Topic::Operating);
+    if response.0 >= 400 { return response; }
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(8);
+    loop {
+        if crate::handlers::read_uci_option("zte_nwinfo", "sys_info", "operate_mode").is_ok_and(|mode| mode == target) {
+            crate::events::touch(crate::events::Topic::Modem);
+            crate::events::touch(crate::events::Topic::Operating);
+            // ONLINE confirms the radio, not registration or remote reachability.
+            return (200, json!({"ok":true,"data":{"operate_mode":target}}));
+        }
+        if std::time::Instant::now() >= deadline {
+            return (503, json!({"ok":false,"error":"Radio mode change could not be verified; check current mobile network status"}));
+        }
+        std::thread::sleep(std::time::Duration::from_millis(200));
     }
 }
 
