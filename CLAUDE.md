@@ -92,7 +92,7 @@ ubus call zwrt_data get_wwaniface '{"source_module":"zte_topsw_data","cid":1}'
 
 ## Other Device Notes
 
-- **Airplane mode (B31)**: `nwinfo_set_mode ONLINE` does not reliably recover from LPM. Use `POST /api/modem/airplane` with `ONLINE`: it sends `AT+CFUN=1` once and verifies actual radio state, even if the AT acknowledgement is incomplete. B31 reports `OFFLINE` after LPM; both mean radio off. UCI fast reads must honor `/tmp/lock/<package>.ucilock`, as the shipped libuci locks that file across config replacement. See `docs/operating-modes.md`; do not automatically reboot or replay writes.
+- **Airplane mode (B31)**: `nwinfo_set_mode ONLINE` does not reliably recover from LPM. Use `POST /api/modem/airplane` with `ONLINE`: it sends `AT+CFUN=1` once and verifies actual radio state, even if the AT acknowledgement is incomplete. B31 reports `OFFLINE` or `LOW_POWER` after LPM, including after QoS changes; all three mean radio off and must keep recovery available. UCI fast reads must honor `/tmp/lock/<package>.ucilock`, as the shipped libuci locks that file across config replacement. See `docs/operating-modes.md`; do not automatically reboot or replay writes.
 - **Charge policy bug**: Wall mode `enable` STOPS charging, `disable` STARTS charging (inverted).
 - **procd respawn**: `kill -9` may trigger procd respawn. Use `/etc/init.d/<name> stop` instead.
 - **Touchscreen**: Sitronix at I2C `1-0055`, kernel module `sitronix-ts.ko` loaded by `/usr/bin/mtdev2tuio.sh`.
