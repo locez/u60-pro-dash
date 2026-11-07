@@ -20,6 +20,7 @@ export type FormField = {
   readKey?: string;
   type?: "text" | "password" | "number" | "textarea" | "url";
   options?: Option[];
+  optionsFor?: (current: ObjectData) => Option[];
   wire?: "number" | "boolean";
   required?: boolean;
   min?: number;
@@ -58,9 +59,16 @@ export type FormSpec = {
 export const options = (
   key: string,
   label: string,
-  values: Option[],
+  values: Option[] | NonNullable<FormField["optionsFor"]>,
   extra: Partial<FormField> = {},
-): FormField => ({ key, label, options: values, ...extra });
+): FormField => ({
+  key,
+  label,
+  ...(typeof values === "function"
+    ? { optionsFor: values }
+    : { options: values }),
+  ...extra,
+});
 export const flag = (
   key: string,
   label: string,
@@ -168,7 +176,8 @@ export function SettingsForm({
         throw new Error(
           t("Enter a number between {0} and {1}", f.min ?? 0, f.max ?? 65535),
         );
-      if (f.options && !f.options.some(([id]) => id === value))
+      const choices = f.optionsFor?.(base) || f.options;
+      if (choices && !choices.some(([id]) => id === value))
         throw new Error("Choose a supported value");
       spec.validate?.(changed, all, previous);
       const interrupt =
@@ -285,13 +294,14 @@ export function SettingsForm({
                 f.allowMissing || base[f.readKey || f.key] !== undefined;
               const disabled = mutation.busy || !available;
               const value = string(draft[f.key]);
+              const choices = f.optionsFor?.(base) || f.options;
               return (
                 <Field
                   key={f.key}
                   label={f.label}
                   hint={!available ? "Not supported by this firmware" : f.hint}
                 >
-                  {f.options ? (
+                  {choices ? (
                     <select
                       disabled={disabled}
                       value={value}
@@ -300,12 +310,12 @@ export function SettingsForm({
                         void apply(f, e.target.value);
                       }}
                     >
-                      {!f.options.some(([v]) => v === value) && (
+                      {!choices.some(([v]) => v === value) && (
                         <option value={value}>
                           {value ? scalar(value) : t("Not reported")}
                         </option>
                       )}
-                      {f.options.map(([v, label]) => (
+                      {choices.map(([v, label]) => (
                         <option key={v} value={v}>
                           {t(label)}
                         </option>

@@ -149,6 +149,9 @@ impl Controller {
     }
     pub fn cancel(&mut self) {
         self.automatic = false;
+        for value in self.expected.values_mut() {
+            value.zeroize();
+        }
         self.expected.clear();
         self.telemetry.interrupt();
         for value in self.draft.values_mut() {
@@ -234,10 +237,15 @@ impl Controller {
         }
         let mut page = super::page(&self.id, &self.data);
         if !self.expected.is_empty() {
-            let verified = self
-                .expected
-                .iter()
-                .all(|(key, value)| page.field(key).is_ok_and(|f| f.value == *value));
+            let verified = self.expected.iter().all(|(key, value)| {
+                if matches!(self.id.as_str(), "wifi2" | "wifi5") && key.starts_with("key_") {
+                    super::data(&self.data, "settings")[key].as_str() == Some(value.as_str())
+                } else if self.id == "guest" && key == "guest_key" {
+                    super::data(&self.data, "settings")["key"].as_str() == Some(value.as_str())
+                } else {
+                    page.field(key).is_ok_and(|f| f.value == *value)
+                }
+            });
             self.outcome = Some(
                 if verified {
                     crate::i18n::tr("已应用并核对实际值。")
@@ -248,6 +256,9 @@ impl Controller {
             );
             if !verified {
                 self.draft.append(&mut self.expected);
+            }
+            for value in self.expected.values_mut() {
+                value.zeroize();
             }
             self.expected.clear();
         }
@@ -274,10 +285,12 @@ impl Controller {
             .filter_map(|r| r.as_ref().err().map(Error::message))
             .collect::<std::collections::BTreeSet<_>>();
         self.notice = if errors.is_empty() {
-            if restored {
+            if let Some(outcome) = &self.outcome {
+                outcome.clone()
+            } else if restored {
                 crate::i18n::tr("状态已重新读取，请检查更改后保存。").into()
             } else {
-                self.outcome.clone().unwrap_or_default()
+                String::new()
             }
         } else {
             crate::i18n::format(
@@ -394,7 +407,14 @@ impl Controller {
                                 .page
                                 .fields
                                 .iter()
-                                .filter(|f| f.dirty() && !f.secret)
+                                .filter(|f| {
+                                    f.dirty()
+                                        && (!f.secret
+                                            || matches!(
+                                                self.id.as_str(),
+                                                "wifi2" | "wifi5" | "guest"
+                                            ))
+                                })
                                 .map(|f| (f.key.clone(), f.value.clone()))
                                 .collect();
                         }
@@ -795,6 +815,9 @@ mod tests {
             assert_eq!(writes, 1);
             assert_eq!(c.page.dirty(), !accepted);
             assert_eq!(c.notice == "已应用并核对实际值。", accepted);
+            if !accepted {
+                assert_eq!(c.notice, "设备尚未确认修改，请核对实际状态。");
+            }
         }
         let mut c = Controller::default();
         c.seed_data(
@@ -818,6 +841,35 @@ mod tests {
         assert!(!c.page.dirty());
         assert_eq!(c.page.field("capture").unwrap().value, "local");
         assert!(c.queue.is_empty());
+    }
+    #[test]
+    fn restoring_a_failed_edit_keeps_the_error_visible() {
+        let mut c = charge();
+        c.draft.insert("charge_limit".into(), "85".into());
+        c.outcome = Some("Setting could not be saved: disk full".into());
+        c.finish_reads();
+        assert!(c.page.dirty());
+        assert!(c.notice.contains("disk full"));
+    }
+
+    #[test]
+    fn wifi_password_readback_is_verified_without_filling_the_password_editor() {
+        let secret = "Test'$\\&-only";
+        for accepted in [true, false] {
+            let mut c = Controller::default();
+            c.seed(
+                "wifi2",
+                json!({"key_2g":if accepted { secret } else { "Old-example" }}),
+            );
+            c.expected.insert("key_2g".into(), secret.into());
+            c.finish_reads();
+            assert_eq!(c.notice == "已应用并核对实际值。", accepted);
+            assert_eq!(
+                c.page.field("key_2g").unwrap().value,
+                if accepted { "" } else { secret }
+            );
+            assert!(c.expected.is_empty());
+        }
     }
     fn charge() -> Controller {
         let mut c = Controller::default();

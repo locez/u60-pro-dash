@@ -74,22 +74,34 @@ pub fn page(id: &str, readings: &Data) -> Page {
                     "key" => Field::password(&key, label, d.is_object()),
                     "hidden" => Field::choice(&key, label, &d[&key], ON),
                     "txpower" => Field::number(&key, label, &d[&key], 1, 100),
-                    "htmode" => Field::choice(
-                        &key,
-                        label,
-                        &d[&key],
-                        if band == "2g" {
-                            &[("auto", "自动"), ("EHT20", "20 MHz"), ("EHT40", "40 MHz")]
+                    "htmode" => {
+                        let current = text(&d[&key]);
+                        let prefix = ["EHT", "HE", "VHT", "HT"]
+                            .into_iter()
+                            .find(|prefix| current.starts_with(prefix))
+                            .unwrap_or(if d["wifi6_switch"] == "0" {
+                                if band == "2g" { "HT" } else { "VHT" }
+                            } else {
+                                "EHT"
+                            });
+                        let widths = if band == "2g" {
+                            &[20, 40][..]
                         } else {
-                            &[
-                                ("auto", "自动"),
-                                ("EHT20", "20 MHz"),
-                                ("EHT40", "40 MHz"),
-                                ("EHT80", "80 MHz"),
-                                ("EHT160", "160 MHz"),
-                            ]
-                        },
-                    ),
+                            &[20, 40, 80, 160][..]
+                        };
+                        let mut choices =
+                            vec![("auto".to_string(), crate::i18n::tr("自动").to_string())];
+                        choices.extend(
+                            widths
+                                .iter()
+                                .map(|width| (format!("{prefix}{width}"), format!("{width} MHz"))),
+                        );
+                        let choices: Vec<_> = choices
+                            .iter()
+                            .map(|(key, label)| (key.as_str(), label.as_str()))
+                            .collect();
+                        Field::choice(&key, label, &d[&key], &choices)
+                    }
                     "channel" => {
                         let channels = if band == "2g" {
                             vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
@@ -381,8 +393,7 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
             for k in [&ssid, &key] {
                 if let Some(v) = body.get(k).and_then(Value::as_str) {
                     ensure!(
-                        !v.contains(['\'', '"', ';', '$', '`', '\\', '|', '<', '>', '&'])
-                            && !v.chars().any(char::is_control),
+                        !v.chars().any(char::is_control),
                         "{}",
                         crate::i18n::tr("设备无法保存输入中的特殊字符，请修改网络名称或密码。")
                     );
@@ -413,12 +424,14 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
             );
             if id == "wifi5" && (p.field("channel_5g")?.dirty() || p.field("htmode_5g")?.dirty()) {
                 let ch = p.field("channel_5g")?.value.parse::<u32>().unwrap_or(0);
-                let width = &p.field("htmode_5g")?.value;
+                let width = p
+                    .field("htmode_5g")?
+                    .value
+                    .trim_start_matches(|c: char| c.is_ascii_alphabetic());
                 ensure!(
-                    !(ch == 165 && !["auto", "EHT20"].contains(&width.as_str())
-                        || ch >= 149 && width == "EHT160"
-                        || (132..149).contains(&ch)
-                            && ["EHT80", "EHT160"].contains(&width.as_str())),
+                    !(ch == 165 && !["", "20"].contains(&width)
+                        || ch >= 149 && width == "160"
+                        || (132..149).contains(&ch) && ["80", "160"].contains(&width)),
                     "{}",
                     crate::i18n::tr("所选信道不支持该带宽。")
                 );
@@ -500,7 +513,22 @@ mod tests {
             .iter_mut()
             .find(|f| f.key == "ssid_2g")
             .unwrap()
-            .value = "unsafe$value".into();
+            .value = "Guest's $ Wi-Fi".into();
+        assert_eq!(
+            plan("wifi2", "save", &p, &readings).unwrap().requests[0].body,
+            Some(json!({"ssid_2g":"Guest's $ Wi-Fi"}))
+        );
+        p.fields
+            .iter_mut()
+            .find(|f| f.key == "key_2g")
+            .unwrap()
+            .value = "Test'$\\&-only".into();
+        assert!(plan("wifi2", "save", &p, &readings).is_ok());
+        p.fields
+            .iter_mut()
+            .find(|f| f.key == "ssid_2g")
+            .unwrap()
+            .value = "line\nbreak".into();
         assert!(plan("wifi2", "save", &p, &readings).is_err());
     }
 }

@@ -15,6 +15,8 @@ const wifi = {
   encryption_5g: "psk2",
   hidden_2g: "0",
   hidden_5g: "0",
+  htmode_2g: "HT40",
+  htmode_5g: "VHT160",
 };
 const operating = {
   airplane: { enabled: false, mode: "ONLINE", error: null },
@@ -392,8 +394,13 @@ const streams = {
             fixtures["/api/proxy/mihomo/status"],
             req.postDataJSON(),
           );
-        if (path === "/api/wifi/settings")
+        if (path === "/api/wifi/settings") {
           Object.assign(wifi, req.postDataJSON());
+          if (req.postDataJSON().wifi6_switch !== undefined) {
+            wifi.htmode_2g = wifi.wifi6_switch === "1" ? "EHT40" : "HT40";
+            wifi.htmode_5g = wifi.wifi6_switch === "1" ? "EHT160" : "VHT160";
+          }
+        }
         if (path === "/api/dns/apply")
           Object.assign(fixtures["/api/dns/status"], req.postDataJSON());
         if (path === "/api/tailscale/config")
@@ -735,6 +742,13 @@ const streams = {
       "one global Wi-Fi standard control for both radios",
     );
     assert.equal(await standard.inputValue(), "0");
+    const widths = page.getByLabel("Channel width", { exact: true });
+    assert.equal(await widths.nth(0).inputValue(), "HT40");
+    assert.equal(await widths.nth(1).inputValue(), "VHT160");
+    assert.equal(
+      await widths.nth(0).locator('option[value="EHT40"]').count(),
+      0,
+    );
     const beforeWifi = writes.length;
     await standard.selectOption("1");
     await page
@@ -754,6 +768,15 @@ const streams = {
       path: "/api/wifi/settings",
       body: { wifi6_switch: "1" },
     });
+    // Reopening the radio page must read both the saved switch and the
+    // firmware's new width namespace, rather than retaining a local draft.
+    await page.evaluate(() => (location.hash = "wifi/hotspot"));
+    await page.getByLabel("Network name", { exact: true }).first().waitFor();
+    await page.evaluate(() => (location.hash = "wifi/radio"));
+    await standard.waitFor();
+    assert.equal(await standard.inputValue(), "1");
+    assert.equal(await widths.nth(0).inputValue(), "EHT40");
+    assert.equal(await widths.nth(1).inputValue(), "EHT160");
     await page.evaluate(() => (location.hash = "internet/connection"));
     await flight.waitFor();
     // Capture only public controls; no service names or real device values.

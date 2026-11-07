@@ -58,16 +58,23 @@ export function wifiSpec(band: "2g" | "5g", radio = false): FormSpec {
                   ]),
             ].map((v) => [v, v === "auto" ? "Automatic" : v]),
           ),
-          options(
-            "htmode_" + band,
-            "Channel width",
-            [
-              "auto",
-              "EHT20",
-              "EHT40",
-              ...(band === "5g" ? ["EHT80", "EHT160"] : []),
-            ].map((v) => [v, v === "auto" ? "Automatic" : v.slice(3) + " MHz"]),
-          ),
+          options("htmode_" + band, "Channel width", (current) => {
+            const prefix =
+              String(current["htmode_" + band]).match(
+                /^(EHT|HE|VHT|HT)/,
+              )?.[1] ||
+              (current.wifi6_switch === "0"
+                ? band === "2g"
+                  ? "HT"
+                  : "VHT"
+                : "EHT");
+            return [
+              ["auto", "Automatic"],
+              ...[20, 40, ...(band === "5g" ? [80, 160] : [])].map(
+                (width): [string, string] => [prefix + width, width + " MHz"],
+              ),
+            ];
+          }),
           field("txpower_" + band, "Transmit power (%)", {
             type: "number",
             min: 1,
