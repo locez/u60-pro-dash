@@ -17,6 +17,9 @@ msgstr "U60   →   Tailscale   →   目标"
 msgid "U60 · 原生屏幕预览"
 msgstr "U60 · 原生屏幕预览"
 
+msgid "Wi-Fi 可用"
+msgstr "Wi-Fi 可用"
+
 msgid "Wi-Fi 连接卡片"
 msgstr "Wi-Fi 连接卡片"
 
@@ -31,6 +34,12 @@ msgstr "↓ 下载 / Mbps"
 
 msgid "−2 分钟"
 msgstr "−2 分钟"
+
+msgid "优先响应与处理能力，温度和功耗可能上升。"
+msgstr "优先响应与处理能力，温度和功耗可能上升。"
+
+msgid "保留 Wi-Fi、USB 与本地管理"
+msgstr "保留 Wi-Fi、USB 与本地管理"
 
 msgid "信号详情"
 msgstr "信号详情"
@@ -68,6 +77,9 @@ msgstr "启动与熄屏后自动锁定。开启密码后，更改或关闭密码
 msgid "固件未提供系统主题，沿用当前浅色或深色设置。"
 msgstr "固件未提供系统主题，沿用当前浅色或深色设置。"
 
+msgid "均衡"
+msgstr "均衡"
+
 msgid "处理中"
 msgstr "处理中"
 
@@ -92,6 +104,9 @@ msgstr "已联网"
 msgid "已连接"
 msgstr "已连接"
 
+msgid "应用带宽分配"
+msgstr "应用带宽分配"
+
 msgid "强调色"
 msgstr "强调色"
 
@@ -103,6 +118,21 @@ msgstr "当前读数为演示数据。"
 
 msgid "快捷指标"
 msgstr "快捷指标"
+
+msgid "快捷控制"
+msgstr "快捷控制"
+
+msgid "性能"
+msgstr "性能"
+
+msgid "性能模式"
+msgstr "性能模式"
+
+msgid "所选模式尚未生效，请核对设备状态。"
+msgstr "所选模式尚未生效，请核对设备状态。"
+
+msgid "按需调整，兼顾响应、温度与功耗。"
+msgstr "按需调整，兼顾响应、温度与功耗。"
 
 msgid "换行"
 msgstr "换行"
@@ -149,6 +179,9 @@ msgstr "机身屏幕使用本机后台账号连接。也可以输入后台密码
 msgid "松开继续"
 msgstr "松开继续"
 
+msgid "极速：不区分应用优先级，按需使用带宽。"
+msgstr "极速：不区分应用优先级，按需使用带宽。"
+
 msgid "查看设置与操作需要密码"
 msgstr "查看设置与操作需要密码"
 
@@ -160,6 +193,9 @@ msgstr "正在积累趋势"
 
 msgid "正在读取 Wi-Fi…"
 msgstr "正在读取 Wi-Fi…"
+
+msgid "此设置暂不可用。"
+msgstr "此设置暂不可用。"
 
 msgid "流量套餐"
 msgstr "流量套餐"
@@ -173,6 +209,9 @@ msgstr "深色"
 msgid "清空"
 msgstr "清空"
 
+msgid "温度保护正在限频，保留所选模式。"
+msgstr "温度保护正在限频，保留所选模式。"
+
 msgid "演示"
 msgstr "演示"
 
@@ -185,11 +224,20 @@ msgstr "熄屏"
 msgid "状态"
 msgstr "状态"
 
+msgid "状态未知"
+msgstr "状态未知"
+
 msgid "电池供电"
 msgstr "电池供电"
 
+msgid "电源与电池"
+msgstr "电源与电池"
+
 msgid "界面主题"
 msgstr "界面主题"
+
+msgid "省电"
+msgstr "省电"
 
 msgid "知道了"
 msgstr "知道了"
@@ -203,6 +251,9 @@ msgstr "确认执行"
 msgid "确认操作"
 msgstr "确认操作"
 
+msgid "移动网络"
+msgstr "移动网络"
+
 msgid "空格"
 msgstr "空格"
 
@@ -212,11 +263,23 @@ msgstr "立即锁屏"
 msgid "管理"
 msgstr "管理"
 
+msgid "自动"
+msgstr "自动"
+
 msgid "自动熄屏"
 msgstr "自动熄屏"
 
 msgid "自定义颜色"
 msgstr "自定义颜色"
+
+msgid "蜂窝恢复后继续使用所选带宽策略。"
+msgstr "蜂窝恢复后继续使用所选带宽策略。"
+
+msgid "蜂窝流量已暂停"
+msgstr "蜂窝流量已暂停"
+
+msgid "蜂窝网络已关闭"
+msgstr "蜂窝网络已关闭"
 
 msgid "设置目标 IP 和端口"
 msgstr "设置目标 IP 和端口"
@@ -245,11 +308,17 @@ msgstr "连接记录"
 msgid "退格"
 msgstr "退格"
 
+msgid "选择即应用"
+msgstr "选择即应用"
+
 msgid "重新连接"
 msgstr "重新连接"
 
 msgid "长按 1 秒解锁"
 msgstr "长按 1 秒解锁"
+
+msgid "降低处理频率，吞吐能力可能下降。"
+msgstr "降低处理频率，吞吐能力可能下降。"
 
 msgid "随身网络"
 msgstr "随身网络"
@@ -263,5 +332,11 @@ msgstr "隐藏仅影响首页显示，不会停止服务。"
 msgid "隐藏密码"
 msgstr "隐藏密码"
 
+msgid "飞行模式"
+msgstr "飞行模式"
+
 msgid "首页布局"
 msgstr "首页布局"
+
+msgid "高铁优化"
+msgstr "高铁优化"

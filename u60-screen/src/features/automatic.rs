@@ -3,10 +3,10 @@
 use super::*;
 pub fn action(id: &str) -> Option<&'static str> {
     Some(match id {
-        "wifi2" | "wifi5" | "guest" | "charge" | "power-save" | "fast-boot" | "auto-sleep"
-        | "ttl" | "oos" | "watchdog" | "tailscale-config" | "mobile-data" | "network-mode"
-        | "usage" | "lan" | "firewall" | "nat" | "dmz" | "upnp" | "qos" | "vpn" | "dns-config"
-        | "doh" | "usb" => "save",
+        "quick-controls" | "mobile-modes" | "wifi2" | "wifi5" | "guest" | "charge"
+        | "power-save" | "fast-boot" | "auto-sleep" | "ttl" | "oos" | "watchdog"
+        | "tailscale-config" | "mobile-data" | "network-mode" | "usage" | "lan" | "firewall"
+        | "nat" | "dmz" | "upnp" | "qos" | "vpn" | "dns-config" | "doh" | "usb" => "save",
         "proxy-service" => "settings",
         "proxy-groups" => "select",
         _ => return None,
@@ -14,6 +14,10 @@ pub fn action(id: &str) -> Option<&'static str> {
 }
 pub fn interruption(id: &str, page: &Page, readings: &Data) -> bool {
     match id {
+        "quick-controls" | "mobile-modes" => page
+            .fields
+            .iter()
+            .any(|f| f.key == "airplane" && f.dirty() && f.value == "true"),
         "proxy-service" => {
             data(readings, "status")["running"] == true
                 && page.field("capture").is_ok_and(Field::dirty)

@@ -130,5 +130,33 @@ window.U60Catalog.features.push(...[
     "group": "system",
     "local": true,
     "description": "长按解锁与可选数字密码保护。"
+  },
+  {
+    "rows": [],
+    "fields": [],
+    "actions": [],
+    "apis": [
+      "GET /api/device/operating",
+      "POST /api/modem/airplane",
+      "PUT /api/modem/bandwidth"
+    ],
+    "id": "mobile-modes",
+    "title": "连接设置",
+    "group": "mobile",
+    "description": "飞行模式、应用带宽分配与高铁优化。"
+  },
+  {
+    "rows": [],
+    "fields": [],
+    "actions": [],
+    "apis": [
+      "GET /api/device/operating",
+      "POST /api/modem/airplane",
+      "PUT /api/device/performance"
+    ],
+    "id": "quick-controls",
+    "title": "快捷控制",
+    "group": "power",
+    "description": "飞行模式与性能三档。"
   }
 ]);

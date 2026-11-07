@@ -16,7 +16,6 @@ fn endpoint(id: &str) -> Option<&'static str> {
         "wifi2" | "wifi5" => "/api/wifi/status",
         "guest" => "/api/wifi/guest",
         "charge" => "/api/device/charge-control",
-        "power-save" => "/api/device/power-save",
         "fast-boot" => "/api/device/fast-boot",
         "auto-sleep" => "/api/device/auto-sleep",
         "ttl" => "/api/router/ttl",
@@ -28,15 +27,7 @@ fn endpoint(id: &str) -> Option<&'static str> {
 }
 pub fn reads(id: &str) -> Option<Vec<Read>> {
     let path = endpoint(id)?;
-    Some(vec![if id == "power-save" {
-        Read::post(
-            "settings",
-            path,
-            json!({"deviceInfoList":["power_saver_mode"]}),
-        )
-    } else {
-        Read::get("settings", path)
-    }])
+    Some(vec![Read::get("settings", path)])
 }
 pub fn page(id: &str, readings: &Data) -> Page {
     let mut p = Page::default();
@@ -222,12 +213,6 @@ pub fn page(id: &str, readings: &Data) -> Page {
             p.note =
                 crate::i18n::tr("直供电会停止电池充电，并覆盖自动充电策略；关闭后恢复充电上限管理。充电回差用于避免频繁启停。").into();
         }
-        "power-save" => p.fields.push(Field::choice(
-            "power_saver_mode",
-            crate::i18n::tr("省电模式"),
-            &d["power_saver_mode"],
-            ON,
-        )),
         "fast-boot" => p.fields.push(Field::choice(
             "fast_boot",
             crate::i18n::tr("快速启动"),
@@ -371,7 +356,7 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
     let d = data(readings, "settings");
     ensure!(d.is_object(), "{}", crate::i18n::tr("请先读取设备设置。"));
     let keys = p.fields.iter().map(|f| f.key.as_str()).collect::<Vec<_>>();
-    let mut body = p.changed(&keys)?;
+    let body = p.changed(&keys)?;
     ensure!(
         body.as_object().is_some_and(|o| !o.is_empty()),
         "{}",
@@ -443,10 +428,6 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
             } else {
                 "/api/wifi/settings"
             }
-        }
-        "power-save" => {
-            body = json!({"deviceInfoList":p.all(&["power_saver_mode"])?});
-            "/api/device/power-save"
         }
         "tailscale-config" => {
             if let Some(routes) = body["advertise_routes"].as_array() {

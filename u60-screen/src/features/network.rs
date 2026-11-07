@@ -98,16 +98,6 @@ pub fn page(id: &str, readings: &Data) -> Page {
                 crate::i18n::tr("射频模式"),
                 &data(readings, "modem")["operate_mode"],
             );
-            p.actions.push(Action::new(
-                "airplane",
-                crate::i18n::tr("进入飞行模式"),
-                crate::i18n::tr("关闭蜂窝数据、通话和短信，Wi-Fi 可继续使用。"),
-            ));
-            p.actions.push(Action::new(
-                "online",
-                crate::i18n::tr("恢复蜂窝联网"),
-                crate::i18n::tr("请求恢复射频和蜂窝联网，注册网络可能需要一段时间。"),
-            ));
             p.note =
                 crate::i18n::tr("数据漫游可能产生运营商费用。首次开启漫游时需同时开启蜂窝数据。")
                     .into();
@@ -339,17 +329,6 @@ pub fn plan(id: &str, action: &str, p: &Page, readings: &Data) -> Result<Plan> {
     let mut put = |path: &str, body: Value| {
         requests.push(Request::json(Method::PUT, path, body));
     };
-    if id == "mobile-data" && action != "save" {
-        return match action {
-            "airplane" => Ok(Plan::one(
-                Method::POST,
-                "/api/modem/airplane",
-                json!({"operate_mode":"LPM"}),
-            )),
-            "online" => Ok(Plan::one(Method::POST, "/api/modem/online", json!({}))),
-            _ => anyhow::bail!("{}", crate::i18n::tr("操作不存在。")),
-        };
-    }
     if id == "dns-cache" && action == "clear" {
         return Ok(Plan::one(Method::POST, "/api/dns/cache/clear", json!({})));
     }

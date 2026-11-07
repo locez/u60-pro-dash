@@ -80,7 +80,11 @@ impl Catalog {
             }
         }
         localize(&mut catalog);
-        Ok(serde_json::from_value(catalog)?)
+        let mut catalog: Self = serde_json::from_value(catalog)?;
+        catalog
+            .features
+            .sort_by_key(|f| !matches!(f.id.as_str(), "mobile-modes" | "power-save"));
+        Ok(catalog)
     }
 }
 
@@ -294,7 +298,7 @@ impl State {
                         entries.push(entry(&child.id, &child.title, &child.subtitle, ""));
                     }
                     for f in &self.catalog.features {
-                        if f.group == id {
+                        if f.group == id && f.id != "quick-controls" {
                             entries.push(entry(
                                 &f.id,
                                 &f.title,
@@ -398,7 +402,11 @@ impl State {
         self.page = id.into();
         self.last_input = Instant::now();
         ui.set_message("".into());
-        ui.set_tab(tab);
+        ui.set_tab(if id == "quick-controls" {
+            ui.get_tab()
+        } else {
+            tab
+        });
         ui.set_heading(title.into());
         ui.set_kicker(["STATUS", "CONNECT", "MANAGE"][tab as usize].into());
         ui.set_can_back(!matches!(id, "overview" | "connect" | "manage"));
@@ -587,6 +595,9 @@ impl State {
         if self.agent.is_some() {
             return;
         }
+        ui.set_airplane_state(0);
+        ui.set_performance_profile("balanced".into());
+        ui.set_performance_label(crate::i18n::tr("均衡").into());
         ui.set_lock_clock("14:08".into());
         ui.set_lock_date(crate::i18n::tr("11 月 6 日 · 星期五").into());
         ui.set_wifi_enabled(true);
@@ -675,7 +686,7 @@ impl State {
         let mut topics = if ui.get_asleep() {
             vec![]
         } else {
-            ["signal", "traffic", "battery", "charger"]
+            ["signal", "traffic", "battery", "charger", "operating"]
                 .map(String::from)
                 .to_vec()
         };
@@ -705,6 +716,14 @@ impl State {
         if snapshot.revision != self.live_revision {
             self.live_revision = snapshot.revision;
             let dashboard = crate::agent::model::Dashboard::read(&snapshot);
+            let modes = snapshot.get("operating").unwrap_or(&Value::Null);
+            let airplane = modes["airplane"]["enabled"].as_bool();
+            ui.set_airplane_state(airplane.map_or(-1, i32::from));
+            let profile = modes["performance"]["effective"].as_str().unwrap_or("");
+            ui.set_performance_profile(profile.into());
+            ui.set_performance_label(crate::features::operating::profile_name(profile).into());
+            ui.set_thermal_limited(modes["performance"]["thermal_limited"] == true);
+            ui.set_rail_active(airplane == Some(false) && modes["rail"]["active"] == true);
             ui.set_connection_label(snapshot.status.label().into());
             ui.set_connection_live(snapshot.status == crate::agent::Status::Live);
             ui.set_carrier_label(dashboard.carrier.into());
@@ -834,6 +853,14 @@ impl State {
         if ui.get_view() != 7 {
             return;
         }
+        ui.set_operating_page(
+            if crate::features::operating::reads(&self.features.id).is_some() {
+                self.features.id.as_str()
+            } else {
+                ""
+            }
+            .into(),
+        );
         ui.set_feature_busy(self.features.blocking());
         ui.set_feature_refreshing(self.features.busy());
         ui.set_feature_can_refresh(self.features.can_refresh());
@@ -843,6 +870,45 @@ impl State {
         }
         self.feature_revision = self.features.revision;
         let page = &self.features.page;
+        if crate::features::operating::reads(&self.features.id).is_some() {
+            let modes = crate::features::data(&self.features.data, "operating");
+            let airplane = page
+                .field("airplane")
+                .ok()
+                .filter(|f| f.available)
+                .and_then(|f| f.value.parse::<bool>().ok());
+            ui.set_control_airplane(airplane.map_or(-1, i32::from));
+            let profile = page.field("profile").ok();
+            ui.set_control_profile(profile.map(|f| f.value.as_str()).unwrap_or("").into());
+            let available = |id: &str| {
+                profile.is_some_and(|f| f.available && f.choices.iter().any(|c| c.value == id))
+            };
+            ui.set_control_balanced(available("balanced"));
+            ui.set_control_performance(available("performance"));
+            ui.set_control_saving(available("saving"));
+            ui.set_control_applied(modes["performance"]["applied"] != false);
+            ui.set_control_thermal(modes["performance"]["thermal_limited"] == true);
+            ui.set_control_rail(
+                if airplane == Some(true) {
+                    crate::i18n::tr("飞行模式期间暂停")
+                } else {
+                    match modes["rail"]["active"].as_bool() {
+                        Some(true) => crate::i18n::tr("正在优化"),
+                        Some(false) => crate::i18n::tr("未触发，由设备自动管理"),
+                        None => crate::i18n::tr("状态未知"),
+                    }
+                }
+                .into(),
+            );
+            let bandwidth = page.field("bandwidth").ok();
+            ui.set_control_bandwidth(
+                bandwidth
+                    .map(|f| crate::features::operating::bandwidth_name(&f.value))
+                    .unwrap_or(crate::i18n::tr("状态未知"))
+                    .into(),
+            );
+            ui.set_control_bandwidth_enabled(bandwidth.is_some_and(|f| f.available));
+        }
         let old_entries = ui.get_entries();
         let offset = ui.get_content_offset();
         let list_top = ui.get_feature_list_top();
@@ -1337,6 +1403,42 @@ impl App {
         bind!(on_wifi_close, |_s, u| {
             u.set_wifi_expanded(false);
         });
+        bind!(on_operating_change, |s, u, key, value| {
+            if u.get_asleep() || u.get_view() != 7 || (!u.get_connection_live() && !u.get_demo()) {
+                return;
+            }
+            if crate::features::operating::reads(&s.features.id).is_none() {
+                return;
+            }
+            let Some(index) = s
+                .features
+                .page
+                .fields
+                .iter()
+                .position(|f| f.key == key.as_str())
+            else {
+                return;
+            };
+            if let Err(error) = s.features.edit(index, value.to_string()) {
+                u.set_message(error.to_string().into());
+                return;
+            }
+            s.apply_feature_edit(&u);
+        });
+        bind!(on_operating_bandwidth, |s, u| {
+            if u.get_asleep() || s.features.id != "mobile-modes" {
+                return;
+            }
+            if let Some(index) = s
+                .features
+                .page
+                .fields
+                .iter()
+                .position(|f| f.key == "bandwidth")
+            {
+                s.edit_feature(&u, index);
+            }
+        });
         bind!(on_feature_edit, |s, u, index| {
             if let Ok(index) = usize::try_from(index) {
                 s.edit_feature(&u, index);
@@ -1766,7 +1868,7 @@ mod navigation_tests {
             serde_json::from_str(include_str!("../../design/product-ui/src/features.json"))
                 .unwrap();
         assert_eq!(agreed.len(), 82);
-        assert_eq!(c.features.len(), agreed.len());
+        assert_eq!(c.features.len(), agreed.len() + 2);
         for expected in agreed {
             let id = expected["id"].as_str().unwrap();
             let feature = c

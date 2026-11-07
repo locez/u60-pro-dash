@@ -104,6 +104,13 @@
     "ko": "10분",
     "zh-Hant": "10 分鐘"
   },
+  "11 月 6 日 · 星期五": {
+    "zh-Hans": "11 月 6 日 · 星期五",
+    "zh-Hant": "11 月 6 日 · 星期五",
+    "en": "Nov 6 · Fri",
+    "ja": "11月6日 · 金曜日",
+    "ko": "11월 6일 · 금요일"
+  },
   "12 分钟": {
     "zh-Hans": "12 分钟",
     "en": "12 minutes",
@@ -1084,6 +1091,13 @@
     "ja": "Webhook 頼む方法",
     "ko": "Webhook 요청 방식"
   },
+  "Web：组网与服务 → Mihomo。长配置与订阅可在 Web 编辑；各服务独立运行。": {
+    "zh-Hans": "Web：组网与服务 → Mihomo。长配置与订阅可在 Web 编辑；各服务独立运行。",
+    "zh-Hant": "Web：組網與服務 → Mihomo。長設定與訂閱可在 Web 編輯；各服務獨立執行。",
+    "en": "Web: Networking & services → Mihomo. Edit long configurations and subscriptions in the browser. Services run independently.",
+    "ja": "Web：ネットワークとサービス → Mihomo。長い設定やサブスクリプションはブラウザーで編集できます。各サービスは独立して動作します。",
+    "ko": "웹: 네트워크 및 서비스 → Mihomo. 긴 설정과 구독은 브라우저에서 편집하세요. 서비스는 독립적으로 실행됩니다."
+  },
   "Web：网络 → 代理 → mihomo。编辑 YAML、DNS 与订阅请在 Web 完成；各代理服务独立运行。": {
     "en": "Web: Web → Agents → mihomo Editing YAML, DNS and subscribing is done on the Web; each agency operates independently.",
     "zh-Hans": "Web：网络 → 代理 → mihomo。编辑 YAML、DNS 与订阅请在 Web 完成；各代理服务独立运行。",
@@ -1097,6 +1111,13 @@
     "zh-Hant": "Wi-Fi 與區域網",
     "ja": "Wi-Fi と LAN",
     "ko": "Wi-Fi 및 LAN"
+  },
+  "Wi-Fi 可用": {
+    "zh-Hans": "Wi-Fi 可用",
+    "zh-Hant": "Wi-Fi 可用",
+    "en": "Wi-Fi available",
+    "ja": "Wi-Fi 利用可能",
+    "ko": "Wi-Fi 사용 가능"
   },
   "Wi-Fi 已关闭，请开启后刷新。": {
     "en": "Wi-Fi is off, please refresh when you turn it on.",
@@ -1118,6 +1139,13 @@
     "zh-Hant": "Wi-Fi 熱點裝置",
     "ja": "Wi-Fi ホットスポットクライアント",
     "ko": "와이파이 핫스팟 클라이언트"
+  },
+  "Wi-Fi 连接卡片": {
+    "zh-Hans": "Wi-Fi 连接卡片",
+    "zh-Hant": "Wi-Fi 連線卡片",
+    "en": "Wi-Fi connection card",
+    "ja": "Wi-Fi 接続カード",
+    "ko": "Wi-Fi 연결 카드"
   },
   "eSIM 卡片正在处理其他操作，请稍后刷新": {
     "en": "The eSIM card is working on other operations, please update later.",
@@ -1231,6 +1259,13 @@
     "ja": "{0} チャンネル",
     "ko": "{0} 채널"
   },
+  "{0} 台设备": {
+    "zh-Hans": "{0} 台设备",
+    "zh-Hant": "{0} 臺裝置",
+    "en": "{0} devices",
+    "ja": "端末 {0} 台",
+    "ko": "기기 {0}대"
+  },
   "{0} 地址": {
     "en": "{0} address",
     "zh-Hans": "{0} 地址",
@@ -1321,6 +1356,27 @@
     "zh-Hant": "{0}版本",
     "ja": "{0} のバージョン",
     "ko": "{0} 버전"
+  },
+  "↑ 上传 / Mbps": {
+    "zh-Hans": "↑ 上传 / Mbps",
+    "zh-Hant": "↑ 上傳 / Mbps",
+    "en": "↑ Upload / Mbps",
+    "ja": "↑ 上り / Mbps",
+    "ko": "↑ 업로드 / Mbps"
+  },
+  "↓ 下载 / Mbps": {
+    "zh-Hans": "↓ 下载 / Mbps",
+    "zh-Hant": "↓ 下載 / Mbps",
+    "en": "↓ Download / Mbps",
+    "ja": "↓ 下り / Mbps",
+    "ko": "↓ 다운로드 / Mbps"
+  },
+  "−2 分钟": {
+    "zh-Hans": "−2 分钟",
+    "zh-Hant": "−2 分鐘",
+    "en": "−2 min",
+    "ja": "−2 分",
+    "ko": "−2분"
   },
   "一次": {
     "zh-Hans": "一次",
@@ -1504,6 +1560,13 @@
     "ko": "핵심 네트워크 및 부트 동기화 서비스는 제외됩니다.",
     "zh-Hant": "不包含核心網路和啟動同步服務"
   },
+  "不区分应用优先级，按需使用带宽。": {
+    "en": "Use bandwidth as needed without application priority.",
+    "zh-Hans": "不区分应用优先级，按需使用带宽。",
+    "zh-Hant": "不區分應用程式優先順序，按需使用頻寬。",
+    "ja": "アプリを優先せず、必要に応じて帯域を使用。",
+    "ko": "앱 우선순위 없이 필요에 따라 대역폭을 사용합니다."
+  },
   "不支持广播地址": {
     "en": "Broadcast addresses are unsupported",
     "zh-Hans": "不支持广播地址",
@@ -1587,6 +1650,34 @@
     "zh-Hant": "中",
     "ja": "中間",
     "ko": "중형"
+  },
+  "中国广电": {
+    "zh-Hans": "中国广电",
+    "zh-Hant": "中國廣電",
+    "en": "China Broadnet",
+    "ja": "中国広電",
+    "ko": "차이나 브로드넷"
+  },
+  "中国电信": {
+    "zh-Hans": "中国电信",
+    "zh-Hant": "中國電信",
+    "en": "China Telecom",
+    "ja": "中国電信",
+    "ko": "차이나 텔레콤"
+  },
+  "中国移动": {
+    "zh-Hans": "中国移动",
+    "zh-Hant": "中國移動",
+    "en": "China Mobile",
+    "ja": "中国移動",
+    "ko": "차이나 모바일"
+  },
+  "中国联通": {
+    "zh-Hans": "中国联通",
+    "zh-Hant": "中國聯通",
+    "en": "China Unicom",
+    "ja": "中国聯通",
+    "ko": "차이나 유니콤"
   },
   "中断经由 Tailscale 的远程连接与子网访问。": {
     "en": "Interrupting access to the subnet via Tailscale's remote connection.",
@@ -1770,6 +1861,13 @@
     "ja": "プロキシエンジン",
     "ko": "프록시 엔진"
   },
+  "代理服务": {
+    "zh-Hans": "代理服务",
+    "zh-Hant": "代理服務",
+    "en": "Proxy services",
+    "ja": "プロキシサービス",
+    "ko": "프록시 서비스"
+  },
   "代理服务接口不可用，请更新兼容的后台程序后重试。": {
     "en": "The proxy service interface is unavailable, please update the compatible back-end and test it again.",
     "zh-Hans": "代理服务接口不可用，请更新兼容的后台程序后重试。",
@@ -1832,6 +1930,55 @@
     "zh-Hant": "休眠狀態",
     "ja": "睡眠状態",
     "ko": "수면 상태"
+  },
+  "优先分配会议与网课流量。": {
+    "en": "Prioritize meeting and classroom traffic.",
+    "zh-Hans": "优先分配会议与网课流量。",
+    "zh-Hant": "優先分配會議與線上課程流量。",
+    "ja": "会議やオンライン授業の通信を優先。",
+    "ko": "회의와 온라인 수업 트래픽을 우선합니다."
+  },
+  "优先分配游戏流量。": {
+    "en": "Prioritize gaming traffic.",
+    "zh-Hans": "优先分配游戏流量。",
+    "zh-Hant": "優先分配遊戲流量。",
+    "ja": "ゲーム通信を優先。",
+    "ko": "게임 트래픽을 우선합니다."
+  },
+  "优先分配直播流量。": {
+    "en": "Prioritize live streaming traffic.",
+    "zh-Hans": "优先分配直播流量。",
+    "zh-Hant": "優先分配直播流量。",
+    "ja": "ライブ配信を優先。",
+    "ko": "라이브 방송 트래픽을 우선합니다."
+  },
+  "优先分配视频流量。": {
+    "en": "Prioritize video traffic.",
+    "zh-Hans": "优先分配视频流量。",
+    "zh-Hant": "優先分配影片流量。",
+    "ja": "動画通信を優先。",
+    "ko": "동영상 트래픽을 우선합니다."
+  },
+  "优先响应与处理能力。": {
+    "en": "Prioritize response and processing capacity.",
+    "zh-Hans": "优先响应与处理能力。",
+    "zh-Hant": "優先回應與處理能力。",
+    "ja": "応答性と処理能力を優先。",
+    "ko": "응답 속도와 처리 성능을 우선합니다."
+  },
+  "优先响应与处理能力，温度和功耗可能上升。": {
+    "zh-Hans": "优先响应与处理能力，温度和功耗可能上升。",
+    "zh-Hant": "優先回應與處理能力，溫度與功耗可能上升。",
+    "en": "Prioritize responsiveness; heat and power use may increase.",
+    "ja": "応答性を優先。温度と消費電力が上がる場合があります。",
+    "ko": "응답 속도를 우선하며 온도와 전력 소비가 늘 수 있습니다."
+  },
+  "会议": {
+    "en": "Meetings",
+    "zh-Hans": "会议",
+    "zh-Hant": "會議",
+    "ja": "会議",
+    "ko": "회의"
   },
   "会话有效": {
     "en": "Session valid",
@@ -1930,6 +2077,13 @@
     "ja": "例えば#123#",
     "ko": "예를 들어 *123#",
     "zh-Hant": "例如 *123#"
+  },
+  "供电状态": {
+    "en": "Power source",
+    "zh-Hans": "供电状态",
+    "zh-Hant": "供電狀態",
+    "ja": "給電状態",
+    "ko": "전원 상태"
   },
   "保存 APN": {
     "en": "Save APN",
@@ -2162,6 +2316,13 @@
     "ja": "保護レベル",
     "ko": "보호 수준"
   },
+  "保持": {
+    "zh-Hans": "保持",
+    "zh-Hant": "保留",
+    "en": "On hold",
+    "ja": "保留中",
+    "ko": "통화 보류 중"
+  },
   "保持唤醒": {
     "en": "Stay awake",
     "zh-Hans": "保持唤醒",
@@ -2175,6 +2336,13 @@
     "zh-Hant": "保持裝置喚醒",
     "ja": "装置を覚醒に保つ",
     "ko": "기기를 깨어있게 하라"
+  },
+  "保留 Wi-Fi、USB 与本地管理": {
+    "zh-Hans": "保留 Wi-Fi、USB 与本地管理",
+    "zh-Hant": "保留 Wi-Fi、USB 與本機管理",
+    "en": "Keep Wi-Fi, USB and local access",
+    "ja": "Wi-Fi、USB、ローカル管理を維持",
+    "ko": "Wi-Fi, USB, 로컬 관리 유지"
   },
   "信号": {
     "zh-Hans": "信号",
@@ -2210,6 +2378,13 @@
     "zh-Hant": "訊號強度",
     "ja": "電波強度",
     "ko": "신호 강도"
+  },
+  "信号详情": {
+    "zh-Hans": "信号详情",
+    "zh-Hant": "訊號詳情",
+    "en": "Radio details",
+    "ja": "電波の詳細",
+    "ko": "신호 상세"
   },
   "信号质量检测": {
     "en": "Signal quality test",
@@ -2554,6 +2729,13 @@
     "ja": "遮断または保護を減らすことで,デバイス上のサービスが携帯電話ネットワークからアクセス可能であり,保護を向上させることで既存の接続を阻害する可能性があります.",
     "ko": "방어를 종료하거나 줄이는 것은 장치에 있는 서비스를 셀프 네트워크에서 접근할 수 있게 만들 수도 있고, 방어를 향상시키는 것은 기존 연결을 차단할 수도 있다."
   },
+  "关闭直供电": {
+    "en": "Disable bypass power",
+    "zh-Hans": "关闭直供电",
+    "zh-Hant": "關閉直供電",
+    "ja": "バイパス給電を無効にする",
+    "ko": "바이패스 전원 끄기"
+  },
   "关闭省电": {
     "zh-Hans": "关闭省电",
     "en": "Disable power saving",
@@ -2575,12 +2757,26 @@
     "ja": "モバイルデータ・通話・SMS を無効にします。Wi-Fi は利用できます。",
     "ko": "모바일 데이터, 통화 및 SMS를 끕니다. Wi-Fi는 계속 사용할 수 있습니다."
   },
+  "关闭蜂窝数据、通话和短信，保留 Wi-Fi 与本地管理。": {
+    "en": "Disable mobile data, calls and SMS; keep Wi-Fi and local management.",
+    "zh-Hans": "关闭蜂窝数据、通话和短信，保留 Wi-Fi 与本地管理。",
+    "zh-Hant": "關閉行動數據、通話與簡訊，保留 Wi-Fi 與本機管理。",
+    "ja": "モバイル通信、通話、SMS を停止し、Wi-Fi とローカル管理は維持。",
+    "ko": "모바일 데이터, 통화, SMS를 끄고 Wi-Fi와 로컬 관리는 유지합니다."
+  },
   "关闭访客 Wi-Fi": {
     "en": "Disable guest Wi-Fi",
     "zh-Hans": "关闭访客 Wi-Fi",
     "zh-Hant": "關閉訪客 Wi-Fi",
     "ja": "ゲストのWi-Fiを無効にする",
     "ko": "손님 Wi-Fi를 비활성화"
+  },
+  "兼顾响应、温度与功耗。": {
+    "en": "Balance response time, temperature and power use.",
+    "zh-Hans": "兼顾响应、温度与功耗。",
+    "zh-Hant": "兼顧回應、溫度與功耗。",
+    "ja": "応答性、温度、消費電力をバランスよく調整。",
+    "ko": "응답 속도, 온도, 전력 소비의 균형을 유지합니다."
   },
   "内存": {
     "zh-Hans": "内存",
@@ -2595,6 +2791,13 @@
     "ja": "メモリ使用",
     "ko": "메모리 사용",
     "zh-Hant": "記憶體使用"
+  },
+  "内存使用率": {
+    "zh-Hans": "内存使用率",
+    "zh-Hant": "記憶體使用率",
+    "en": "Memory usage",
+    "ja": "メモリ使用率",
+    "ko": "메모리 사용률"
   },
   "内存总量": {
     "en": "Total memory",
@@ -2700,6 +2903,13 @@
     "zh-Hant": "切換 USB 模式可能斷開 ADB 連線。",
     "ja": "USB モードを切り替えると ADB接続が切れる可能性があります.",
     "ko": "USB 모드를 전환하면 ADB 연결이 끊어질 수 있습니다."
+  },
+  "切换 Wi-Fi 频段": {
+    "zh-Hans": "切换 Wi-Fi 频段",
+    "zh-Hant": "切換 Wi-Fi 頻段",
+    "en": "Switch Wi-Fi band",
+    "ja": "Wi-Fi の周波数帯を切り替え",
+    "ko": "Wi-Fi 대역 전환"
   },
   "切换到": {
     "en": "Switch to",
@@ -3121,6 +3331,20 @@
     "ja": "古いルールが存在しないので,再テストはできません.",
     "ko": "원래의 규칙은 존재하지 않으며 다시 시도할 수 없습니다."
   },
+  "双频合一热点": {
+    "zh-Hans": "双频合一热点",
+    "zh-Hant": "雙頻合一熱點",
+    "en": "Combined bands",
+    "ja": "共通 SSID",
+    "ko": "통합 대역"
+  },
+  "双频设置已变化，请重新选择热点。": {
+    "zh-Hans": "双频设置已变化，请重新选择热点。",
+    "zh-Hant": "雙頻設定已變更，請重新選擇熱點。",
+    "en": "Band settings changed. Select the network again.",
+    "ja": "周波数帯の設定が変わりました。ネットワークを選び直してください。",
+    "ko": "대역 설정이 변경되었습니다. 네트워크를 다시 선택하세요."
+  },
   "反向供电": {
     "en": "Reverse charging",
     "zh-Hans": "反向供电",
@@ -3141,6 +3365,13 @@
     "zh-Hant": "釋出的路由仍需在 Tailscale 管理端批准。接收遠端子網路由在核心閘道器模式下生效。",
     "ja": "広告した経路は Tailscale 管理画面で承認が必要です。リモートサブネット経路はカーネルゲートウェイモードで有効になります。",
     "ko": "광고된 경로는 Tailscale 관리 콘솔에서 승인해야 합니다. 원격 서브넷 경로는 커널 게이트웨이 모드에서 적용됩니다."
+  },
+  "发布的路由需在 Tailscale 管理端批准。DNS 与退出节点作用于路由器，热点转发范围保持原配置。": {
+    "zh-Hans": "发布的路由需在 Tailscale 管理端批准。DNS 与退出节点作用于路由器，热点转发范围保持原配置。",
+    "zh-Hant": "發布的路由需在 Tailscale 管理端批准。DNS 與出口節點作用於路由器，熱點轉發範圍保持原設定。",
+    "en": "Advertised routes need admin approval. DNS and exit nodes apply to this router; hotspot forwarding keeps its configured scope.",
+    "ja": "公開ルートは管理画面で承認が必要です。DNS と出口ノードはルーターに適用され、ホットスポット転送の範囲は維持されます。",
+    "ko": "광고한 경로는 관리자 승인이 필요합니다. DNS와 출구 노드는 라우터에 적용되며 핫스팟 전달 범위는 유지됩니다."
   },
   "发行签名可验证": {
     "en": "Release signature verifiable",
@@ -3576,6 +3807,13 @@
     "ja": "充電制限を有効にする",
     "ko": "충전 제한을 허용"
   },
+  "启用后接入电源时使用直供电并停止电池充电；关闭后由充电上限策略决定是否恢复充电。": {
+    "en": "When enabled, external power supplies the router and battery charging stops. When disabled, the charge limit policy decides whether charging resumes.",
+    "zh-Hans": "启用后接入电源时使用直供电并停止电池充电；关闭后由充电上限策略决定是否恢复充电。",
+    "zh-Hant": "啟用後接入電源時使用直供電並停止電池充電；關閉後由充電上限策略決定是否恢復充電。",
+    "ja": "有効にすると外部電源から直接給電し、バッテリーの充電を停止します。無効にすると充電上限の設定に従って充電を再開します。",
+    "ko": "켜면 외부 전원으로 라우터에 직접 전원을 공급하고 배터리 충전을 중지합니다. 끄면 충전 한도 정책에 따라 충전을 재개합니다."
+  },
   "启用域名过滤": {
     "en": "Enable domain filter",
     "zh-Hans": "启用域名过滤",
@@ -3603,6 +3841,13 @@
     "zh-Hant": "啟用此配置",
     "ja": "このプロフィールを有効にする",
     "ko": "이 프로파일을 활성화"
+  },
+  "启用直供电": {
+    "en": "Enable bypass power",
+    "zh-Hans": "启用直供电",
+    "zh-Hant": "啟用直供電",
+    "ja": "バイパス給電を有効にする",
+    "ko": "바이패스 전원 켜기"
   },
   "启用省电模式": {
     "en": "Enable power saving",
@@ -3652,6 +3897,13 @@
     "zh-Hant": "告警百分比",
     "ja": "警告しきい値 %",
     "ko": "경고 문턱 %"
+  },
+  "呼叫等待": {
+    "zh-Hans": "呼叫等待",
+    "zh-Hant": "來電等候",
+    "en": "Call waiting",
+    "ja": "通話待ち",
+    "ko": "통화 대기"
   },
   "回充差值 %": {
     "en": "Recharge hysteresis %",
@@ -3744,6 +3996,13 @@
     "ko": "펌웨어에 의해 보고되지 않습니다",
     "zh-Hant": "韌體未報告"
   },
+  "固件未提供系统主题，沿用当前浅色或深色设置。": {
+    "zh-Hans": "固件未提供系统主题，沿用当前浅色或深色设置。",
+    "zh-Hant": "韌體未提供系統主題，沿用目前淺色或深色設定。",
+    "en": "The firmware has no system theme. The current light or dark appearance is retained.",
+    "ja": "ファームウェアにシステムテーマがないため、現在のライトまたはダーク設定を使用します。",
+    "ko": "펌웨어에서 시스템 테마를 제공하지 않아 현재 밝은 테마 또는 어두운 테마를 유지합니다."
+  },
   "固件版本": {
     "zh-Hans": "固件版本",
     "en": "Firmware version",
@@ -3806,6 +4065,13 @@
     "zh-Hant": "線上時間 / 秒",
     "ja": "稼働時間/秒",
     "ko": "시간 / 초"
+  },
+  "在线设备": {
+    "zh-Hans": "在线设备",
+    "zh-Hant": "線上裝置",
+    "en": "Online devices",
+    "ja": "接続中の端末",
+    "ko": "온라인 기기"
   },
   "地址不可用": {
     "en": "Address unavailable",
@@ -3870,6 +4136,20 @@
     "ja": "アドレスの池の順序が間違えたり,ターンゲットのアドレスを含む.",
     "ko": "주소창 순서 오류 또는 통행 주소를 포함합니다."
   },
+  "均衡": {
+    "en": "Balanced",
+    "zh-Hans": "均衡",
+    "zh-Hant": "均衡",
+    "ja": "バランス",
+    "ko": "균형"
+  },
+  "均衡、性能与省电，选择即应用。": {
+    "zh-Hans": "均衡、性能与省电，选择即应用。",
+    "zh-Hant": "均衡、效能與省電，選擇即套用。",
+    "en": "Balanced, performance or saving; apply on selection.",
+    "ja": "バランス・パフォーマンス・省電力。選択すると適用。",
+    "ko": "균형, 성능, 절전 중 선택하면 바로 적용합니다."
+  },
   "域名": {
     "en": "Domain name",
     "zh-Hans": "域名",
@@ -3926,6 +4206,13 @@
     "ko": "프로세서",
     "zh-Hant": "處理器"
   },
+  "处理速度和转发吞吐能力可能下降。": {
+    "en": "Processing speed and forwarding throughput may decrease.",
+    "zh-Hans": "处理速度和转发吞吐能力可能下降。",
+    "zh-Hant": "處理速度與轉送能力可能下降。",
+    "ja": "処理速度や転送性能が低下する場合があります。",
+    "ko": "처리 속도와 전송 처리량이 감소할 수 있습니다."
+  },
   "备用 DNS": {
     "en": "Secondary DNS",
     "zh-Hans": "备用 DNS",
@@ -3939,6 +4226,20 @@
     "zh-Hant": "備用 DNS IPv4",
     "ja": "セカンダリ DNS IPv4",
     "ko": "보조 DNS IPv4"
+  },
+  "外接电源": {
+    "en": "External power",
+    "zh-Hans": "外接电源",
+    "zh-Hant": "外接電源",
+    "ja": "外部電源",
+    "ko": "외부 전원"
+  },
+  "外观、锁屏与管理访问": {
+    "zh-Hans": "外观、锁屏与管理访问",
+    "zh-Hant": "外觀、鎖定畫面與管理存取",
+    "en": "Appearance, lock and management access",
+    "ja": "外観・画面ロック・管理アクセス",
+    "ko": "외관, 화면 잠금 및 관리 접속"
   },
   "外部端口": {
     "en": "External port",
@@ -3974,6 +4275,13 @@
     "zh-Hant": "套餐不再等待確認。",
     "ja": "この計画はもはや承認を待てない.",
     "ko": "이 계획은 더 이상 승인을 기다리고 있지 않습니다."
+  },
+  "套餐与流量趋势": {
+    "zh-Hans": "套餐与流量趋势",
+    "zh-Hant": "方案與流量趨勢",
+    "en": "Plan and traffic trends",
+    "ja": "プランと通信量の推移",
+    "ko": "요금제 및 트래픽 추이"
   },
   "套餐名称": {
     "en": "Plan name",
@@ -4059,6 +4367,13 @@
     "ja": "セキュリティ",
     "ko": "보안 방식"
   },
+  "安装与更新": {
+    "en": "Install & update",
+    "ja": "インストールと更新",
+    "ko": "설치 및 업데이트",
+    "zh-Hans": "安装与更新",
+    "zh-Hant": "安裝與更新"
+  },
   "安装完成不代表已启用或联网；请到配置列表启用，并分别核对卡片切换、调制解调器身份与网络注册。": {
     "en": "Installation is not enabled or connected; please go to the enabled configuration list and verify card switching, modem modulator identity and network registration respectively.",
     "zh-Hans": "安装完成不代表已启用或联网；请到配置列表启用，并分别核对卡片切换、调制解调器身份与网络注册。",
@@ -4100,6 +4415,13 @@
     "zh-Hant": "完成",
     "ja": "完了",
     "ko": "완료"
+  },
+  "完成输入后自动应用；需要中断服务时会先提示。": {
+    "zh-Hans": "完成输入后自动应用；需要中断服务时会先提示。",
+    "zh-Hant": "完成輸入後自動套用；需要中斷服務時會先提示。",
+    "en": "Complete input to apply. Interrupting a service requires confirmation.",
+    "ja": "入力を完了すると適用します。サービスを中断する場合は確認します。",
+    "ko": "입력을 완료하면 적용됩니다. 서비스 중단이 필요한 경우 먼저 확인합니다."
   },
   "实时": {
     "en": "Live",
@@ -4205,6 +4527,13 @@
     "zh-Hant": "密碼需要 8–63 個可列印字元；非 WPA3 也可使用 64 位 HEX 金鑰。",
     "ja": "パスワードには8-63文字が印刷可能であり,WPA3以外の64ビットHEX鍵も使用できます.",
     "ko": "암호는 8-63개의 인쇄 가능한 문자를 필요로 하며, 64비트 HEX 키를 사용할 수 있습니다."
+  },
+  "对方响铃": {
+    "zh-Hans": "对方响铃",
+    "zh-Hant": "對方響鈴",
+    "en": "Ringing",
+    "ja": "呼び出し中",
+    "ko": "상대방 호출 중"
   },
   "对称型": {
     "zh-Hans": "对称型",
@@ -4360,6 +4689,13 @@
     "ja": "ローカルネットワーク",
     "ko": "지역 네트워크"
   },
+  "局域网、解析与访问规则": {
+    "zh-Hans": "局域网、解析与访问规则",
+    "zh-Hant": "區域網路、解析與存取規則",
+    "en": "LAN, DNS and access rules",
+    "ja": "LAN・名前解決・アクセスルール",
+    "ko": "LAN, DNS 및 접근 규칙"
+  },
   "局域网吞吐测试需要另一台设备。请让电脑或手机连接此热点，在管理后台打开局域网测速。\n\n机身到本机的测试不会反映 Wi-Fi 链路速度。": {
     "en": "Local area network throughput testing requires another device.\nPlease allow your computer or mobile phone to connect this hotspot and open the local area network speed in the management background.\n\n\nTesting from the body to the machine does not reflect the speed of the Wi-Fi connection.",
     "zh-Hans": "局域网吞吐测试需要另一台设备。请让电脑或手机连接此热点，在管理后台打开局域网测速。\n\n机身到本机的测试不会反映 Wi-Fi 链路速度。",
@@ -4401,6 +4737,13 @@
     "zh-Hant": "螢幕與外觀",
     "ja": "画面と外観",
     "ko": "화면 및 테마"
+  },
+  "屏幕与安全": {
+    "zh-Hans": "屏幕与安全",
+    "zh-Hant": "螢幕與安全",
+    "en": "Screen & security",
+    "ja": "画面とセキュリティ",
+    "ko": "화면 및 보안"
   },
   "屏幕亮度  ": {
     "en": "Brightness  ",
@@ -4528,6 +4871,13 @@
     "ja": "輸入された構成",
     "ko": "수입된 구성"
   },
+  "已应用并核对实际值。": {
+    "zh-Hans": "已应用并核对实际值。",
+    "zh-Hant": "已套用並核對實際值。",
+    "en": "Applied and verified.",
+    "ja": "適用し、実際の値を確認しました。",
+    "ko": "적용 후 실제 값을 확인했습니다."
+  },
   "已开启": {
     "en": "Enabled",
     "zh-Hans": "已开启",
@@ -4576,6 +4926,13 @@
     "zh-Hant": "已用記憶體",
     "ja": "使われたメモリ",
     "ko": "사용된 메모리"
+  },
+  "已联网": {
+    "zh-Hans": "已联网",
+    "zh-Hant": "已連線",
+    "en": "Connected",
+    "ja": "接続中",
+    "ko": "연결됨"
   },
   "已读取短信": {
     "en": "Messages loaded",
@@ -4703,6 +5060,13 @@
     "ja": "この熱点に接続された装置は,適用後再接続する必要があります.",
     "ko": "이 열점으로 연결된 장치가 적용 후 다시 연결될 필요가 있다."
   },
+  "应用带宽分配": {
+    "en": "Bandwidth allocation",
+    "zh-Hans": "应用带宽分配",
+    "zh-Hant": "應用程式頻寬分配",
+    "ja": "アプリの帯域割り当て",
+    "ko": "앱 대역폭 할당"
+  },
   "应用省电模式": {
     "en": "Apply power saving",
     "zh-Hans": "应用省电模式",
@@ -4723,6 +5087,13 @@
     "zh-Hant": "應用網路模式",
     "ja": "ネットワークモードを適用",
     "ko": "네트워크 모드를 적용"
+  },
+  "应用设置": {
+    "en": "Apply settings",
+    "zh-Hans": "应用设置",
+    "zh-Hant": "套用設定",
+    "ja": "設定を適用",
+    "ko": "설정 적용"
   },
   "应用跳数设置": {
     "en": "Apply hop limit",
@@ -4836,6 +5207,13 @@
     "ja": "飛行機モードを有効にする",
     "ko": "비행기 모드를 활성화"
   },
+  "开启飞行模式？": {
+    "en": "Turn on airplane mode?",
+    "zh-Hans": "开启飞行模式？",
+    "zh-Hant": "開啟飛航模式？",
+    "ja": "機内モードをオンにしますか？",
+    "ko": "비행기 모드를 켤까요?"
+  },
   "开始互联网测速": {
     "en": "Start internet speed test",
     "zh-Hans": "开始互联网测速",
@@ -4905,6 +5283,13 @@
     "zh-Hant": "當前",
     "ja": "流動",
     "ko": "전류"
+  },
+  "当前 CPU 设置与预设模式不同。": {
+    "en": "Current CPU settings are managed outside this profile.",
+    "zh-Hans": "当前 CPU 设置与预设模式不同。",
+    "zh-Hant": "目前 CPU 設定與預設模式不同。",
+    "ja": "現在の CPU 設定はプリセットと異なります。",
+    "ko": "현재 CPU 설정이 기본 모드와 다릅니다."
   },
   "当前 PCI": {
     "en": "Current PCI",
@@ -5011,6 +5396,13 @@
     "ja": "現在有効",
     "ko": "현재 활성화됨"
   },
+  "当前固件不支持带宽策略控制。": {
+    "en": "Bandwidth control is unavailable on this firmware.",
+    "zh-Hans": "当前固件不支持带宽策略控制。",
+    "zh-Hant": "目前韌體不支援頻寬策略控制。",
+    "ja": "このファームウェアでは帯域制御を利用できません。",
+    "ko": "현재 펌웨어에서는 대역폭 정책을 제어할 수 없습니다."
+  },
   "当前展示演示配置。设备读写尚未接入。完整表单交互可在浏览器原型中体验。": {
     "en": "Currently showing the presentation configuration. The device reading and writing has not yet been accessed. Full form interaction can be experienced in a browser prototype.",
     "zh-Hans": "当前展示演示配置。设备读写尚未接入。完整表单交互可在浏览器原型中体验。",
@@ -5116,6 +5508,13 @@
     "ja": "これはデモデータです",
     "ko": "이 자료는 디모 데이터입니다."
   },
+  "当前进程": {
+    "zh-Hans": "当前进程",
+    "zh-Hant": "執行中的程序",
+    "en": "Running processes",
+    "ja": "実行中のプロセス",
+    "ko": "실행 중인 프로세스"
+  },
   "当前连接": {
     "en": "Current connection",
     "zh-Hans": "当前连接",
@@ -5151,12 +5550,47 @@
     "ko": "물리적 화면이 연결될 때 구성",
     "zh-Hant": "待實體螢幕接入時配置"
   },
+  "快捷指标": {
+    "zh-Hans": "快捷指标",
+    "zh-Hant": "快捷指標",
+    "en": "Quick metric",
+    "ja": "クイック指標",
+    "ko": "빠른 지표"
+  },
+  "快捷控制": {
+    "en": "Quick controls",
+    "zh-Hans": "快捷控制",
+    "zh-Hant": "快捷控制",
+    "ja": "クイック操作",
+    "ko": "빠른 제어"
+  },
   "快速启动": {
     "en": "Fast boot",
     "zh-Hans": "快速启动",
     "zh-Hant": "快速啟動",
     "ja": "高速起動",
     "ko": "빠른 부팅"
+  },
+  "性能": {
+    "en": "Performance",
+    "zh-Hans": "性能",
+    "zh-Hant": "效能",
+    "ja": "パフォーマンス",
+    "ko": "성능"
+  },
+  "性能控制暂不可用。": {
+    "en": "Performance control is unavailable.",
+    "zh-Hans": "性能控制暂不可用。",
+    "zh-Hant": "效能控制暫不可用。",
+    "ja": "パフォーマンス制御を利用できません。",
+    "ko": "성능 제어를 사용할 수 없습니다."
+  },
+  "性能模式": {
+    "en": "Performance mode",
+    "zh-Hans": "性能模式",
+    "zh-Hant": "效能模式",
+    "ja": "パフォーマンスモード",
+    "ko": "성능 모드"
   },
   "恢复充电回差 %": {
     "en": "Resume charging below limit by %",
@@ -5297,6 +5731,13 @@
     "zh-Hant": "所選通道不支援該頻寬。",
     "ja": "選択されたチャンネルはこの帯域をサポートしません.",
     "ko": "선택된 채널은 해당 대역을 지원하지 않습니다."
+  },
+  "所选模式尚未生效，请核对设备状态。": {
+    "en": "The selected profile is not currently applied. Check device status before retrying.",
+    "zh-Hans": "所选模式尚未生效，请核对设备状态。",
+    "zh-Hant": "所選模式尚未生效，請核對裝置狀態。",
+    "ja": "選択したモードは未適用です。端末の状態を確認してください。",
+    "ko": "선택한 모드가 적용되지 않았습니다. 기기 상태를 확인하세요."
   },
   "手动": {
     "zh-Hans": "手动",
@@ -5480,6 +5921,13 @@
     "ja": "調節調節機に直接送信される指示;設定,再起動または削除命令を書き込み,サービス中断または持続的な変更を引き起こす可能性があります. 文字どおり確認してください.",
     "ko": "조리조정기 (modem-moderator) 에 직접 전송되는 명령어; 구성, 재동력 또는 삭제 명령을 작성하여 서비스를 중단하거나 영구적인 변경을 초래할 수 있습니다. 문자로 확인해 주세요."
   },
+  "指标": {
+    "zh-Hans": "指标",
+    "zh-Hant": "指標",
+    "en": "Metric",
+    "ja": "項目",
+    "ko": "지표"
+  },
   "按卡片提示输入": {
     "zh-Hans": "按卡片提示输入",
     "en": "Follow the card's instructions",
@@ -5521,6 +5969,20 @@
     "zh-Hant": "按裝置本地時間執行",
     "ja": "デバイスのローカルタイムを使用します",
     "ko": "장치의 로컬 시간을 사용합니다."
+  },
+  "按需调整，兼顾响应、温度与功耗。": {
+    "zh-Hans": "按需调整，兼顾响应、温度与功耗。",
+    "zh-Hant": "按需調整，兼顧回應、溫度與功耗。",
+    "en": "Balance responsiveness, temperature and power use.",
+    "ja": "応答性、温度、消費電力を必要に応じて調整。",
+    "ko": "응답 속도, 온도, 전력 소비를 필요에 따라 조절합니다."
+  },
+  "按需调整，适合日常使用。": {
+    "en": "Adjust to demand for everyday use.",
+    "zh-Hans": "按需调整，适合日常使用。",
+    "zh-Hant": "按需調整，適合日常使用。",
+    "ja": "普段使いに合わせて自動調整。",
+    "ko": "일상 사용에 맞춰 자동 조절합니다."
   },
   "换行": {
     "en": "Enter",
@@ -5570,6 +6032,13 @@
     "zh-Hant": "接聽",
     "ja": "応答電話",
     "ko": "응답 전화"
+  },
+  "接收 Tailscale DNS": {
+    "zh-Hans": "接收 Tailscale DNS",
+    "zh-Hant": "接收 Tailscale DNS",
+    "en": "Accept Tailscale DNS",
+    "ja": "Tailscale DNS を使用",
+    "ko": "Tailscale DNS 사용"
   },
   "接收地址 / 号码 / Chat ID": {
     "en": "Address / number / Chat ID",
@@ -5724,6 +6193,13 @@
     "zh-Hant": "收件箱、傳送與自動轉發",
     "ja": "メールボックス,送信と自動転送",
     "ko": "메일박스, 송신 및 자동 전송"
+  },
+  "放大连接二维码": {
+    "zh-Hans": "放大连接二维码",
+    "zh-Hant": "放大連線 QR 碼",
+    "en": "Enlarge Wi-Fi QR code",
+    "ja": "接続 QR コードを拡大",
+    "ko": "Wi-Fi QR 코드 확대"
   },
   "放电中": {
     "en": "Discharging",
@@ -5963,6 +6439,13 @@
     "ja": "APNのリストは読み取れない.",
     "ko": "APN 목록을 읽을 수 없습니다."
   },
+  "无法读取蜂窝射频状态。": {
+    "en": "Cellular radio status is unavailable.",
+    "zh-Hans": "无法读取蜂窝射频状态。",
+    "zh-Hant": "無法讀取行動網路射頻狀態。",
+    "ja": "モバイル無線の状態を取得できません。",
+    "ko": "모바일 무선 상태를 읽을 수 없습니다."
+  },
   "无法读取规则列表。": {
     "en": "Could not read the rule list.",
     "zh-Hans": "无法读取规则列表。",
@@ -5976,6 +6459,13 @@
     "zh-Hant": "無法讀取路由",
     "ja": "路線は読めない",
     "ko": "경로를 읽을 수 없었어요"
+  },
+  "无需密码": {
+    "zh-Hans": "无需密码",
+    "zh-Hant": "無需密碼",
+    "en": "No password",
+    "ja": "パスワード不要",
+    "ko": "암호 없음"
   },
   "日常上网": {
     "zh-Hans": "日常上网",
@@ -6075,12 +6565,33 @@
     "ko": "어제 · 다시 시도하기 위해 기다리고 있습니다",
     "zh-Hant": "昨天 · 等待重試"
   },
+  "显示": {
+    "zh-Hans": "显示",
+    "zh-Hant": "顯示",
+    "en": "Show",
+    "ja": "表示",
+    "ko": "표시"
+  },
+  "显示密码": {
+    "zh-Hans": "显示密码",
+    "zh-Hant": "顯示密碼",
+    "en": "Show password",
+    "ja": "パスワードを表示",
+    "ko": "암호 표시"
+  },
   "显示登录指引": {
     "en": "Show sign-in instructions",
     "zh-Hans": "显示登录指引",
     "zh-Hant": "顯示登入指引",
     "ja": "サインイン指示を表示する",
     "ko": "로그인 지침을 표시"
+  },
+  "智能": {
+    "en": "AI smart",
+    "zh-Hans": "智能",
+    "zh-Hant": "智慧",
+    "ja": "自動最適化",
+    "ko": "자동 최적화"
   },
   "暂停充电": {
     "en": "Pause charging",
@@ -6095,6 +6606,13 @@
     "ja": "再試の列",
     "ko": "다시 시도하기 위해 줄을 서",
     "zh-Hant": "暫存等待重試"
+  },
+  "暂无有效读数": {
+    "zh-Hans": "暂无有效读数",
+    "zh-Hant": "暫無有效讀數",
+    "en": "No valid reading",
+    "ja": "有効な測定値なし",
+    "ko": "유효한 측정값 없음"
   },
   "更改 PIN": {
     "en": "Change PIN",
@@ -6222,6 +6740,13 @@
     "ja": "報告された最後の状態",
     "ko": "마지막 보고된 상태"
   },
+  "最高温度": {
+    "zh-Hans": "最高温度",
+    "zh-Hant": "最高溫度",
+    "en": "Highest temperature",
+    "ja": "最高温度",
+    "ko": "최고 온도"
+  },
   "月度流量限制": {
     "en": "Monthly data limit",
     "zh-Hans": "月度流量限制",
@@ -6284,6 +6809,13 @@
     "zh-Hant": "伺服器列表已變化。",
     "ja": "サーバーリストが変わった.",
     "ko": "서버 목록은 변경되었습니다."
+  },
+  "服务摘要": {
+    "zh-Hans": "服务摘要",
+    "zh-Hant": "服務摘要",
+    "en": "Service summary",
+    "ja": "サービス概要",
+    "ko": "서비스 요약"
   },
   "期望启用": {
     "en": "Requested enabled state",
@@ -6390,6 +6922,20 @@
     "ja": "確認されていない",
     "ko": "확인되지 않은"
   },
+  "未确认设置已生效，请核对设备当前状态。": {
+    "en": "The requested setting was not confirmed. Check current device status.",
+    "zh-Hans": "未确认设置已生效，请核对设备当前状态。",
+    "zh-Hant": "未確認設定已生效，請核對裝置目前狀態。",
+    "ja": "設定の適用を確認できません。端末の状態を確認してください。",
+    "ko": "설정 적용을 확인하지 못했습니다. 현재 기기 상태를 확인하세요."
+  },
+  "未联网": {
+    "zh-Hans": "未联网",
+    "zh-Hant": "未連線",
+    "en": "Offline",
+    "ja": "未接続",
+    "ko": "오프라인"
+  },
   "未能读取到可管理的 eUICC 卡片。U60 Pro 没有内置 eSIM，普通运营商 SIM 卡无法下载或管理 eSIM 套餐。": {
     "en": "Unable to access manageable eUICC cards. U60 Pro has no built-in eSIM, and ordinary carrier SIM cards cannot download or manage eSIM packages.",
     "zh-Hans": "未能读取到可管理的 eUICC 卡片。U60 Pro 没有内置 eSIM，普通运营商 SIM 卡无法下载或管理 eSIM 套餐。",
@@ -6403,6 +6949,20 @@
     "zh-Hant": "未能連線",
     "ja": "接続失敗",
     "ko": "연결 실패"
+  },
+  "未触发": {
+    "en": "Not triggered",
+    "zh-Hans": "未触发",
+    "zh-Hant": "未觸發",
+    "ja": "未作動",
+    "ko": "작동 대기"
+  },
+  "未触发，由设备自动管理": {
+    "zh-Hans": "未触发，由设备自动管理",
+    "zh-Hant": "未觸發，由裝置自動管理",
+    "en": "Not triggered; managed automatically",
+    "ja": "未作動・端末が自動管理",
+    "ko": "작동 대기 · 자동 관리"
   },
   "未设置": {
     "en": "Not configured",
@@ -6481,6 +7041,13 @@
     "ja": "この月",
     "ko": "이달"
   },
+  "本月流量": {
+    "zh-Hans": "本月流量",
+    "zh-Hant": "本月流量",
+    "en": "Monthly data",
+    "ja": "今月の通信量",
+    "ko": "이번 달 데이터"
+  },
   "本机代理运行中": {
     "en": "Local proxy running",
     "zh-Hans": "本机代理运行中",
@@ -6537,6 +7104,13 @@
     "ko": "이 회의를 받았어요",
     "zh-Hant": "本次已接收"
   },
+  "本页最近 2 分钟的观察记录；断线或暂停处留空。": {
+    "zh-Hans": "本页最近 2 分钟的观察记录；断线或暂停处留空。",
+    "zh-Hant": "本頁最近 2 分鐘的觀察記錄；斷線或暫停處留空。",
+    "en": "Observed on this page over the last 2 minutes. Gaps indicate disconnection or pauses.",
+    "ja": "このページで観測した直近2分間の記録です。切断・一時停止は空白で表示します。",
+    "ko": "이 페이지에서 관측한 최근 2분 기록입니다. 연결 끊김이나 일시 중지는 공백으로 표시합니다."
+  },
   "机身屏幕使用本机后台账号连接。也可以输入后台密码重新登录。": {
     "en": "The body screen connects to the home computer's backend account. You can also enter the backend password and log in again.",
     "zh-Hans": "机身屏幕使用本机后台账号连接。也可以输入后台密码重新登录。",
@@ -6558,12 +7132,33 @@
     "ja": "ASCII入力をサポートしている. 中国語テキスト・メッセージは,サポート管理のバックグラウンドで作成され,この画面では中国語の内容を完全に読み取ることができます.",
     "ko": "현재 ASCII 입력을 지원하고 있습니다. 중국어 문자 메시지는 지원 관리 배경에서 작성될 수 있으며, 이 화면은 중국어 내용을 완전히 읽을 수 있습니다."
   },
+  "来电": {
+    "zh-Hans": "来电",
+    "zh-Hant": "來電",
+    "en": "Incoming call",
+    "ja": "着信",
+    "ko": "수신 전화"
+  },
   "松开继续": {
     "en": "Release to continue",
     "zh-Hans": "松开继续",
     "zh-Hant": "鬆開繼續",
     "ja": "指を離して続行",
     "ko": "손을 떼면 계속"
+  },
+  "极速": {
+    "en": "Top speed",
+    "zh-Hans": "极速",
+    "zh-Hant": "極速",
+    "ja": "最高速",
+    "ko": "최고 속도"
+  },
+  "极速：不区分应用优先级，按需使用带宽。": {
+    "zh-Hans": "极速：不区分应用优先级，按需使用带宽。",
+    "zh-Hant": "極速：不區分應用程式優先順序，按需使用頻寬。",
+    "en": "Top speed: use bandwidth as needed, without app priority.",
+    "ja": "最高速：アプリを優先せず、必要に応じて帯域を使用。",
+    "ko": "최고 속도: 앱 우선순위 없이 필요한 대역폭을 사용합니다."
   },
   "查看 Tailscale 连接、子网路由与目标连通性。": {
     "en": "See Tailscale Connectivity, Subroutes and Target Connectivity.",
@@ -6607,6 +7202,13 @@
     "ja": "フィルタールールを見る",
     "ko": "필터 규칙을 보기"
   },
+  "查看运行中的进程及 CPU、内存占用。": {
+    "zh-Hans": "查看运行中的进程及 CPU、内存占用。",
+    "zh-Hant": "查看執行中的程序及 CPU、記憶體用量。",
+    "en": "View running processes and their CPU and memory use.",
+    "ja": "実行中のプロセスと CPU・メモリ使用量を確認します。",
+    "ko": "실행 중인 프로세스와 CPU 및 메모리 사용량을 확인합니다."
+  },
   "查看连接方式、信号与设备流量。": {
     "en": "See how connections, signals and equipment flow.",
     "zh-Hans": "查看连接方式、信号与设备流量。",
@@ -6634,6 +7236,13 @@
     "zh-Hant": "校驗值對應 tailscale_<版本>_arm64.tgz 完整安裝包。請從官方發行資訊核對，不能填二進位制檔案的校驗值。",
     "ja": "テスト値は tailscale_<バージョン>_arm64.tgz に対応する. バイナリー文書の検証値を記入できないことを公式情報から確認してください.",
     "ko": "재검정 값은 tailscale_<version>_arm64.tgz에 대응합니다. 공식 공표로부터 확인하여, 이진 문서의 검증값을 작성할 수 없습니다."
+  },
+  "校验并重新应用已保存的配置，不重启代理进程。": {
+    "zh-Hans": "校验并重新应用已保存的配置，不重启代理进程。",
+    "zh-Hant": "驗證並重新套用已儲存的設定，不重新啟動代理程序。",
+    "en": "Validate and reapply the saved configuration without restarting the proxy process.",
+    "ja": "保存済みの設定を検証して再適用します。プロキシプロセスは再起動しません。",
+    "ko": "프록시 프로세스를 재시작하지 않고 저장된 설정을 검증하고 다시 적용합니다."
   },
   "核心 {0}": {
     "en": "Core {0}",
@@ -6740,6 +7349,20 @@
     "ja": "終了したセッションをシミュレーションする",
     "ko": "종료된 세션 시뮬레이션"
   },
+  "正在优化": {
+    "zh-Hans": "正在优化",
+    "zh-Hant": "正在最佳化",
+    "en": "Optimizing",
+    "ja": "最適化中",
+    "ko": "최적화 중"
+  },
+  "正在切换蜂窝射频…": {
+    "en": "Updating cellular radio…",
+    "zh-Hans": "正在切换蜂窝射频…",
+    "zh-Hant": "正在切換行動網路射頻…",
+    "ja": "モバイル無線を切り替え中…",
+    "ko": "모바일 무선 전환 중…"
+  },
   "正在处理…": {
     "en": "Working…",
     "zh-Hans": "正在处理…",
@@ -6760,6 +7383,20 @@
     "zh-Hant": "正在處理請求，請稍後。 ",
     "ja": "リクエストを処理中です。お待ちください。 ",
     "ko": "요청을 처리 중입니다. 잠시 기다려 주세요. "
+  },
+  "正在应用…": {
+    "en": "Applying…",
+    "zh-Hans": "正在应用…",
+    "zh-Hant": "正在套用…",
+    "ja": "適用中…",
+    "ko": "적용 중…"
+  },
+  "正在拨号": {
+    "zh-Hans": "正在拨号",
+    "zh-Hant": "正在撥號",
+    "en": "Dialing",
+    "ja": "発信中",
+    "ko": "발신 중"
   },
   "正在接入此功能，当前尚不能操作。": {
     "en": "It is currently unable to operate as it is accessing this function.",
@@ -6795,6 +7432,20 @@
     "zh-Hant": "正在監聽",
     "ja": "聴く",
     "ko": "듣기"
+  },
+  "正在积累趋势": {
+    "zh-Hans": "正在积累趋势",
+    "zh-Hant": "正在累積趨勢",
+    "en": "Collecting samples",
+    "ja": "データを収集中",
+    "ko": "데이터 수집 중"
+  },
+  "正在读取 Wi-Fi…": {
+    "zh-Hans": "正在读取 Wi-Fi…",
+    "zh-Hant": "正在讀取 Wi-Fi…",
+    "en": "Reading Wi-Fi…",
+    "ja": "Wi-Fi を読み込み中…",
+    "ko": "Wi-Fi 읽는 중…"
   },
   "正在读取设备…": {
     "en": "Reading device…",
@@ -7111,12 +7762,26 @@
     "ko": "활동 상태",
     "zh-Hant": "活動狀態"
   },
+  "流量": {
+    "zh-Hans": "流量",
+    "zh-Hant": "流量",
+    "en": "Traffic",
+    "ja": "通信量",
+    "ko": "트래픽"
+  },
   "流量与套餐": {
     "en": "Data & allowance",
     "zh-Hans": "流量与套餐",
     "zh-Hant": "流量與套餐",
     "ja": "データ使用量と上限",
     "ko": "데이터 및 요금제"
+  },
+  "流量套餐": {
+    "zh-Hans": "流量套餐",
+    "zh-Hant": "流量方案",
+    "en": "Data plan",
+    "ja": "データプラン",
+    "ko": "데이터 요금제"
   },
   "流量监视": {
     "en": "Traffic monitor",
@@ -7440,6 +8105,27 @@
     "ko": "온도",
     "zh-Hant": "溫度"
   },
+  "温度保护": {
+    "en": "Temperature protection",
+    "zh-Hans": "温度保护",
+    "zh-Hant": "溫度保護",
+    "ja": "温度保護",
+    "ko": "온도 보호"
+  },
+  "温度保护正在限频，保留所选模式。": {
+    "en": "Temperature protection is limiting processing capacity. Your selected profile is retained.",
+    "zh-Hans": "温度保护正在限频，保留所选模式。",
+    "zh-Hant": "溫度保護正在限制頻率，保留所選模式。",
+    "ja": "温度保護により処理能力を制限中です。選択モードは保持されます。",
+    "ko": "온도 보호로 처리 성능을 제한 중입니다. 선택한 모드는 유지됩니다."
+  },
+  "游戏": {
+    "en": "Gaming",
+    "zh-Hans": "游戏",
+    "zh-Hant": "遊戲",
+    "ja": "ゲーム",
+    "ko": "게임"
+  },
   "演示": {
     "en": "Demo",
     "zh-Hans": "演示",
@@ -7460,6 +8146,13 @@
     "zh-Hant": "演示場景",
     "ja": "デモシナリオ",
     "ko": "데모 시나리오"
+  },
+  "演示运营商": {
+    "zh-Hans": "演示运营商",
+    "zh-Hant": "示範電信業者",
+    "en": "Example Mobile",
+    "ja": "サンプル通信事業者",
+    "ko": "예시 통신사"
   },
   "演示：不可达": {
     "en": "Demo: unreachable",
@@ -7502,6 +8195,13 @@
     "zh-Hant": "啟用碼格式應為 LPA:1$伺服器$啟用標識。",
     "ja": "アクティベーションコードの形式は,LPA:1$サーバー$ アクティベーションタグである.",
     "ko": "동원 코드 형식은 LPA:1$ 서버$ 동원 아이콘으로 표시되어야 합니다."
+  },
+  "点二维码放大": {
+    "zh-Hans": "点二维码放大",
+    "zh-Hant": "點 QR 碼放大",
+    "en": "Tap QR to enlarge",
+    "ja": "QR をタップで拡大",
+    "ko": "QR 코드를 눌러 확대"
   },
   "点击选择允许使用的频段。": {
     "en": "Click on the bandwidth you allow to use.",
@@ -7635,6 +8335,13 @@
     "zh-Hant": "狀態已重新讀取，請檢查更改後儲存。",
     "ja": "状態が読み返されているので,変更を確認して保存してください.",
     "ko": "상태가 다시 읽혔습니다. 변경된 것을 확인하고 저장하십시오."
+  },
+  "状态未知": {
+    "zh-Hans": "状态未知",
+    "zh-Hant": "狀態未知",
+    "en": "Unknown state",
+    "ja": "状態不明",
+    "ko": "알 수 없는 상태"
   },
   "状态查询失败": {
     "en": "Status query failed",
@@ -7804,12 +8511,33 @@
     "ja": "電流は固体読み方で正反対方向で表示され,総合充電策略は\"充電策略\"に設定される.",
     "ko": "전류는 고정된 독서로 부정적인 방향으로 나타납니다. 전체 충전 전략은 \"충전 전략\"으로 설정됩니다."
   },
+  "电源与电池": {
+    "zh-Hans": "电源与电池",
+    "zh-Hant": "電源與電池",
+    "en": "Power & battery",
+    "ja": "電源とバッテリー",
+    "ko": "전원 및 배터리"
+  },
+  "电源状态未知": {
+    "en": "Power state unknown",
+    "zh-Hans": "电源状态未知",
+    "zh-Hant": "電源狀態未知",
+    "ja": "電源状態不明",
+    "ko": "전원 상태 알 수 없음"
+  },
   "电话号码": {
     "en": "Phone number",
     "zh-Hans": "电话号码",
     "zh-Hant": "電話號碼",
     "ja": "電話番号",
     "ko": "전화번호"
+  },
+  "电量": {
+    "zh-Hans": "电量",
+    "zh-Hant": "電量",
+    "en": "Battery",
+    "ja": "バッテリー",
+    "ko": "배터리"
   },
   "电量 14%，网络正常": {
     "en": "14 percent electricity, network is normal",
@@ -7937,6 +8665,27 @@
     "ja": "直接電源モード",
     "ko": "직전 전력 모드"
   },
+  "直供电与停止充电由同一开关控制。拔掉外接电源后使用电池；充电上限仍在「充电策略」设置。": {
+    "en": "Bypass power and charging pause share one control. Unplugging switches to battery power. Set the charge limit under Charge policy.",
+    "zh-Hans": "直供电与停止充电由同一开关控制。拔掉外接电源后使用电池；充电上限仍在「充电策略」设置。",
+    "zh-Hant": "直供電與停止充電由同一開關控制。拔掉外接電源後使用電池；充電上限仍在「充電策略」設定。",
+    "ja": "バイパス給電と充電停止は同じスイッチで制御します。外部電源を外すとバッテリー駆動になります。充電上限は「充電ポリシー」で設定します。",
+    "ko": "바이패스 전원과 충전 중지는 같은 스위치로 제어됩니다. 외부 전원을 분리하면 배터리를 사용합니다. 충전 한도는 충전 정책에서 설정합니다."
+  },
+  "直供电会停止电池充电，并覆盖自动充电策略；关闭后恢复充电上限管理。充电回差用于避免频繁启停。": {
+    "en": "Bypass power pauses charging and overrides the automatic charge policy. Disable it to restore charge limit management. Hysteresis prevents frequent cycling.",
+    "zh-Hans": "直供电会停止电池充电，并覆盖自动充电策略；关闭后恢复充电上限管理。充电回差用于避免频繁启停。",
+    "zh-Hant": "直供電會停止電池充電，並覆蓋自動充電策略；關閉後恢復充電上限管理。充電回差用於避免頻繁啟停。",
+    "ja": "バイパス給電は充電を停止し、自動充電設定より優先されます。無効にすると充電上限の管理に戻ります。ヒステリシスは頻繁な切り替えを防ぎます。",
+    "ko": "바이패스 전원은 충전을 중지하고 자동 충전 정책보다 우선합니다. 끄면 충전 한도 관리가 재개됩니다. 히스테리시스는 잦은 충전 전환을 방지합니다."
+  },
+  "直供电模式": {
+    "en": "Bypass power",
+    "zh-Hans": "直供电模式",
+    "zh-Hant": "直供電模式",
+    "ja": "バイパス給電",
+    "ko": "바이패스 전원"
+  },
   "直接备份 / 恢复": {
     "zh-Hans": "直接备份 / 恢复",
     "en": "Direct backup / restore",
@@ -7944,12 +8693,26 @@
     "ko": "직접 백업 / 복원",
     "zh-Hant": "直接備份 / 恢復"
   },
+  "直播": {
+    "en": "Live streaming",
+    "zh-Hans": "直播",
+    "zh-Hant": "直播",
+    "ja": "ライブ配信",
+    "ko": "라이브 방송"
+  },
   "直连模式": {
     "en": "Direct mode",
     "zh-Hans": "直连模式",
     "zh-Hant": "直連模式",
     "ja": "直接モード",
     "ko": "직접 모드"
+  },
+  "省电": {
+    "en": "Power saving",
+    "zh-Hans": "省电",
+    "zh-Hant": "省電",
+    "ja": "省電力",
+    "ko": "절전"
   },
   "省电模式": {
     "en": "Power saving",
@@ -8371,6 +9134,13 @@
     "ja": "フィルターモード",
     "ko": "필터 모드"
   },
+  "管理": {
+    "zh-Hans": "管理",
+    "zh-Hant": "管理",
+    "en": "Manage",
+    "ja": "管理",
+    "ko": "관리"
+  },
   "管理 mihomo 的运行模式与流量范围。": {
     "en": "Operating patterns and traffic scope of managing mihomo",
     "zh-Hans": "管理 mihomo 的运行模式与流量范围。",
@@ -8581,6 +9351,13 @@
     "ko": "네트워크가 사용할 수 없습니다",
     "zh-Hant": "網路不可用"
   },
+  "网络优化": {
+    "en": "Network optimization",
+    "zh-Hans": "网络优化",
+    "zh-Hant": "網路最佳化",
+    "ja": "ネットワーク最適化",
+    "ko": "네트워크 최적화"
+  },
   "网络制式": {
     "en": "Network technology",
     "zh-Hans": "网络制式",
@@ -8636,6 +9413,13 @@
     "zh-Hant": "網路解鎖碼",
     "ja": "ネットワーク開封コード",
     "ko": "네트워크 잠금 해제 코드"
+  },
+  "网络设置": {
+    "en": "Network settings",
+    "ja": "ネットワーク設定",
+    "ko": "네트워크 설정",
+    "zh-Hans": "网络设置",
+    "zh-Hant": "網路設定"
   },
   "网络锁解锁": {
     "en": "Network unlock",
@@ -8720,6 +9504,13 @@
     "zh-Hant": "自動熄屏",
     "ja": "自動消灯",
     "ko": "자동 화면 끄기"
+  },
+  "自动调整活跃应用的优先级。": {
+    "en": "Automatically prioritize active applications.",
+    "zh-Hans": "自动调整活跃应用的优先级。",
+    "zh-Hant": "自動調整使用中應用程式的優先順序。",
+    "ja": "使用中のアプリの優先度を自動調整。",
+    "ko": "사용 중인 앱의 우선순위를 자동 조절합니다."
   },
   "自动转发": {
     "en": "Automatic forwarding",
@@ -8931,6 +9722,20 @@
     "ja": "モバイルおよびリモートサブネットが利用可能",
     "ko": "이동 및 원격 하위 네트워크"
   },
+  "蜂窝射频已开启": {
+    "en": "Cellular radio on",
+    "zh-Hans": "蜂窝射频已开启",
+    "zh-Hant": "行動網路射頻已開啟",
+    "ja": "モバイル無線オン",
+    "ko": "모바일 무선 켜짐"
+  },
+  "蜂窝恢复后继续使用所选带宽策略。": {
+    "en": "Mobile radio is off. Your bandwidth choice is retained.",
+    "zh-Hans": "蜂窝恢复后继续使用所选带宽策略。",
+    "zh-Hant": "行動網路恢復後繼續使用所選頻寬策略。",
+    "ja": "モバイル無線の再開後も選択した帯域設定を使用します。",
+    "ko": "모바일 무선이 복구되면 선택한 대역폭 정책을 계속 사용합니다."
+  },
   "蜂窝接口": {
     "zh-Hans": "蜂窝接口",
     "en": "Mobile interface",
@@ -8952,12 +9757,40 @@
     "ja": "携帯電話データ,電話,テキスト・メッセージは利用できません.",
     "ko": "휴대전화 데이터, 전화 및 문자 메시지가 사용할 수 없습니다."
   },
+  "蜂窝数据、通话和短信将断开，Wi-Fi、USB 和本地管理继续可用。通过蜂窝网络的远程连接会断开。": {
+    "en": "Mobile internet, calls and SMS will disconnect. Wi-Fi, USB and local management remain available. Remote access over mobile data will disconnect.",
+    "zh-Hans": "蜂窝数据、通话和短信将断开，Wi-Fi、USB 和本地管理继续可用。通过蜂窝网络的远程连接会断开。",
+    "zh-Hant": "行動數據、通話與簡訊將中斷，Wi-Fi、USB 與本機管理仍可用。透過行動網路的遠端連線會中斷。",
+    "ja": "モバイル通信、通話、SMS が切断されます。Wi-Fi、USB、ローカル管理は利用できます。モバイル回線経由のリモート接続も切断されます。",
+    "ko": "모바일 데이터, 통화, SMS가 중단됩니다. Wi-Fi, USB, 로컬 관리는 계속 사용할 수 있습니다. 모바일 회선을 통한 원격 연결도 끊어집니다."
+  },
   "蜂窝断开": {
     "en": "Mobile network disconnected",
     "zh-Hans": "蜂窝断开",
     "zh-Hant": "蜂窩斷開",
     "ja": "モバイルネットワークが切断された",
     "ko": "이동통신망 연결이 끊어졌다"
+  },
+  "蜂窝流量已暂停": {
+    "zh-Hans": "蜂窝流量已暂停",
+    "zh-Hant": "行動數據已暫停",
+    "en": "Cellular traffic paused",
+    "ja": "モバイル通信は一時停止中",
+    "ko": "모바일 트래픽 일시 중지"
+  },
+  "蜂窝状态未知": {
+    "en": "Cellular status unknown",
+    "zh-Hans": "蜂窝状态未知",
+    "zh-Hant": "行動網路狀態未知",
+    "ja": "モバイル無線の状態不明",
+    "ko": "모바일 상태 알 수 없음"
+  },
+  "蜂窝网络已关闭": {
+    "zh-Hans": "蜂窝网络已关闭",
+    "zh-Hant": "行動網路已關閉",
+    "en": "Cellular radio off",
+    "ja": "モバイル無線オフ",
+    "ko": "모바일 무선 꺼짐"
   },
   "蜂窝网络类型": {
     "en": "Mobile network type",
@@ -9007,6 +9840,13 @@
     "zh-Hant": "規則模式",
     "ja": "ルールモード",
     "ko": "규칙 모드"
+  },
+  "视频": {
+    "en": "Video",
+    "zh-Hans": "视频",
+    "zh-Hant": "影片",
+    "ja": "動画",
+    "ko": "동영상"
   },
   "角色": {
     "en": "Role",
@@ -9218,6 +10058,13 @@
     "ja": "機器は有効な载波記録を報告していない.",
     "ko": "장비는 아직 유효한 운반 기록을 보고하지 않았습니다."
   },
+  "设备尚未确认修改，请核对实际状态。": {
+    "zh-Hans": "设备尚未确认修改，请核对实际状态。",
+    "zh-Hant": "裝置尚未確認修改，請核對實際狀態。",
+    "en": "The device has not confirmed the change. Check its actual state.",
+    "ja": "端末から変更を確認できませんでした。実際の状態を確認してください。",
+    "ko": "기기에서 변경을 확인하지 못했습니다. 실제 상태를 확인하세요."
+  },
   "设备已用条数": {
     "en": "Messages stored on device",
     "zh-Hans": "设备已用条数",
@@ -9239,6 +10086,13 @@
     "ja": "デバイスは入力中の特殊文字を保存できないので,ネットワーク名またはパスワードを変更してください.",
     "ko": "장치가 입력된 특수 문자들을 저장할 수 없으므로 네트워크 이름이나 암호를 변경하십시오."
   },
+  "设备时间未就绪": {
+    "zh-Hans": "设备时间未就绪",
+    "zh-Hant": "裝置時間未就緒",
+    "en": "Device time unavailable",
+    "ja": "端末時刻を取得できません",
+    "ko": "기기 시간 확인 불가"
+  },
   "设备流量反映 Wi-Fi 链路；固件没有报告的限速或链路信息显示为未提供。": {
     "en": "Equipment traffic reflects Wi-Fi links; fixed speed limits are not reported or link information is not provided.",
     "zh-Hans": "设备流量反映 Wi-Fi 链路；固件没有报告的限速或链路信息显示为未提供。",
@@ -9252,6 +10106,20 @@
     "ja": "デバイス管理とテイルスケール監視犬",
     "ko": "장치 관리 및 Tailscale 감시견",
     "zh-Hant": "裝置管理與 Tailscale 看護"
+  },
+  "设备维护、更新与备份": {
+    "zh-Hans": "设备维护、更新与备份",
+    "zh-Hant": "裝置維護、更新與備份",
+    "en": "Maintenance, updates and backup",
+    "ja": "保守・更新・バックアップ",
+    "ko": "기기 유지보수, 업데이트 및 백업"
+  },
+  "设备设置": {
+    "zh-Hans": "设备设置",
+    "zh-Hant": "裝置設定",
+    "en": "Device settings",
+    "ja": "端末設定",
+    "ko": "기기 설정"
   },
   "设置 6–12 位数字密码": {
     "en": "Set the 6-12 digit password",
@@ -9273,6 +10141,13 @@
     "zh-Hant": "設定新的 6–12 位數字密碼",
     "ja": "6-12桁の暗号を設定する",
     "ko": "새로운 6-12 자릿수 암호를 설정"
+  },
+  "设置未能保存，已恢复原值。": {
+    "zh-Hans": "设置未能保存，已恢复原值。",
+    "zh-Hant": "設定未能儲存，已恢復原值。",
+    "en": "Settings could not be saved. The previous values were restored.",
+    "ja": "設定を保存できなかったため、元の値に戻しました。",
+    "ko": "설정을 저장하지 못해 이전 값으로 복원했습니다."
   },
   "设置目标 IP 和端口": {
     "en": "Set the target IP and port",
@@ -9406,6 +10281,13 @@
     "zh-Hant": "請先停止服務。",
     "ja": "まず サービスを止めろ",
     "ko": "먼저 봉사를 멈춰라"
+  },
+  "请先启动服务。": {
+    "zh-Hans": "请先启动服务。",
+    "zh-Hant": "請先啟動服務。",
+    "en": "Start the service first.",
+    "ja": "先にサービスを起動してください。",
+    "ko": "먼저 서비스를 시작하세요."
   },
   "请先启动服务并选择代理组。": {
     "en": "Please launch the service and select the proxy group.",
@@ -9764,6 +10646,13 @@
     "ja": "データ制限で切り離す",
     "ko": "데이터 한정에서 분리"
   },
+  "跟随系统": {
+    "zh-Hans": "跟随系统",
+    "zh-Hant": "跟隨系統",
+    "en": "System theme",
+    "ja": "システム設定",
+    "ko": "시스템 테마"
+  },
   "路由与防火墙": {
     "en": "Routing & firewall",
     "zh-Hans": "路由与防火墙",
@@ -9967,6 +10856,13 @@
     "ko": "항공사 서비스",
     "zh-Hant": "運營商服務"
   },
+  "运营商未提供": {
+    "zh-Hans": "运营商未提供",
+    "zh-Hant": "未提供電信業者",
+    "en": "Operator unavailable",
+    "ja": "通信事業者は不明",
+    "ko": "통신사 정보 없음"
+  },
   "运营商确认码（可选）": {
     "en": "Operator confirmation code (optional)",
     "zh-Hans": "运营商确认码（可选）",
@@ -10051,6 +10947,13 @@
     "ja": "実行と設定",
     "ko": "실행 및 설정"
   },
+  "运行中": {
+    "zh-Hans": "运行中",
+    "zh-Hant": "執行中",
+    "en": "Running",
+    "ja": "稼働中",
+    "ko": "실행 중"
+  },
   "运行提示": {
     "en": "Runtime notices",
     "zh-Hans": "运行提示",
@@ -10092,6 +10995,13 @@
     "zh-Hant": "執行狀態",
     "ja": "実行時間の状態",
     "ko": "실행 시간 상태"
+  },
+  "返回": {
+    "zh-Hans": "返回",
+    "zh-Hant": "返回",
+    "en": "Back",
+    "ja": "戻る",
+    "ko": "돌아가기"
   },
   "返回上级菜单": {
     "en": "Back to parent menu",
@@ -10191,6 +11101,27 @@
     "ja": "リモートサブネット",
     "ko": "원격 하위 네트워크"
   },
+  "连接": {
+    "zh-Hans": "连接",
+    "zh-Hant": "連線",
+    "en": "Connect",
+    "ja": "接続",
+    "ko": "연결"
+  },
+  "连接、路由与连通性检测": {
+    "en": "Connection, routes and diagnostics",
+    "ja": "接続・ルート・接続テスト",
+    "ko": "연결, 경로 및 연결 테스트",
+    "zh-Hans": "连接、路由与连通性检测",
+    "zh-Hant": "連線、路由與連通性檢測"
+  },
+  "连接与登录": {
+    "en": "Connection & sign-in",
+    "ja": "接続とログイン",
+    "ko": "연결 및 로그인",
+    "zh-Hans": "连接与登录",
+    "zh-Hant": "連線與登入"
+  },
   "连接中": {
     "en": "Connecting",
     "zh-Hans": "连接中",
@@ -10261,6 +11192,13 @@
     "ko": "기기에 연결하고 에이전트에게 로그인하세요.",
     "zh-Hant": "連線裝置並登入 agent。"
   },
+  "连接设置": {
+    "en": "Connection settings",
+    "zh-Hans": "连接设置",
+    "zh-Hant": "連線設定",
+    "ja": "接続設定",
+    "ko": "연결 설정"
+  },
   "连接运营商服务器读取套餐信息，之后仍需确认才安装。预览需要在两分钟内确认或取消。": {
     "en": "The connected operator server reads the package information and then confirms its installation. Previews need to be confirmed or canceled within two minutes.",
     "zh-Hans": "连接运营商服务器读取套餐信息，之后仍需确认才安装。预览需要在两分钟内确认或取消。",
@@ -10317,12 +11255,26 @@
     "ja": "ログアウト",
     "ko": "로그아웃"
   },
+  "退出节点 IP（留空关闭）": {
+    "zh-Hans": "退出节点 IP（留空关闭）",
+    "zh-Hant": "出口節點 IP（留空關閉）",
+    "en": "Exit node IP (empty to disable)",
+    "ja": "出口ノード IP（空欄で無効）",
+    "ko": "출구 노드 IP (비우면 해제)"
+  },
   "退格": {
     "en": "Backspace",
     "zh-Hans": "退格",
     "zh-Hant": "退格",
     "ja": "削除",
     "ko": "삭제"
+  },
+  "适合高负载，温度和功耗可能上升。": {
+    "en": "For heavier workloads. Heat and power use may increase.",
+    "zh-Hans": "适合高负载，温度和功耗可能上升。",
+    "zh-Hant": "適合高負載，溫度與功耗可能上升。",
+    "ja": "高負荷向け。温度と消費電力が上がる場合があります。",
+    "ko": "높은 부하에 적합하며 온도와 전력 소비가 늘 수 있습니다."
   },
   "选择 2.4 GHz、5 GHz 或访客网络，让手机扫码连接。": {
     "en": "Select 2.4 GHz, 5 GHz or visitor network to allow the phone to scan the connection.",
@@ -10337,6 +11289,20 @@
     "zh-Hant": "選擇 mihomo 代理組中的節點。",
     "ja": "mihomo の代理群のノードを選択します.",
     "ko": "mihomo 에이전트 그룹에서 노트를 선택합니다."
+  },
+  "选择优先分配带宽的应用。": {
+    "en": "Choose which applications get priority.",
+    "zh-Hans": "选择优先分配带宽的应用。",
+    "zh-Hant": "選擇優先分配頻寬的應用程式。",
+    "ja": "帯域を優先するアプリを選択。",
+    "ko": "대역폭을 우선 할당할 앱을 선택합니다."
+  },
+  "选择即应用": {
+    "en": "Settings apply automatically.",
+    "zh-Hans": "选择即应用",
+    "zh-Hant": "選擇即套用",
+    "ja": "選択すると適用",
+    "ko": "선택하면 바로 적용"
   },
   "选择方式": {
     "en": "Selection mode",
@@ -10421,6 +11387,13 @@
     "zh-Hant": "通話與卡片服務",
     "ja": "通話と SIM サービス",
     "ko": "통화 및 SIM 서비스"
+  },
+  "通话中": {
+    "zh-Hans": "通话中",
+    "zh-Hant": "通話中",
+    "en": "In call",
+    "ja": "通話中",
+    "ko": "통화 중"
   },
   "通话状态": {
     "zh-Hans": "通话状态",
@@ -10618,6 +11591,13 @@
     "ja": "週1~7を繰り返す",
     "ko": "주 1~7을 반복합니다."
   },
+  "重新加载配置": {
+    "zh-Hans": "重新加载配置",
+    "zh-Hant": "重新載入設定",
+    "en": "Reload configuration",
+    "ja": "設定を再読み込み",
+    "ko": "설정 다시 불러오기"
+  },
   "重新扫描邻区": {
     "en": "Rescan neighboring cells",
     "zh-Hans": "重新扫描邻区",
@@ -10730,6 +11710,13 @@
     "ja": "誤った解鎖コードは,ネットワークを永久にロックする可能性のある頻度を減算します.",
     "ko": "잘못된 해독 코드는 수를 줄여서 영구적인 네트워크 잠금을 초래할 수 있습니다."
   },
+  "长按 1 秒解锁": {
+    "zh-Hans": "长按 1 秒解锁",
+    "zh-Hant": "長按 1 秒解鎖",
+    "en": "Hold 1 second to unlock",
+    "ja": "1 秒長押しで解除",
+    "ko": "1초 길게 눌러 잠금 해제"
+  },
   "长按 1 秒，松开后解锁": {
     "en": "Hold 1s, then release",
     "zh-Hans": "长按 1 秒，松开后解锁",
@@ -10779,6 +11766,20 @@
     "ja": "このドメインのアクセスを阻止する;その依存サービスに影響を与える可能性があります.",
     "ko": "이 도메인의 접근을 막는 것; 그 서비스에 의존하는 것에 영향을 미칠 수 있다."
   },
+  "降低功耗，适合移动使用。": {
+    "en": "Reduce power use while on the move.",
+    "zh-Hans": "降低功耗，适合移动使用。",
+    "zh-Hant": "降低功耗，適合行動使用。",
+    "ja": "移動中の消費電力を抑制。",
+    "ko": "이동 중 전력 소비를 줄입니다."
+  },
+  "降低处理频率，吞吐能力可能下降。": {
+    "zh-Hans": "降低处理频率，吞吐能力可能下降。",
+    "zh-Hant": "降低處理頻率，吞吐能力可能下降。",
+    "en": "Reduce CPU frequency; throughput may decrease.",
+    "ja": "CPU 周波数を抑制。転送性能が低下する場合があります。",
+    "ko": "CPU 주파수를 낮춥니다. 처리량이 줄 수 있습니다."
+  },
   "限制充电上限": {
     "en": "Limit charging",
     "zh-Hans": "限制充电上限",
@@ -10821,12 +11822,33 @@
     "ja": "モバイルルーター",
     "ko": "모바일 라우터"
   },
+  "隐藏": {
+    "zh-Hans": "隐藏",
+    "zh-Hant": "隱藏",
+    "en": "Hide",
+    "ja": "非表示",
+    "ko": "숨기기"
+  },
+  "隐藏仅影响首页显示，不会停止服务。": {
+    "zh-Hans": "隐藏仅影响首页显示，不会停止服务。",
+    "zh-Hant": "隱藏僅影響首頁顯示，不會停止服務。",
+    "en": "Hiding only changes the home display. Services keep running.",
+    "ja": "非表示はホームの表示だけに適用されます。サービスは停止しません。",
+    "ko": "숨기기는 홈 화면 표시에만 적용되며 서비스는 계속 실행됩니다."
+  },
   "隐藏名称": {
     "en": "Hide network name",
     "zh-Hans": "隐藏名称",
     "zh-Hant": "隱藏名稱",
     "ja": "ネットワーク名を隠す",
     "ko": "네트워크 이름 숨기기"
+  },
+  "隐藏密码": {
+    "zh-Hans": "隐藏密码",
+    "zh-Hant": "隱藏密碼",
+    "en": "Hide password",
+    "ja": "パスワードを隠す",
+    "ko": "암호 숨기기"
   },
   "隐藏网络名称": {
     "en": "Hide network name",
@@ -10841,6 +11863,13 @@
     "zh-Hant": "隔離訪客",
     "ja": "ゲストデバイスを隔離する",
     "ko": "손님 기기를 격리"
+  },
+  "隧道与对端": {
+    "zh-Hans": "隧道与对端",
+    "zh-Hant": "通道與對端",
+    "en": "Tunnels and peers",
+    "ja": "トンネルとピア",
+    "ko": "터널 및 피어"
   },
   "隧道变化会影响经由 WireGuard 的连接。": {
     "en": "Changes in channels will affect connections via WireGuard.",
@@ -10876,6 +11905,13 @@
     "ja": "追加 API を 必要とする",
     "ko": "추가 API가 필요합니다",
     "zh-Hant": "需要後續新增介面"
+  },
+  "需要处理": {
+    "zh-Hans": "需要处理",
+    "zh-Hant": "需要處理",
+    "en": "Needs attention",
+    "ja": "要確認",
+    "ko": "확인 필요"
   },
   "需要安装受支持的 eSIM 实体卡。": {
     "en": "It's not easy to use a physical eSIM card.",
@@ -10968,6 +12004,34 @@
     "ja": "1 GB = 1000000000バイト. デバイス統計とオペレーター請求書には違いがある可能性があります.",
     "ko": "가이트의 양자 단위 1 GB = 100억 가이트. 기기 통계와 사업자 청구서는 차이가 있을 수 있다."
   },
+  "飞行模式": {
+    "en": "Airplane mode",
+    "zh-Hans": "飞行模式",
+    "zh-Hant": "飛航模式",
+    "ja": "機内モード",
+    "ko": "비행기 모드"
+  },
+  "飞行模式、应用带宽分配与高铁优化。": {
+    "zh-Hans": "飞行模式、应用带宽分配与高铁优化。",
+    "zh-Hant": "飛航模式、應用程式頻寬分配與高鐵最佳化。",
+    "en": "Airplane mode, bandwidth priority and rail optimization.",
+    "ja": "機内モード、帯域の優先度、高速鉄道向け最適化。",
+    "ko": "비행기 모드, 대역폭 우선순위, 고속철도 최적화."
+  },
+  "飞行模式与性能三档。": {
+    "zh-Hans": "飞行模式与性能三档。",
+    "zh-Hant": "飛航模式與三種效能模式。",
+    "en": "Airplane mode and three performance profiles.",
+    "ja": "機内モードと3つのパフォーマンスモード。",
+    "ko": "비행기 모드와 세 가지 성능 모드."
+  },
+  "飞行模式期间暂停": {
+    "zh-Hans": "飞行模式期间暂停",
+    "zh-Hant": "飛航模式期間暫停",
+    "en": "Paused in airplane mode",
+    "ja": "機内モード中は一時停止",
+    "ko": "비행기 모드에서 일시 중지"
+  },
   "首次开启漫游时请同时开启蜂窝数据。": {
     "en": "When you first start browsing, please turn on cellular data simultaneously.",
     "zh-Hans": "首次开启漫游时请同时开启蜂窝数据。",
@@ -11003,6 +12067,13 @@
     "ja": "優先ネットワーク",
     "ko": "기본 네트워크"
   },
+  "首页布局": {
+    "zh-Hans": "首页布局",
+    "zh-Hant": "首頁配置",
+    "en": "Home layout",
+    "ja": "ホームのレイアウト",
+    "ko": "홈 화면 구성"
+  },
   "验证任务中断，请重试": {
     "en": "Verification interrupted. Try again.",
     "zh-Hans": "验证任务中断，请重试",
@@ -11024,6 +12095,27 @@
     "ja": "高い",
     "ko": "높은"
   },
+  "高级网络": {
+    "zh-Hans": "高级网络",
+    "zh-Hant": "進階網路",
+    "en": "Advanced network",
+    "ja": "高度なネットワーク設定",
+    "ko": "고급 네트워크"
+  },
+  "高速移动时，由设备自动管理。": {
+    "en": "The device manages this automatically while travelling at high speed.",
+    "zh-Hans": "高速移动时，由设备自动管理。",
+    "zh-Hant": "高速移動時，由裝置自動管理。",
+    "ja": "高速移動時に端末が自動で管理します。",
+    "ko": "고속 이동 시 기기가 자동으로 관리합니다."
+  },
+  "高铁优化": {
+    "en": "High-speed rail optimization",
+    "zh-Hans": "高铁优化",
+    "zh-Hant": "高鐵最佳化",
+    "ja": "高速鉄道向け最適化",
+    "ko": "고속철도 최적화"
+  },
   "黑名单": {
     "zh-Hans": "黑名单",
     "en": "Blocklist",
@@ -11037,656 +12129,5 @@
     "zh-Hant": "（空簡訊）",
     "ja": "(空きメッセージ)",
     "ko": "(공허 메시지)"
-  },
-  "通话中": {
-    "zh-Hans": "通话中",
-    "zh-Hant": "通話中",
-    "en": "In call",
-    "ja": "通話中",
-    "ko": "통화 중"
-  },
-  "保持": {
-    "zh-Hans": "保持",
-    "zh-Hant": "保留",
-    "en": "On hold",
-    "ja": "保留中",
-    "ko": "통화 보류 중"
-  },
-  "正在拨号": {
-    "zh-Hans": "正在拨号",
-    "zh-Hant": "正在撥號",
-    "en": "Dialing",
-    "ja": "発信中",
-    "ko": "발신 중"
-  },
-  "对方响铃": {
-    "zh-Hans": "对方响铃",
-    "zh-Hant": "對方響鈴",
-    "en": "Ringing",
-    "ja": "呼び出し中",
-    "ko": "상대방 호출 중"
-  },
-  "来电": {
-    "zh-Hans": "来电",
-    "zh-Hant": "來電",
-    "en": "Incoming call",
-    "ja": "着信",
-    "ko": "수신 전화"
-  },
-  "呼叫等待": {
-    "zh-Hans": "呼叫等待",
-    "zh-Hant": "來電等候",
-    "en": "Call waiting",
-    "ja": "通話待ち",
-    "ko": "통화 대기"
-  },
-  "状态未知": {
-    "zh-Hans": "状态未知",
-    "zh-Hant": "狀態未知",
-    "en": "Unknown state",
-    "ja": "状態不明",
-    "ko": "알 수 없는 상태"
-  },
-  "连接与登录": {
-    "en": "Connection & sign-in",
-    "ja": "接続とログイン",
-    "ko": "연결 및 로그인",
-    "zh-Hans": "连接与登录",
-    "zh-Hant": "連線與登入"
-  },
-  "网络设置": {
-    "en": "Network settings",
-    "ja": "ネットワーク設定",
-    "ko": "네트워크 설정",
-    "zh-Hans": "网络设置",
-    "zh-Hant": "網路設定"
-  },
-  "安装与更新": {
-    "en": "Install & update",
-    "ja": "インストールと更新",
-    "ko": "설치 및 업데이트",
-    "zh-Hans": "安装与更新",
-    "zh-Hant": "安裝與更新"
-  },
-  "连接、路由与连通性检测": {
-    "en": "Connection, routes and diagnostics",
-    "ja": "接続・ルート・接続テスト",
-    "ko": "연결, 경로 및 연결 테스트",
-    "zh-Hans": "连接、路由与连通性检测",
-    "zh-Hant": "連線、路由與連通性檢測"
-  },
-  "电源状态未知": {
-    "en": "Power state unknown",
-    "zh-Hans": "电源状态未知",
-    "zh-Hant": "電源狀態未知",
-    "ja": "電源状態不明",
-    "ko": "전원 상태 알 수 없음"
-  },
-  "外接电源": {
-    "en": "External power",
-    "zh-Hans": "外接电源",
-    "zh-Hant": "外接電源",
-    "ja": "外部電源",
-    "ko": "외부 전원"
-  },
-  "直供电模式": {
-    "en": "Bypass power",
-    "zh-Hans": "直供电模式",
-    "zh-Hant": "直供電模式",
-    "ja": "バイパス給電",
-    "ko": "바이패스 전원"
-  },
-  "供电状态": {
-    "en": "Power source",
-    "zh-Hans": "供电状态",
-    "zh-Hant": "供電狀態",
-    "ja": "給電状態",
-    "ko": "전원 상태"
-  },
-  "关闭直供电": {
-    "en": "Disable bypass power",
-    "zh-Hans": "关闭直供电",
-    "zh-Hant": "關閉直供電",
-    "ja": "バイパス給電を無効にする",
-    "ko": "바이패스 전원 끄기"
-  },
-  "启用直供电": {
-    "en": "Enable bypass power",
-    "zh-Hans": "启用直供电",
-    "zh-Hant": "啟用直供電",
-    "ja": "バイパス給電を有効にする",
-    "ko": "바이패스 전원 켜기"
-  },
-  "启用后接入电源时使用直供电并停止电池充电；关闭后由充电上限策略决定是否恢复充电。": {
-    "en": "When enabled, external power supplies the router and battery charging stops. When disabled, the charge limit policy decides whether charging resumes.",
-    "zh-Hans": "启用后接入电源时使用直供电并停止电池充电；关闭后由充电上限策略决定是否恢复充电。",
-    "zh-Hant": "啟用後接入電源時使用直供電並停止電池充電；關閉後由充電上限策略決定是否恢復充電。",
-    "ja": "有効にすると外部電源から直接給電し、バッテリーの充電を停止します。無効にすると充電上限の設定に従って充電を再開します。",
-    "ko": "켜면 외부 전원으로 라우터에 직접 전원을 공급하고 배터리 충전을 중지합니다. 끄면 충전 한도 정책에 따라 충전을 재개합니다."
-  },
-  "直供电与停止充电由同一开关控制。拔掉外接电源后使用电池；充电上限仍在「充电策略」设置。": {
-    "en": "Bypass power and charging pause share one control. Unplugging switches to battery power. Set the charge limit under Charge policy.",
-    "zh-Hans": "直供电与停止充电由同一开关控制。拔掉外接电源后使用电池；充电上限仍在「充电策略」设置。",
-    "zh-Hant": "直供電與停止充電由同一開關控制。拔掉外接電源後使用電池；充電上限仍在「充電策略」設定。",
-    "ja": "バイパス給電と充電停止は同じスイッチで制御します。外部電源を外すとバッテリー駆動になります。充電上限は「充電ポリシー」で設定します。",
-    "ko": "바이패스 전원과 충전 중지는 같은 스위치로 제어됩니다. 외부 전원을 분리하면 배터리를 사용합니다. 충전 한도는 충전 정책에서 설정합니다."
-  },
-  "直供电会停止电池充电，并覆盖自动充电策略；关闭后恢复充电上限管理。充电回差用于避免频繁启停。": {
-    "en": "Bypass power pauses charging and overrides the automatic charge policy. Disable it to restore charge limit management. Hysteresis prevents frequent cycling.",
-    "zh-Hans": "直供电会停止电池充电，并覆盖自动充电策略；关闭后恢复充电上限管理。充电回差用于避免频繁启停。",
-    "zh-Hant": "直供電會停止電池充電，並覆蓋自動充電策略；關閉後恢復充電上限管理。充電回差用於避免頻繁啟停。",
-    "ja": "バイパス給電は充電を停止し、自動充電設定より優先されます。無効にすると充電上限の管理に戻ります。ヒステリシスは頻繁な切り替えを防ぎます。",
-    "ko": "바이패스 전원은 충전을 중지하고 자동 충전 정책보다 우선합니다. 끄면 충전 한도 관리가 재개됩니다. 히스테리시스는 잦은 충전 전환을 방지합니다."
-  },
-  "运营商未提供": {
-    "zh-Hans": "运营商未提供",
-    "zh-Hant": "未提供電信業者",
-    "en": "Operator unavailable",
-    "ja": "通信事業者は不明",
-    "ko": "통신사 정보 없음"
-  },
-  "演示运营商": {
-    "zh-Hans": "演示运营商",
-    "zh-Hant": "示範電信業者",
-    "en": "Example Mobile",
-    "ja": "サンプル通信事業者",
-    "ko": "예시 통신사"
-  },
-  "重新加载配置": {
-    "zh-Hans": "重新加载配置",
-    "zh-Hant": "重新載入設定",
-    "en": "Reload configuration",
-    "ja": "設定を再読み込み",
-    "ko": "설정 다시 불러오기"
-  },
-  "校验并重新应用已保存的配置，不重启代理进程。": {
-    "zh-Hans": "校验并重新应用已保存的配置，不重启代理进程。",
-    "zh-Hant": "驗證並重新套用已儲存的設定，不重新啟動代理程序。",
-    "en": "Validate and reapply the saved configuration without restarting the proxy process.",
-    "ja": "保存済みの設定を検証して再適用します。プロキシプロセスは再起動しません。",
-    "ko": "프록시 프로세스를 재시작하지 않고 저장된 설정을 검증하고 다시 적용합니다."
-  },
-  "请先启动服务。": {
-    "zh-Hans": "请先启动服务。",
-    "zh-Hant": "請先啟動服務。",
-    "en": "Start the service first.",
-    "ja": "先にサービスを起動してください。",
-    "ko": "먼저 서비스를 시작하세요."
-  },
-  "正在读取 Wi-Fi…": {
-    "zh-Hans": "正在读取 Wi-Fi…",
-    "zh-Hant": "正在讀取 Wi-Fi…",
-    "en": "Reading Wi-Fi…",
-    "ja": "Wi-Fi を読み込み中…",
-    "ko": "Wi-Fi 읽는 중…"
-  },
-  "双频设置已变化，请重新选择热点。": {
-    "zh-Hans": "双频设置已变化，请重新选择热点。",
-    "zh-Hant": "雙頻設定已變更，請重新選擇熱點。",
-    "en": "Band settings changed. Select the network again.",
-    "ja": "周波数帯の設定が変わりました。ネットワークを選び直してください。",
-    "ko": "대역 설정이 변경되었습니다. 네트워크를 다시 선택하세요."
-  },
-  "双频合一热点": {
-    "zh-Hans": "双频合一热点",
-    "zh-Hant": "雙頻合一熱點",
-    "en": "Combined bands",
-    "ja": "共通 SSID",
-    "ko": "통합 대역"
-  },
-  "无需密码": {
-    "zh-Hans": "无需密码",
-    "zh-Hant": "無需密碼",
-    "en": "No password",
-    "ja": "パスワード不要",
-    "ko": "암호 없음"
-  },
-  "放大连接二维码": {
-    "zh-Hans": "放大连接二维码",
-    "zh-Hant": "放大連線 QR 碼",
-    "en": "Enlarge Wi-Fi QR code",
-    "ja": "接続 QR コードを拡大",
-    "ko": "Wi-Fi QR 코드 확대"
-  },
-  "切换 Wi-Fi 频段": {
-    "zh-Hans": "切换 Wi-Fi 频段",
-    "zh-Hant": "切換 Wi-Fi 頻段",
-    "en": "Switch Wi-Fi band",
-    "ja": "Wi-Fi の周波数帯を切り替え",
-    "ko": "Wi-Fi 대역 전환"
-  },
-  "隐藏密码": {
-    "zh-Hans": "隐藏密码",
-    "zh-Hant": "隱藏密碼",
-    "en": "Hide password",
-    "ja": "パスワードを隠す",
-    "ko": "암호 숨기기"
-  },
-  "显示密码": {
-    "zh-Hans": "显示密码",
-    "zh-Hant": "顯示密碼",
-    "en": "Show password",
-    "ja": "パスワードを表示",
-    "ko": "암호 표시"
-  },
-  "点二维码放大": {
-    "zh-Hans": "点二维码放大",
-    "zh-Hant": "點 QR 碼放大",
-    "en": "Tap QR to enlarge",
-    "ja": "QR をタップで拡大",
-    "ko": "QR 코드를 눌러 확대"
-  },
-  "返回": {
-    "zh-Hans": "返回",
-    "zh-Hant": "返回",
-    "en": "Back",
-    "ja": "戻る",
-    "ko": "돌아가기"
-  },
-  "中国移动": {
-    "zh-Hans": "中国移动",
-    "zh-Hant": "中國移動",
-    "en": "China Mobile",
-    "ja": "中国移動",
-    "ko": "차이나 모바일"
-  },
-  "中国联通": {
-    "zh-Hans": "中国联通",
-    "zh-Hant": "中國聯通",
-    "en": "China Unicom",
-    "ja": "中国聯通",
-    "ko": "차이나 유니콤"
-  },
-  "中国电信": {
-    "zh-Hans": "中国电信",
-    "zh-Hant": "中國電信",
-    "en": "China Telecom",
-    "ja": "中国電信",
-    "ko": "차이나 텔레콤"
-  },
-  "中国广电": {
-    "zh-Hans": "中国广电",
-    "zh-Hant": "中國廣電",
-    "en": "China Broadnet",
-    "ja": "中国広電",
-    "ko": "차이나 브로드넷"
-  },
-  "内存使用率": {
-    "zh-Hans": "内存使用率",
-    "zh-Hant": "記憶體使用率",
-    "en": "Memory usage",
-    "ja": "メモリ使用率",
-    "ko": "메모리 사용률"
-  },
-  "最高温度": {
-    "zh-Hans": "最高温度",
-    "zh-Hant": "最高溫度",
-    "en": "Highest temperature",
-    "ja": "最高温度",
-    "ko": "최고 온도"
-  },
-  "指标": {
-    "zh-Hans": "指标",
-    "zh-Hant": "指標",
-    "en": "Metric",
-    "ja": "項目",
-    "ko": "지표"
-  },
-  "暂无有效读数": {
-    "zh-Hans": "暂无有效读数",
-    "zh-Hant": "暫無有效讀數",
-    "en": "No valid reading",
-    "ja": "有効な測定値なし",
-    "ko": "유효한 측정값 없음"
-  },
-  "正在积累趋势": {
-    "zh-Hans": "正在积累趋势",
-    "zh-Hant": "正在累積趨勢",
-    "en": "Collecting samples",
-    "ja": "データを収集中",
-    "ko": "데이터 수집 중"
-  },
-  "−2 分钟": {
-    "zh-Hans": "−2 分钟",
-    "zh-Hant": "−2 分鐘",
-    "en": "−2 min",
-    "ja": "−2 分",
-    "ko": "−2분"
-  },
-  "本页最近 2 分钟的观察记录；断线或暂停处留空。": {
-    "zh-Hans": "本页最近 2 分钟的观察记录；断线或暂停处留空。",
-    "zh-Hant": "本頁最近 2 分鐘的觀察記錄；斷線或暫停處留空。",
-    "en": "Observed on this page over the last 2 minutes. Gaps indicate disconnection or pauses.",
-    "ja": "このページで観測した直近2分間の記録です。切断・一時停止は空白で表示します。",
-    "ko": "이 페이지에서 관측한 최근 2분 기록입니다. 연결 끊김이나 일시 중지는 공백으로 표시합니다."
-  },
-  "流量": {
-    "zh-Hans": "流量",
-    "zh-Hant": "流量",
-    "en": "Traffic",
-    "ja": "通信量",
-    "ko": "트래픽"
-  },
-  "当前进程": {
-    "zh-Hans": "当前进程",
-    "zh-Hant": "執行中的程序",
-    "en": "Running processes",
-    "ja": "実行中のプロセス",
-    "ko": "실행 중인 프로세스"
-  },
-  "查看运行中的进程及 CPU、内存占用。": {
-    "zh-Hans": "查看运行中的进程及 CPU、内存占用。",
-    "zh-Hant": "查看執行中的程序及 CPU、記憶體用量。",
-    "en": "View running processes and their CPU and memory use.",
-    "ja": "実行中のプロセスと CPU・メモリ使用量を確認します。",
-    "ko": "실행 중인 프로세스와 CPU 및 메모리 사용량을 확인합니다."
-  },
-  "连接": {
-    "zh-Hans": "连接",
-    "zh-Hant": "連線",
-    "en": "Connect",
-    "ja": "接続",
-    "ko": "연결"
-  },
-  "管理": {
-    "zh-Hans": "管理",
-    "zh-Hant": "管理",
-    "en": "Manage",
-    "ja": "管理",
-    "ko": "관리"
-  },
-  "Wi-Fi 连接卡片": {
-    "zh-Hans": "Wi-Fi 连接卡片",
-    "zh-Hant": "Wi-Fi 連線卡片",
-    "en": "Wi-Fi connection card",
-    "ja": "Wi-Fi 接続カード",
-    "ko": "Wi-Fi 연결 카드"
-  },
-  "↓ 下载 / Mbps": {
-    "zh-Hans": "↓ 下载 / Mbps",
-    "zh-Hant": "↓ 下載 / Mbps",
-    "en": "↓ Download / Mbps",
-    "ja": "↓ 下り / Mbps",
-    "ko": "↓ 다운로드 / Mbps"
-  },
-  "↑ 上传 / Mbps": {
-    "zh-Hans": "↑ 上传 / Mbps",
-    "zh-Hant": "↑ 上傳 / Mbps",
-    "en": "↑ Upload / Mbps",
-    "ja": "↑ 上り / Mbps",
-    "ko": "↑ 업로드 / Mbps"
-  },
-  "代理服务": {
-    "zh-Hans": "代理服务",
-    "zh-Hant": "代理服務",
-    "en": "Proxy services",
-    "ja": "プロキシサービス",
-    "ko": "프록시 서비스"
-  },
-  "信号详情": {
-    "zh-Hans": "信号详情",
-    "zh-Hant": "訊號詳情",
-    "en": "Radio details",
-    "ja": "電波の詳細",
-    "ko": "신호 상세"
-  },
-  "固件未提供系统主题，沿用当前浅色或深色设置。": {
-    "zh-Hans": "固件未提供系统主题，沿用当前浅色或深色设置。",
-    "zh-Hant": "韌體未提供系統主題，沿用目前淺色或深色設定。",
-    "en": "The firmware has no system theme. The current light or dark appearance is retained.",
-    "ja": "ファームウェアにシステムテーマがないため、現在のライトまたはダーク設定を使用します。",
-    "ko": "펌웨어에서 시스템 테마를 제공하지 않아 현재 밝은 테마 또는 어두운 테마를 유지합니다."
-  },
-  "在线设备": {
-    "zh-Hans": "在线设备",
-    "zh-Hant": "線上裝置",
-    "en": "Online devices",
-    "ja": "接続中の端末",
-    "ko": "온라인 기기"
-  },
-  "外观、锁屏与管理访问": {
-    "zh-Hans": "外观、锁屏与管理访问",
-    "zh-Hant": "外觀、鎖定畫面與管理存取",
-    "en": "Appearance, lock and management access",
-    "ja": "外観・画面ロック・管理アクセス",
-    "ko": "외관, 화면 잠금 및 관리 접속"
-  },
-  "套餐与流量趋势": {
-    "zh-Hans": "套餐与流量趋势",
-    "zh-Hant": "方案與流量趨勢",
-    "en": "Plan and traffic trends",
-    "ja": "プランと通信量の推移",
-    "ko": "요금제 및 트래픽 추이"
-  },
-  "局域网、解析与访问规则": {
-    "zh-Hans": "局域网、解析与访问规则",
-    "zh-Hant": "區域網路、解析與存取規則",
-    "en": "LAN, DNS and access rules",
-    "ja": "LAN・名前解決・アクセスルール",
-    "ko": "LAN, DNS 및 접근 규칙"
-  },
-  "屏幕与安全": {
-    "zh-Hans": "屏幕与安全",
-    "zh-Hant": "螢幕與安全",
-    "en": "Screen & security",
-    "ja": "画面とセキュリティ",
-    "ko": "화면 및 보안"
-  },
-  "快捷指标": {
-    "zh-Hans": "快捷指标",
-    "zh-Hant": "快捷指標",
-    "en": "Quick metric",
-    "ja": "クイック指標",
-    "ko": "빠른 지표"
-  },
-  "显示": {
-    "zh-Hans": "显示",
-    "zh-Hant": "顯示",
-    "en": "Show",
-    "ja": "表示",
-    "ko": "표시"
-  },
-  "隐藏": {
-    "zh-Hans": "隐藏",
-    "zh-Hant": "隱藏",
-    "en": "Hide",
-    "ja": "非表示",
-    "ko": "숨기기"
-  },
-  "服务摘要": {
-    "zh-Hans": "服务摘要",
-    "zh-Hant": "服務摘要",
-    "en": "Service summary",
-    "ja": "サービス概要",
-    "ko": "서비스 요약"
-  },
-  "本月流量": {
-    "zh-Hans": "本月流量",
-    "zh-Hant": "本月流量",
-    "en": "Monthly data",
-    "ja": "今月の通信量",
-    "ko": "이번 달 데이터"
-  },
-  "流量套餐": {
-    "zh-Hans": "流量套餐",
-    "zh-Hant": "流量方案",
-    "en": "Data plan",
-    "ja": "データプラン",
-    "ko": "데이터 요금제"
-  },
-  "电源与电池": {
-    "zh-Hans": "电源与电池",
-    "zh-Hant": "電源與電池",
-    "en": "Power & battery",
-    "ja": "電源とバッテリー",
-    "ko": "전원 및 배터리"
-  },
-  "电量": {
-    "zh-Hans": "电量",
-    "zh-Hant": "電量",
-    "en": "Battery",
-    "ja": "バッテリー",
-    "ko": "배터리"
-  },
-  "设备维护、更新与备份": {
-    "zh-Hans": "设备维护、更新与备份",
-    "zh-Hant": "裝置維護、更新與備份",
-    "en": "Maintenance, updates and backup",
-    "ja": "保守・更新・バックアップ",
-    "ko": "기기 유지보수, 업데이트 및 백업"
-  },
-  "设备设置": {
-    "zh-Hans": "设备设置",
-    "zh-Hant": "裝置設定",
-    "en": "Device settings",
-    "ja": "端末設定",
-    "ko": "기기 설정"
-  },
-  "设置未能保存，已恢复原值。": {
-    "zh-Hans": "设置未能保存，已恢复原值。",
-    "zh-Hant": "設定未能儲存，已恢復原值。",
-    "en": "Settings could not be saved. The previous values were restored.",
-    "ja": "設定を保存できなかったため、元の値に戻しました。",
-    "ko": "설정을 저장하지 못해 이전 값으로 복원했습니다."
-  },
-  "跟随系统": {
-    "zh-Hans": "跟随系统",
-    "zh-Hant": "跟隨系統",
-    "en": "System theme",
-    "ja": "システム設定",
-    "ko": "시스템 테마"
-  },
-  "隐藏仅影响首页显示，不会停止服务。": {
-    "zh-Hans": "隐藏仅影响首页显示，不会停止服务。",
-    "zh-Hant": "隱藏僅影響首頁顯示，不會停止服務。",
-    "en": "Hiding only changes the home display. Services keep running.",
-    "ja": "非表示はホームの表示だけに適用されます。サービスは停止しません。",
-    "ko": "숨기기는 홈 화면 표시에만 적용되며 서비스는 계속 실행됩니다."
-  },
-  "隧道与对端": {
-    "zh-Hans": "隧道与对端",
-    "zh-Hant": "通道與對端",
-    "en": "Tunnels and peers",
-    "ja": "トンネルとピア",
-    "ko": "터널 및 피어"
-  },
-  "首页布局": {
-    "zh-Hans": "首页布局",
-    "zh-Hant": "首頁配置",
-    "en": "Home layout",
-    "ja": "ホームのレイアウト",
-    "ko": "홈 화면 구성"
-  },
-  "高级网络": {
-    "zh-Hans": "高级网络",
-    "zh-Hant": "進階網路",
-    "en": "Advanced network",
-    "ja": "高度なネットワーク設定",
-    "ko": "고급 네트워크"
-  },
-  "已应用并核对实际值。": {
-    "zh-Hans": "已应用并核对实际值。",
-    "zh-Hant": "已套用並核對實際值。",
-    "en": "Applied and verified.",
-    "ja": "適用し、実際の値を確認しました。",
-    "ko": "적용 후 실제 값을 확인했습니다."
-  },
-  "设备尚未确认修改，请核对实际状态。": {
-    "zh-Hans": "设备尚未确认修改，请核对实际状态。",
-    "zh-Hant": "裝置尚未確認修改，請核對實際狀態。",
-    "en": "The device has not confirmed the change. Check its actual state.",
-    "ja": "端末から変更を確認できませんでした。実際の状態を確認してください。",
-    "ko": "기기에서 변경을 확인하지 못했습니다. 실제 상태를 확인하세요."
-  },
-  "完成输入后自动应用；需要中断服务时会先提示。": {
-    "zh-Hans": "完成输入后自动应用；需要中断服务时会先提示。",
-    "zh-Hant": "完成輸入後自動套用；需要中斷服務時會先提示。",
-    "en": "Complete input to apply. Interrupting a service requires confirmation.",
-    "ja": "入力を完了すると適用します。サービスを中断する場合は確認します。",
-    "ko": "입력을 완료하면 적용됩니다. 서비스 중단이 필요한 경우 먼저 확인합니다."
-  },
-  "Web：组网与服务 → Mihomo。长配置与订阅可在 Web 编辑；各服务独立运行。": {
-    "zh-Hans": "Web：组网与服务 → Mihomo。长配置与订阅可在 Web 编辑；各服务独立运行。",
-    "zh-Hant": "Web：組網與服務 → Mihomo。長設定與訂閱可在 Web 編輯；各服務獨立執行。",
-    "en": "Web: Networking & services → Mihomo. Edit long configurations and subscriptions in the browser. Services run independently.",
-    "ja": "Web：ネットワークとサービス → Mihomo。長い設定やサブスクリプションはブラウザーで編集できます。各サービスは独立して動作します。",
-    "ko": "웹: 네트워크 및 서비스 → Mihomo. 긴 설정과 구독은 브라우저에서 편집하세요. 서비스는 독립적으로 실행됩니다."
-  },
-  "接收 Tailscale DNS": {
-    "zh-Hans": "接收 Tailscale DNS",
-    "zh-Hant": "接收 Tailscale DNS",
-    "en": "Accept Tailscale DNS",
-    "ja": "Tailscale DNS を使用",
-    "ko": "Tailscale DNS 사용"
-  },
-  "退出节点 IP（留空关闭）": {
-    "zh-Hans": "退出节点 IP（留空关闭）",
-    "zh-Hant": "出口節點 IP（留空關閉）",
-    "en": "Exit node IP (empty to disable)",
-    "ja": "出口ノード IP（空欄で無効）",
-    "ko": "출구 노드 IP (비우면 해제)"
-  },
-  "发布的路由需在 Tailscale 管理端批准。DNS 与退出节点作用于路由器，热点转发范围保持原配置。": {
-    "zh-Hans": "发布的路由需在 Tailscale 管理端批准。DNS 与退出节点作用于路由器，热点转发范围保持原配置。",
-    "zh-Hant": "發布的路由需在 Tailscale 管理端批准。DNS 與出口節點作用於路由器，熱點轉發範圍保持原設定。",
-    "en": "Advertised routes need admin approval. DNS and exit nodes apply to this router; hotspot forwarding keeps its configured scope.",
-    "ja": "公開ルートは管理画面で承認が必要です。DNS と出口ノードはルーターに適用され、ホットスポット転送の範囲は維持されます。",
-    "ko": "광고한 경로는 관리자 승인이 필요합니다. DNS와 출구 노드는 라우터에 적용되며 핫스팟 전달 범위는 유지됩니다."
-  },
-  "11 月 6 日 · 星期五": {
-    "zh-Hans": "11 月 6 日 · 星期五",
-    "zh-Hant": "11 月 6 日 · 星期五",
-    "en": "Nov 6 · Fri",
-    "ja": "11月6日 · 金曜日",
-    "ko": "11월 6일 · 금요일"
-  },
-  "设备时间未就绪": {
-    "zh-Hans": "设备时间未就绪",
-    "zh-Hant": "裝置時間未就緒",
-    "en": "Device time unavailable",
-    "ja": "端末時刻を取得できません",
-    "ko": "기기 시간 확인 불가"
-  },
-  "长按 1 秒解锁": {
-    "zh-Hans": "长按 1 秒解锁",
-    "zh-Hant": "長按 1 秒解鎖",
-    "en": "Hold 1 second to unlock",
-    "ja": "1 秒長押しで解除",
-    "ko": "1초 길게 눌러 잠금 해제"
-  },
-  "已联网": {
-    "zh-Hans": "已联网",
-    "zh-Hant": "已連線",
-    "en": "Connected",
-    "ja": "接続中",
-    "ko": "연결됨"
-  },
-  "未联网": {
-    "zh-Hans": "未联网",
-    "zh-Hant": "未連線",
-    "en": "Offline",
-    "ja": "未接続",
-    "ko": "오프라인"
-  },
-  "{0} 台设备": {
-    "zh-Hans": "{0} 台设备",
-    "zh-Hant": "{0} 臺裝置",
-    "en": "{0} devices",
-    "ja": "端末 {0} 台",
-    "ko": "기기 {0}대"
-  },
-  "运行中": {
-    "zh-Hans": "运行中",
-    "zh-Hant": "執行中",
-    "en": "Running",
-    "ja": "稼働中",
-    "ko": "실행 중"
-  },
-  "需要处理": {
-    "zh-Hans": "需要处理",
-    "zh-Hant": "需要處理",
-    "en": "Needs attention",
-    "ja": "要確認",
-    "ko": "확인 필요"
   }
 }

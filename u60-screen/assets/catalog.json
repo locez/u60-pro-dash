@@ -576,24 +576,12 @@
         {
           "label": "保存连接设置",
           "effect": "save"
-        },
-        {
-          "label": "开启飞行模式",
-          "effect": "airplane",
-          "danger": true,
-          "confirm": "蜂窝数据、通话和短信将不可用。"
-        },
-        {
-          "label": "恢复蜂窝联网",
-          "effect": "online"
         }
       ],
       "apis": [
         "GET /api/modem/status",
         "GET /api/modem/data",
-        "PUT /api/modem/data",
-        "POST /api/modem/airplane",
-        "POST /api/modem/online"
+        "PUT /api/modem/data"
       ],
       "warning": "应用后蜂窝或局域网连接可能短暂中断。"
     },
@@ -3363,27 +3351,32 @@
     },
     {
       "id": "power-save",
-      "title": "省电模式",
+      "title": "性能模式",
       "group": "power",
-      "description": "",
+      "description": "均衡、性能与省电，选择即应用。",
       "rows": [],
       "fields": [
         {
-          "key": "enabled",
-          "label": "启用省电模式",
-          "value": false,
-          "type": "toggle"
+          "key": "profile",
+          "label": "性能模式",
+          "value": "均衡",
+          "type": "select",
+          "options": [
+            "均衡",
+            "性能",
+            "省电"
+          ]
         }
       ],
       "actions": [
         {
-          "label": "应用省电模式",
+          "label": "应用设置",
           "effect": "save"
         }
       ],
       "apis": [
-        "POST /api/device/power-save",
-        "PUT /api/device/power-save"
+        "GET /api/device/operating",
+        "PUT /api/device/performance"
       ]
     },
     {
@@ -3868,6 +3861,28 @@
       "rows": [],
       "actions": [],
       "apis": []
+    },
+    {
+      "id": "mobile-modes",
+      "title": "连接设置",
+      "group": "mobile",
+      "description": "飞行模式、应用带宽分配与高铁优化。",
+      "apis": [
+        "GET /api/device/operating",
+        "POST /api/modem/airplane",
+        "PUT /api/modem/bandwidth"
+      ]
+    },
+    {
+      "id": "quick-controls",
+      "title": "快捷控制",
+      "group": "power",
+      "description": "飞行模式与性能三档。",
+      "apis": [
+        "GET /api/device/operating",
+        "POST /api/modem/airplane",
+        "PUT /api/device/performance"
+      ]
     }
   ]
 }

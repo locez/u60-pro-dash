@@ -37,7 +37,7 @@
 
   add('battery-details','电池详情','power',{apis:['GET /api/battery','GET /api/device/battery-info','GET /api/device/charger','GET /api/device/charge-control','PUT /api/device/charge-control'],rows:[['剩余电量','82%'],['状态','电池供电'],['温度','32.7 ℃'],['电压','4.18 V'],['电流','−420 mA'],['估算功率','1.76 W'],['充电器','未连接']],actions:[action('刷新电池信息','refresh')]});
   add('charge','充电策略','power',{apis:rw('/api/device/charge-control'),fields:[toggle('limit','启用充电上限',true),num('percent','充电上限 %',85,20,100),num('hysteresis','回充差值 %',5,1,20),toggle('stopped','直供电模式',false)],description:'达到上限停止，电量下降后按回充差值恢复。',actions:[action('保存充电策略','save')]});
-  add('power-save','省电模式','power',{apis:['POST /api/device/power-save','PUT /api/device/power-save'],fields:[toggle('enabled','启用省电模式',false)],actions:[action('应用省电模式','save')]});
+  add('power-save','性能模式','power',{apis:['GET /api/device/operating','PUT /api/device/performance'],description:'均衡、性能与省电，选择即应用。',fields:[select('profile','性能模式','均衡',['均衡','性能','省电'])],actions:[action('应用设置','save')]});
   add('fast-boot','快速启动','power',{apis:rw('/api/device/fast-boot'),fields:[toggle('enabled','开启快速启动',false)],actions:[action('保存启动设置','save')]});
   add('auto-sleep','自动休眠','power',{apis:rw('/api/device/auto-sleep'),fields:[toggle('enabled','启用自动休眠',false),select('timeout','空闲后休眠','10 分钟',['5 分钟','10 分钟','30 分钟','60 分钟'])],description:'设备休眠会影响远程访问。',actions:[action('保存休眠设置','save')]});
   add('usb','USB 与反向供电','power',{apis:['GET /api/usb/status','PUT /api/usb/mode','PUT /api/usb/powerbank'],rows:[['USB 状态','已连接'],['当前模式','USB 调试']],fields:[select('mode','USB 模式','USB 调试',['USB 调试','USB 网络共享','仅充电']),toggle('powerbank','为外部设备供电',false)],warning:'切换 USB 模式可能断开 ADB 连接。',actions:[action('应用 USB 设置','save')]});

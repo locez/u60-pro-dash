@@ -1262,6 +1262,64 @@ mod tests {
             platform::capture(&window, false);
             save(&format!("language-{code}.png"))?;
         }
+        // Real mode widgets use the existing confirmation/readback controller.
+        app.ui.invoke_set_language("zh-Hans".into());
+        let modes = serde_json::json!({"airplane":{"enabled":false},"bandwidth":{"supported":true,"mode":"normal"},"rail":{"active":false},"performance":{"supported":true,"available":["balanced","performance","saving"],"requested":null,"effective":"balanced","applied":true,"thermal_limited":false}});
+        app.ui.invoke_theme(false);
+        app.ui.set_connection_live(true);
+        app.open("mobile-modes")?;
+        app.feature_data_fixture("mobile-modes", fixture(vec![("operating", modes.clone())]));
+        assert_eq!(app.ui.get_operating_page(), "mobile-modes");
+        save("operating-mobile-light.png")?;
+        tap(270., 110.);
+        assert!(
+            app.ui.get_confirm_visible(),
+            "flight touch requires confirmation"
+        );
+        app.ui.invoke_confirm_cancel();
+        assert_eq!(app.ui.get_control_airplane(), 0);
+        app.ui.invoke_operating_bandwidth();
+        assert!(app.ui.get_choice_visible());
+        assert_eq!(app.ui.get_choices().row_count(), 6);
+        app.ui.invoke_choice_cancel();
+        app.open("power-save")?;
+        app.feature_data_fixture("power-save", fixture(vec![("operating", modes.clone())]));
+        save("operating-performance-light.png")?;
+        app.ui.invoke_theme(true);
+        save("operating-performance-dark.png")?;
+        tap(260., 125.);
+        assert!(
+            !app.ui.get_confirm_visible(),
+            "performance choice applies without a second confirmation"
+        );
+        assert_eq!(app.ui.get_control_profile(), "saving");
+        app.open("quick-controls")?;
+        app.feature_data_fixture(
+            "quick-controls",
+            fixture(vec![("operating", modes.clone())]),
+        );
+        save("operating-quick-dark.png")?;
+        app.ui.invoke_lock_now();
+        app.ui
+            .invoke_operating_change("airplane".into(), "true".into());
+        assert!(
+            !app.ui.get_confirm_visible(),
+            "locked callbacks cannot change modes"
+        );
+        assert_eq!(app.ui.get_control_airplane(), 0);
+        app.ui.set_airplane_state(1);
+        app.ui.set_performance_profile("saving".into());
+        app.ui.set_performance_label("省电".into());
+        app.ui.set_carrier_label("飞行模式".into());
+        app.ui.set_network_mode("飞行模式".into());
+        app.ui.set_download("—".into());
+        app.ui.set_upload("—".into());
+        app.ui.set_network_online(false);
+        save("operating-lock-flight-dark.png")?;
+        hold();
+        app.ui.set_airplane_state(0);
+        app.ui.set_performance_profile("balanced".into());
+        app.ui.set_performance_label("均衡".into());
         app.open("screen-lock")?;
         app.ui.invoke_pin_setup(false);
         platform::capture(&window, false);

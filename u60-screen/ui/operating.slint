@@ -1,0 +1,115 @@
+import { Palette, Label, Paragraph, GlassPanel, MenuRow } from "components.slint";
+
+export component ModeIcon inherits Path {
+    in property <string> kind;
+    width: 20px; height: 20px; viewbox-width: 24; viewbox-height: 24;
+    commands: root.kind == "airplane" ? "M 22 2 L 9 7 L 4 5 L 2 7 L 7 11 L 9 16 L 7 20 L 9 22 L 13 17 L 18 19 L 20 17 L 17 12 Z"
+        : root.kind == "performance" ? "M 4 19 A 10 10 0 1 1 20 19 M 12 14 L 17 7 M 6 19 H 18"
+        : root.kind == "saving" ? "M 20 3 C 5 3 2 9 6 16 C 13 23 23 14 20 3 M 4 21 L 16 9"
+        : root.kind == "thermal" ? "M 9 15 V 5 A 3 3 0 0 1 15 5 V 15 A 5 5 0 1 1 9 15 M 12 9 V 18 M 19 7 H 22 M 19 11 H 22"
+        : root.kind == "rail" ? "M 8 2 H 16 Q 19 2 19 5 V 16 Q 19 19 16 19 H 8 Q 5 19 5 16 V 5 Q 5 2 8 2 M 5 10 H 19 M 12 2 V 10 M 8 15 H 9 M 15 15 H 16 M 8 19 L 5 23 M 16 19 L 19 23"
+        : "M 12 3 V 20 M 5 20 H 19 M 4 7 L 20 5 M 5 7 L 2 15 H 8 Z M 19 5 L 16 13 H 22 Z";
+    stroke: Palette.accent-ink; stroke-width: 1.6px; stroke-line-cap: round; stroke-line-join: round;
+}
+
+export component ModeSummary inherits Rectangle {
+    in property <bool> airplane;
+    in property <string> profile;
+    in property <string> profile-label;
+    in property <bool> thermal;
+    in property <bool> rail;
+    in property <bool> interactive;
+    in property <bool> compact;
+    callback clicked;
+    height: 30px; border-radius: 8px;
+    background: Palette.accent.with-alpha(0.07);
+    HorizontalLayout {
+        padding-left: 10px; padding-right: 10px; spacing: 6px; alignment: start;
+        if root.airplane: Rectangle { width: 14px; ModeIcon { y: (parent.height - 14px)/2; kind: "airplane"; width: 14px; height: 14px; } }
+        if root.airplane: Label { text: @tr("飞行模式"); width: self.preferred-width; font-size: 11px; color: Palette.accent-ink; vertical-alignment: center; }
+        if root.profile != "" && !(root.compact && (root.thermal || root.rail)): Rectangle { width: 14px; ModeIcon { y: (parent.height - 14px)/2; kind: root.profile; width: 14px; height: 14px; } }
+        if root.profile != "": Label { text: root.profile-label; width: self.preferred-width; font-size: 11px; color: Palette.accent-ink; vertical-alignment: center; }
+        if root.thermal || root.rail: Rectangle { width: 14px; ModeIcon { y: (parent.height - 14px)/2; kind: root.thermal ? "thermal" : "rail"; width: 14px; height: 14px; stroke: root.thermal ? Palette.warning : Palette.accent-ink; } }
+        if root.profile == "" && !root.airplane: Label { text: @tr("状态未知"); color: Palette.muted; font-size: 11px; vertical-alignment: center; }
+        Rectangle { horizontal-stretch: 1; }
+        if root.interactive: Label { text: "›"; width: 12px; font-size: 19px; color: Palette.accent-ink; vertical-alignment: center; }
+    }
+    TouchArea { enabled: root.interactive; accessible-role: button; accessible-label: @tr("快捷控制"); clicked => { root.clicked(); } }
+}
+
+export component OperatingControls inherits VerticalLayout {
+    in property <string> page;
+    in property <bool> enabled;
+    in property <int> airplane: -1;
+    in property <string> profile;
+    in property <bool> balanced-enabled;
+    in property <bool> performance-enabled;
+    in property <bool> saving-enabled;
+    in property <bool> profile-applied;
+    in property <bool> thermal;
+    in property <string> rail;
+    in property <string> bandwidth;
+    in property <bool> bandwidth-enabled;
+    callback change(string,string);
+    callback edit-bandwidth;
+    callback open(string);
+    spacing: 14px;
+    if root.page != "power-save": GlassPanel {
+        height: 88px;
+        ModeIcon { x: 12px; y: 15px; kind: "airplane"; }
+        Label { x: 42px; y: 10px; width: 175px; height: 28px; text: @tr("飞行模式"); font-size: 16px; font-weight: 650; }
+        Label { x: 12px; y: 49px; width: parent.width - 24px; height: 30px; text: root.airplane < 0 ? @tr("状态未知") : @tr("保留 Wi-Fi、USB 与本地管理"); font-size: 12px; color: Palette.muted; }
+        Rectangle {
+            x: parent.width - 54px; y: 17px; width: 40px; height: 22px; border-radius: 11px;
+            background: root.airplane == 1 ? Palette.accent : Palette.line;
+            opacity: root.enabled && root.airplane >= 0 ? 1 : 0.4;
+            Rectangle { x: root.airplane == 1 ? 20px : 2px; y: 2px; width: 18px; height: 18px; border-radius: 9px; background: #fff; }
+        }
+        TouchArea {
+            enabled: root.enabled && root.airplane >= 0;
+            accessible-role: checkbox; accessible-label: @tr("飞行模式"); accessible-checked: root.airplane == 1;
+            clicked => { root.change("airplane", root.airplane == 1 ? "false" : "true"); }
+        }
+    }
+    if root.page != "mobile-modes": VerticalLayout {
+        spacing: 10px;
+        HorizontalLayout {
+            Label { text: @tr("性能模式"); height: 24px; font-size: 14px; font-weight: 650; }
+            Label { text: @tr("选择即应用"); height: 24px; font-size: 11px; color: Palette.muted; horizontal-alignment: right; }
+        }
+        HorizontalLayout {
+            height: 68px; spacing: 7px;
+            for option in [{id:"balanced",label:@tr("均衡"),available:root.balanced-enabled},{id:"performance",label:@tr("性能"),available:root.performance-enabled},{id:"saving",label:@tr("省电"),available:root.saving-enabled}]: Rectangle {
+                horizontal-stretch: 1; min-width: 0px; border-radius: 10px;
+                background: root.profile == option.id ? Palette.accent.with-alpha(0.14) : Palette.surface;
+                border-width: 1px; border-color: root.profile == option.id ? Palette.accent-ink : Palette.line;
+                opacity: option.available ? 1 : 0.4;
+                ModeIcon { x: (parent.width - 20px)/2; y: 10px; kind: option.id; stroke: root.profile == option.id ? Palette.accent-ink : Palette.muted; }
+                Label { y: 37px; height: 22px; width: parent.width; text: option.label; font-size: 12px; horizontal-alignment: center; color: root.profile == option.id ? Palette.accent-ink : Palette.muted; }
+                TouchArea { enabled: root.enabled && option.available; accessible-role: button; accessible-label: option.label; clicked => { root.change("profile", option.id); } }
+            }
+        }
+        Paragraph { text: !root.balanced-enabled && !root.performance-enabled && !root.saving-enabled ? @tr("此设置暂不可用。") : root.profile == "performance" ? @tr("优先响应与处理能力，温度和功耗可能上升。") : root.profile == "saving" ? @tr("降低处理频率，吞吐能力可能下降。") : @tr("按需调整，兼顾响应、温度与功耗。"); font-size: 12px; color: Palette.muted; }
+        if !root.profile-applied: Paragraph { text: @tr("所选模式尚未生效，请核对设备状态。"); color: Palette.warning; font-size: 12px; }
+        if root.thermal: Paragraph { text: @tr("温度保护正在限频，保留所选模式。"); color: Palette.warning; font-size: 12px; }
+    }
+    if root.page == "mobile-modes": VerticalLayout {
+        spacing: 8px;
+        MenuRow { title: @tr("应用带宽分配"); subtitle: root.bandwidth; clicked => { if root.enabled && root.bandwidth-enabled { root.edit-bandwidth(); } } }
+        Paragraph { text: @tr("极速：不区分应用优先级，按需使用带宽。"); color: Palette.muted; font-size: 12px; }
+        if root.airplane == 1: Paragraph { text: @tr("蜂窝恢复后继续使用所选带宽策略。"); color: Palette.muted; font-size: 12px; }
+    }
+    if root.page != "power-save": Rectangle {
+        height: 58px;
+        ModeIcon { x: 0px; y: 11px; kind: "rail"; stroke: Palette.muted; }
+        Label { x: 30px; y: 5px; width: parent.width - 30px; height: 24px; text: @tr("高铁优化") + " · " + @tr("自动"); font-size: 13px; font-weight: 600; }
+        Label { x: 30px; y: 31px; width: parent.width - 30px; height: 22px; text: root.rail; font-size: 12px; color: Palette.muted; }
+    }
+    if root.page == "quick-controls": HorizontalLayout {
+        height: 38px; spacing: 8px;
+        for link in [{id:"mobile-modes",title:@tr("移动网络")},{id:"power-save",title:@tr("电源与电池")}]: Rectangle {
+            Label { text: link.title + " ›"; font-size: 12px; color: Palette.accent-ink; vertical-alignment: center; }
+            TouchArea { clicked => { root.open(link.id); } }
+        }
+    }
+}

@@ -17,6 +17,9 @@ msgstr "U60 → Tailscale → Goals"
 msgid "U60 · 原生屏幕预览"
 msgstr "U60 · Screen preview"
 
+msgid "Wi-Fi 可用"
+msgstr "Wi-Fi available"
+
 msgid "Wi-Fi 连接卡片"
 msgstr "Wi-Fi connection card"
 
@@ -31,6 +34,12 @@ msgstr "↓ Download / Mbps"
 
 msgid "−2 分钟"
 msgstr "−2 min"
+
+msgid "优先响应与处理能力，温度和功耗可能上升。"
+msgstr "Prioritize responsiveness; heat and power use may increase."
+
+msgid "保留 Wi-Fi、USB 与本地管理"
+msgstr "Keep Wi-Fi, USB and local access"
 
 msgid "信号详情"
 msgstr "Radio details"
@@ -68,6 +77,9 @@ msgstr "Activate and lock automatically after screening. After opening the passw
 msgid "固件未提供系统主题，沿用当前浅色或深色设置。"
 msgstr "The firmware has no system theme. The current light or dark appearance is retained."
 
+msgid "均衡"
+msgstr "Balanced"
+
 msgid "处理中"
 msgstr "Working"
 
@@ -92,6 +104,9 @@ msgstr "Connected"
 msgid "已连接"
 msgstr "Connected"
 
+msgid "应用带宽分配"
+msgstr "Bandwidth allocation"
+
 msgid "强调色"
 msgstr "Accent color"
 
@@ -103,6 +118,21 @@ msgstr "These readings are demo data."
 
 msgid "快捷指标"
 msgstr "Quick metric"
+
+msgid "快捷控制"
+msgstr "Quick controls"
+
+msgid "性能"
+msgstr "Performance"
+
+msgid "性能模式"
+msgstr "Performance mode"
+
+msgid "所选模式尚未生效，请核对设备状态。"
+msgstr "The selected profile is not currently applied. Check device status before retrying."
+
+msgid "按需调整，兼顾响应、温度与功耗。"
+msgstr "Balance responsiveness, temperature and power use."
 
 msgid "换行"
 msgstr "Enter"
@@ -149,6 +179,9 @@ msgstr "The body screen connects to the home computer's backend account. You can
 msgid "松开继续"
 msgstr "Release to continue"
 
+msgid "极速：不区分应用优先级，按需使用带宽。"
+msgstr "Top speed: use bandwidth as needed, without app priority."
+
 msgid "查看设置与操作需要密码"
 msgstr "PIN required for settings"
 
@@ -160,6 +193,9 @@ msgstr "Collecting samples"
 
 msgid "正在读取 Wi-Fi…"
 msgstr "Reading Wi-Fi…"
+
+msgid "此设置暂不可用。"
+msgstr "This setting is temporarily unavailable."
 
 msgid "流量套餐"
 msgstr "Data plan"
@@ -173,6 +209,9 @@ msgstr "Dark"
 msgid "清空"
 msgstr "Clear"
 
+msgid "温度保护正在限频，保留所选模式。"
+msgstr "Temperature protection is limiting processing capacity. Your selected profile is retained."
+
 msgid "演示"
 msgstr "Demo"
 
@@ -185,11 +224,20 @@ msgstr "Screen off"
 msgid "状态"
 msgstr "Status"
 
+msgid "状态未知"
+msgstr "Unknown state"
+
 msgid "电池供电"
 msgstr "Battery powered"
 
+msgid "电源与电池"
+msgstr "Power & battery"
+
 msgid "界面主题"
 msgstr "Theme"
+
+msgid "省电"
+msgstr "Power saving"
 
 msgid "知道了"
 msgstr "Got it"
@@ -203,6 +251,9 @@ msgstr "Confirm action"
 msgid "确认操作"
 msgstr "Confirm action"
 
+msgid "移动网络"
+msgstr "Mobile network"
+
 msgid "空格"
 msgstr "Space"
 
@@ -212,11 +263,23 @@ msgstr "Lock now"
 msgid "管理"
 msgstr "Manage"
 
+msgid "自动"
+msgstr "Automatic"
+
 msgid "自动熄屏"
 msgstr "Automatic sleep"
 
 msgid "自定义颜色"
 msgstr "Custom color"
+
+msgid "蜂窝恢复后继续使用所选带宽策略。"
+msgstr "Mobile radio is off. Your bandwidth choice is retained."
+
+msgid "蜂窝流量已暂停"
+msgstr "Cellular traffic paused"
+
+msgid "蜂窝网络已关闭"
+msgstr "Cellular radio off"
 
 msgid "设置目标 IP 和端口"
 msgstr "Set the target IP and port"
@@ -245,11 +308,17 @@ msgstr "Connection history"
 msgid "退格"
 msgstr "Backspace"
 
+msgid "选择即应用"
+msgstr "Settings apply automatically."
+
 msgid "重新连接"
 msgstr "Reconnect"
 
 msgid "长按 1 秒解锁"
 msgstr "Hold 1 second to unlock"
+
+msgid "降低处理频率，吞吐能力可能下降。"
+msgstr "Reduce CPU frequency; throughput may decrease."
 
 msgid "随身网络"
 msgstr "Mobile hotspot"
@@ -263,5 +332,11 @@ msgstr "Hiding only changes the home display. Services keep running."
 msgid "隐藏密码"
 msgstr "Hide password"
 
+msgid "飞行模式"
+msgstr "Airplane mode"
+
 msgid "首页布局"
 msgstr "Home layout"
+
+msgid "高铁优化"
+msgstr "High-speed rail optimization"

@@ -2,6 +2,7 @@ import { Palette, Label, Paragraph, TapButton, MenuRow, Stat, Brightness, Traffi
 import { LockScreen, PinPad } from "lock.slint";
 import { TextEditor } from "editor.slint";
 import { StatusBar } from "status.slint";
+import { ModeSummary, OperatingControls } from "operating.slint";
 import { WifiCard } from "wifi.slint";
 import { Reading, Trend, TrendPlot, Meter, DataRow, ReadingTable, TrendCard, MeterGrid, DataTable } from "data.slint";
 import "../assets/U60Sans.ttf";
@@ -69,6 +70,24 @@ export component Screen inherits Window {
     in-out property <string> confirm-body;
     in-out property <string> confirm-phrase;
     in-out property <string> confirm-word;
+    in-out property <string> operating-page;
+    in-out property <int> airplane-state: -1;
+    in-out property <string> performance-profile;
+    in-out property <string> performance-label;
+    in-out property <bool> thermal-limited;
+    in-out property <bool> rail-active;
+    in-out property <int> control-airplane: -1;
+    in-out property <string> control-profile;
+    in-out property <bool> control-balanced;
+    in-out property <bool> control-performance;
+    in-out property <bool> control-saving;
+    in-out property <bool> control-applied: true;
+    in-out property <bool> control-thermal;
+    in-out property <string> control-rail;
+    in-out property <string> control-bandwidth;
+    in-out property <bool> control-bandwidth-enabled;
+    callback operating-change(string,string);
+    callback operating-bandwidth;
     callback feature-edit(int);
     callback feature-action(int);
     callback feature-refresh;
@@ -216,6 +235,10 @@ export component Screen inherits Window {
             battery: root.battery; battery-level: root.battery-level;
             charging: root.charging; external-power: root.external-power; bypass-power: root.bypass-power;
             power-label: root.power-label;
+            airplane: root.airplane-state == 1; profile: root.performance-profile;
+            thermal: root.thermal-limited; rail: root.rail-active;
+            interactive: !root.locked && !root.asleep;
+            clicked => { root.open("quick-controls"); }
         }
         Rectangle {
             y: 28px; width: parent.width; height: 40px;
@@ -230,6 +253,12 @@ export component Screen inherits Window {
                     padding-top: 3px; padding-bottom: 6px; spacing: 2px;
 
                     Label { text: root.view == 0 ? root.carrier-label : root.heading; height: 30px; font-size: 19px; font-weight: 650; }
+                }
+                if root.view == 0: ModeSummary {
+                    width: 124px; height: 28px; compact: true;
+                    profile: root.performance-profile; profile-label: root.performance-label;
+                    thermal: root.thermal-limited; rail: root.rail-active; interactive: true;
+                    clicked => { root.open("quick-controls"); }
                 }
             }
         }
@@ -451,9 +480,21 @@ export component Screen inherits Window {
                             Paragraph { text: root.feature-content; font-size: 16px; }
                         }
                     }
+                    if root.operating-page != "": OperatingControls {
+                        page: root.operating-page; enabled: !root.feature-busy && (root.connection-live || root.demo);
+                        airplane: root.control-airplane; profile: root.control-profile;
+                        balanced-enabled: root.control-balanced; performance-enabled: root.control-performance; saving-enabled: root.control-saving;
+                        profile-applied: root.control-applied; thermal: root.control-thermal; rail: root.control-rail;
+                        bandwidth: root.control-bandwidth; bandwidth-enabled: root.control-bandwidth-enabled;
+                        change(key,value) => { root.operating-change(key,value); }
+                        edit-bandwidth => { root.operating-bandwidth(); }
+                        open(id) => { root.open(id); }
+                    }
+                    if root.operating-page == "": VerticalLayout {
                     for field in root.feature-fields: MenuRow {
                         title: field.title; subtitle: field.subtitle; tag: field.tag;
                         clicked => { root.feature-edit(field.index); }
+                    }
                     }
                     feature-list := VerticalLayout {
                         spacing: 8px;
@@ -562,6 +603,8 @@ export component Screen inherits Window {
             activity => { root.activity(); }
         }
         if root.locked && !root.pin-visible: LockScreen {
+            airplane: root.airplane-state == 1; profile: root.performance-profile; profile-label: root.performance-label;
+            thermal: root.thermal-limited; rail: root.rail-active;
             width: parent.width; height: parent.height;
             pin-enabled: root.pin-enabled; awake: !root.asleep; progress: root.hold-progress;
             clock: root.lock-clock; date: root.lock-date;

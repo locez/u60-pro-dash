@@ -2,6 +2,12 @@
 use super::Data;
 use serde_json::{Value, json};
 pub fn timeline(id: &str) -> Option<Vec<Data>> {
+    if matches!(id, "quick-controls" | "mobile-modes" | "power-save") {
+        return Some(vec![[ ("operating".into(), Ok(json!({
+            "airplane":{"enabled":false}, "bandwidth":{"supported":true,"mode":"normal"}, "rail":{"active":false},
+            "performance":{"supported":true,"available":["balanced","performance","saving"],"requested":null,"effective":"balanced","applied":true,"thermal_limited":false}
+        }))) ].into()]);
+    }
     if !matches!(
         id,
         "resources" | "traffic" | "signal-live" | "battery-details"

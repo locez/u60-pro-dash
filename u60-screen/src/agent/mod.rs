@@ -99,6 +99,7 @@ impl Snapshot {
             "traffic" => 2000,
             "signal" | "health" => 4000,
             "battery" | "charger" => 10_000,
+            "operating" => 5_000,
             "clients" => 20_000,
             _ => 60_000,
         };

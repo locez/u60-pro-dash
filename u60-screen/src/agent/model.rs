@@ -119,7 +119,15 @@ pub struct Dashboard {
 impl Dashboard {
     pub fn read(state: &Snapshot) -> Self {
         let null = Value::Null;
-        let signal = state.get("signal").unwrap_or(&null);
+        let radio = state
+            .get("operating")
+            .and_then(|v| v["airplane"]["enabled"].as_bool());
+        let unavailable = state.values.contains_key("operating") && radio != Some(false);
+        let signal = if unavailable {
+            &null
+        } else {
+            state.get("signal").unwrap_or(&null)
+        };
         let traffic = state.get("traffic").unwrap_or(&null);
         let battery = state.get("battery").unwrap_or(&null);
         let charger = state.get("charger").unwrap_or(&null);
@@ -181,6 +189,9 @@ impl Dashboard {
             format!("{network} · {band}")
         };
         let rate = |key: &str| {
+            if unavailable {
+                return "—".to_string();
+            }
             number(&traffic[key])
                 .filter(|v| *v >= 0.)
                 .map(|v| format!("{:.1}", v * 8. / 1e6))
@@ -192,7 +203,13 @@ impl Dashboard {
             battery_level: capacity.map_or(-1, |v| v.round() as i32),
             power: Power::read(battery, charger),
             network_badge: network_badge.into(),
-            carrier: if no_service {
+            carrier: if unavailable
+                && state
+                    .get("operating")
+                    .is_some_and(|v| v["airplane"]["enabled"] == true)
+            {
+                crate::i18n::tr("飞行模式").into()
+            } else if no_service {
                 crate::i18n::tr("无服务").into()
             } else {
                 signal["network_provider"]
@@ -206,7 +223,19 @@ impl Dashboard {
             signal_level,
             online: measured.is_some(),
             rsrp: measured.map(|v| format!("{v:.0}")).unwrap_or("—".into()),
-            network,
+            network: if unavailable {
+                if state
+                    .get("operating")
+                    .is_some_and(|v| v["airplane"]["enabled"] == true)
+                {
+                    crate::i18n::tr("飞行模式")
+                } else {
+                    crate::i18n::tr("状态未知")
+                }
+                .into()
+            } else {
+                network
+            },
             radio,
             download: rate("real_rx_speed"),
             upload: rate("real_tx_speed"),
@@ -223,6 +252,27 @@ mod tests {
     use super::*;
     use crate::agent::{Sample, Status};
     use serde_json::json;
+    #[test]
+    fn flight_and_unknown_radio_hide_stale_signal_and_speed() {
+        for mode in [json!(true), Value::Null] {
+            let state = Snapshot::live_fixture(&[
+                (
+                    "signal",
+                    json!({"network_type":"SA","nr5g_rsrp":-72,"network_provider":"UNICOM"}),
+                ),
+                (
+                    "traffic",
+                    json!({"real_rx_speed":1_000_000,"real_tx_speed":100_000}),
+                ),
+                ("operating", json!({"airplane":{"enabled":mode}})),
+            ]);
+            let d = Dashboard::read(&state);
+            assert!(!d.online);
+            assert_eq!(d.signal_level, -1);
+            assert_ne!(d.network_badge, "5G");
+            assert_eq!(d.download, "—");
+        }
+    }
     #[test]
     fn power_distinguishes_charging_bypass_full_unplugged_and_unknown() {
         for (status, charger, expected) in [

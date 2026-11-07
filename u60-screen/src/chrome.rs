@@ -147,6 +147,12 @@ impl Chrome {
         }
         let pair = snapshot
             .get("traffic")
+            .filter(|_| {
+                !snapshot.values.contains_key("operating")
+                    || snapshot
+                        .get("operating")
+                        .is_some_and(|v| v["airplane"]["enabled"] == false)
+            })
             .map(|v| [rate(&v["real_rx_speed"]), rate(&v["real_tx_speed"])])
             .unwrap_or([None; 2]);
         if self.history.record(now, pair) {

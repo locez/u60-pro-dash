@@ -17,6 +17,9 @@ msgstr "U60 → Tailscale → 目標"
 msgid "U60 · 原生屏幕预览"
 msgstr "U60 · 画面プレビュー"
 
+msgid "Wi-Fi 可用"
+msgstr "Wi-Fi 利用可能"
+
 msgid "Wi-Fi 连接卡片"
 msgstr "Wi-Fi 接続カード"
 
@@ -31,6 +34,12 @@ msgstr "↓ 下り / Mbps"
 
 msgid "−2 分钟"
 msgstr "−2 分"
+
+msgid "优先响应与处理能力，温度和功耗可能上升。"
+msgstr "応答性を優先。温度と消費電力が上がる場合があります。"
+
+msgid "保留 Wi-Fi、USB 与本地管理"
+msgstr "Wi-Fi、USB、ローカル管理を維持"
 
 msgid "信号详情"
 msgstr "電波の詳細"
@@ -68,6 +77,9 @@ msgstr "起動後,スクリーンで自動ロックします. パスワードを
 msgid "固件未提供系统主题，沿用当前浅色或深色设置。"
 msgstr "ファームウェアにシステムテーマがないため、現在のライトまたはダーク設定を使用します。"
 
+msgid "均衡"
+msgstr "バランス"
+
 msgid "处理中"
 msgstr "処理中"
 
@@ -92,6 +104,9 @@ msgstr "接続中"
 msgid "已连接"
 msgstr "接続済み"
 
+msgid "应用带宽分配"
+msgstr "アプリの帯域割り当て"
+
 msgid "强调色"
 msgstr "アクセントカラー"
 
@@ -103,6 +118,21 @@ msgstr "これはデモデータです"
 
 msgid "快捷指标"
 msgstr "クイック指標"
+
+msgid "快捷控制"
+msgstr "クイック操作"
+
+msgid "性能"
+msgstr "パフォーマンス"
+
+msgid "性能模式"
+msgstr "パフォーマンスモード"
+
+msgid "所选模式尚未生效，请核对设备状态。"
+msgstr "選択したモードは未適用です。端末の状態を確認してください。"
+
+msgid "按需调整，兼顾响应、温度与功耗。"
+msgstr "応答性、温度、消費電力を必要に応じて調整。"
 
 msgid "换行"
 msgstr "改行"
@@ -149,6 +179,9 @@ msgstr "ボディスクリーンで本機のバックドアのアカウントを
 msgid "松开继续"
 msgstr "指を離して続行"
 
+msgid "极速：不区分应用优先级，按需使用带宽。"
+msgstr "最高速：アプリを優先せず、必要に応じて帯域を使用。"
+
 msgid "查看设置与操作需要密码"
 msgstr "設定と操作には PIN が必要"
 
@@ -160,6 +193,9 @@ msgstr "データを収集中"
 
 msgid "正在读取 Wi-Fi…"
 msgstr "Wi-Fi を読み込み中…"
+
+msgid "此设置暂不可用。"
+msgstr "この設定は一時的に利用できません."
 
 msgid "流量套餐"
 msgstr "データプラン"
@@ -173,6 +209,9 @@ msgstr "ダーク"
 msgid "清空"
 msgstr "クリア"
 
+msgid "温度保护正在限频，保留所选模式。"
+msgstr "温度保護により処理能力を制限中です。選択モードは保持されます。"
+
 msgid "演示"
 msgstr "デモ"
 
@@ -185,11 +224,20 @@ msgstr "画面を消灯"
 msgid "状态"
 msgstr "状態"
 
+msgid "状态未知"
+msgstr "状態不明"
+
 msgid "电池供电"
 msgstr "バッテリー駆動"
 
+msgid "电源与电池"
+msgstr "電源とバッテリー"
+
 msgid "界面主题"
 msgstr "テーマ"
+
+msgid "省电"
+msgstr "省電力"
 
 msgid "知道了"
 msgstr "わかった"
@@ -203,6 +251,9 @@ msgstr "操作の確認"
 msgid "确认操作"
 msgstr "操作の確認"
 
+msgid "移动网络"
+msgstr "モバイルネットワーク"
+
 msgid "空格"
 msgstr "空白"
 
@@ -212,11 +263,23 @@ msgstr "鍵を閉じて"
 msgid "管理"
 msgstr "管理"
 
+msgid "自动"
+msgstr "自動"
+
 msgid "自动熄屏"
 msgstr "自動消灯"
 
 msgid "自定义颜色"
 msgstr "色を指定"
+
+msgid "蜂窝恢复后继续使用所选带宽策略。"
+msgstr "モバイル無線の再開後も選択した帯域設定を使用します。"
+
+msgid "蜂窝流量已暂停"
+msgstr "モバイル通信は一時停止中"
+
+msgid "蜂窝网络已关闭"
+msgstr "モバイル無線オフ"
 
 msgid "设置目标 IP 和端口"
 msgstr "ターゲットIPとポートを設定する"
@@ -245,11 +308,17 @@ msgstr "接続履歴"
 msgid "退格"
 msgstr "削除"
 
+msgid "选择即应用"
+msgstr "選択すると適用"
+
 msgid "重新连接"
 msgstr "再接続"
 
 msgid "长按 1 秒解锁"
 msgstr "1 秒長押しで解除"
+
+msgid "降低处理频率，吞吐能力可能下降。"
+msgstr "CPU 周波数を抑制。転送性能が低下する場合があります。"
 
 msgid "随身网络"
 msgstr "モバイルルーター"
@@ -263,5 +332,11 @@ msgstr "非表示はホームの表示だけに適用されます。サービス
 msgid "隐藏密码"
 msgstr "パスワードを隠す"
 
+msgid "飞行模式"
+msgstr "機内モード"
+
 msgid "首页布局"
 msgstr "ホームのレイアウト"
+
+msgid "高铁优化"
+msgstr "高速鉄道向け最適化"

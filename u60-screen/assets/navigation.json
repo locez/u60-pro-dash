@@ -331,7 +331,8 @@
       "group": "power"
     },
     "power-save": {
-      "group": "power"
+      "group": "power",
+      "title": "性能模式"
     },
     "fast-boot": {
       "group": "power"
@@ -381,6 +382,12 @@
     },
     "screen-lock": {
       "group": "screen-security"
+    },
+    "mobile-modes": {
+      "group": "mobile"
+    },
+    "quick-controls": {
+      "group": "power"
     }
   }
 }

@@ -8,6 +8,7 @@ mod history;
 mod lists;
 mod messages;
 mod network;
+pub(crate) mod operating;
 mod proxy;
 mod radio;
 mod refresh;
@@ -408,7 +409,8 @@ pub fn reads(id: &str) -> Option<Vec<Read>> {
     if id == "history" {
         return Some(vec![]);
     }
-    settings::reads(id)
+    operating::reads(id)
+        .or_else(|| settings::reads(id))
         .or_else(|| status::reads(id))
         .or_else(|| network::reads(id))
         .or_else(|| lists::reads(id))
@@ -445,6 +447,9 @@ pub fn page(id: &str, readings: &Data) -> Page {
     result
 }
 fn feature_page(id: &str, readings: &Data) -> Page {
+    if operating::reads(id).is_some() {
+        return operating::page(id, readings);
+    }
     if proxy::reads(id).is_some() {
         return proxy::page(id, readings);
     }
@@ -510,6 +515,9 @@ pub fn visibility(id: &str, page: &mut Page) {
     }
 }
 pub fn plan(id: &str, action: &str, page: &Page, readings: &Data) -> Result<Plan> {
+    if operating::reads(id).is_some() {
+        return operating::plan(id, action, page, readings);
+    }
     if proxy::reads(id).is_some() {
         return proxy::plan(id, action, page, readings);
     }
@@ -592,6 +600,7 @@ fn qr_pixels(value: &str, size: u32, min_version: u8, minimum_scale: i32) -> Opt
 }
 pub fn topics(id: &str) -> &'static [&'static str] {
     match id {
+        "quick-controls" | "mobile-modes" | "power-save" => &["operating"],
         "signal-live" | "carriers" => &["signal"],
         "resources" => &["health"],
         "battery-details" => &["charger", "battery_info"],

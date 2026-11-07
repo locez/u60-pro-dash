@@ -1,7 +1,13 @@
 import { Palette, Label, TapButton, AmbientBackground } from "components.slint";
+import { ModeSummary } from "operating.slint";
 import { StatusBar } from "status.slint";
 
 export component LockScreen inherits AmbientBackground {
+    in property <bool> airplane;
+    in property <string> profile;
+    in property <string> profile-label;
+    in property <bool> thermal;
+    in property <bool> rail;
     in property <bool> pin-enabled;
     in property <bool> awake: true;
     in property <float> progress;
@@ -38,26 +44,31 @@ export component LockScreen inherits AmbientBackground {
         wifi-enabled: root.wifi-enabled;
         battery: root.battery; battery-level: root.battery-level;
         charging: root.charging; external-power: root.external-power; bypass-power: root.bypass-power;
-        power-label: root.power-label;
+        power-label: root.power-label; airplane: root.airplane; profile: root.profile; thermal: root.thermal; rail: root.rail;
     }
     Label {
-        x: 24px; y: 51px; width: parent.width - 48px; height: 65px;
+        x: 24px; y: 40px; width: parent.width - 48px; height: 65px;
         text: root.clock; font-size: 48px; font-weight: 450; letter-spacing: -1px;
         horizontal-alignment: center; vertical-alignment: center;
     }
     Label {
-        x: 24px; y: 119px; width: parent.width - 48px; height: 23px;
+        x: 24px; y: 107px; width: parent.width - 48px; height: 23px;
         text: root.date; font-size: 12px; color: Palette.muted; horizontal-alignment: center; vertical-alignment: center;
     }
+    ModeSummary {
+        x: 24px; y: 137px; width: parent.width - 48px; height: 26px;
+        airplane: root.airplane; profile: root.profile; profile-label: root.profile-label;
+        thermal: root.thermal; rail: root.rail;
+    }
     HorizontalLayout {
-        x: 24px; y: 165px; width: parent.width - 48px; height: 22px; spacing: 5px;
-        Label { text: root.carrier-label + " · " + root.network-mode; min-width: 0px; font-size: 12px; vertical-alignment: center; }
+        x: 24px; y: 173px; width: parent.width - 48px; height: 22px; spacing: 5px;
+        Label { text: root.airplane ? @tr("蜂窝网络已关闭") : root.carrier-label + " · " + root.network-mode; min-width: 0px; font-size: 12px; vertical-alignment: center; }
         Rectangle {
             width: 4px;
             Rectangle { y: 9px; width: 4px; height: 4px; border-radius: 2px; background: root.network-online ? Palette.good : Palette.warning; }
         }
         Label {
-            text: root.network-online ? @tr("已联网") : @tr("未联网"); width: self.preferred-width;
+            text: root.airplane && root.wifi-enabled ? @tr("Wi-Fi 可用") : root.network-online ? @tr("已联网") : @tr("未联网"); width: self.preferred-width;
             font-size: 12px; color: Palette.muted; vertical-alignment: center;
         }
     }
@@ -77,18 +88,18 @@ export component LockScreen inherits AmbientBackground {
     Rectangle {
         x: 24px; y: 271px; width: parent.width - 48px; height: 54px; clip: true;
         for level in [0,1,2]: Rectangle { y: 3px + level * 24px; width: parent.width; height: 1px; background: Palette.line; }
-        if root.download-path != "": Path {
+        if !root.airplane && root.download-path != "": Path {
             width: parent.width; height: parent.height; commands: root.download-path;
             viewbox-width: 272; viewbox-height: 54; fit: fill;
             stroke: Palette.accent-ink; stroke-width: 1.5px; stroke-line-cap: round; stroke-line-join: round;
         }
-        if root.upload-path != "": Path {
+        if !root.airplane && root.upload-path != "": Path {
             width: parent.width; height: parent.height; commands: root.upload-path;
             viewbox-width: 272; viewbox-height: 54; fit: fill;
             stroke: Palette.good; stroke-width: 1.5px; stroke-line-cap: round; stroke-line-join: round;
         }
-        if root.samples < 2: Label {
-            text: @tr("正在积累趋势"); font-size: 12px; color: Palette.muted; horizontal-alignment: center; vertical-alignment: center;
+        if root.airplane || root.samples < 2: Label {
+            text: root.airplane ? @tr("蜂窝流量已暂停") : @tr("正在积累趋势"); font-size: 12px; color: Palette.muted; horizontal-alignment: center; vertical-alignment: center;
         }
     }
     Label {

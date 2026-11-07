@@ -659,6 +659,7 @@ impl Controller {
         self.live_keys.clear();
         for read in &self.reads {
             let (topic, nested) = match read.request.path.as_str() {
+                "/api/device/operating" => ("operating", None),
                 "/api/network/signal" => ("signal", None),
                 "/api/network/speeds" => ("traffic", None),
                 "/api/battery" => ("battery", None),

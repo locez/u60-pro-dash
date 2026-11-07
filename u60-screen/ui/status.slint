@@ -1,7 +1,14 @@
 import { Palette, Label } from "components.slint";
+import { ModeIcon } from "operating.slint";
 
 // One compact status row for the home, details and lock surfaces.
 export component StatusBar inherits Rectangle {
+    in property <bool> airplane;
+    in property <string> profile;
+    in property <bool> thermal;
+    in property <bool> rail;
+    in property <bool> interactive;
+    callback clicked;
     in property <bool> awake: true;
     in property <bool> locked;
     in property <string> connection;
@@ -42,7 +49,10 @@ export component StatusBar inherits Rectangle {
     indicators := HorizontalLayout {
         x: root.width - self.width - 14px; width: self.preferred-width;
         height: parent.height; spacing: 5px;
-        Rectangle {
+        if root.thermal || root.rail: Rectangle { width: 13px; ModeIcon { y: 7px; kind: root.thermal ? "thermal" : "rail"; width: 13px; height: 15px; stroke: root.thermal ? Palette.warning : Palette.muted; } }
+        if root.profile == "saving" || root.profile == "performance": Rectangle { width: 14px; ModeIcon { y: 7px; kind: root.profile; width: 14px; height: 15px; } }
+        if root.airplane: Rectangle { width: 16px; ModeIcon { y: 6px; kind: "airplane"; width: 16px; height: 16px; stroke: Palette.muted; } }
+        if !root.airplane: Rectangle {
             width: 14px;
             for bar in [0, 1, 2, 3]: Rectangle {
                 x: bar * 4px; y: 20px - self.height;
@@ -58,7 +68,7 @@ export component StatusBar inherits Rectangle {
                 text: "?"; font-size: 12px; horizontal-alignment: center; vertical-alignment: center;
             }
         }
-        if root.network != "": Label {
+        if !root.airplane && root.network != "": Label {
             text: root.network; width: self.preferred-width; font-size: 11px;
             color: Palette.muted; vertical-alignment: center;
         }
@@ -113,4 +123,5 @@ export component StatusBar inherits Rectangle {
             color: Palette.muted; vertical-alignment: center; horizontal-alignment: right;
         }
     }
+    TouchArea { enabled: root.interactive && !root.locked; accessible-role: button; accessible-label: @tr("快捷控制"); clicked => { root.clicked(); } }
 }

@@ -116,5 +116,27 @@
     "rows": [],
     "actions": [],
     "apis": []
+  },
+  {
+    "id": "mobile-modes",
+    "title": "连接设置",
+    "group": "mobile",
+    "description": "飞行模式、应用带宽分配与高铁优化。",
+    "apis": [
+      "GET /api/device/operating",
+      "POST /api/modem/airplane",
+      "PUT /api/modem/bandwidth"
+    ]
+  },
+  {
+    "id": "quick-controls",
+    "title": "快捷控制",
+    "group": "power",
+    "description": "飞行模式与性能三档。",
+    "apis": [
+      "GET /api/device/operating",
+      "POST /api/modem/airplane",
+      "PUT /api/device/performance"
+    ]
   }
 ]

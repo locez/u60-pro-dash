@@ -14,7 +14,8 @@ fn policy(id: &str) -> Option<Policy> {
     use Policy::*;
     Some(match id {
         "screen-prefs" | "screen-lock" | "account" | "history" | "tailscale-network" => Local,
-        "signal-live" | "carriers" | "processes" | "usb" => Stream,
+        "signal-live" | "carriers" | "processes" | "usb" | "quick-controls" | "mobile-modes"
+        | "power-save" => Stream,
         "battery-details" | "clients" | "sms-inbox" | "sms-forward-log" => Poll(10),
         "proxy-service" | "proxy-groups" | "tailscale-service" | "phone" => Poll(5),
         "resources" | "wan" | "traffic" | "sim-info" | "wifi-share" | "wifi-home" => Poll(30),
@@ -26,8 +27,8 @@ fn policy(id: &str) -> Option<Policy> {
         | "domain" | "dns-config" | "doh" | "dns-cache" | "tailscale-config" | "sms-compose"
         | "sms-storage" | "sms-forward" | "sim-verify" | "sim-pin" | "sim-change-pin"
         | "sim-network-unlock" | "esim-receipts" | "ussd" | "lan-test" | "at-terminal"
-        | "scheduler" | "live-activity" | "charge" | "power-save" | "fast-boot" | "auto-sleep"
-        | "device-info" | "https" | "reboot" | "factory-reset" | "backup" | "wireguard" => Entry,
+        | "scheduler" | "live-activity" | "charge" | "fast-boot" | "auto-sleep" | "device-info"
+        | "https" | "reboot" | "factory-reset" | "backup" | "wireguard" => Entry,
         _ => return None,
     })
 }
