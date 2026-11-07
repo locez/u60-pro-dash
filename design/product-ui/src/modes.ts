@@ -22,8 +22,8 @@ export const performanceModes = [
 ] as const;
 export type PerformanceMode = (typeof performanceModes)[number]["id"];
 export const bandwidthModes = [
-  { id: "normal", label: "极速", hint: "应用自由竞争带宽，不指定应用优先级" },
-  { id: "ai", label: "AI 智能", hint: "由原厂策略按应用使用情况分配带宽" },
+  { id: "normal", label: "极速", hint: "不区分应用优先级，按需使用带宽" },
+  { id: "ai", label: "AI 智能", hint: "自动判断并优先保障当前应用" },
   { id: "game", label: "游戏优先", hint: "优先保障游戏流量" },
   { id: "video", label: "视频优先", hint: "优先保障视频应用流量" },
   { id: "meeting", label: "会议优先", hint: "优先保障会议与网课流量" },
@@ -39,6 +39,7 @@ export const modeScenarios = [
   ["recovery-error", "蜂窝恢复失败"],
 ] as const;
 export type ModeScenario = (typeof modeScenarios)[number][0];
+type ModeControl = "airplane" | "performance" | "bandwidth";
 
 // Design-only state shared by the Web and screen previews. No device API calls.
 export function useOperatingModes() {
@@ -47,7 +48,11 @@ export function useOperatingModes() {
   const [bandwidth, setBandwidth] = useState<BandwidthMode>("normal");
   const [phase, setPhase] = useState<"idle" | "applying" | "restoring">("idle");
   const [scenario, setScenario] = useState<ModeScenario>("normal");
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState<Partial<Record<ModeControl, string>>>(
+    {},
+  );
+  const setError = (control: ModeControl, message: string) =>
+    setErrors((previous) => ({ ...previous, [control]: message }));
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
     () => () => {
@@ -59,36 +64,37 @@ export function useOperatingModes() {
     if (timer.current) clearTimeout(timer.current);
     timer.current = null;
     setPhase("idle");
-    setError("");
+    setErrors({});
     setScenario(next);
     if (next === "rail") setAirplane(false);
     if (next === "recovery-error") setAirplane(true);
   };
   const changeAirplane = (next: boolean) => {
     if (phase !== "idle" || scenario === "unknown") return;
-    setError("");
+    setError("airplane", "");
     setPhase(next ? "applying" : "restoring");
     timer.current = setTimeout(() => {
       timer.current = null;
       setPhase("idle");
       if (!next && scenario === "recovery-error") {
         setError(
+          "airplane",
           "蜂窝网络尚未恢复。可以重试或进入移动网络诊断；Wi-Fi 管理仍可使用。",
         );
       } else if (scenario === "apply-error") {
-        setError("设置未能应用，已保留原来的模式。请稍后重试。");
+        setError("airplane", "设置未能应用，已保留原来的模式。请稍后重试。");
       } else {
         setAirplane(next);
       }
     }, 900);
   };
-  const apply = (fn: () => void) => {
+  const apply = (control: ModeControl, fn: () => void) => {
     if (scenario === "unknown") return;
     if (scenario === "apply-error")
-      setError("设置未能应用，已保留原来的模式。请稍后重试。");
+      setError(control, "设置未能应用，已保留原来的设置。请稍后重试。");
     else {
       fn();
-      setError("");
+      setError(control, "");
     }
   };
   const profile = performanceModes.find((p) => p.id === performance)!;
@@ -101,7 +107,7 @@ export function useOperatingModes() {
     strategy,
     phase,
     scenario,
-    error,
+    errors,
     busy: phase !== "idle",
     unknown: scenario === "unknown",
     rail: scenario === "rail" && !airplane,
@@ -109,7 +115,8 @@ export function useOperatingModes() {
     changeAirplane,
     setScene,
     changePerformance: (value: PerformanceMode) =>
-      apply(() => setPerformance(value)),
-    changeBandwidth: (value: BandwidthMode) => apply(() => setBandwidth(value)),
+      apply("performance", () => setPerformance(value)),
+    changeBandwidth: (value: BandwidthMode) =>
+      apply("bandwidth", () => setBandwidth(value)),
   };
 }

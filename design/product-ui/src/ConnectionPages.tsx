@@ -1,3 +1,4 @@
+import { FlightModeControl, NetworkOptimizationControls } from "./ModeControls";
 import { useState } from "react";
 import {
   ArrowDown,
@@ -432,99 +433,97 @@ export function InternetPage({ tab }: { tab: string }) {
     [simPanel, setSimPanel] = useState("");
   if (tab === "连接设置")
     return (
-      <ConfigForm
-        id="cellular"
-        title="蜂窝连接"
-        note="选择接入方式，管理 APN 与网络恢复策略。"
-        initial={{
-          data: true,
-          mode: "5G / 4G 自动",
-          operator: "自动选择",
-          apn: "3gnet",
-          roaming: false,
-          watchdog: true,
-          oos: true,
-          ttl: "保持系统默认",
-        }}
-        confirm={(_, previous, key) =>
-          previous.data &&
-          ["data", "mode", "operator", "apn", "roaming"].includes(key)
-            ? "应用此设置会中断或重新建立移动网络连接，正在进行的下载与通话可能中断。"
-            : undefined
-        }
-      >
-        {(v, set) => (
-          <>
-            <button
-              className="mode-inline-entry"
-              onClick={() => m.go({ page: "system", tab: "运行模式" })}
-            >
-              <span>
-                飞行模式
-                <small>
-                  {m.modes.airplane
-                    ? "已开启 · Wi-Fi 与本地管理可用"
-                    : "已关闭 · 管理蜂窝无线电"}
-                </small>
-              </span>
-              <ChevronRight size={16} />
-            </button>
-            <SwitchRow
-              title="移动数据"
-              value={!!v.data}
-              onChange={() => set("data", !v.data)}
-            />
-            <div className="form-grid">
-              <Field label="首选网络">
-                <Select
-                  value={String(v.mode)}
-                  options={["5G / 4G 自动", "仅 5G", "仅 4G"]}
-                  onChange={(s) => set("mode", s)}
-                />
-              </Field>
-              <Field label="运营商">
-                <Select
-                  value={String(v.operator)}
-                  options={["自动选择", "中国联通", "手动扫描"]}
-                  onChange={(s) => set("operator", s)}
-                />
-              </Field>
-              <Field label="APN" hint="优先使用运营商提供的接入点">
-                <input
-                  value={String(v.apn)}
-                  onChange={(e) => set("apn", e.target.value)}
-                />
-              </Field>
-            </div>
-            <SwitchRow
-              title="数据漫游"
-              hint="漫游可能产生额外费用"
-              value={!!v.roaming}
-              onChange={() => set("roaming", !v.roaming)}
-            />
-            <details className="advanced-details">
-              <summary>高级连接策略</summary>
+      <>
+        <Panel>
+          <FlightModeControl />
+        </Panel>
+        <ConfigForm
+          id="cellular"
+          title="蜂窝连接"
+          note="选择接入方式，管理 APN 与网络恢复策略。"
+          initial={{
+            data: true,
+            mode: "5G / 4G 自动",
+            operator: "自动选择",
+            apn: "3gnet",
+            roaming: false,
+            watchdog: true,
+            oos: true,
+            ttl: "保持系统默认",
+          }}
+          confirm={(_, previous, key) =>
+            previous.data &&
+            ["data", "mode", "operator", "apn", "roaming"].includes(key)
+              ? "应用此设置会中断或重新建立移动网络连接，正在进行的下载与通话可能中断。"
+              : undefined
+          }
+        >
+          {(v, set) => (
+            <>
               <SwitchRow
-                title="断网自动恢复"
-                value={!!v.watchdog}
-                onChange={() => set("watchdog", !v.watchdog)}
+                title="移动数据"
+                value={!!v.data}
+                onChange={() => set("data", !v.data)}
               />
+              <div className="form-grid">
+                <Field label="首选网络">
+                  <Select
+                    value={String(v.mode)}
+                    options={["5G / 4G 自动", "仅 5G", "仅 4G"]}
+                    onChange={(s) => set("mode", s)}
+                  />
+                </Field>
+                <Field label="运营商">
+                  <Select
+                    value={String(v.operator)}
+                    options={["自动选择", "中国联通", "手动扫描"]}
+                    onChange={(s) => set("operator", s)}
+                  />
+                </Field>
+                <Field label="APN" hint="优先使用运营商提供的接入点">
+                  <input
+                    value={String(v.apn)}
+                    onChange={(e) => set("apn", e.target.value)}
+                  />
+                </Field>
+              </div>
               <SwitchRow
-                title="无服务省电"
-                value={!!v.oos}
-                onChange={() => set("oos", !v.oos)}
+                title="数据漫游"
+                hint="漫游可能产生额外费用"
+                value={!!v.roaming}
+                onChange={() => set("roaming", !v.roaming)}
               />
-              <Field label="TTL / 跳数">
-                <Select
-                  value={String(v.ttl)}
-                  options={["保持系统默认", "64", "65", "128"]}
-                  onChange={(s) => set("ttl", s)}
+              <details className="advanced-details">
+                <summary>高级连接策略</summary>
+                <SwitchRow
+                  title="断网自动恢复"
+                  value={!!v.watchdog}
+                  onChange={() => set("watchdog", !v.watchdog)}
                 />
-              </Field>
-            </details>
-          </>
-        )}
-      </ConfigForm>
+                <SwitchRow
+                  title="无服务省电"
+                  value={!!v.oos}
+                  onChange={() => set("oos", !v.oos)}
+                />
+                <Field label="TTL / 跳数">
+                  <Select
+                    value={String(v.ttl)}
+                    options={["保持系统默认", "64", "65", "128"]}
+                    onChange={(s) => set("ttl", s)}
+                  />
+                </Field>
+              </details>
+            </>
+          )}
+        </ConfigForm>
+        <Panel>
+          <PanelTitle
+            title="网络优化"
+            note="设置应用带宽优先级，查看高铁自动优化状态。"
+          />
+          <NetworkOptimizationControls />
+        </Panel>
+      </>
     );
   if (tab === "SIM 与 eSIM")
     return (

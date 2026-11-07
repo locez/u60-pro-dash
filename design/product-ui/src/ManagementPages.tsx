@@ -1,4 +1,4 @@
-import { OperatingModesPage } from "./ModeControls";
+import { PerformanceControls } from "./ModeControls";
 import { useState } from "react";
 import {
   Activity,
@@ -612,7 +612,6 @@ export function SystemPage({ tab }: { tab: string }) {
     [dialog, setDialog] = useState(""),
     [checked, setChecked] = useState(false),
     [task, setTask] = useState(false);
-  if (tab === "运行模式") return <OperatingModesPage />;
   if (tab === "屏幕与安全")
     return (
       <div className="two-columns">
@@ -1050,6 +1049,9 @@ export function SystemPage({ tab }: { tab: string }) {
           <ResourceChart />
         </Panel>
       </div>
+      <Panel>
+        <PerformanceControls />
+      </Panel>
       <ConfigForm
         id="power"
         title="电源策略"
@@ -1093,15 +1095,6 @@ export function SystemPage({ tab }: { tab: string }) {
                 />
               </Field>
             </div>
-            <Entry
-              title="性能模式"
-              description={
-                m.modes.unknown
-                  ? "状态未知"
-                  : m.modes.profile.label + " · 管理运行策略"
-              }
-              onClick={() => m.go({ page: "system", tab: "运行模式" })}
-            />
             <details className="advanced-details">
               <summary>启动与 USB 供电</summary>
               <SwitchRow

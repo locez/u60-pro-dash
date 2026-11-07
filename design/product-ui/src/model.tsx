@@ -47,14 +47,7 @@ export const pageTabs: Partial<Record<Page, string[]>> = {
   internet: ["信号与频段", "连接设置", "SIM 与 eSIM", "流量套餐", "运营商服务"],
   messages: ["收件箱", "转发规则", "存储管理"],
   lan: ["LAN 与 DHCP", "DNS", "访问与转发"],
-  system: [
-    "运行模式",
-    "电源与电池",
-    "屏幕与安全",
-    "更新与备份",
-    "诊断工具",
-    "自动化",
-  ],
+  system: ["电源与电池", "屏幕与安全", "更新与备份", "诊断工具", "自动化"],
 };
 export type Fields = Record<string, string | boolean>;
 export const initialSettings: Record<string, Fields> = {
@@ -116,10 +109,16 @@ function useModelState() {
     "system",
   ];
   const [route, setRoute] = useState<Route>({
-    page: validPages.includes(params.get("page") || "")
-      ? (params.get("page") as Page)
-      : "overview",
-    tab: params.get("tab") || undefined,
+    page:
+      params.get("page") === "system" && params.get("tab") === "运行模式"
+        ? "internet"
+        : validPages.includes(params.get("page") || "")
+          ? (params.get("page") as Page)
+          : "overview",
+    tab:
+      params.get("page") === "system" && params.get("tab") === "运行模式"
+        ? "连接设置"
+        : params.get("tab") || undefined,
     service: params.has("service")
       ? Math.min(2, Math.max(0, Number(params.get("service")) || 0))
       : undefined,

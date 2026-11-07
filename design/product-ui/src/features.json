@@ -523,9 +523,9 @@
     "id": "power-save",
     "name": "省电模式",
     "web": "system",
-    "tab": "运行模式",
+    "tab": "电源与电池",
     "screen": "管理",
-    "section": "运行模式"
+    "section": "电源与电池"
   },
   {
     "id": "fast-boot",

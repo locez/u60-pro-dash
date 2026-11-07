@@ -13,7 +13,6 @@ import {
   MessageSquare,
   Network,
   Plane,
-  SlidersHorizontal,
   Thermometer,
   TrainFront,
   Settings2,
@@ -24,7 +23,11 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import ScreenModes from "./ScreenModes";
+import ScreenModes, {
+  ScreenFlightMode,
+  ScreenPerformanceControls,
+  ScreenNetworkOptimization,
+} from "./ScreenModes";
 import { ProfileIcon } from "./ModeControls";
 import { bandwidthModes } from "./modes";
 import { clients } from "./data";
@@ -144,7 +147,7 @@ export default function ScreenProduct() {
   };
   const chooseBandwidth = () =>
     setSheet({
-      title: "应用带宽策略",
+      title: "带宽分配",
       selected: v.strategy.label,
       options: bandwidthModes.map((p) => p.label),
       choose: (label) => {
@@ -152,14 +155,13 @@ export default function ScreenProduct() {
         setSheet(null);
       },
     });
-  const modeControls = (compact = false) => (
+  const modeControls = () => (
     <ScreenModes
-      compact={compact}
       requestAirplane={requestAirplane}
-      chooseBandwidth={chooseBandwidth}
-      openDetails={() => {
+      openDetails={(page) => {
         setQuickControls(false);
-        quick("管理", ["运行模式"]);
+        if (page === "internet") quick("连接", ["移动网络"]);
+        else quick("管理", ["电源与电池"]);
       }}
     />
   );
@@ -538,7 +540,7 @@ export default function ScreenProduct() {
     );
   };
   const renderPage = (): ReactNode => {
-    if (title === "运行模式") return modeControls();
+    if (title === "性能模式") return <ScreenPerformanceControls />;
     if (serviceId >= 0) return renderService();
     if (title === "短信")
       return (
@@ -703,35 +705,55 @@ export default function ScreenProduct() {
       return (
         <>
           <div className="native-network-title">
-            <b>中国联通</b>
-            <span>5G SA</span>
+            <b>
+              {v.unknown ? "状态未知" : v.airplane ? "飞行模式" : "中国联通"}
+            </b>
+            <span>
+              {v.unknown
+                ? "等待数据"
+                : v.phase === "restoring"
+                  ? "恢复中"
+                  : v.airplane
+                    ? "蜂窝关闭"
+                    : cellularUnavailable
+                      ? "无服务"
+                      : "5G SA"}
+            </span>
           </div>
+          <ScreenFlightMode requestAirplane={requestAirplane} />
           <div className="native-metric-grid">
             <div>
               <small>RSRP</small>
               <b>
-                −86<em>dBm</em>
+                {cellularUnavailable ? "—" : "−86"}
+                <em>dBm</em>
               </b>
             </div>
             <div>
               <small>SINR</small>
               <b>
-                24<em>dB</em>
+                {cellularUnavailable ? "—" : "24"}
+                <em>dB</em>
               </b>
             </div>
           </div>
-          <NativeChart />
+          {!cellularUnavailable && <NativeChart />}
           <Facts
             values={[
-              ["频段 / 带宽", "n78 / 100 MHz"],
-              ["连接状态", "已注册"],
+              ["频段 / 带宽", cellularUnavailable ? "—" : "n78 / 100 MHz"],
+              [
+                "连接状态",
+                v.unknown
+                  ? "未知"
+                  : v.airplane
+                    ? "蜂窝已关闭"
+                    : cellularUnavailable
+                      ? "未连接"
+                      : "已注册",
+              ],
             ]}
           />
-          <Row
-            title="飞行模式"
-            value={v.airplane ? "已开启" : "已关闭"}
-            onClick={() => open("运行模式")}
-          />
+          <ScreenNetworkOptimization chooseBandwidth={chooseBandwidth} />
           {["连接设置", "信号与频段", "流量套餐"].map((s) => (
             <Row key={s} title={s} onClick={() => open(s)} />
           ))}
@@ -802,7 +824,7 @@ export default function ScreenProduct() {
           <Row
             title="性能模式"
             value={v.unknown ? "状态未知" : v.profile.label}
-            onClick={() => open("运行模式")}
+            onClick={() => open("性能模式")}
           />
           <Row
             title="自动熄屏"
@@ -1049,7 +1071,8 @@ export default function ScreenProduct() {
           <h3>快速查看</h3>
           {[
             ["首页", "状态", []],
-            ["运行模式", "管理", ["运行模式"]],
+            ["移动网络", "连接", ["移动网络"]],
+            ["性能模式", "管理", ["电源与电池", "性能模式"]],
             ["首页布局", "管理", ["屏幕与安全", "首页布局"]],
             ["Wi-Fi 与连接码", "连接", ["Wi-Fi"]],
             ["Tailscale", "连接", ["Tailscale"]],
@@ -1322,7 +1345,7 @@ export default function ScreenProduct() {
                           </b>
                           <button
                             className="native-mode-shortcut"
-                            aria-label="打开运行模式"
+                            aria-label="打开性能快捷控制"
                             onClick={() => setQuickControls(true)}
                           >
                             <ProfileIcon profile={v.performance} size={12} />
@@ -1489,13 +1512,6 @@ export default function ScreenProduct() {
                         <p className="native-section-label">常用管理</p>
                         {[
                           ["短信", "1 条未读", MessageSquare],
-                          [
-                            "运行模式",
-                            v.unknown
-                              ? "状态未知"
-                              : v.profile.label + " · " + v.strategy.label,
-                            SlidersHorizontal,
-                          ],
                           ["电源与电池", "82% · 外部电源", BatteryCharging],
                           ["屏幕与安全", "外观、语言与锁屏", LockKeyhole],
                           ["诊断工具", "负载、进程与测试", Cpu],
@@ -1555,7 +1571,7 @@ export default function ScreenProduct() {
                         <X size={18} />
                       </button>
                     </header>
-                    {modeControls(true)}
+                    {modeControls()}
                   </section>
                 </div>
               )}

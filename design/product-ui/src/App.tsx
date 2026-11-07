@@ -62,7 +62,7 @@ function SelectedDesign() {
       <div className="design-bar">
         <div className="design-brand">
           <span className="design-dot" /> U60 <span>产品设计稿</span>
-          <span className="design-stage">03 / 运行模式</span>
+          <span className="design-stage">03 / 连接与性能</span>
           <a
             href={
               "?explore=1" + (publicPresentation ? "&presentation=public" : "")

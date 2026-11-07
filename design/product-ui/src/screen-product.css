@@ -1411,3 +1411,17 @@
   padding: 15px 16px 19px;
   max-height: 420px;
 }
+
+.native-mode-destinations {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.native-mode-bandwidth {
+  padding-bottom: 14px;
+}
+.native-mode-flight:disabled,
+.native-mode-bandwidth:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

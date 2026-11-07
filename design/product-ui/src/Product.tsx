@@ -231,10 +231,12 @@ export default function Product() {
       {modePanel && (
         <Modal title="快捷控制" close={() => setModePanel(false)}>
           <ModeControls
-            compact
-            openDetails={() => {
+            openDetails={(page) => {
               setModePanel(false);
-              m.go({ page: "system", tab: "运行模式" });
+              m.go({
+                page,
+                tab: page === "internet" ? "连接设置" : "电源与电池",
+              });
             }}
           />
         </Modal>
