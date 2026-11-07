@@ -768,6 +768,12 @@ const streams = {
       path: "/api/wifi/settings",
       body: { wifi6_switch: "1" },
     });
+    await page.waitForFunction(
+      () =>
+        document.querySelectorAll('select option[value="EHT160"]').length > 0,
+    );
+    assert.equal(await widths.nth(0).inputValue(), "EHT40");
+    assert.equal(await widths.nth(1).inputValue(), "EHT160");
     // Reopening the radio page must read both the saved switch and the
     // firmware's new width namespace, rather than retaining a local draft.
     await page.evaluate(() => (location.hash = "wifi/hotspot"));

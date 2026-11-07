@@ -293,14 +293,18 @@ impl Controller {
                 String::new()
             }
         } else {
-            crate::i18n::format(
+            let read_error = crate::i18n::format(
                 "部分状态读取失败：{0}",
                 &[errors
                     .into_iter()
                     .collect::<Vec<_>>()
                     .join("；")
                     .to_string()],
-            )
+            );
+            match &self.outcome {
+                Some(outcome) => format!("{outcome}\n{read_error}"),
+                None => read_error,
+            }
         };
     }
     fn schedule_poll(&mut self) {
@@ -850,6 +854,10 @@ mod tests {
         c.finish_reads();
         assert!(c.page.dirty());
         assert!(c.notice.contains("disk full"));
+        c.data.insert("settings".into(), Err(Error::Unavailable));
+        c.finish_reads();
+        assert!(c.notice.contains("disk full"));
+        assert!(c.notice.contains("部分状态读取失败"));
     }
 
     #[test]

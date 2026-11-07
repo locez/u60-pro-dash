@@ -356,7 +356,12 @@ export function WifiPage({ tab }: { tab: string }) {
   if (tab === "guest") return <SettingsForm spec={guest} />;
   return (
     <>
-      {tab === "radio" && <SettingsForm spec={wifiStandard} />}
+      {tab === "radio" && (
+        <SettingsForm
+          spec={wifiStandard}
+          onApplied={() => setRevision((value) => value + 1)}
+        />
+      )}
       <div className="two-columns">
         <SettingsForm
           key={"2g" + tab + revision}
