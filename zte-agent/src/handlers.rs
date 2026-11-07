@@ -206,15 +206,18 @@ pub(crate) fn read_uci_option(config: &str, section: &str, option: &str) -> Resu
     let value = read_uci_files(
         std::path::Path::new(&format!("/etc/config/{config}")),
         std::path::Path::new(&format!("/tmp/.uci/{config}")),
+        std::path::Path::new(&format!("/tmp/lock/{config}.ucilock")),
         config, section, option,
     );
     value.map(Ok).unwrap_or_else(|| ubus::uci_get(&format!("{config}.{section}.{option}")))
 }
 
-/// Hold libuci's shared locks in config → delta order. A commit truncates
-/// the delta before replacing the config; an unlocked read during that gap
-/// incorrectly resurrects the old value. Contention uses the CLI fallback.
-fn read_uci_files(base_path: &std::path::Path, delta_path: &std::path::Path, config: &str, section: &str, option: &str) -> Option<String> {
+/// B31's libuci holds /tmp/lock/<package>.ucilock across load/commit, rather
+/// than relying on a lock on the config inode it is about to replace. Hold
+/// that lock first, then config → delta. Reading a truncated delta before
+/// the replacement otherwise resurrects the old state. Missing firmware
+/// locks and contention use the original CLI rather than assuming a format.
+fn read_uci_files(base_path: &std::path::Path, delta_path: &std::path::Path, package_lock_path: &std::path::Path, config: &str, section: &str, option: &str) -> Option<String> {
     use std::fs::File;
     use std::io::Read;
     use std::os::fd::AsRawFd;
@@ -228,6 +231,9 @@ fn read_uci_files(base_path: &std::path::Path, delta_path: &std::path::Path, con
         let now = std::fs::metadata(path).ok()?;
         (open.dev() == now.dev() && open.ino() == now.ino()).then_some(())
     }
+    let package_lock = File::open(package_lock_path).ok()?;
+    lock(&package_lock)?;
+    current(&package_lock, package_lock_path)?;
     let mut base = File::open(base_path).ok()?;
     lock(&base)?;
     current(&base, base_path)?;
@@ -408,12 +414,16 @@ config other 'other'
         fs::create_dir_all(&dir).unwrap();
         let base = dir.join("config");
         let delta = dir.join("delta");
+        let package_lock = dir.join("package.ucilock");
+        fs::write(&package_lock, "").unwrap();
         fs::write(&base, CONFIG).unwrap();
         fs::write(&delta, "zte_nwinfo.sys_info.operate_mode='OFFLINE'\n").unwrap();
-        let read = || read_uci_files(&base, &delta, "zte_nwinfo", "sys_info", "operate_mode");
+        let read = || read_uci_files(&base, &delta, &package_lock, "zte_nwinfo", "sys_info", "operate_mode");
         assert_eq!(read().as_deref(), Some("OFFLINE"));
 
-        let writer = OpenOptions::new().read(true).write(true).open(&base).unwrap();
+        // The shipped library locks a separate package file while the base
+        // inode remains readable. A base-file flock alone cannot prevent it.
+        let writer = OpenOptions::new().read(true).write(true).open(&package_lock).unwrap();
         assert_eq!(unsafe { libc::flock(writer.as_raw_fd(), libc::LOCK_EX) }, 0);
         fs::write(&delta, "").unwrap(); // libuci flushes the delta before rename.
         assert_eq!(read(), None); // Must defer to libuci, never report old ONLINE.
@@ -421,10 +431,17 @@ config other 'other'
         drop(writer);
         assert_eq!(read().as_deref(), Some("OFFLINE"));
 
+        let writer = OpenOptions::new().read(true).write(true).open(&base).unwrap();
+        assert_eq!(unsafe { libc::flock(writer.as_raw_fd(), libc::LOCK_EX) }, 0);
+        assert_eq!(read(), None);
+        drop(writer);
+
         let writer = OpenOptions::new().read(true).write(true).open(&delta).unwrap();
         assert_eq!(unsafe { libc::flock(writer.as_raw_fd(), libc::LOCK_EX) }, 0);
         assert_eq!(read(), None); // Also respect a concurrent uci set.
         drop(writer);
+        fs::remove_file(&package_lock).unwrap();
+        assert_eq!(read(), None); // Unknown firmware must use its own reader.
         fs::remove_dir_all(dir).unwrap();
     }
 
