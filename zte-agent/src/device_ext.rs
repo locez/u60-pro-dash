@@ -302,7 +302,9 @@ pub fn device_fast_boot_get(_state: &AppState) -> (u16, Value) {
     let params = r#"{"deviceInfoList":["quicken_power_on"]}"#;
     match ubus::call("zwrt_mc.device.manager", "get_device_info", Some(params)) {
         Ok(data) => {
-            let val = data["quicken_power_on"].as_str().unwrap_or("0");
+            let Some(val @ ("0" | "1")) = data["quicken_power_on"].as_str() else {
+                return (503, json!({"ok":false,"error":"Fast boot state is unavailable"}));
+            };
             (200, json!({"ok": true, "data": {"fast_boot": val}}))
         }
         Err(e) => (503, json!({"ok": false, "error": e})),
@@ -326,8 +328,14 @@ pub fn device_fast_boot_set(_state: &AppState, body: &[u8]) -> (u16, Value) {
 }
 
 pub fn device_auto_sleep_get(_state: &AppState) -> (u16, Value) {
-    let timeout = ubus::uci_get("zwrt_sleep.ztmp_time.SysIdTime").unwrap_or_default();
-    let switch = ubus::uci_get("zwrt_sleep.ztmp_switch.sleepSwitch").unwrap_or_default();
+    let timeout = match ubus::uci_get("zwrt_sleep.ztmp_time.SysIdTime") {
+        Ok(value) => value,
+        Err(error) => return (503, json!({"ok":false,"error":error})),
+    };
+    let switch = match ubus::uci_get("zwrt_sleep.ztmp_switch.sleepSwitch") {
+        Ok(value) if matches!(value.as_str(), "0" | "1") => value,
+        _ => return (503, json!({"ok":false,"error":"Auto-sleep state is unavailable"})),
+    };
     let status = ubus::uci_get("zwrt_sleep.ztmp_status.sleepStatus").unwrap_or_default();
     (
         200,
@@ -342,47 +350,83 @@ pub fn device_auto_sleep_get(_state: &AppState) -> (u16, Value) {
     )
 }
 
-pub fn device_auto_sleep_set(_state: &AppState, body: &[u8]) -> (u16, Value) {
-    let parsed: Value = match serde_json::from_slice(body) {
-        Ok(v) => v,
-        Err(_) => return (400, json!({"ok": false, "error": "invalid JSON"})),
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct AutoSleepSettings {
+    enabled: Option<bool>,
+    timeout: Option<String>,
+}
+
+fn auto_sleep_settings(body: &[u8]) -> Result<AutoSleepSettings, String> {
+    let settings: AutoSleepSettings = serde_json::from_slice(body)
+        .map_err(|_| "Invalid auto-sleep settings".to_string())?;
+    if let Some(timeout) = &settings.timeout {
+        if timeout != "-1" && !timeout.parse::<u32>().is_ok_and(|v| (1..=1440).contains(&v)) {
+            return Err("timeout must be -1 or 1–1440 (minutes)".into());
+        }
+    }
+    Ok(settings)
+}
+
+fn apply_auto_sleep(
+    settings: &AutoSleepSettings,
+    mut call: impl FnMut(&str, &str) -> Result<(), String>,
+    mut persist: impl FnMut(&str) -> Result<(), String>,
+) -> Result<(), String> {
+    if let Some(timeout) = &settings.timeout {
+        call("set_ufi_sleep", &json!({"ufiSleepTime":timeout}).to_string())?;
+    }
+    if let Some(enabled) = settings.enabled {
+        call("enableAutoSleep", &json!({"switch":enabled}).to_string())?;
+        persist(if enabled { "1" } else { "0" })
+            .map_err(|error| format!("Auto-sleep changed but could not be saved: {error}"))?;
+    }
+    Ok(())
+}
+
+pub fn device_auto_sleep_set(state: &AppState, body: &[u8]) -> (u16, Value) {
+    // Validate the whole request before changing the device. An invalid
+    // timeout must not leave an already-applied enabled switch behind.
+    let settings = match auto_sleep_settings(body) {
+        Ok(settings) => settings,
+        Err(error) => return (400, json!({"ok":false,"error":error})),
     };
-
-    if let Some(enabled) = parsed["enabled"].as_bool() {
-        let params = format!(r#"{{"switch":{}}}"#, enabled);
-        if let Err(e) = ubus::call("zwrt_zte_sleep_faw.wakelock", "enableAutoSleep", Some(&params))
-        {
-            return (503, json!({"ok": false, "error": format!("enableAutoSleep: {e}")}));
-        }
-        // Persist to UCI so it survives reboots
-        let val = if enabled { "1" } else { "0" };
-        let _ = ubus::uci_set("zwrt_sleep.ztmp_switch.sleepSwitch", val);
+    if let Err(error) = apply_auto_sleep(
+        &settings,
+        |method, params| ubus::call("zwrt_zte_sleep_faw.wakelock", method, Some(params)).map(|_| ()),
+        |value| ubus::uci_set("zwrt_sleep.ztmp_switch.sleepSwitch", value),
+    ) {
+        return (503, json!({"ok":false,"error":error}));
     }
-
-    if let Some(timeout) = parsed["timeout"].as_str() {
-        let valid = timeout == "-1"
-            || timeout
-                .parse::<u32>()
-                .map(|v| (1..=1440).contains(&v))
-                .unwrap_or(false);
-        if !valid {
-            return (
-                400,
-                json!({"ok": false, "error": "timeout must be -1 or 1–1440 (minutes)"}),
-            );
-        }
-        let params = format!(r#"{{"ufiSleepTime":"{timeout}"}}"#);
-        if let Err(e) = ubus::call("zwrt_zte_sleep_faw.wakelock", "set_ufi_sleep", Some(&params)) {
-            return (503, json!({"ok": false, "error": format!("set_ufi_sleep: {e}")}));
-        }
+    let actual = device_auto_sleep_get(state);
+    if actual.0 != 200 { return actual; }
+    let data = &actual.1["data"];
+    if settings.enabled.is_some_and(|v| data["enabled"].as_bool() != Some(v))
+        || settings.timeout.as_ref().is_some_and(|v| data["timeout"].as_str() != Some(v.as_str())) {
+        return (503, json!({"ok":false,"error":"Auto-sleep settings were not confirmed after applying"}));
     }
-
-    device_auto_sleep_get(_state)
+    actual
 }
 
 #[cfg(test)]
 mod system_info_tests {
     use super::*;
+
+    #[test]
+    fn auto_sleep_validates_whole_request_and_reports_persistence_failures() {
+        assert!(auto_sleep_settings(br#"{"enabled":true,"timeout":"0"}"#).is_err());
+        assert!(auto_sleep_settings(br#"{"enabled":"true"}"#).is_err());
+        assert!(auto_sleep_settings(br#"{"enabled":true,"unsupported":1}"#).is_err());
+        let settings = auto_sleep_settings(br#"{"enabled":true,"timeout":"30"}"#).unwrap();
+        let mut called = Vec::new();
+        let error = apply_auto_sleep(&settings, |method, _| { called.push(method.to_string()); Ok(()) }, |_| Err("disk full".into())).unwrap_err();
+        assert_eq!(called, ["set_ufi_sleep", "enableAutoSleep"]);
+        assert!(error.contains("could not be saved"));
+        assert!(error.contains("disk full"));
+        let mut persisted = false;
+        assert!(apply_auto_sleep(&settings, |_, _| Err("device refused".into()), |_| { persisted = true; Ok(()) }).is_err());
+        assert!(!persisted);
+    }
 
     const UPTIME: &str = "203076.12 812345.67\n";
     const LOADAVG: &str = "0.52 0.58 0.59 1/160 12345\n";
